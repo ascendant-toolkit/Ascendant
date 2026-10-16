@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fixed and Managed Exchange Rate Systems</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Economics · 9708 · Syllabus 11.2.2 to 11.2.4</div>
+  <h1>Fixed and Managed Exchange Rate Systems</h1>
+  <p class="lead">11.2.2 to 11.2.4: how the exchange rate is determined under fixed and managed systems, how central banks defend a peg, devaluation and revaluation, and how the rate changes under each system. Animated diagrams, labs, drills and the past paper questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This part in four sentences</h3>
+  <p>Under a <b class="kw">fixed exchange rate</b> the central bank sets the rate (a <b>peg</b>) and defends it by <b>buying or selling its own currency using foreign exchange reserves</b> and by adjusting interest rates. Under a <b class="kw">managed float</b> the market sets the rate day to day, but the central bank <b>intervenes to keep it within a band</b> or to smooth sharp swings. A fixed rate can only be changed by an official decision: a <b class="kw">revaluation</b> (raise the peg) or a <b class="kw">devaluation</b> (lower it), whereas a floating rate rises and falls by market forces as <b>appreciation</b> and <b>depreciation</b>. Each system gives a different answer to the same shock, and the exam asks you to compare them.</p></div>
+
+  <h2>1 · Determination of the exchange rate (11.2.2)</h2>
+  <div id="pic1" class="card"></div>
+  <h3>The currency market</h3>
+  <ul>
+    <li>The <b>demand for a currency</b> comes from foreign buyers of the country's exports, investors who want its assets, tourists and speculators. The <b>supply</b> comes from residents buying imports and foreign assets. On a diagram the exchange rate is on the vertical axis and the quantity of the currency on the horizontal axis.</li>
+    <li>In a <b>free float</b>, the equilibrium rate is where demand meets supply. A shift in demand or supply (for example higher interest rates abroad) changes the rate with no official action.</li>
+  </ul>
+  <h3>Fixed exchange rates</h3>
+  <ul>
+    <li>The government <b>announces a rate</b> (often against the US dollar, the euro or a basket) and the central bank defends it. The rate may be exactly fixed (a currency board or a peg) or held in a <b>narrow band</b>.</li>
+    <li><b>If the peg is above the equilibrium</b> (the currency is over-valued): supply exceeds demand at the pegged rate. The central bank must <b>buy the excess currency</b>, paying with its foreign exchange reserves, and may <b>raise interest rates</b> to attract demand.</li>
+    <li><b>If the peg is below the equilibrium</b> (under-valued): demand exceeds supply. The central bank <b>sells its currency</b> and builds up reserves, and may cut interest rates.</li>
+    <li>If reserves run low and the pressure continues, the government must <b>devalue</b> or give up the peg.</li>
+  </ul>
+  <h3>Managed float</h3>
+  <ul>
+    <li>The rate is <b>mainly set by the market</b> but the central bank intervenes, often within an <b>unannounced or announced band</b>, to stop it from rising or falling too far, too quickly. This is sometimes called a <b>dirty float</b>.</li>
+    <li>The tools are <b>buying or selling reserves</b> and changing <b>interest rates</b>. Within the band the market decides; at the edges the central bank acts.</li>
+    <li>A <b>managed system gives some stability and some policy freedom</b> but needs reserves and can be hard to run if markets think the band will not hold.</li>
+  </ul>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Fixed</th><th>Managed float</th><th>Free float</th></tr>
+    <tr><td><b>Who sets the rate?</b></td><td>The government and central bank</td><td>The market, with intervention</td><td>The market only</td></tr>
+    <tr><td><b>Reserves needed</b></td><td>Large</td><td>Moderate</td><td>Small</td></tr>
+    <tr><td><b>Interest rates</b></td><td>Used to defend the peg, so less domestic freedom</td><td>Some freedom, but the band limits it</td><td>Free to target inflation and growth</td></tr>
+    <tr><td><b>Certainty for trade</b></td><td>High</td><td>Medium</td><td>Low (volatile)</td></tr>
+    <tr><td><b>Balance of payments</b></td><td>No automatic adjustment; needs policy or a devaluation</td><td>Partial adjustment</td><td>Rate adjusts and tends to correct deficits</td></tr>
+    <tr><td><b>Risk</b></td><td>Speculative attack if the peg looks unsustainable</td><td>Intervention may fail</td><td>Volatility, possible overshooting</td></tr>
+  </table></div>
+
+  <h2>2 · Revaluation and devaluation (11.2.3)</h2>
+  <ul>
+    <li><b>Devaluation</b> is a deliberate cut in the official value of a currency in a fixed (or managed) system. <b>Revaluation</b> is a deliberate rise.</li>
+    <li><b>Depreciation</b> and <b>appreciation</b> are changes in the value of a <b>floating</b> currency caused by market forces. Examiners expect the right word for the system.</li>
+    <li>A devaluation makes exports cheaper abroad and imports dearer at home, aiming to <b>improve the current account</b> and raise aggregate demand, at the cost of <b>imported inflation</b>. A revaluation does the opposite: it helps to lower inflation (cheaper imports and inputs) but may reduce export competitiveness.</li>
+  </ul>
+
+  <h2>3 · Changes in the exchange rate under different systems (11.2.4)</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Shock</th><th>Floating</th><th>Fixed</th><th>Managed float</th></tr>
+    <tr><td><b>Rise in demand for imports</b> (more supply of the currency)</td><td>Currency depreciates</td><td>Central bank buys currency; reserves fall; may raise interest rates</td><td>Rate falls to the band floor, then intervention</td></tr>
+    <tr><td><b>Higher interest rates at home</b> (hot money inflow)</td><td>Currency appreciates</td><td>Central bank sells currency, reserves rise; interest rate gap may need to be matched</td><td>Rate rises within the band; sells currency at the ceiling</td></tr>
+    <tr><td><b>Higher inflation than partners</b></td><td>Gradual depreciation</td><td>Peg becomes over-valued; devaluation likely</td><td>Band may have to be lowered</td></tr>
+    <tr><td><b>Export boom</b> (more demand)</td><td>Currency appreciates</td><td>Central bank sells currency; reserves rise; risk of inflation</td><td>Rate rises within the band</td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Evaluation point</b>A fixed rate gives certainty and helps to control inflation (it forces discipline), but the country loses its own monetary policy and cannot easily adjust to shocks. A floating rate gives freedom and an automatic adjuster for the balance of payments but may be volatile. Most economies choose a managed float as a compromise.</div>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Defending a fixed exchange rate</h2>
+  <p>Press Play, or click the numbered steps.</p>
+  <div id="stF"></div>
+  <h2>2 · A managed float within a band</h2>
+  <div id="stM"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Defend the peg</h2>
+  <p>The currency's market equilibrium is $1.40. Shift the demand for the currency and set the official peg. See how much the central bank has to buy or sell and what happens to reserves.</p>
+  <div class="card"><div class="grid2"><div><div id="g1"></div><div id="g2"></div>
+    <div class="readout"><div><small>Market rate</small><strong id="r1"></strong></div><div><small>Official rate</small><strong id="r2"></strong></div><div><small>Central bank action</small><strong id="r3"></strong></div></div>
+    <div class="verdict" id="rv"></div></div>
+    <div><svg id="labA" viewBox="0 0 420 300" role="img" aria-label="Currency market with the pegged exchange rate and the amount the central bank must buy or sell"></svg></div></div></div>
+
+  <h2>Lab 2 · The same shock under three systems</h2>
+  <p>A shock shifts the demand for the currency. See where the rate ends up, and what the central bank must do, under a float, a managed float (band of 1.30 to 1.50) and a peg at 1.40.</p>
+  <div class="card"><div id="g3"></div><div id="tbl"></div><div class="verdict" id="tv"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which system?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Match the word to its meaning</h2><div id="m1" class="card"></div>
+  <h2>3 · Put the defence of an over-valued peg in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Calculations</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Hong Kong's peg to the US dollar</h3><p>Hong Kong's currency is allowed to move only in a narrow band against the US dollar. The monetary authority buys or sells Hong Kong dollars at the edges of the band, so interest rates in Hong Kong tend to follow US rates closely and local monetary policy has little independence.</p><div class="use"><b>Exam use:</b> a fixed (pegged) system: how intervention defends the rate and why the country gives up monetary independence.</div></div>
+  <div class="rw"><h3>Black Wednesday, 1992</h3><p>The UK was in the European Exchange Rate Mechanism, with sterling pegged within a band. As speculators sold pounds, the Bank of England spent large reserves and raised interest rates, but the peg became impossible to hold and sterling left the system. The pound then floated down.</p><div class="use"><b>Exam use:</b> a speculative attack on an over-valued peg, the limits of reserves and a forced devaluation.</div></div>
+  <div class="rw"><h3>The Swiss franc floor</h3><p>From 2011 to 2015 the Swiss National Bank held a minimum rate of 1.20 francs per euro, selling francs to stop the franc from rising. In 2015 it removed the floor and the franc jumped sharply, showing how costly it can be to hold a rate far from the market level.</p><div class="use"><b>Exam use:</b> a managed or semi-fixed rate with a floor, the size of intervention needed and the risk of ending it.</div></div>
+  <div class="rw"><h3>China's managed float</h3><p>China sets a daily central rate for the yuan against the dollar and allows the market rate to move within a band around it, with the central bank intervening at times. The yuan has appreciated gradually over the long run while remaining tightly managed.</p><div class="use"><b>Exam use:</b> a managed float: market forces within limits, with policy influence over the rate.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Past paper questions on fixed and managed exchange rates, devaluation and revaluation</h2>
+  <p>We searched the A Level Economics papers in the folder (2020 to 2025). Exchange rate systems appear in the long answer questions on policy and the balance of payments, and in comparison questions. One past question is reworded below, with practice questions that follow the mark scheme style and six Paper 3 multiple choice questions.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Type</th><th>Examples found</th><th>Where</th></tr>
+    <tr><td>Essay, 25 marks</td><td>1</td><td>Oct/Nov 2022 (43) Q7</td></tr>
+    <tr><td>Essay or data response, other</td><td>see 11.2.5, 11.5.6</td><td>Oct/Nov 2021 (43) Q7; May/June 2023 (42) Q4</td></tr>
+    <tr><td>Multiple choice (Paper 3)</td><td>6 shown below</td><td>2023 to 2025</td></tr>
+  </table></div>
+  <h2>A · Written questions (reworded)</h2>
+  <p>The wording, context and figures are our own, so they are safe to set as practice. The source paper is named for reference. Mark scheme points are in our own words.</p>
+  <details class="eq"><summary>Based on Oct/Nov 2022 · 9708/43 · Q7 <span class="mark">25 marks</span> A government's decision to move from a fixed exchange rate to a floating exchange rate will solve unemployment in the short run but cause higher inflation in the long run. Evaluate this statement.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Explain the difference between fixed and floating exchange rates: a fixed rate is held by the central bank buying and selling currency, while a floating rate is set by supply and demand.</li>
+        <li>Unemployment: under a fixed rate, lower interest rates to raise demand put downward pressure on the currency, so the central bank must sell currency or raise rates, undermining the policy. Under a float, lower interest rates cause depreciation, which also raises export demand, so policy is more effective, mainly for cyclical unemployment.</li>
+        <li>Inflation: depreciation raises import prices and may cause cost-push inflation, and the central bank loses control over the money supply, which could be inflationary.</li>
+        <li>Evaluation: it works for cyclical but not structural or frictional unemployment, the size of the inflation depends on import dependence, global conditions and commodity prices, and the time frame matters.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Define both systems. Policy under fixed (interest rate conflict). Policy under float (depreciation helps). Inflation risk. When it does and does not work.</div>
+  </div></details>
+  <details class="eq"><summary>Practice question · modelled on the 12 mark style (no past paper) <span class="mark">12 marks</span> Explain how a central bank can maintain a fixed exchange rate that is above the equilibrium rate.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Diagram: demand and supply of the currency with the peg above equilibrium, showing excess supply.</li>
+        <li>The central bank buys the excess currency using foreign exchange reserves.</li>
+        <li>It may raise interest rates to attract capital inflows and raise demand for the currency, and use other policies to reduce imports.</li>
+        <li>Limits: reserves are finite; the cost to the domestic economy; eventually a devaluation may be needed.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Diagram with excess supply. Buy currency with reserves. Raise interest rates. Limits and devaluation.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">A fixed rate set above the equilibrium rate means that, at the official rate, the supply of the currency is greater than the demand. This is an over-valued currency.</span> <span class="mk n" data-t="N">To stop the rate from falling, the central bank could buy the surplus currency in the foreign exchange market, paying for it with its reserves of foreign currency. This raises demand for the currency until it matches supply at the pegged rate.</span></p>
+    <p><span class="mk n" data-t="N">The central bank may also raise interest rates to attract hot money inflows, which raises demand for the currency. This could reduce domestic spending and growth.</span> <span class="mk e" data-t="E">However, reserves are limited and high interest rates are costly to the domestic economy, so if the pressure continues the government may have to devalue.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Practice question · modelled on the 8 mark style (no past paper) <span class="mark">8 marks</span> Distinguish between a depreciation and a devaluation of a currency, and explain one effect of a devaluation on an economy.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Depreciation: a fall in the value of a floating currency caused by market forces. Devaluation: a deliberate cut in the official rate by the government or central bank in a fixed system.</li>
+        <li>Effect: exports become cheaper and imports dearer, so net exports may rise (current account improves), AD and employment may rise, but import prices and inflation may rise.</li>
+        <li>Developed with a short chain of analysis.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Two definitions. One effect with a chain.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">A depreciation is a fall in the value of a floating currency due to changes in supply and demand. A devaluation is a deliberate cut in the official exchange rate under a fixed system.</span></p>
+    <p><span class="mk n" data-t="N">A devaluation lowers the foreign price of exports and raises the home price of imports. If the Marshall-Lerner condition holds, net exports could rise, which may raise aggregate demand, output and employment.</span> <span class="mk e" data-t="E">However, dearer imports could cause imported inflation, so the net effect may depend on the elasticities and the economy's spare capacity.</span></p>
+    </div>
+  </div></details>
+  <h2>B · Multiple choice questions (Paper 3)</h2>
+  <p>Choose an answer, then read the reason. Reworded from the paper and question number shown.</p>
+  <div id="qz2"></div>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Use the right word.</b> Floating rate: appreciation and depreciation. Fixed rate: revaluation and devaluation.</li>
+    <li><b>Draw the currency market.</b> Exchange rate on the vertical axis, quantity of currency on the horizontal axis. Show the peg as a horizontal line.</li>
+    <li><b>Show the gap.</b> The distance between demand and supply at the peg is what the central bank must buy or sell.</li>
+    <li><b>Say what pays for it.</b> Buying the currency uses foreign exchange reserves, which are limited.</li>
+    <li><b>Link to interest rates.</b> Defending a peg often means giving up an independent interest rate.</li>
+    <li><b>Compare, then judge.</b> Fixed gives certainty but less freedom; floating gives freedom but volatility; managed is a mix.</li>
+    <li><b>Effects of devaluation.</b> Cheaper exports and dearer imports: net exports up if elasticities are high enough, imported inflation as the cost.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Peg</td><td>"A fixed exchange rate is maintained by the central bank buying and selling its currency using foreign exchange reserves."</td></tr>
+    <tr><td>Managed</td><td>"A managed float lets the market set the rate within a band, with the central bank intervening at the edges."</td></tr>
+    <tr><td>Devaluation</td><td>"A devaluation is a deliberate reduction in the official value of a currency under a fixed system."</td></tr>
+    <tr><td>Limits</td><td>"Reserves are finite, so a peg that is far from the equilibrium rate may not be sustainable."</td></tr>
+    <tr><td>Compare</td><td>"A floating rate may adjust automatically, whereas a fixed rate may give greater certainty but less policy independence."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Define / State</td><td>Give the exact meaning, briefly. No explanation needed.</td></tr>
+    <tr><td>Explain</td><td>Give reasons, with a clear chain of cause and effect.</td></tr>
+    <tr><td>Assess</td><td>Judge how important or effective something is, with reasons.</td></tr>
+    <tr><td>Evaluate</td><td>Weigh the arguments and reach a supported conclusion.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+/* ---------- Currency market ---------- */
+const EQ = (sh, ss) => ({ q: 50 + (sh + ss) / 2, e: 1.4 + 0.006 * (sh - ss) });
+const FX = (q) => 70 + q * 6.2, FY = (e) => 300 - (e - 0.8) * 220;
+function fxDraw(s) {
+  const sh = s.sh || 0, ss = s.ss || 0, eq = EQ(sh, ss), peg = s.peg || 0, lo = s.lo || 0, hi = s.hi || 0;
+  let o = axes(70, 300, 730, 30, "Quantity of the currency", "Exchange rate ($ per £)"); [1.0, 1.2, 1.4, 1.6, 1.8].forEach((v) => (o += SV.text(64, FY(v) + 4, v.toFixed(1), "sm", { "text-anchor": "end" })));
+  const D = (dd) => [[FX(0), FY(2.0 + 0.012 * dd)], [FX(100), FY(2.0 - 1.2 + 0.012 * dd)]], S = (dd) => [[FX(0), FY(0.8 - 0.012 * dd)], [FX(100), FY(2.0 - 0.012 * dd)]];
+  if (sh) o += SV.line(...D(0)[0], ...D(0)[1], "c1 dash", op(0.35)); if (ss) o += SV.line(...S(0)[0], ...S(0)[1], "c3 dash", op(0.35));
+  const d = D(sh), sp = S(ss);
+  o += SV.line(...d[0], ...d[1], "c1") + tag(FX(90), FY(2.0 - 0.012 * (90 - sh)) - 8, "D", "t1", 1, "middle") + SV.line(...sp[0], ...sp[1], "c3") + tag(FX(100) - 4, sp[1][1] - 8, "S", "t3", 1, "end");
+  if (lo > 0) o += SV.line(70, FY(lo), 730, FY(lo), "c4 dash", op(0.8)) + SV.line(70, FY(hi), 730, FY(hi), "c4 dash", op(0.8)) + tag(726, FY(hi) - 6, "upper limit " + hi.toFixed(2), "t4", 1, "end") + tag(726, FY(lo) + 16, "lower limit " + lo.toFixed(2), "t4", 1, "end");
+  let r = eq.e; if (peg > 0) r = peg; else if (lo > 0) r = Math.max(lo, Math.min(hi, eq.e));
+  const qd = (2.0 - r) / 0.012 + sh, qs = (r - 0.8) / 0.012 + ss, gap = qd - qs;
+  if (peg > 0) o += SV.line(70, FY(peg), 730, FY(peg), "c4") + tag(80, FY(peg) - 8, "Peg " + peg.toFixed(2), "t4");
+  o += SV.circle(FX(eq.q), FY(eq.e), 6, "dot2") + tag(FX(eq.q) + 8, FY(eq.e) + 20, "market " + eq.e.toFixed(2), "t2");
+  if ((peg > 0 || lo > 0) && Math.abs(gap) > 1 && (peg > 0 || r !== eq.e)) {
+    const a = Math.min(qd, qs), b = Math.max(qd, qs); o += SV.line(FX(a), FY(r), FX(b), FY(r), "c2", { "stroke-width": 5 }) + tag((FX(a) + FX(b)) / 2, FY(r) + (gap > 0 ? 28 : -14), gap > 0 ? "excess demand " + Lib.fmtN(gap, 0) + ": bank SELLS currency" : "excess supply " + Lib.fmtN(-gap, 0) + ": bank BUYS currency", "t2", 1, "middle");
+  }
+  return o;
+}
+$("#pic1").innerHTML = `<svg viewBox="0 0 760 340" role="img" aria-label="Currency market with a peg above the equilibrium exchange rate and the excess supply the central bank must buy">${fxDraw({ peg: 1.6 })}</svg>`;
+Lib.stepper($("#stF"), { w: 760, h: 340, label: "A fixed exchange rate above equilibrium: excess supply, central bank buying the currency and eventual devaluation", base: { sh: 0, ss: 0, peg: 0, lo: 0, hi: 0 }, draw: fxDraw, tween: 1100, dwell: 6000, steps: [
+  { cap: "<b>Market equilibrium.</b> Demand for and supply of the currency meet at $1.40. In a free float this would be the exchange rate.", s: {} },
+  { cap: "<b>The peg.</b> The government fixes the rate at $1.60, above equilibrium. At that rate the supply of pounds (67) is greater than the demand (33): excess supply of 33.", s: { peg: 1.6 } },
+  { cap: "<b>Defending the peg.</b> To stop the pound from falling, the central bank <b>buys the 33 surplus units</b> with foreign exchange reserves, and may raise interest rates to attract demand.", s: { peg: 1.6 } },
+  { cap: "<b>Devaluation.</b> If reserves run low and pressure continues, the government lowers the official rate. A fall to about $1.40 removes the gap and ends the need to intervene.", s: { peg: 1.4 } },
+] });
+Lib.stepper($("#stM"), { w: 760, h: 340, label: "A managed float with a band: market movement inside the band and intervention at the upper limit", base: { sh: 0, ss: 0, peg: 0, lo: 1.3, hi: 1.5 }, draw: fxDraw, tween: 1100, dwell: 6000, steps: [
+  { cap: "<b>A band.</b> The central bank allows the rate to float between $1.30 and $1.50. At equilibrium ($1.40) there is no intervention.", s: { sh: 0, lo: 1.3, hi: 1.5 } },
+  { cap: "<b>A small rise in demand</b> moves the market rate to about $1.46. This is inside the band, so the market decides and the central bank does nothing.", s: { sh: 10, lo: 1.3, hi: 1.5 } },
+  { cap: "<b>A large rise in demand</b> would push the rate to about $1.58, above the upper limit. The central bank <b>sells the currency</b> to hold the rate at $1.50 (excess demand of about 13 is met).", s: { sh: 30, lo: 1.3, hi: 1.5 } },
+  { cap: "<b>The judgement.</b> A managed float gives stability while the market rate is in the band, but if the shock is lasting the central bank may need to move the band, which is like a revaluation.", s: { sh: 30, lo: 1.4, hi: 1.6 } },
+] });
+
+/* ---------- Lab 1 ---------- */
+function labF() {
+  if (!$("#sd") || !$("#pg")) return;
+  const sh = +$("#sd").value, pg = +$("#pg").value / 100, eq = EQ(sh, 0), qd = (2.0 - pg) / 0.012 + sh, qs = (pg - 0.8) / 0.012, gap = qd - qs;
+  $("#r1").textContent = "$" + eq.e.toFixed(2); $("#r2").textContent = "$" + pg.toFixed(2); $("#r3").textContent = Math.abs(gap) < 0.5 ? "None needed" : gap > 0 ? "Sells " + Lib.fmtN(gap, 0) : "Buys " + Lib.fmtN(-gap, 0);
+  $("#rv").textContent = Math.abs(gap) < 0.5 ? "The peg equals the market rate, so no intervention is needed." : gap > 0 ? `The peg ($${pg.toFixed(2)}) is below the market rate ($${eq.e.toFixed(2)}): demand for the currency exceeds supply by ${Lib.fmtN(gap, 0)}. The central bank sells its currency and its reserves of foreign exchange rise. The currency is under-valued.` : `The peg ($${pg.toFixed(2)}) is above the market rate ($${eq.e.toFixed(2)}): supply of the currency exceeds demand by ${Lib.fmtN(-gap, 0)}. The central bank must buy the excess using its reserves. The currency is over-valued and reserves will fall.`;
+  $("#labA").innerHTML = (() => { const X = (q) => 40 + q * 3.5, Y = (e) => 270 - (e - 0.8) * 200; let o = SV.line(40, 270, 400, 270) + SV.line(40, 270, 40, 20) + SV.text(400, 292, "Quantity of the currency", "sm", { "text-anchor": "end" }) + SV.text(46, 16, "Exchange rate ($ per £)", "sm");
+    o += SV.line(X(0), Y(2.0 + 0.012 * sh), X(100), Y(0.8 + 0.012 * sh), "c1") + SV.line(X(0), Y(0.8), X(100), Y(2.0), "c3") + SV.line(40, Y(pg), 400, Y(pg), "c4") + SV.circle(X(eq.q), Y(eq.e), 6, "dot2");
+    if (Math.abs(gap) > 0.5) o += SV.line(X(Math.min(qd, qs)), Y(pg), X(Math.max(qd, qs)), Y(pg), "c2", { "stroke-width": 5 });
+    return o + tag(44, Y(pg) - 8, "peg " + pg.toFixed(2), "t4"); })();
+}
+Lib.slider($("#g1"), { id: "sd", label: "Shift in demand for the currency ", min: -30, max: 30, step: 5, value: 0, fmt: (v) => v, onInput: labF });
+Lib.slider($("#g2"), { id: "pg", label: "Pegged rate, $ per £ × 100 ", min: 120, max: 170, step: 5, value: 160, fmt: (v) => (v / 100).toFixed(2), onInput: labF });
+labF();
+
+/* ---------- Lab 2 ---------- */
+function labS() {
+  if (!$("#sk")) return;
+  const sh = +$("#sk").value, eq = EQ(sh, 0), band = Math.max(1.3, Math.min(1.5, eq.e)), act = (r) => { const g = (2.0 - r) / 0.012 + sh - (r - 0.8) / 0.012; return Math.abs(g) < 0.5 ? "none" : g > 0 ? "sells " + Lib.fmtN(g, 0) : "buys " + Lib.fmtN(-g, 0); };
+  const rows = [["Floating", "$" + eq.e.toFixed(2), "none", eq.e > 1.41 ? "appreciation" : eq.e < 1.39 ? "depreciation" : "no change"], ["Managed (1.30 to 1.50)", "$" + band.toFixed(2), act(band), band > 1.41 ? "rises within the limits" : band < 1.39 ? "falls within the limits" : "no change"], ["Fixed at 1.40", "$1.40", act(1.4), "no change in the rate; reserves move"]];
+  $("#tbl").innerHTML = `<div class="tw"><table class="t"><tr><th>System</th><th>Exchange rate</th><th>Central bank</th><th>What happens</th></tr>${rows.map((r) => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join("")}</table></div>`;
+  $("#tv").textContent = sh === 0 ? "No shock: all three systems have the same rate." : Math.abs(eq.e - 1.4) < 0.101 ? "A small shock stays inside the band, so the managed float lets the market decide and does not need to intervene. The peg needs intervention from the first unit." : "A large shock: the float moves furthest, the managed float is held at its limit by intervention, and the peg is held at 1.40 by the biggest intervention. This shows the trade-off between stability and reserves.";
+}
+Lib.slider($("#g3"), { id: "sk", label: "Shift in demand for the currency (shock) ", min: -40, max: 40, step: 5, value: 20, fmt: (v) => v, onInput: labS });
+labS();
+
+/* ---------- Practise ---------- */
+Lib.classify($("#cl1"), { prompt: "Which exchange rate system is it?", buckets: [{"label": "Fixed"}, {"label": "Managed float"}, {"label": "Free float"}], items: [{"text": "The central bank holds the rate at exactly $1.60 by buying and selling", "b": 0}, {"text": "The rate moves within a band; the central bank steps in at the limits", "b": 1}, {"text": "Only market supply and demand set the rate", "b": 2}, {"text": "Requires a large stock of foreign exchange reserves", "b": 0}, {"text": "Gives the country the most freedom to set its own interest rates", "b": 2}, {"text": "A 'dirty' float", "b": 1}, {"text": "A devaluation changes the official rate", "b": 0}, {"text": "Offers a compromise between stability and flexibility", "b": 1}], done: "Fixed: the central bank sets it. Managed: market within limits. Free float: market only." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Peg", "An official exchange rate maintained by the central bank"], ["Devaluation", "A deliberate cut in the official rate of a fixed currency"], ["Revaluation", "A deliberate rise in the official rate of a fixed currency"], ["Depreciation", "A market-driven fall in a floating currency"], ["Managed float", "A market rate with central bank intervention to limit moves"], ["Foreign exchange reserves", "Stocks of foreign currency held by the central bank"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the defence of an over-valued peg in order.", items: ["The peg is set above the equilibrium rate", "Supply of the currency exceeds demand at the peg", "The central bank buys the surplus currency", "Foreign exchange reserves fall", "If reserves run low, the currency is devalued"], done: "Excess supply, intervention, falling reserves, possible devaluation." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "A fixed rate of $1.60 is devalued to $1.40. Calculate the percentage devaluation (%).", "a": 12.5, "unit": "%", "tol": 0.05, "hint": "Change ÷ original.", "sol": "(1.60 − 1.40) ÷ 1.60 = <b>12.5%</b>."},
+  {"q": "A currency pegged at €1.20 is revalued to €1.26. Calculate the percentage revaluation (%).", "a": 5, "unit": "%", "tol": 0.05, "hint": "6 cents on 120.", "sol": "0.06 ÷ 1.20 = <b>5%</b>."},
+  {"q": "At the pegged rate the demand for a currency is 30m units and supply is 45m units. How many units must the central bank buy (m)?", "a": 15, "unit": "m", "tol": 0.05, "hint": "Excess supply.", "sol": "45 − 30 = <b>15m</b> units."},
+  {"q": "A central bank holds $90bn of reserves and sells $6bn a month to defend a peg. For how many months can it continue (months)?", "a": 15, "unit": "months", "tol": 0.05, "hint": "90 ÷ 6.", "sol": "<b>15 months</b>, if the pressure stays the same."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "A rise in a fixed exchange rate decided by the government is called:", opts: ["Appreciation", "Revaluation", "Devaluation", "Depreciation"], a: 1, why: "Revaluation is the official rise under a fixed system." },
+  { q: "To defend a peg that is above the equilibrium rate, the central bank must:", opts: ["Sell its currency", "Buy its currency", "Cut interest rates", "Print more money"], a: 1, why: "Buying the surplus currency raises demand to match supply at the peg." },
+  { q: "A feature of a managed float is that:", opts: ["The central bank intervenes to keep the rate within limits", "The rate never moves", "Reserves are never used", "The government sets all prices"], a: 0, why: "The market sets the rate within a band, with intervention at the edges." },
+  { q: "Which is an advantage of a fixed exchange rate?", opts: ["Certainty for traders", "Independent interest rates", "Automatic adjustment of the balance of payments", "No need for reserves"], a: 0, why: "A stable rate reduces risk for trade and investment." },
+  { q: "A devaluation is most likely to:", opts: ["Raise the price of imports", "Lower the price of imports", "Lower the price of exports at home", "End inflation"], a: 0, why: "The home currency price of imports rises." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Fixed exchange rate", "Central bank sets and defends the rate."],
+  ["Managed float", "Market within a band, with intervention."],
+  ["Devaluation", "Deliberate fall in the official rate."],
+  ["Revaluation", "Deliberate rise in the official rate."],
+  ["Over-valued peg", "Peg above equilibrium: bank buys the currency."],
+  ["Under-valued peg", "Peg below equilibrium: bank sells the currency."],
+  ["Reserves", "Foreign currency held by the central bank."],
+  ["Trade-off", "Fixed: stability but less freedom. Float: freedom but volatility."],
+] });
+Lib.quiz($("#qz2"), { qs: [
+  { q: "An increase or decrease in the exchange rate can occur in both floating and fixed systems, but different terms are used. Which correctly names a decrease under a floating rate and an increase under a fixed rate? (Oct/Nov 2024 · 32 · Q27, reworded)", opts: ["Depreciation; appreciation", "Depreciation; revaluation", "Devaluation; appreciation", "Devaluation; revaluation"], a: 1, why: "A fall in a floating rate is depreciation. A deliberate rise in a fixed rate is a revaluation." },
+  { q: "A country keeps its exchange rate against the US dollar within a narrow but changing band. What type of exchange rate is this? (Feb/March 2024 · 32 · Q28, reworded)", opts: ["Fixed", "Floating", "Managed float", "Trade-weighted"], a: 2, why: "The rate is held within a band by the central bank but the band moves, which is a managed float." },
+  { q: "In an open economy with a fixed exchange rate, the currency is significantly below its purchasing power parity value. If the country moves to a floating rate, which macroeconomic aim is most likely to benefit? (May/June 2025 · 32 · Q26, reworded)", opts: ["Low inflation", "Low unemployment", "A smaller current account deficit", "Steady economic growth"], a: 0, why: "An undervalued currency would tend to appreciate when floated, making imports cheaper and lowering imported inflation, but making exports dearer." },
+  { q: "A country devalues its currency to eliminate a balance of payments deficit. Why might this have a positive macroeconomic effect? (Feb/March 2023 · 32 · Q24, reworded)", opts: ["Competitive pricing of exports may create employment", "Foreign importers may depreciate their own currencies and remove the advantage", "Inelastic demand for imported raw materials may cause cost inflation", "Lost import duties may reduce government support for trade promotion"], a: 0, why: "Cheaper exports can raise export sales and create jobs. The other options describe drawbacks." },
+  { q: "In which situation is a devaluation of the currency most likely to cause inflation? (Feb/March 2024 · 32 · Q25, reworded)", opts: ["Excess capacity is available", "Import tariffs are reduced", "Local substitutes for imported raw materials are unavailable", "The demand for exports is price inelastic"], a: 2, why: "If firms cannot replace imported inputs, the dearer imports raise costs and prices directly." },
+  { q: "A government sets an inflation target of 3% or less. Which circumstance would make it difficult to achieve? (May/June 2025 · 32 · Q22, reworded)", opts: ["A devaluation of the currency leads to a trade surplus", "Interest rates are raised to control demand", "The government increases its tax revenue", "Wage rises are kept in line with productivity"], a: 0, why: "A devaluation-driven rise in net exports raises aggregate demand, and dearer imports add to cost pressure, both pushing inflation up." },
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

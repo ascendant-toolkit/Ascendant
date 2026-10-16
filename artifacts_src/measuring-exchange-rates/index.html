@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Measuring Exchange Rates: Nominal, Real and Trade-Weighted</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Economics · 9708 · Syllabus 11.2.1</div>
+  <h1>Measuring Exchange Rates: Nominal, Real and Trade-Weighted</h1>
+  <p class="lead">11.2.1: the nominal exchange rate, the real exchange rate that adjusts for relative prices, and the trade-weighted index of a currency against a basket. Animated diagrams, labs, drills and the past paper questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This part in four sentences</h3>
+  <p>The <b class="kw">nominal exchange rate</b> is the price of one currency in terms of another (for example $1.25 per £1). The <b class="kw">real exchange rate</b> adjusts the nominal rate for differences in <b>price levels</b>, so it shows whether a country's goods have become <b>dearer or cheaper relative to its trading partners'</b>, which is what matters for competitiveness. A <b class="kw">trade-weighted exchange rate</b> (effective exchange rate) is an <b>index of the currency against a basket of partner currencies</b>, each weighted by the share of trade with that partner, so it shows the overall movement rather than the rate against one currency. The <b>real effective exchange rate</b> combines both ideas.</p></div>
+
+  <h2>1 · The nominal exchange rate</h2>
+  <ul>
+    <li>The <b>nominal exchange rate</b> is the price of one currency in terms of another, quoted as, say, £1 = $1.25. It is set by supply and demand in a floating system, or fixed by the central bank in a fixed system.</li>
+    <li>If £1 buys more dollars (for example $1.25 rising to $1.40) the pound has <b>appreciated</b> (under a floating rate) or been <b>revalued</b> (under a fixed rate). If it buys fewer, it has <b>depreciated</b> or been <b>devalued</b>. The difference between these terms is covered in 11.2.3.</li>
+    <li>The weakness of the nominal rate on its own is that it <b>ignores inflation</b>. If a currency's nominal rate is constant but domestic prices rise faster than abroad, exports are becoming less competitive even though the exchange rate looks unchanged.</li>
+  </ul>
+
+  <h2>2 · The real exchange rate</h2>
+  <div id="pic1" class="card"></div>
+  <ul>
+    <li>The <b>real exchange rate</b> adjusts the nominal rate for relative price levels:
+      <b>real rate index = nominal rate index × (domestic price index ÷ foreign price index)</b>, with the nominal rate measured as foreign currency per unit of domestic currency, so a rise means appreciation.</li>
+    <li>A <b>rise in the real exchange rate (real appreciation)</b> means domestic goods have become relatively dearer: exports are less competitive and imports are cheaper in real terms. A <b>fall (real depreciation)</b> makes domestic goods relatively cheaper.</li>
+    <li><b>Worked idea:</b> the nominal rate is unchanged, domestic inflation is 6% and foreign inflation is 2%. The real exchange rate rises by about 4% (6% − 2%), so the country has lost competitiveness even though the nominal rate has not moved.</li>
+    <li>A nominal depreciation can be <b>cancelled out</b> if domestic inflation rises by more than foreign inflation, so the real rate (and competitiveness) hardly changes. This is why devaluations in high-inflation countries often fail to last.</li>
+    <li>The real rate links to <b>purchasing power parity (PPP)</b>: if the real rate stays constant, the nominal rate is moving in line with relative inflation. A currency is said to be <b>overvalued</b> if it is above its PPP value and <b>undervalued</b> if below.</li>
+  </ul>
+
+  <h2>3 · The trade-weighted exchange rate</h2>
+  <ul>
+    <li>A country trades with many partners and its currency can rise against some and fall against others. The <b>trade-weighted exchange rate index (TWI, or effective exchange rate)</b> measures the currency against a <b>basket</b> of other currencies.</li>
+    <li>Each partner's currency is <b>weighted by that partner's share in the country's trade</b> (exports plus imports). A currency movement against a major partner counts for more than a movement against a minor partner.</li>
+    <li><b>Calculation:</b> TWI = (weight A × index against A) + (weight B × index against B) + ... The weights add to 1 (or 100%) and the index starts at 100 in a base year.</li>
+    <li>The <b>real effective exchange rate (REER)</b> is the trade-weighted index adjusted for each partner's relative price level. Many central banks and the BIS publish it as the best single guide to price competitiveness.</li>
+  </ul>
+  <div class="tw"><table class="t">
+    <tr><th>Measure</th><th>What it shows</th><th>Main use</th><th>Main limitation</th></tr>
+    <tr><td><b>Nominal exchange rate</b></td><td>Price of one currency in another</td><td>Converting prices, trade and investment values; the market rate</td><td>Ignores inflation, and covers one partner only</td></tr>
+    <tr><td><b>Real exchange rate</b></td><td>Nominal rate adjusted for relative price levels</td><td>Judging price competitiveness against one country</td><td>Depends on the price index chosen; ignores quality</td></tr>
+    <tr><td><b>Trade-weighted (nominal effective)</b></td><td>The currency against a basket, weighted by trade shares</td><td>Overall movement of the currency</td><td>Ignores inflation; weights change over time</td></tr>
+    <tr><td><b>Real effective (REER)</b></td><td>Trade-weighted index adjusted for relative prices</td><td>Overall price competitiveness</td><td>Needs good price data; ignores non-price competitiveness</td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Evaluation point</b>Price competitiveness is only part of competitiveness. Quality, design, delivery, brand and the dependence on imported inputs also matter. A real depreciation also raises the price of imported inputs, so the net gain to exporters may be smaller than the index suggests.</div>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Nominal rate, prices and the real rate</h2>
+  <p>Press Play, or click the numbered steps.</p>
+  <div id="stR"></div>
+  <h2>2 · Building a trade-weighted index</h2>
+  <div id="stT"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · From the nominal to the real exchange rate</h2>
+  <p>Set the change in the nominal rate and the inflation rates at home and abroad over one year. See what happens to the real exchange rate and to competitiveness.</p>
+  <div class="card"><div class="grid2"><div><div id="g1"></div><div id="g2"></div><div id="g3"></div>
+    <div class="readout"><div><small>Nominal change</small><strong id="r1"></strong></div><div><small>Relative price change</small><strong id="r2"></strong></div><div><small>Real change</small><strong id="r3"></strong></div></div>
+    <div class="verdict" id="rv"></div></div>
+    <div><svg id="labA" viewBox="0 0 420 300" role="img" aria-label="Bars for the nominal change, the relative inflation effect and the resulting real exchange rate change"></svg></div></div></div>
+
+  <h2>Lab 2 · A trade-weighted index</h2>
+  <p>A country sends 50% of its trade to partner A, 30% to partner B and 20% to partner C. Move its currency against each partner (index 100 = last year) and see the effective rate.</p>
+  <div class="card"><div class="grid2"><div><div id="g4"></div><div id="g5"></div><div id="g6"></div>
+    <div class="readout"><div><small>Trade-weighted index</small><strong id="t1"></strong></div><div><small>Change</small><strong id="t2"></strong></div><div><small>Overall</small><strong id="t3"></strong></div></div>
+    <div class="verdict" id="tv"></div></div>
+    <div><svg id="labB" viewBox="0 0 420 300" role="img" aria-label="Bars of the currency index against three partners and the weighted index"></svg></div></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which measure is being described?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Match the word to its meaning</h2><div id="m1" class="card"></div>
+  <h2>3 · Put the steps for finding a real exchange rate change in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Calculations</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Switzerland and the strong franc</h3><p>The Swiss franc has tended to appreciate during global uncertainty, because investors treat it as a safe haven. Even with low Swiss inflation, the real value of the franc has risen over time, which squeezes exporters and tourism and has led the central bank to intervene in currency markets at times.</p><div class="use"><b>Exam use:</b> a real appreciation and its effect on competitiveness. Link to exports, employment and imported inflation.</div></div>
+  <div class="rw"><h3>High inflation, falling currency</h3><p>In countries with very high inflation, such as Argentina or Turkey at times, the nominal currency can fall sharply while the real exchange rate changes much less, because domestic prices rise quickly too. Exporters may gain less than the headline fall in the currency suggests.</p><div class="use"><b>Exam use:</b> why the real rate is a better guide to competitiveness than the nominal rate, and why a depreciation may be eroded by inflation.</div></div>
+  <div class="rw"><h3>Sterling's fall after 2016</h3><p>After the 2016 Brexit vote the pound fell against the US dollar and the euro, and the trade-weighted index fell too. The fall made UK exports cheaper abroad and imports dearer, but the effect on the trade balance was slower than many expected, and imported inflation rose.</p><div class="use"><b>Exam use:</b> a trade-weighted index, the J curve (see 11.2.5) and imported inflation.</div></div>
+  <div class="rw"><h3>The Big Mac index</h3><p>The Economist compares the price of a burger in dollars across countries. If a burger costs less in dollars in a country, its currency may be undervalued against the dollar on a simple purchasing power basis, though differences in wages, taxes and rents limit the accuracy.</p><div class="use"><b>Exam use:</b> purchasing power parity as a benchmark for over- and under-valued currencies, with its limitations.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Past paper questions on exchange rate measurement, competitiveness and the value of a currency</h2>
+  <p>We searched the A Level Economics papers in the folder (2020 to 2025). Exchange rate measurement is rarely asked as a stand-alone Paper 4 question, but the internal and external value of a currency, overvaluation and competitiveness appear regularly, and the real and trade-weighted ideas support every exchange rate essay. Reworded past questions are below, with a practice question and six Paper 3 multiple choice questions.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Type</th><th>Examples found</th><th>Where</th></tr>
+    <tr><td>Essay parts, 12 marks</td><td>1</td><td>Oct/Nov 2022 (42) Q6(a)</td></tr>
+    <tr><td>Data response, 4 marks</td><td>1</td><td>Oct/Nov 2022 (42) Q1(c)</td></tr>
+    <tr><td>Multiple choice (Paper 3)</td><td>6 shown below</td><td>2021 to 2025</td></tr>
+  </table></div>
+  <h2>A · Written questions (reworded)</h2>
+  <p>The wording, context and figures are our own, so they are safe to set as practice. The source paper is named for reference. Mark scheme points are in our own words.</p>
+  <details class="eq"><summary>Based on Oct/Nov 2022 · 9708/42 · Q6(a) <span class="mark">12 marks</span> Explain how changes in the internal value of a country's currency can affect the external value of that currency.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Define the internal value (purchasing power at home, the inverse of the price level, so linked to inflation) and the external value (the exchange rate against other currencies).</li>
+        <li>Explain the link: if inflation is higher than in partner countries, exports become dearer and imports cheaper, so demand for the currency falls and supply rises, lowering the exchange rate (the idea behind purchasing power parity).</li>
+        <li>Explain the reverse link: a fall in the exchange rate raises import prices and can cause inflation, lowering the internal value.</li>
+        <li>Comment on the exchange rate system: under a floating rate the market adjusts the rate; under a fixed rate the central bank must defend it, so the link works through reserves, interest rates or a devaluation.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Define internal and external value. Higher inflation leads to a weaker currency. A weaker currency leads to higher inflation. Fixed against floating.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">The internal value of a currency is what it can buy at home, so it falls when the price level rises. The external value is the exchange rate, or what it can buy of other currencies.</span> <span class="mk n" data-t="N">If domestic inflation is higher than in partner countries, home goods may become dearer relative to foreign goods. Exports could fall and imports could rise, so demand for the currency may fall and supply may rise, putting downward pressure on the exchange rate.</span> <span class="mk e" data-t="E">This is the logic of purchasing power parity, although the link may be weak in the short run because capital flows and interest rates can matter more.</span></p>
+    <p><span class="mk n" data-t="N">The link may also run the other way. A depreciation raises import prices, and if imports are a large share of spending or are used as inputs, it could raise inflation and lower the internal value.</span> <span class="mk e" data-t="E">Under a floating rate the market adjusts, while under a fixed rate the central bank would need to use reserves or interest rates to defend the rate, or devalue.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2022 · 9708/42 · Q1(c) <span class="mark">4 marks</span> Explain how an over-valuation of a country's exchange rate may affect its economy.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>A currency above its equilibrium makes import prices fall and export prices rise (1), so imports tend to rise and exports fall (1). Maximum 2 marks for this.</li>
+        <li>Development: up to 2 marks for the effect on one of the balance of payments, inflation, unemployment, growth or foreign direct investment.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Import prices fall, export prices rise. Imports up, exports down. Then one macro effect.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">An over-valued currency makes imports cheaper and exports dearer in foreign currency.</span> <span class="mk n" data-t="N">Spending may switch towards imports and away from exports, so the current account could worsen and, because exports are part of aggregate demand, growth and employment may fall in export industries.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Practice question · modelled on the 12 mark style (no past paper) <span class="mark">12 marks</span> Explain the difference between a nominal and a real exchange rate and why a trade-weighted index is useful.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>The nominal rate is the price of one currency in another; the real rate adjusts for relative price levels.</li>
+        <li>Why the real rate matters: it shows competitiveness, so a nominal depreciation can be offset by higher domestic inflation.</li>
+        <li>Trade-weighted index: a basket of partner currencies weighted by trade shares, giving the overall movement.</li>
+        <li>Evaluation: weights change, price indices differ, and non-price competitiveness matters.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Nominal. Real. Example with inflation. TWI and weights. Limits.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">The nominal exchange rate is the price of one currency in terms of another, such as $1.25 per pound. The real exchange rate adjusts this for the price levels in the two countries.</span> <span class="mk n" data-t="N">If the nominal rate is unchanged but domestic inflation is higher than abroad, the real rate rises. Home goods become relatively dearer, so competitiveness could fall even though the nominal rate looks stable. In the same way a nominal depreciation may be offset if domestic prices rise faster.</span></p>
+    <p><span class="mk k" data-t="K">A trade-weighted index measures the currency against a basket of partner currencies, with each weighted by its share of trade.</span> <span class="mk n" data-t="N">This is useful because a currency can rise against one partner and fall against another. A movement against a major trading partner will count for more, so the index gives a better picture of the overall effect on exports and imports.</span></p>
+    <p><span class="mk e" data-t="E">However, the weights change over time, price indices may not be comparable and quality and other non-price factors also affect competitiveness, so the index may only be a guide.</span></p>
+    </div>
+  </div></details>
+  <h2>B · Multiple choice questions (Paper 3)</h2>
+  <p>Choose an answer, then read the reason. Reworded from the paper and question number shown.</p>
+  <div id="qz2"></div>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Nominal first, then real.</b> Give the nominal definition, then say the real rate adjusts for relative inflation. That is the extra mark.</li>
+    <li><b>Always say which way it moves.</b> Appreciation is a rise in the currency's value. A real appreciation makes the country's goods relatively dearer.</li>
+    <li><b>Use a simple number.</b> Nominal unchanged, home inflation 6%, foreign 2%: real rate up about 4%.</li>
+    <li><b>Explain the weights.</b> In a trade-weighted index each currency is weighted by its share of trade, so major partners count for more.</li>
+    <li><b>Link to competitiveness.</b> Real appreciation hurts export competitiveness, real depreciation helps it, subject to elasticities.</li>
+    <li><b>Evaluate with limits.</b> Price indices, changing weights and non-price competitiveness.</li>
+    <li><b>Appreciation or revaluation?</b> Floating rate: appreciation or depreciation. Fixed rate: revaluation or devaluation.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Nominal</td><td>"The nominal exchange rate is the price of one currency in terms of another, without adjusting for inflation."</td></tr>
+    <tr><td>Real</td><td>"The real exchange rate adjusts the nominal rate for relative price levels, so it may be a better guide to competitiveness."</td></tr>
+    <tr><td>Weights</td><td>"A trade-weighted index gives more weight to the currencies of a country's major trading partners."</td></tr>
+    <tr><td>Inflation</td><td>"A nominal depreciation could be offset if domestic inflation is higher than abroad."</td></tr>
+    <tr><td>Limits</td><td>"Competitiveness also depends on quality and other non-price factors, so a real exchange rate index may only be a guide."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Define / State</td><td>Give the exact meaning, briefly. No explanation needed.</td></tr>
+    <tr><td>Explain</td><td>Give reasons, with a clear chain of cause and effect.</td></tr>
+    <tr><td>Assess</td><td>Judge how important or effective something is, with reasons.</td></tr>
+    <tr><td>Evaluate</td><td>Weigh the arguments and reach a supported conclusion.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+/* ---------- Nominal, prices, real ---------- */
+const RX = (i) => 90 + i * 130, RY = (v) => 300 - (v - 94) * 13;
+const YRS = [0, 1, 2, 3, 4], NOM = [100, 99, 98, 97, 96], PR = [100, 103, 106.1, 109.3, 112.6];
+function realDraw(s) {
+  let o = axes(70, 300, 730, 30, "Year", "Index (year 0 = 100)"); [100, 104, 108, 112].forEach((v) => (o += SV.text(64, RY(v) + 4, v, "sm", { "text-anchor": "end" }) + SV.line(70, RY(v), 730, RY(v), "gr", op(0.35))));
+  YRS.forEach((i) => (o += SV.text(RX(i), 322, "Y" + i, "sm", { "text-anchor": "middle" })));
+  const ln = (arr, c, k) => { const n = Math.max(0, Math.min(4, k * 4)), pts = []; for (let i = 0; i <= Math.floor(n); i++) pts.push([RX(i), RY(arr[i])]); if (n % 1 > 0 && Math.floor(n) < 4) { const a = Math.floor(n), f = n - a; pts.push([RX(a + f), RY(arr[a] + (arr[a + 1] - arr[a]) * f)]); } return pts.length > 1 ? SV.path(Lib.ptsPath(pts), c) : ""; };
+  o += ln(NOM, "c1", s.a) + (s.a > 0 ? tag(RX(4) + 4, RY(NOM[4]) - 8, "Nominal rate index", "t1", s.a, "end") : "");
+  if (s.b > 0) o += ln(PR, "c3 dash", s.b) + tag(RX(4) + 4, RY(PR[4]) - 4, "Domestic ÷ foreign prices", "t3", s.b, "end");
+  if (s.c > 0) { const real = NOM.map((n, i) => n * PR[i] / 100); o += ln(real, "c4", s.c) + SV.circle(RX(4), RY(real[4]), 7, "dot4", op(s.c)) + tag(RX(4) - 12, RY(real[4]) + 22, "Real rate up " + Lib.fmtN(real[4] - 100, 1) + "%", "t4", s.c, "end"); }
+  return o;
+}
+$("#pic1").innerHTML = `<svg viewBox="0 0 760 340" role="img" aria-label="Nominal exchange rate index falling to 96, relative prices rising to 112.6 and the real exchange rate rising to 108.1">${realDraw({ a: 1, b: 1, c: 1 })}</svg>`;
+Lib.stepper($("#stR"), { w: 760, h: 340, label: "Nominal rate falling, relative prices rising and the real exchange rate rising", base: { a: 0, b: 0, c: 0 }, draw: realDraw, tween: 1200, dwell: 5800, steps: [
+  { cap: "<b>The nominal exchange rate</b> falls by 1% a year: the index drops from 100 to 96, a 4% depreciation. Looking only at this line, home goods look cheaper abroad.", s: { a: 1 } },
+  { cap: "<b>Relative prices.</b> The home country has 3% inflation a year while its partner has none. The ratio of domestic to foreign prices climbs to about 112.6, so home goods are dearer at home relative to abroad.", s: { a: 1, b: 1 } },
+  { cap: "<b>The real exchange rate</b> is the nominal rate multiplied by the price ratio: 96 × 112.6 ÷ 100 = 108.1. It has risen about 8%, a real appreciation.", s: { a: 1, b: 1, c: 1 } },
+  { cap: "<b>The meaning.</b> The 4% nominal depreciation was more than cancelled out by higher inflation at home. Home goods are about 8% dearer relative to foreign goods, so competitiveness has fallen even though the currency has depreciated.", s: { a: 1, b: 1, c: 1 } },
+] });
+
+/* ---------- Trade-weighted index ---------- */
+const TW = [0.5, 0.3, 0.2], TN = ["Partner A (50%)", "Partner B (30%)", "Partner C (20%)"], TI = [110, 95, 100];
+const TX = (i) => 130 + i * 150, TY = (v) => 300 - (v - 80) * 7.5;
+function twDraw(s) {
+  let o = axes(70, 300, 730, 30, "", "Index (last year = 100)"); [80, 90, 100, 110, 120].forEach((v) => (o += SV.text(64, TY(v) + 4, v, "sm", { "text-anchor": "end" }) + SV.line(70, TY(v), 730, TY(v), v === 100 ? "ax" : "gr", op(0.4))));
+  const tw = TW.reduce((a, w, i) => a + w * TI[i], 0);
+  TI.forEach((v, i) => { const k = [s.a, s.b, s.c][i]; if (k > 0) { const y = TY(100 + (v - 100) * k); o += SV.rect(TX(i) - 28, Math.min(y, TY(100)), 56, Math.abs(y - TY(100)), i === 1 ? "f2" : "f1", op(k)) + tag(TX(i), 320, TN[i], "t1", k, "middle") + tag(TX(i), (v >= 100 ? y - 8 : y + 18), v, "t1", k, "middle"); } });
+  if (s.d > 0) { const y = TY(100 + (tw - 100) * s.d); o += SV.rect(TX(3) - 28, Math.min(y, TY(100)), 56, Math.abs(y - TY(100)), "f3", op(s.d)) + tag(TX(3), 320, "Weighted index", "t4", s.d, "middle") + tag(TX(3), y - 8, Lib.fmtN(tw, 1), "t4", s.d, "middle"); }
+  return o;
+}
+Lib.stepper($("#stT"), { w: 760, h: 340, label: "Three bilateral currency indices combined into a trade-weighted index", base: { a: 0, b: 0, c: 0, d: 0 }, draw: twDraw, tween: 1200, dwell: 6000, steps: [
+  { cap: "<b>Against partner A</b> (half of all trade) the currency has risen 10%: the index is 110.", s: { a: 1 } },
+  { cap: "<b>Against partner B</b> (30% of trade) it has fallen 5%: the index is 95.", s: { a: 1, b: 1 } },
+  { cap: "<b>Against partner C</b> (20% of trade) it is unchanged at 100.", s: { a: 1, b: 1, c: 1 } },
+  { cap: "<b>The weighted index.</b> 0.5 × 110 + 0.3 × 95 + 0.2 × 100 = 103.5. The currency has risen 3.5% overall, because the biggest partner counts for most.", s: { a: 1, b: 1, c: 1, d: 1 } },
+] });
+
+/* ---------- Lab 1 ---------- */
+function labR() {
+  if (!$("#nm") || !$("#id") || !$("#if")) return;
+  const n = +$("#nm").value, pd = +$("#id").value, pf = +$("#if").value, real = ((1 + n / 100) * (1 + pd / 100) / (1 + pf / 100) - 1) * 100, rel = ((1 + pd / 100) / (1 + pf / 100) - 1) * 100;
+  $("#r1").textContent = (n >= 0 ? "+" : "") + Lib.fmtN(n, 1) + "%"; $("#r2").textContent = (rel >= 0 ? "+" : "") + Lib.fmtN(rel, 1) + "%"; $("#r3").textContent = (real >= 0 ? "+" : "") + Lib.fmtN(real, 1) + "%";
+  $("#rv").textContent = real > 0.5 ? `The real exchange rate has risen about ${Lib.fmtN(real, 1)}%: home goods are relatively dearer, so price competitiveness has fallen.` : real < -0.5 ? `The real exchange rate has fallen about ${Lib.fmtN(-real, 1)}%: home goods are relatively cheaper, so price competitiveness has improved.` : "The real exchange rate is almost unchanged: the nominal movement and the inflation gap cancel out, so competitiveness is about the same.";
+  const Y = (v) => 150 - v * 5; let o = SV.line(40, 150, 400, 150) + SV.line(40, 20, 40, 280) + SV.text(46, 16, "Change (%)", "sm");
+  [["Nominal", n, "f1"], ["Relative prices", rel, "f2"], ["Real", real, "f3"]].forEach(([l, v, c], i) => { const x = 70 + i * 115, y = Y(Math.max(-26, Math.min(26, v))); o += SV.rect(x, Math.min(y, 150), 70, Math.abs(y - 150), c) + SV.text(x + 35, 296, l, "sm", { "text-anchor": "middle" }) + tag(x + 35, v >= 0 ? y - 8 : y + 18, (v >= 0 ? "+" : "") + Lib.fmtN(v, 1) + "%", "t1", 1, "middle"); });
+  $("#labA").innerHTML = o;
+}
+Lib.slider($("#g1"), { id: "nm", label: "Change in the nominal rate, % (+ = appreciation) ", min: -20, max: 20, step: 1, value: 0, fmt: (v) => v, onInput: labR });
+Lib.slider($("#g2"), { id: "id", label: "Domestic inflation, % ", min: 0, max: 15, step: 1, value: 6, fmt: (v) => v, onInput: labR });
+Lib.slider($("#g3"), { id: "if", label: "Foreign inflation, % ", min: 0, max: 15, step: 1, value: 2, fmt: (v) => v, onInput: labR });
+labR();
+
+/* ---------- Lab 2 ---------- */
+function labT() {
+  if (!$("#ta") || !$("#tb") || !$("#tc")) return;
+  const v = [+$("#ta").value, +$("#tb").value, +$("#tc").value], tw = 0.5 * v[0] + 0.3 * v[1] + 0.2 * v[2];
+  $("#t1").textContent = Lib.fmtN(tw, 1); $("#t2").textContent = (tw >= 100 ? "+" : "") + Lib.fmtN(tw - 100, 1) + "%"; $("#t3").textContent = tw > 100.2 ? "Appreciation" : tw < 99.8 ? "Depreciation" : "No change";
+  $("#tv").textContent = `Weighted index = 0.5 × ${v[0]} + 0.3 × ${v[1]} + 0.2 × ${v[2]} = ${Lib.fmtN(tw, 1)}. ${Math.abs(v[0] - 100) > Math.abs(v[2] - 100) ? "Partner A has the biggest weight, so its movement counts most." : "Partner C has the smallest weight, so its movement counts least."}`;
+  const Y = (x) => 150 - (x - 100) * 5; let o = SV.line(40, 150, 400, 150) + SV.line(40, 20, 40, 280) + SV.text(46, 16, "Index (100 = last year)", "sm");
+  [["A", v[0], "f1"], ["B", v[1], "f1"], ["C", v[2], "f1"], ["TWI", tw, "f3"]].forEach(([l, x, c], i) => { const px = 60 + i * 85, y = Y(Math.max(75, Math.min(125, x))); o += SV.rect(px, Math.min(y, 150), 55, Math.abs(y - 150), c) + SV.text(px + 27, 296, l, "sm", { "text-anchor": "middle" }) + tag(px + 27, x >= 100 ? y - 8 : y + 18, Lib.fmtN(x, 1), "t1", 1, "middle"); });
+  $("#labB").innerHTML = o;
+}
+Lib.slider($("#g4"), { id: "ta", label: "Index against partner A (50% weight) ", min: 80, max: 120, step: 1, value: 110, fmt: (v) => v, onInput: labT });
+Lib.slider($("#g5"), { id: "tb", label: "Index against partner B (30% weight) ", min: 80, max: 120, step: 1, value: 95, fmt: (v) => v, onInput: labT });
+Lib.slider($("#g6"), { id: "tc", label: "Index against partner C (20% weight) ", min: 80, max: 120, step: 1, value: 100, fmt: (v) => v, onInput: labT });
+labT();
+
+/* ---------- Practise ---------- */
+Lib.classify($("#cl1"), { prompt: "Which measure is it?", buckets: [{"label": "Nominal rate"}, {"label": "Real rate"}, {"label": "Trade-weighted index"}], items: [{"text": "The price of the pound in US dollars on the market today", "b": 0}, {"text": "An exchange rate that adjusts for differences in inflation between countries", "b": 1}, {"text": "A basket of partner currencies weighted by trade shares", "b": 2}, {"text": "£1 = €1.15", "b": 0}, {"text": "Shows whether home goods have become dearer relative to foreign goods", "b": 1}, {"text": "Counts a fall against the largest trading partner more heavily", "b": 2}, {"text": "Unchanged while home inflation is higher than abroad", "b": 0}, {"text": "Rises when domestic prices rise faster than foreign prices at a constant nominal rate", "b": 1}], done: "Nominal: price of one currency in another. Real: adjusts for prices. Trade-weighted: a basket, weighted by trade." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Nominal exchange rate", "The price of one currency in terms of another"], ["Real exchange rate", "The nominal rate adjusted for relative price levels"], ["Trade-weighted index", "The currency against a basket, weighted by trade shares"], ["Real effective exchange rate", "The trade-weighted index adjusted for relative prices"], ["Real appreciation", "Home goods become relatively dearer"], ["Purchasing power parity", "A theory that exchange rates move to equalise the price of goods"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the steps for finding the change in a real exchange rate in order.", items: ["Find the change in the nominal exchange rate", "Find domestic and foreign inflation", "Work out the relative price change (domestic divided by foreign)", "Multiply the nominal index by the relative price index", "Judge the effect on competitiveness"], done: "Real rate = nominal rate × domestic prices ÷ foreign prices." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "The pound rises from $1.50 to $1.65. Calculate the percentage appreciation of the pound against the dollar (%).", "a": 10, "unit": "%", "tol": 0.05, "hint": "Change ÷ original.", "sol": "(1.65 − 1.50) ÷ 1.50 = <b>10%</b>."},
+  {"q": "The nominal exchange rate index rises from 100 to 105. Domestic prices rise from 100 to 108 and foreign prices from 100 to 103. Calculate the real exchange rate index (1 decimal place).", "a": 110.1, "unit": "", "tol": 0.1, "hint": "105 × 108 ÷ 103.", "sol": "105 × 108 ÷ 103 = <b>110.1</b>: a real appreciation of about 10%."},
+  {"q": "A trade-weighted index uses weights of 0.5, 0.3 and 0.2. The currency indices against the three partners are 110, 95 and 100. Calculate the trade-weighted index (1 decimal place).", "a": 103.5, "unit": "", "tol": 0.05, "hint": "Multiply each index by its weight and add.", "sol": "55 + 28.5 + 20 = <b>103.5</b>."},
+  {"q": "The nominal exchange rate falls by 5%. Domestic and foreign inflation are both 3%. By roughly what percentage does the real exchange rate fall (%)?", "a": 5, "unit": "%", "tol": 0.1, "hint": "No relative price change.", "sol": "With equal inflation the relative price change is 0, so the real fall is <b>5%</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "A real exchange rate adjusts the nominal rate for:", opts: ["Interest rates", "Relative price levels", "Trade shares", "Tariffs"], a: 1, why: "Real = nominal × domestic prices ÷ foreign prices." },
+  { q: "A country's nominal exchange rate is unchanged and its inflation is higher than its partners'. Its real exchange rate:", opts: ["Rises", "Falls", "Is unchanged", "Cannot be known"], a: 0, why: "Home goods have become relatively dearer, a real appreciation." },
+  { q: "The weights in a trade-weighted exchange rate index depend on:", opts: ["Each partner's share of the country's trade", "Each partner's population", "Each partner's inflation", "The interest rates abroad"], a: 0, why: "Larger trading partners count for more." },
+  { q: "A real depreciation will most likely:", opts: ["Raise price competitiveness", "Lower price competitiveness", "Have no effect", "Raise imports by itself"], a: 0, why: "Home goods become relatively cheaper for foreigners." },
+  { q: "A country's currency rises 8% against one partner and falls 2% against another. The best summary of the overall change is:", opts: ["A trade-weighted index", "The nominal rate against one partner", "The balance of payments", "The terms of trade"], a: 0, why: "A weighted index combines bilateral movements by trade share." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Nominal exchange rate", "Price of one currency in another."],
+  ["Real exchange rate", "Nominal rate adjusted for relative prices."],
+  ["Real appreciation", "Home goods become relatively dearer; competitiveness falls."],
+  ["Trade-weighted index", "Basket of currencies weighted by trade shares."],
+  ["REER", "Trade-weighted index adjusted for relative prices."],
+  ["Purchasing power parity", "Exchange rates adjust to equalise prices of goods."],
+  ["Over-valued currency", "Above its equilibrium or PPP value."],
+  ["Appreciation vs revaluation", "Floating rate vs fixed rate."],
+] });
+Lib.quiz($("#qz2"), { qs: [
+  { q: "An economy imports a large proportion of its raw materials. Its exchange rate depreciates. What is the effect on the external value and the internal value of its money? (May/June 2025 · 31 · Q24, reworded)", opts: ["External value rises; internal value rises", "External value rises; internal value falls", "External value falls; internal value rises", "External value falls; internal value falls"], a: 3, why: "A depreciation is a fall in the external value of the currency. Dearer imported raw materials raise costs and prices, so the internal value (purchasing power at home) also falls." },
+  { q: "An economy's currency appreciates and the Marshall-Lerner condition holds. What is the likely effect on imported inflation and on unemployment? (Oct/Nov 2023 · 32 · Q24, reworded)", opts: ["Imported inflation falls; unemployment falls", "Imported inflation falls; unemployment rises", "Imported inflation rises; unemployment falls", "Imported inflation rises; unemployment rises"], a: 1, why: "A stronger currency makes imports cheaper, so imported inflation falls. Exports become dearer, so net exports and employment may fall." },
+  { q: "An economy imports most of the factors of production used to make its exports. What effect would a depreciation of its exchange rate have on the price of imported goods and on the price of exported goods, in the domestic currency? (Feb/March 2023 · 32 · Q26, reworded)", opts: ["Imported goods fall; exported goods fall", "Imported goods fall; exported goods rise", "Imported goods rise; exported goods fall", "Imported goods rise; exported goods rise"], a: 3, why: "The depreciation raises the price of imports. Because export producers rely on imported inputs, their costs rise too, so export prices in the domestic currency rise as well." },
+  { q: "A country imports most of the raw materials used as factor inputs. Which policy is most likely to control cost-push inflation? (Feb/March 2024 · 32 · Q26, reworded)", opts: ["An appreciation of the exchange rate", "An increase in the rate of income tax", "An increase in the rate of interest", "An increase in the rate of sales tax"], a: 0, why: "A stronger currency lowers the domestic price of imported inputs, which reduces cost-push pressure directly." },
+  { q: "What is likely to be the most effective policy to reduce inflation caused by a rapid rise in import prices? (Feb/March 2024 · 32 · Q20, reworded)", opts: ["A decrease in the domestic rate of interest", "A decrease in the rate of income tax", "An increase in trade tariffs on imports", "A revaluation of the exchange rate"], a: 3, why: "A revaluation lowers the domestic currency price of imports, tackling the source of the inflation. Tariffs would raise import prices further." },
+  { q: "Which change would most likely increase structural unemployment in the manufacturing sector of the US? (Oct/Nov 2021 · 33 · Q21, reworded)", opts: ["Asian exporters of manufactured goods to the US experience a fall in labour costs per unit of output", "Tariffs on Asian manufacturing imports increase", "The share of US manufacturing workers in trade unions falls", "The US dollar's real effective exchange rate against Asian currencies falls"], a: 0, why: "Cheaper Asian output makes US producers less competitive. A fall in the US real effective exchange rate would make US goods more competitive, and tariffs would protect them." },
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

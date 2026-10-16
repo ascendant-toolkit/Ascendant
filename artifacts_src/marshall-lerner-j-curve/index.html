@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Marshall-Lerner and the J Curve</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Economics · 9708 · Syllabus 11.2.5</div>
+  <h1>Marshall-Lerner and the J Curve</h1>
+  <p class="lead">11.2.5: the effect of a change in the exchange rate on the current account, the Marshall-Lerner condition and the J curve. Animated diagrams, labs, drills and the past paper questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This part in four sentences</h3>
+  <p>A <b>fall</b> in the exchange rate makes <b>exports cheaper abroad and imports dearer at home</b>, but whether the <b>current account improves</b> depends on how much the quantities change. The <b class="kw">Marshall-Lerner condition</b> says a depreciation or devaluation will improve the current account only if the <b>sum of the price elasticities of demand for exports and imports is greater than 1</b>. Because buyers and sellers are slow to react (contracts, habits, lack of substitutes), elasticities are low in the short run, so the current account often <b>gets worse before it gets better</b>: the <b class="kw">J curve</b>. A rise in the exchange rate has the opposite effects.</p></div>
+
+  <h2>1 · What a depreciation does</h2>
+  <ul>
+    <li><b>Price effect:</b> each export is cheaper in foreign currency, so foreigners buy more. Each import costs more in home currency, so residents buy fewer.</li>
+    <li><b>Volume effect:</b> the extra export sales and the cut in imports add to the demand for domestic goods, raising aggregate demand and employment. A <b>net exports (X − M)</b> increase raises AD.</li>
+    <li>The trade balance rises only if the <b>gain in volume outweighs the higher price paid for imports</b>. This is what the elasticities decide.</li>
+    <li>Other effects: higher <b>imported inflation</b> (dearer raw materials and goods), a higher burden on <b>debts in foreign currency</b>, and possible <b>retaliation</b> (competitive devaluation).</li>
+  </ul>
+
+  <h2>2 · The Marshall-Lerner condition</h2>
+  <div id="pic1" class="card"></div>
+  <ul>
+    <li><b>PEDx + PEDm &gt; 1</b> (taking the elasticities as positive numbers). Then a depreciation or devaluation <b>improves</b> the current account.</li>
+    <li><b>If PEDx + PEDm = 1</b> the balance is unchanged. <b>If it is less than 1</b> the current account <b>worsens</b>: the extra amount paid for imports is greater than the gain in export sales.</li>
+    <li><b>Worked example</b> (trade initially balanced at $100m each way, depreciation of 10%): if PEDx = 0.8 and PEDm = 0.6 (sum 1.4), exports rise by 8% to $108m and import spending is 100 × 1.10 × 0.94 = $103.4m, so the balance improves by about $4.6m. If PEDx = 0.3 and PEDm = 0.2 (sum 0.5), exports rise to $103m and imports cost $107.8m, so the balance <b>worsens</b> by about $4.8m.</li>
+    <li>Elasticity is high when there are <b>good substitutes</b>, when the product is a <b>luxury</b>, when <b>spare capacity</b> lets exporters respond, and when <b>more time</b> has passed. It is low for essential imports such as oil or food and for primary commodity exports with inelastic supply.</li>
+  </ul>
+
+  <h2>3 · The J curve</h2>
+  <div id="pic2" class="card"></div>
+  <ul>
+    <li><b>Short run:</b> contracts are already agreed, buyers are slow to notice price changes, and firms need time to find new suppliers or expand capacity. Short-run PEDs are <b>low (sum below 1)</b>, so the dearer import bill outweighs any gain: the current account <b>worsens</b>.</li>
+    <li><b>Medium to long run:</b> contracts end, consumers switch and exporters expand output. PEDs rise (sum above 1), so the current account <b>improves</b> and eventually moves above its starting point.</li>
+    <li>The graph of the current account balance against time then looks like the letter <b>J</b>. A <b>revaluation</b> may produce an <b>inverse J</b> (the account first improves, then worsens).</li>
+  </ul>
+
+  <h2>4 · The effects of changing exchange rates on the external economy</h2>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Depreciation or devaluation</th><th>Appreciation or revaluation</th></tr>
+    <tr><td><b>Export prices abroad</b></td><td>Fall</td><td>Rise</td></tr>
+    <tr><td><b>Import prices at home</b></td><td>Rise</td><td>Fall</td></tr>
+    <tr><td><b>Current account</b></td><td>Improves if Marshall-Lerner holds, after a J curve</td><td>Worsens if Marshall-Lerner holds</td></tr>
+    <tr><td><b>Inflation</b></td><td>Rises (imported inflation, higher AD)</td><td>Falls</td></tr>
+    <tr><td><b>Employment and growth</b></td><td>May rise through net exports</td><td>May fall in export industries</td></tr>
+    <tr><td><b>Foreign-currency debt</b></td><td>Burden rises</td><td>Burden falls</td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Evaluation points</b>The effect depends on (1) the elasticities and the time frame, (2) spare capacity at home to meet the extra demand, (3) how much of exports use imported inputs, (4) whether domestic inflation wipes out the gain (the real exchange rate), (5) the reaction of trading partners, and (6) the structure of the economy, for example a low-income country exporting commodities with inelastic supply may gain little.</div>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · The Marshall-Lerner condition at work</h2>
+  <p>Press Play, or click the numbered steps.</p>
+  <div id="stM"></div>
+  <h2>2 · The J curve</h2>
+  <div id="stJ"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Does the depreciation work?</h2>
+  <p>Trade starts balanced at 100 each way. Set the depreciation and the elasticities. The Marshall-Lerner sum decides whether the balance improves.</p>
+  <div class="card"><div class="grid2"><div><div id="g1"></div><div id="g2"></div><div id="g3"></div>
+    <div class="readout"><div><small>PEDx + PEDm</small><strong id="r1"></strong></div><div><small>Export / import bill</small><strong id="r2"></strong></div><div><small>New balance</small><strong id="r3"></strong></div></div>
+    <div class="verdict" id="rv"></div></div>
+    <div><svg id="labA" viewBox="0 0 420 300" role="img" aria-label="Bars of export revenue and import spending before and after a depreciation"></svg></div></div></div>
+
+  <h2>Lab 2 · Draw your own J curve</h2>
+  <p>Combined elasticity starts at the short-run value and rises towards the long-run value. Move both and see when the J appears.</p>
+  <div class="card"><div class="grid2"><div><div id="g4"></div><div id="g5"></div>
+    <div class="readout"><div><small>Lowest point</small><strong id="t1"></strong></div><div><small>After 12 periods</small><strong id="t2"></strong></div><div><small>Shape</small><strong id="t3"></strong></div></div>
+    <div class="verdict" id="tv"></div></div>
+    <div><svg id="labB" viewBox="0 0 420 300" role="img" aria-label="Current account balance over time after a depreciation for chosen short-run and long-run elasticities"></svg></div></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Does the current account improve, worsen or stay the same?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Match the word to its meaning</h2><div id="m1" class="card"></div>
+  <h2>3 · Put the J curve in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Calculations</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Sterling after 2016</h3><p>After the pound fell in 2016, the UK trade deficit did not narrow quickly. Many importers and exporters were tied to contracts and supply chains, and imported components became dearer. This is often used as an example of a slow, drawn-out J curve.</p><div class="use"><b>Exam use:</b> short-run elasticities being low, and why the current account may take time to improve.</div></div>
+  <div class="rw"><h3>Japan's weak yen after 2013</h3><p>Japan's yen fell sharply in 2013. Exporters' profits rose when converted into yen, but the volume of exports rose less than hoped because many firms already produced abroad. Import costs for energy and food rose, and the trade balance first worsened.</p><div class="use"><b>Exam use:</b> an example of the volume effect being limited, and imported inflation as a cost of depreciation.</div></div>
+  <div class="rw"><h3>Commodity exporters</h3><p>Many low-income countries export primary products such as coffee, copper or cocoa. Supply in the short run is inelastic because it takes time to plant or open mines, so a depreciation may not raise export volumes much, even if the price in foreign currency falls.</p><div class="use"><b>Exam use:</b> the supply side limit on a depreciation in a low-income economy, which is the link in the Paper 4 question on growth.</div></div>
+  <div class="rw"><h3>Oil importers</h3><p>Countries that rely on imported oil have a very inelastic demand for imports, at least in the short run. When their currency falls, the oil bill rises sharply in local currency, which can worsen the trade balance and add to inflation.</p><div class="use"><b>Exam use:</b> very low PEDm, so the Marshall-Lerner condition may fail.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Past paper questions on exchange rate changes, the Marshall-Lerner condition and the J curve</h2>
+  <p>We searched the A Level Economics papers in the folder (2020 to 2025). The effect of a depreciation on the economy is a regular 20 mark essay, and the Marshall-Lerner and J curve ideas appear in Paper 3 every year. One past essay is reworded below, with two practice questions and seven Paper 3 multiple choice questions.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Type</th><th>Examples found</th><th>Where</th></tr>
+    <tr><td>Essay, 20 marks</td><td>1</td><td>May/June 2023 (42) Q4</td></tr>
+    <tr><td>Multiple choice (Paper 3)</td><td>7 shown below</td><td>2020 to 2025</td></tr>
+  </table></div>
+  <h2>A · Written questions (reworded)</h2>
+  <p>The wording, context and figures are our own, so they are safe to set as practice. The source paper is named for reference. Mark scheme points are in our own words.</p>
+  <details class="eq"><summary>Based on May/June 2023 · 9708/42 · Q4 <span class="mark">20 marks</span> Consider the extent to which the depreciation of its foreign exchange rate contributes to the economic growth of a low-income country.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Knowledge and analysis of the effect of a depreciation on export and import prices, and so on the demand for and supply of exports and imports.</li>
+        <li>Link to AD through net exports (X − M), shown with an AD and AS diagram or the multiplier; state whether the growth is actual or potential.</li>
+        <li>Evaluation: the ability of supply capacity in the low-income country to respond; primary product exports often have inelastic supply compared with, say, oil; short-run employment gains but also inflation from dearer imports; the effect on debt, which rises in cost if borrowing is in foreign currency but falls in cost if in domestic currency.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Price effects. Net exports raise AD (diagram). Actual growth. Supply constraints. Inflation. Debt in foreign currency.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">A depreciation lowers the price of a low-income country's exports in foreign currency and raises the price of its imports.</span> <span class="mk n" data-t="N">If the Marshall-Lerner condition holds, export revenue could rise by more than the import bill, so net exports increase. Because X − M is part of aggregate demand, AD may shift to the right, raising output through the multiplier. This is actual growth, as it uses spare capacity.</span></p>
+    <p><span class="mk e" data-t="E">However, many low-income countries export primary products with inelastic supply in the short run, so export volumes may rise little. Dearer imported inputs and capital goods could also raise costs and inflation, and reduce potential growth. If much of the country's debt is in dollars, the cost of repayments in local currency rises. So the contribution to growth may be modest and temporary.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Practice question · modelled on the 12 mark style (no past paper) <span class="mark">12 marks</span> Explain, with the help of a diagram, the J curve effect and why a depreciation may make the current account worse in the short run.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Diagram: current account balance against time, falling after the depreciation and then rising above its starting point.</li>
+        <li>Short run: price elasticities of demand for exports and imports are low (sum below 1) because of existing contracts, slow reactions and lack of substitutes, so the dearer import bill outweighs the extra export sales.</li>
+        <li>Long run: elasticities rise (sum above 1), consumers switch and exporters expand, so the account improves (Marshall-Lerner).</li>
+        <li>Mention the condition and that the speed depends on the economy.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Diagram. Short-run elasticity and why. Long-run improvement. Marshall-Lerner condition.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">The J curve shows the current account getting worse for a time after a depreciation before it improves, so the graph of the balance over time looks like the letter J.</span> <span class="mk n" data-t="N">In the short run, contracts have already been agreed, consumers are slow to change their habits and there may be no easy substitutes, so demand for imports and exports is price inelastic. The dearer import bill is then greater than the extra revenue from exports, so the balance worsens.</span></p>
+    <p><span class="mk n" data-t="N">Over time, contracts end, consumers switch to cheaper domestic goods and exporters expand output, so elasticities rise. When the sum of the elasticities is above 1, the Marshall-Lerner condition is met and the current account may improve, eventually above its starting level.</span> <span class="mk e" data-t="E">How long this takes may depend on the economy's spare capacity and import dependence.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Practice question · modelled on the 8 mark style (no past paper) <span class="mark">8 marks</span> Explain the Marshall-Lerner condition and why it might not hold in a low-income country.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Condition: a depreciation improves the current account if PEDx + PEDm > 1.</li>
+        <li>Reason it may fail: inelastic demand for essential imports (oil, food, capital goods); inelastic supply of commodity exports; limited spare capacity; low-quality exports; short time period.</li>
+        <li>A developed chain of analysis.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Condition. Reasons. A conclusion about the likelihood.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">The Marshall-Lerner condition states that a depreciation or devaluation will improve the current account only if the sum of the price elasticities of demand for exports and imports is greater than 1.</span></p>
+    <p><span class="mk n" data-t="N">In a low-income country the condition may not hold. Imports such as oil, food and machinery are essential, so demand could be inelastic, and the import bill will rise sharply when the currency falls. Exports are often primary products with inelastic supply in the short run, so export volumes may rise little.</span> <span class="mk e" data-t="E">The condition is more likely to be met in the long run, when more substitutes and capacity are available.</span></p>
+    </div>
+  </div></details>
+  <h2>B · Multiple choice questions (Paper 3)</h2>
+  <p>Choose an answer, then read the reason. Reworded from the paper and question number shown.</p>
+  <div id="qz2"></div>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>State the condition fully.</b> PEDx + PEDm greater than 1 for a depreciation to improve the current account.</li>
+    <li><b>Say which direction.</b> Depreciation: exports cheaper, imports dearer. Appreciation is the opposite.</li>
+    <li><b>Label the J.</b> Current account balance on the vertical axis, time on the horizontal axis, a dip then a rise above the start.</li>
+    <li><b>Short run versus long run.</b> Elasticities are low in the short run and higher in the long run. That is the whole reason for the J.</li>
+    <li><b>Link net exports to AD.</b> X minus M is part of aggregate demand, so a rise shifts AD right.</li>
+    <li><b>Mention costs.</b> Imported inflation, dearer foreign debt and possible retaliation.</li>
+    <li><b>Evaluate for the economy.</b> Low-income countries often have inelastic commodity exports and import needs.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Condition</td><td>"A depreciation could improve the current account if the sum of the price elasticities of demand for exports and imports is greater than 1."</td></tr>
+    <tr><td>J curve</td><td>"The current account may first worsen after a depreciation because short-run elasticities are low, and then improve."</td></tr>
+    <tr><td>Imports</td><td>"A fall in the exchange rate raises the home price of imports, so the import bill may rise before quantities adjust."</td></tr>
+    <tr><td>Growth</td><td>"Higher net exports raise aggregate demand and may increase actual growth if there is spare capacity."</td></tr>
+    <tr><td>Limits</td><td>"The gain may be reduced by inflation, slow supply responses and retaliation by trading partners."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Define / State</td><td>Give the exact meaning, briefly. No explanation needed.</td></tr>
+    <tr><td>Explain</td><td>Give reasons, with a clear chain of cause and effect.</td></tr>
+    <tr><td>Consider</td><td>Look at the issue from several sides and judge how strong each is.</td></tr>
+    <tr><td>Evaluate</td><td>Weigh the arguments and reach a supported conclusion.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+/* ---------- Marshall-Lerner bars ---------- */
+const MB = (v) => 300 - v * 2.3;
+function mlDraw(s) {
+  let o = axes(70, 300, 730, 30, "", "Value ($m)"); [0, 50, 100].forEach((v) => (o += SV.text(64, MB(v) + 4, v, "sm", { "text-anchor": "end" })));
+  o += SV.line(70, MB(100), 730, MB(100), "gr dash", op(0.6));
+  const bx = (i, v, c, l, k) => SV.rect(130 + i * 200, MB(v), 90, 300 - MB(v), c, op(k)) + tag(175 + i * 200, MB(v) - 8, Lib.fmtN(v, 1), "t1", k, "middle") + tag(175 + i * 200, 322, l, "t1", k, "middle");
+  o += bx(0, s.x, "f1", "Export revenue", 1) + bx(1, s.m, "f2", "Import spending", 1);
+  const b = s.x - s.m; o += tag(620, 120, "Balance", "t1", 1, "middle") + tag(620, 156, (b >= 0 ? "+" : "") + Lib.fmtN(b, 1), b >= 0 ? "t3" : "t2", 1, "middle");
+  if (s.n > 0) o += tag(620, 190, s.n === 1 ? "sum = 1.4: improves" : "sum = 0.5: worsens", "t4", 1, "middle");
+  return o;
+}
+$("#pic1").innerHTML = `<svg viewBox="0 0 760 340" role="img" aria-label="Export revenue and import spending bars after a depreciation when the Marshall-Lerner condition holds">${mlDraw({ x: 108, m: 103.4, n: 1 })}</svg>`;
+Lib.stepper($("#stM"), { w: 760, h: 340, label: "A 10 percent depreciation: export revenue and import spending when the elasticity sum is high and low", base: { x: 100, m: 100, n: 0 }, draw: mlDraw, tween: 1100, dwell: 6200, steps: [
+  { cap: "<b>Start.</b> Trade is balanced: exports $100m, imports $100m.", s: { x: 100, m: 100, n: 0 } },
+  { cap: "<b>The price effect.</b> A 10% depreciation raises the home price of imports by 10% at once. Before quantities change, the import bill rises to $110m and the balance falls to −$10m.", s: { x: 100, m: 110, n: 0 } },
+  { cap: "<b>Elastic demand (PEDx 0.8, PEDm 0.6, sum 1.4).</b> Exports rise 8% to $108m and import volumes fall 6%, so imports cost $103.4m. The balance improves to +$4.6m: Marshall-Lerner holds.", s: { x: 108, m: 103.4, n: 1 } },
+  { cap: "<b>Inelastic demand (PEDx 0.3, PEDm 0.2, sum 0.5).</b> Exports rise only 3% to $103m and import volumes fall just 2%, so imports cost $107.8m. The balance is −$4.8m: the condition fails.", s: { x: 103, m: 107.8, n: 2 } },
+] });
+
+/* ---------- J curve ---------- */
+const jb = (t) => -10 - 10 * (t / 2) * Math.exp(1 - t / 2) + 15 * (1 - Math.exp(-t / 4));
+const JX = (t) => 90 + t * 52, JY = (b) => 190 - b * 7;
+function jDraw(s) {
+  let o = axes(70, 300, 730, 30, "Time after the depreciation", "Current account balance"); o += SV.line(70, JY(0), 730, JY(0), "gr", op(0.7)) + SV.text(66, JY(0) + 4, "0", "sm", { "text-anchor": "end" }) + SV.line(JX(0), 40, JX(0), 300, "c4 dash", op(0.8)) + tag(JX(0) + 6, 52, "depreciation", "t4");
+  const pts = []; for (let t = -0.35; t <= s.p * 12 + 0.001 && t <= 12; t += 0.25) pts.push([JX(t), JY(t <= 0 ? -10 : jb(t))]);
+  if (pts.length > 1) o += SV.path(Lib.ptsPath(pts), "c1");
+  const t0 = Math.min(12, s.p * 12), last = pts.length ? pts[pts.length - 1] : [JX(0), JY(-10)];
+  o += SV.circle(last[0], last[1], 6, "dot4");
+  if (s.l > 0) o += tag(JX(3), 320, "Short run: contracts and habits, low elasticities", "t2", s.l, "middle");
+  if (s.l > 1) o += tag(JX(7), 232, "Adjustment: elasticities rise", "t1", Math.min(1, s.l - 1), "middle");
+  if (s.l > 2) o += tag(JX(11), JY(3.5) - 12, "Long run: ML holds", "t3", Math.min(1, s.l - 2), "end");
+  return o;
+}
+$("#pic2").innerHTML = `<svg viewBox="0 0 760 340" role="img" aria-label="J curve: the current account falls after a depreciation then rises above its starting level">${jDraw({ p: 1, l: 3 })}</svg>`;
+Lib.stepper($("#stJ"), { w: 760, h: 340, label: "J curve: current account balance over time after a depreciation", base: { p: 0, l: 0 }, draw: jDraw, tween: 1500, dwell: 6200, steps: [
+  { cap: "<b>Before.</b> The country has a current account deficit of about 10 units. The currency then depreciates.", s: { p: 0, l: 0 } },
+  { cap: "<b>Short run.</b> Contracts are already agreed and buyers are slow to switch, so quantities barely change but the import bill rises. The <b>deficit widens</b> to about 14.", s: { p: 0.17, l: 1 } },
+  { cap: "<b>Adjustment.</b> As contracts end, consumers switch and exporters expand, elasticities rise. The balance starts to recover and passes its starting level.", s: { p: 0.6, l: 2 } },
+  { cap: "<b>Long run.</b> The sum of elasticities is above 1, so the current account is better than before the depreciation. The path looks like the letter J.", s: { p: 1, l: 3 } },
+] });
+
+/* ---------- Lab 1 ---------- */
+function labM() {
+  if (!$("#dp") || !$("#ex") || !$("#im")) return;
+  const d = +$("#dp").value / 100, ex = +$("#ex").value / 10, im = +$("#im").value / 10, x = 100 * (1 + ex * d), m = 100 * (1 + d) * (1 - im * d), b = x - m, sum = ex + im;
+  $("#r1").textContent = Lib.fmtN(sum, 1); $("#r2").textContent = Lib.fmtN(x, 1) + " / " + Lib.fmtN(m, 1); $("#r3").textContent = (b >= 0 ? "+" : "") + Lib.fmtN(b, 1);
+  $("#rv").textContent = sum > 1.001 ? `The sum of the elasticities (${Lib.fmtN(sum, 1)}) is above 1: the Marshall-Lerner condition holds, so the balance improves to ${b >= 0 ? "+" : ""}${Lib.fmtN(b, 1)}.` : sum < 0.999 ? `The sum (${Lib.fmtN(sum, 1)}) is below 1: the condition fails and the balance worsens to ${Lib.fmtN(b, 1)}. The dearer import bill outweighs the export gain.` : "The sum is exactly 1: roughly no change in the balance (the exact result depends on the starting position).";
+  const Y = (v) => 270 - v * 1.7; let o = SV.line(40, 270, 400, 270) + SV.line(40, 270, 40, 20) + SV.text(46, 16, "$m", "sm");
+  [["Exports before", 100, "f1"], ["Exports after", x, "f1"], ["Imports before", 100, "f2"], ["Imports after", m, "f2"]].forEach(([l, v, c], i) => { const px = 55 + i * 88; o += SV.rect(px, Y(v), 60, 270 - Y(v), c, i % 2 ? {} : op(0.55)) + SV.text(px + 30, 288, l.split(" ")[1], "sm", { "text-anchor": "middle" }) + tag(px + 30, Y(v) - 6, Lib.fmtN(v, 1), "t1", 1, "middle"); });
+  o += SV.text(115, 304, "Exports", "sm", { "text-anchor": "middle" }) + SV.text(291, 304, "Imports", "sm", { "text-anchor": "middle" });
+  $("#labA").innerHTML = o;
+}
+Lib.slider($("#g1"), { id: "dp", label: "Depreciation, % ", min: 5, max: 30, step: 5, value: 10, fmt: (v) => v, onInput: labM });
+Lib.slider($("#g2"), { id: "ex", label: "PED of exports × 10 ", min: 0, max: 20, step: 1, value: 8, fmt: (v) => (v / 10).toFixed(1), onInput: labM });
+Lib.slider($("#g3"), { id: "im", label: "PED of imports × 10 ", min: 0, max: 20, step: 1, value: 6, fmt: (v) => (v / 10).toFixed(1), onInput: labM });
+labM();
+
+/* ---------- Lab 2 ---------- */
+function labJ() {
+  if (!$("#sr") || !$("#lr")) return;
+  const sr = +$("#sr").value / 10, lr = +$("#lr").value / 10, f = (t) => -10 + 20 * ((sr + (lr - sr) * (1 - Math.exp(-t / 3))) - 1);
+  let lo = 0, lt = 0; for (let t = 0; t <= 12; t += 0.1) { if (f(t) < lo) { lo = f(t); } } lo = Math.min(lo, -10);
+  const end = f(12), shape = sr < 1 && lr > 1 ? "J curve" : sr >= 1 ? "Improves at once" : "Never improves";
+  $("#t1").textContent = Lib.fmtN(lo, 1); $("#t2").textContent = (end >= 0 ? "+" : "") + Lib.fmtN(end, 1); $("#t3").textContent = shape;
+  $("#tv").textContent = shape === "J curve" ? `Short-run elasticities sum to ${sr.toFixed(1)} (below 1), so the account worsens first, to about ${Lib.fmtN(lo, 1)}. They rise to ${lr.toFixed(1)} (above 1), so by period 12 the balance is ${Lib.fmtN(end, 1)}.` : shape === "Improves at once" ? "With the short-run sum already above 1, the current account improves straight away, so there is no J." : "The long-run sum stays below 1, so the Marshall-Lerner condition never holds and the current account stays worse than before.";
+  const X = (t) => 40 + t * 28, Y = (b) => 150 - b * 6; let o = SV.line(40, 280, 400, 280) + SV.line(40, 280, 40, 20) + SV.text(400, 296, "Time", "sm", { "text-anchor": "end" }) + SV.text(46, 16, "Current account balance", "sm") + SV.line(40, Y(-10), 400, Y(-10), "gr dash", op(0.7)) + SV.text(44, Y(-10) - 6, "start", "sm");
+  const pts = []; for (let t = 0; t <= 12; t += 0.25) pts.push([X(t), Math.max(25, Math.min(275, Y(f(t))))]);
+  $("#labB").innerHTML = o + SV.path(Lib.ptsPath(pts), "c1");
+}
+Lib.slider($("#g4"), { id: "sr", label: "Short-run PEDx + PEDm × 10 ", min: 2, max: 14, step: 1, value: 6, fmt: (v) => (v / 10).toFixed(1), onInput: labJ });
+Lib.slider($("#g5"), { id: "lr", label: "Long-run PEDx + PEDm × 10 ", min: 6, max: 24, step: 1, value: 16, fmt: (v) => (v / 10).toFixed(1), onInput: labJ });
+labJ();
+
+/* ---------- Practise ---------- */
+Lib.classify($("#cl1"), { prompt: "What happens to the current account?", buckets: [{"label": "Improves"}, {"label": "Worsens"}, {"label": "No change"}], items: [{"text": "Depreciation when PEDx + PEDm = 1.6", "b": 0}, {"text": "Depreciation when PEDx + PEDm = 0.6", "b": 1}, {"text": "Depreciation in the short run, when contracts are fixed and elasticities are low", "b": 1}, {"text": "Depreciation in the long run when the sum exceeds 1", "b": 0}, {"text": "Depreciation when PEDx + PEDm = 1.0", "b": 2}, {"text": "Devaluation when the country imports only essential goods with very inelastic demand", "b": 1}, {"text": "Revaluation when PEDx + PEDm = 1.8", "b": 1}, {"text": "Revaluation when PEDx + PEDm = 0.5", "b": 0}], done: "Depreciation improves the balance if the sum is above 1. A revaluation does the opposite." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Marshall-Lerner condition", "PEDx + PEDm > 1 for a depreciation to improve the current account"], ["J curve", "A current account that worsens before it improves"], ["Price effect", "Imports cost more in home currency after a depreciation"], ["Volume effect", "Export sales rise and import purchases fall"], ["Inverse J", "A revaluation that first improves, then worsens, the account"], ["Net exports", "Exports minus imports, a component of AD"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the J curve in order.", items: ["The exchange rate depreciates", "Import prices rise but quantities hardly change (contracts, habits)", "The current account deficit widens", "Elasticities rise as consumers and firms adjust", "The current account improves above its starting level"], done: "Low elasticities first, higher elasticities later." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "PEDx is 0.9 and PEDm is 0.4. Calculate PEDx + PEDm.", "a": 1.3, "unit": "", "tol": 0.01, "hint": "Add them.", "sol": "<b>1.3</b>, which is above 1: depreciation should improve the current account."},
+  {"q": "A 10% depreciation is followed by a rise in export volumes with PEDx = 1.2. By what percentage do export volumes rise (%)?", "a": 12, "unit": "%", "tol": 0.05, "hint": "PED × % change in price.", "sol": "1.2 × 10% = <b>12%</b>."},
+  {"q": "Imports cost $200m. After a depreciation their home-currency price rises 8% and volume falls 5%. Calculate the new import spending ($m, 1 decimal place).", "a": 205.2, "unit": "$m", "tol": 0.1, "hint": "200 × 1.08 × 0.95.", "sol": "200 × 1.08 × 0.95 = <b>$205.2m</b>."},
+  {"q": "Exports were $200m and rise 6%. Imports are $205.2m. Calculate the new trade balance ($m, 1 decimal place).", "a": 6.8, "unit": "$m", "tol": 0.1, "hint": "212 − 205.2.", "sol": "<b>+$6.8m</b>, so the balance has improved from 0."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "The Marshall-Lerner condition says a depreciation improves the current account if:", opts: ["PEDx + PEDm > 1", "PEDx + PEDm < 1", "PEDx = PEDm", "Both elasticities are zero"], a: 0, why: "The sum of the elasticities must be greater than 1." },
+  { q: "The J curve occurs because, in the short run:", opts: ["Elasticities are low", "Elasticities are very high", "Inflation falls", "Exports fall"], a: 0, why: "Contracts and habits delay the response." },
+  { q: "A depreciation will raise the price of:", opts: ["Imports in home currency", "Exports in home currency", "Domestic services only", "Nothing"], a: 0, why: "Imports cost more in home currency." },
+  { q: "Which makes the Marshall-Lerner condition less likely to hold?", opts: ["Many substitutes for imports", "Imports are essential and have no substitutes", "Exporters have spare capacity", "Plenty of time has passed"], a: 1, why: "Inelastic demand for imports keeps the sum low." },
+  { q: "A depreciation could cause inflation because:", opts: ["Imports and imported inputs cost more", "Exports fall", "Interest rates fall", "Wages fall"], a: 0, why: "Imported inflation and higher AD." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Marshall-Lerner", "Depreciation improves the current account if PEDx + PEDm > 1."],
+  ["J curve", "Current account worsens first, then improves."],
+  ["Why a J?", "Short-run elasticities are low."],
+  ["Inverse J", "A revaluation may improve, then worsen, the account."],
+  ["Price effect", "Imports dearer in home currency."],
+  ["Volume effect", "More exports sold, fewer imports bought."],
+  ["Net exports", "X − M, part of AD."],
+  ["Costs of depreciation", "Imported inflation, dearer foreign debt, retaliation."],
+] });
+Lib.quiz($("#qz2"), { qs: [
+  { q: "The diagram shows a J curve: a fall in the exchange rate worsens the current account before it improves it. What is said to explain this? (Feb/March 2023 · 32 · Q28, reworded)", opts: ["A time lag before price changes are recognised and acted on", "An improvement in the quality of goods produced", "Demand for imports and exports is elastic in the short run", "The supply of goods is price elastic"], a: 0, why: "In the short run buyers and sellers react slowly, so elasticities are low and the dearer import bill dominates." },
+  { q: "What does the J-curve effect show? (May/June 2024 · 31 · Q26, reworded)", opts: ["A depreciation works only if the sum of the elasticities of demand for exports and imports exceeds 1", "After a devaluation the current account is likely to get worse before it gets better", "In the short run the demand for imports and exports is usually price elastic", "The terms of trade decide how well a devaluation works"], a: 1, why: "The J-curve describes the time path: a worse current account first, then an improvement." },
+  { q: "A government devalues its currency to move the current account from deficit to surplus. Under which condition would this succeed? (Feb/March 2024 · 32 · Q27, reworded)", opts: ["If the combined price elasticity of demand for exports and imports is greater than 1", "If the combined price elasticity is less than 1", "If income elasticity of demand is less than 1", "If other countries impose tariffs on all imports"], a: 0, why: "This is the Marshall-Lerner condition." },
+  { q: "The values below are short-run (SR) and long-run (LR) elasticities for exports (PEDx) and imports (PEDm). In which case does a depreciation produce a J curve? A: SR 0.5 and 0.2; LR 0.6 and 0.6. B: SR 0.5 and 0.6; LR 1.2 and 1.0. C: SR 0.6 and 0.6; LR 0.5 and 0.2. D: SR 1.2 and 1.0; LR 0.5 and 0.6. (May/June 2025 · 34 · Q27, reworded)", opts: ["A", "B", "C", "D"], a: 0, why: "In A the short-run sum is 0.7 (below 1, so the account worsens) and the long-run sum is 1.2 (above 1, so it improves). In B the short-run sum is already 1.1." },
+  { q: "A revaluation raises the exchange rate. The short-run PEDx and PEDm are 0.4 and 0.4 and the long-run values are 0.8 and 0.8. What shape would the current account take over time? (May/June 2025 · 31 · Q27, reworded)", opts: ["It rises, and keeps rising", "It rises, then falls", "It falls, then rises", "It falls, and keeps falling"], a: 1, why: "In the short run the sum is 0.8 (below 1) so a revaluation improves the balance. In the long run the sum is 1.6 (above 1), so it then worsens: an inverse J." },
+  { q: "How would a depreciation of the currency of a low-income economy most likely affect these objectives: raising the growth rate, reducing the current account deficit, reducing unemployment? (May/June 2025 · 34 · Q29, reworded)", opts: ["Raises growth and reduces unemployment but not the deficit", "It helps all three", "Reduces the deficit and unemployment but not growth", "Reduces the deficit only"], a: 1, why: "Cheaper exports and dearer imports can increase net exports, raising AD, output and jobs and narrowing the deficit, provided the elasticity conditions are met." },
+  { q: "Both the elasticity of demand for imported raw materials and the elasticity of demand for exports are 0.3. What is the effect of a depreciation on cost-push and demand-pull inflation? (Oct/Nov 2020 · 32 · Q29, reworded)", opts: ["Cost-push falls; demand-pull falls", "Cost-push falls; demand-pull rises", "Cost-push rises; demand-pull falls", "Cost-push rises; demand-pull rises"], a: 2, why: "With inelastic imports the import bill and costs rise (cost-push up). With inelastic exports net exports fall, which lowers AD (demand-pull down)." },
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

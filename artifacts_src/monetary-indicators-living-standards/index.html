@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Monetary Indicators of Living Standards: GDP, GNI, NNI and PPP</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Economics · 9708 · Syllabus 11.3.3 to 11.3.4</div>
+  <h1>Monetary Indicators of Living Standards: GDP, GNI, NNI and PPP</h1>
+  <p class="lead">11.3.3 to 11.3.4: real income per head, GDP, GNI and NNI, purchasing power parity, the problems of comparing living standards and comparing growth rates. Animated diagrams, labs, drills and the past paper questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This part in four sentences</h3>
+  <p>The <b class="kw">standard of living</b> is the material and non-material well-being of people, and the most common <b>monetary indicator</b> is <b>real income per head</b>, measured as <b>GDP</b> (output within the country), <b>GNI</b> (GDP plus net income from abroad) or <b>NNI</b> (GNI less depreciation), each divided by the population and adjusted for price changes. Because prices differ between countries, <b class="kw">purchasing power parity (PPP)</b> converts incomes using the cost of the same basket of goods rather than the market exchange rate. These indicators are easy to calculate but give an <b>imperfect comparison</b> of living standards over time and between countries because of the <b>informal economy, income distribution, quality, externalities, leisure and data errors</b>. Non-monetary indicators such as life expectancy and literacy fill some of the gaps.</p></div>
+
+  <h2>1 · The monetary indicators</h2>
+  <div id="pic1" class="card"></div>
+  <div class="tw"><table class="t">
+    <tr><th>Measure</th><th>Meaning</th><th>Calculation</th></tr>
+    <tr><td><b>GDP</b> (gross domestic product)</td><td>The total value of goods and services produced <b>within</b> a country in a year</td><td>Output, expenditure or income method</td></tr>
+    <tr><td><b>GNI</b> (gross national income, similar to GNP)</td><td>Income earned by a country's <b>residents</b>, wherever the assets are located</td><td>GDP + net property income from abroad</td></tr>
+    <tr><td><b>NNI</b> (net national income)</td><td>GNI after allowing for the wear and tear of capital</td><td>GNI − depreciation (capital consumption)</td></tr>
+    <tr><td><b>Real</b> figures</td><td>Adjusted for inflation using a price index and a base year</td><td>Nominal ÷ price index × 100</td></tr>
+    <tr><td><b>Per capita</b></td><td>Divided by the population, to show the average</td><td>Total ÷ population</td></tr>
+  </table></div>
+  <ul>
+    <li><b>Real GNI (or GDP) per head</b> is the usual starting point for the standard of living. Use real figures (to remove inflation) and per capita figures (to remove the effect of population size).</li>
+    <li><b>GDP versus GNI:</b> a country with large foreign investments or with many foreign firms taking profits home will have a GNI different from its GDP. NNI is a better guide to income that can be consumed without running down the capital stock.</li>
+  </ul>
+
+  <h2>2 · Purchasing power parity</h2>
+  <div id="pic2" class="card"></div>
+  <ul>
+    <li><b>PPP</b> compares the cost of the <b>same bundle of goods and services</b> in two countries. If the bundle costs 500 rupees at home and $2 in the US, the PPP rate is 250 rupees = $1.</li>
+    <li>Converting incomes at <b>market exchange rates</b> understates living standards in low-price countries, since a dollar of income buys much more locally. <b>PPP-adjusted GDP per capita</b> shows what incomes can actually buy and gives a better comparison.</li>
+    <li>Limits: baskets differ across countries, quality differs, and non-traded goods (haircuts, rents) make comparisons rough. PPP estimates are revised when the surveys are updated.</li>
+  </ul>
+
+  <h2>3 · Problems of comparing living standards using monetary indicators</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Problem</th><th>Why it matters</th></tr>
+    <tr><td><b>Informal and subsistence economy</b></td><td>Unrecorded and unpaid output (home farming, unpaid housework) is left out, so poorer countries are understated</td></tr>
+    <tr><td><b>Income distribution</b></td><td>An average hides inequality; a rise may go to a few</td></tr>
+    <tr><td><b>Exchange rates and prices</b></td><td>Market exchange rates are volatile and ignore price level differences (use PPP)</td></tr>
+    <tr><td><b>Quality and the composition of output</b></td><td>More output may be military, capital or poor quality; total value does not show what is produced</td></tr>
+    <tr><td><b>Externalities and sustainability</b></td><td>Pollution and resource depletion are not deducted; clean-up costs even add to GDP</td></tr>
+    <tr><td><b>Leisure, health, freedom, culture and climate</b></td><td>Non-material well-being is left out</td></tr>
+    <tr><td><b>Accuracy and cost of data</b></td><td>Low-income countries often have weaker statistics and larger errors</td></tr>
+    <tr><td><b>Population and price index choice</b></td><td>Population changes alter per capita figures; different baskets give different inflation</td></tr>
+  </table></div>
+  <h3>Non-monetary indicators</h3>
+  <p>Life expectancy, infant mortality, literacy and years of schooling, doctors per 1,000 people, access to clean water and electricity, and the share of people in poverty. These measure outcomes more directly but are harder to combine; composite measures such as the HDI (next page) try to do so.</p>
+
+  <h2>4 · Comparing growth rates and living standards (11.3.4)</h2>
+  <ul>
+    <li><b>Over time:</b> use <b>real GDP per capita</b> in constant prices. Growth rate = (new − old) ÷ old × 100. Compare average annual growth over several years and use the <b>rule of 70</b> (years to double = 70 ÷ growth rate).</li>
+    <li><b>Between countries:</b> compare real GDP per capita at PPP. Compare <b>growth rates</b> too, but beware: a poor country growing at 6% from a <b>low base</b> adds less in dollars per head than a rich country growing at 2%, so a fast growth rate does not mean it has caught up.</li>
+    <li><b>Growth is not the same as better living standards.</b> Check distribution, employment, health, education and the environment. Real GDP per head can rise while living standards for most people fall.</li>
+  </ul>
+  <div class="tip"><b class="h">Answering "to what extent can national income figures be used to compare living standards"</b>Give the definition, say what per capita, real and PPP fix, then give three or four problems (informal economy, distribution, externalities, accuracy), and finish by judging: useful as a rough guide, especially with PPP, but best used with non-monetary indicators.</div>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · From GDP to NNI per head</h2>
+  <p>Press Play, or click the numbered steps.</p>
+  <div id="stG"></div>
+  <h2>2 · Market exchange rates versus PPP</h2>
+  <div id="stP"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Real GDP per head over time</h2>
+  <p>Set the growth of nominal GDP, inflation and population growth for a year. See the growth in real GDP per head and how long it takes to double at that rate.</p>
+  <div class="card"><div class="grid2"><div><div id="g1"></div><div id="g2"></div><div id="g3"></div>
+    <div class="readout"><div><small>Real GDP growth</small><strong id="r1"></strong></div><div><small>Real GDP per head</small><strong id="r2"></strong></div><div><small>Years to double</small><strong id="r3"></strong></div></div>
+    <div class="verdict" id="rv"></div></div>
+    <div><svg id="labA" viewBox="0 0 420 300" role="img" aria-label="Bars of nominal GDP growth, real GDP growth and real GDP per head growth"></svg></div></div></div>
+
+  <h2>Lab 2 · The PPP adjustment</h2>
+  <p>A country's GDP per head is 600,000 local currency units. The exchange rate is 60 units per dollar. A basket of goods costs $10 in the US. Change the local price of the same basket and see GDP per head at market rates and at PPP.</p>
+  <div class="card"><div class="grid2"><div><div id="g4"></div>
+    <div class="readout"><div><small>PPP rate</small><strong id="t1"></strong></div><div><small>GDP per head, market rate</small><strong id="t2"></strong></div><div><small>GDP per head, PPP</small><strong id="t3"></strong></div></div>
+    <div class="verdict" id="tv"></div></div>
+    <div><svg id="labB" viewBox="0 0 420 300" role="img" aria-label="Bars of GDP per head at the market exchange rate and at PPP"></svg></div></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · GDP, GNI or NNI?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Match the word to its meaning</h2><div id="m1" class="card"></div>
+  <h2>3 · Put the steps to a real per capita figure in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Calculations</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>India and China at market rates and at PPP</h3><p>India's economy looks much smaller per head when measured at market exchange rates than at PPP, because prices of food, housing and services are lower than in the US. PPP estimates narrow the gap, though India is still well below the US per head on either measure.</p><div class="use"><b>Exam use:</b> why PPP gives a better comparison of living standards, with limits.</div></div>
+  <div class="rw"><h3>The informal economy in low-income countries</h3><p>In many low-income countries a large share of work is in subsistence farming or small informal businesses that do not appear in the official statistics. GDP therefore tends to understate output and living standards, and the growth rate may be inaccurate too.</p><div class="use"><b>Exam use:</b> the problem of unrecorded output in a comparison between low- and high-income countries.</div></div>
+  <div class="rw"><h3>Oil spills and GDP</h3><p>Spending on cleaning up a major oil spill raises measured output, even though the spill reduces welfare. National income statistics normally add the clean-up spending and do not deduct the environmental damage.</p><div class="use"><b>Exam use:</b> externalities and why alternatives such as MEW adjust GDP.</div></div>
+  <div class="rw"><h3>Growth and inequality</h3><p>Some fast-growing economies have seen the top income groups take most of the gains while the incomes of the poorest changed little. Average GDP per head rose strongly, yet many people saw little improvement.</p><div class="use"><b>Exam use:</b> why a rise in GDP per head may not raise living standards for most people.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Past paper questions on GDP and the other monetary measures of living standards</h2>
+  <p>We searched the A Level Economics papers in the folder (2020 to 2025). Whether GDP is a good measure of living standards is among the most frequent Paper 4 questions, in 12, 13, 20 and 25 mark forms, and PPP appears in data response. Reworded past questions are below, with eight Paper 3 multiple choice questions.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Type</th><th>Examples found</th><th>Where</th></tr>
+    <tr><td>Data response, 2 and 6 marks</td><td>1</td><td>May/June 2023 (42) Q1(a) and (c)</td></tr>
+    <tr><td>Essay parts, 12 and 13 marks</td><td>4</td><td>Oct/Nov 2020 (42) Q7(a) and (b); May/June 2020 (42) Q6(b); May/June 2022 (42) Q6(b)</td></tr>
+    <tr><td>Essays, 20 and 25 marks</td><td>2</td><td>May/June 2024 (41) Q5; Oct/Nov 2021 (42) Q5</td></tr>
+    <tr><td>Multiple choice (Paper 3)</td><td>8 shown below</td><td>2020 to 2025</td></tr>
+  </table></div>
+  <h2>A · Written questions (reworded)</h2>
+  <p>The wording, context and figures are our own, so they are safe to set as practice. The source paper is named for reference. Mark scheme points are in our own words.</p>
+  <details class="eq"><summary>Based on May/June 2023 · 9708/42 · Q1(a) <span class="mark">2 marks</span> Explain what is meant by purchasing power parity (PPP).</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>A comparison of the cost of a bundle of goods and services bought in the local currency with the cost of the same bundle in another currency (one mark each).</li>
+        <li>An example with figures, such as a bundle costing 500 local units or $2 giving a PPP rate of 250 units to $1.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Same bundle, two countries. Quote a short example.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">PPP compares what the same basket of goods and services costs in two currencies. If it costs 400 units at home and $4 in the US, the PPP rate would be 100 units to the dollar.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on May/June 2023 · 9708/42 · Q1(c) <span class="mark">6 marks</span> Using the data below, consider the change in the standard of living in Country X and Country Y between 2015 and 2020. (Country X: GDP per head at PPP $9,000 to $11,500, unemployment 6% to 5%, Gini coefficient 0.40 to 0.35. Country Y: $4,000 to $4,400, unemployment 8% to 7.5%, Gini 0.32 to 0.37.)</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Define the standard of living and split material from non-material.</li>
+        <li>Quote changes with percentages: X's GDP per head rose by 27.8% and Y's by 10%; unemployment fell in both; the Gini fell in X and rose in Y.</li>
+        <li>Link GDP per head to the material standard of living, say lower inequality in X means the gains are more evenly spread and higher inequality in Y means less evenly spread, so X has probably improved more; lower unemployment is linked to higher living standards.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Define. Quote changes. Interpret each measure. Conclude: X probably better off, Y mixed.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">The standard of living is the material and non-material well-being of people. GDP per head at PPP rose by about 28% in Country X and 10% in Country Y, so material living standards increased in both.</span> <span class="mk n" data-t="N">Unemployment fell slightly in both, which is linked to a higher standard of living. However, the Gini coefficient fell in X, so the gains were more evenly shared, but it rose in Y, so the gains in Y may have gone mainly to richer households.</span></p>
+    <p><span class="mk e" data-t="E">Overall, living standards probably rose more in X. In Y the average rise may overstate the improvement for typical households. The data do not cover health, education or the environment.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on May/June 2024 · 9708/41 · Q5 <span class="mark">20 marks</span> National income statistics are often used as a measure of the standard of living. Consider to what extent they can be used to compare the standard of living between low-income and high-income countries.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Define the standard of living and the distinction between low- and high-income countries, for example by income per head.</li>
+        <li>Difficulties of comparison: culture, climate, the subsistence and informal economy, difficulty of collecting data, income distribution, exchange rates and purchasing power.</li>
+        <li>Comment on which measure of national income should be used (real, per capita, PPP).</li>
+        <li>Evaluation: assess how closely national income links to the standard of living and bring in alternative measures such as the HDI.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Define. Real per capita PPP. Four difficulties. Alternatives. Judge: useful but incomplete.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">The standard of living is the material and non-material well-being of a population. National income per head, adjusted for inflation and at purchasing power parity, is often used as a proxy.</span> <span class="mk n" data-t="N">It may be a rough guide because high-income countries usually have better health, education and housing. However, comparisons between low- and high-income countries have problems. In low-income countries a large share of output is subsistence or informal and is not recorded, so income may be understated. Data collection is also harder and less accurate.</span></p>
+    <p><span class="mk n" data-t="N">Averages hide distribution, so a high GDP per head could coexist with many people in poverty. Market exchange rates also ignore differences in price levels, so PPP should be used. Leisure, health, education, freedom and the environment are not included, so two countries with the same income could have different living standards.</span> <span class="mk e" data-t="E">National income statistics may therefore be useful as a first indicator, especially at PPP, but they are best supported by non-monetary indicators such as the HDI.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on May/June 2022 · 9708/42 · Q6(b) <span class="mark">13 marks</span> Discuss whether GDP is the best measure of the standard of living.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Define GDP and its use as real GDP per head as a measure of the standard of living.</li>
+        <li>Discuss the merits of HDI, MEW or other alternatives, setting them against GDP.</li>
+        <li>Level 4 (9 to 13) compares GDP with at least one alternative and evaluates the relative merits.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>GDP and why it is used. Its limits. One alternative. Judge which is better and when.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">Real GDP per head measures the total value of output per person, adjusted for inflation, so it is easy to calculate and compare, and is often linked to higher living standards.</span> <span class="mk n" data-t="N">However, it ignores distribution, unrecorded work, leisure and the environment, and spending on clean-up or defence adds to GDP. The HDI adds life expectancy and education, so it shows health and knowledge, while the MEW adjusts GDP for leisure, unpaid work and environmental damage.</span></p>
+    <p><span class="mk e" data-t="E">GDP may be the best measure for the speed with which data can be collected and compared, but as a guide to well-being the HDI or MEW are probably better, although they involve judgements about weights.</span></p>
+    </div>
+  </div></details>
+  <h2>B · Multiple choice questions (Paper 3)</h2>
+  <p>Choose an answer, then read the reason. Reworded from the paper and question number shown.</p>
+  <div id="qz2"></div>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Use 'real' and 'per capita'.</b> Real removes inflation. Per capita removes population size. Say both.</li>
+    <li><b>GDP versus GNI.</b> GNI = GDP + net property income from abroad. NNI = GNI minus depreciation.</li>
+    <li><b>PPP in one line.</b> The same basket costs the same in both countries. It corrects for price level differences.</li>
+    <li><b>Give three or four problems.</b> Informal economy, distribution, externalities, accuracy, non-material factors.</li>
+    <li><b>Quote percentage changes.</b> In data questions, calculate the growth rate and say what it means.</li>
+    <li><b>Mind the low base.</b> A poor country growing quickly may still add less per head than a rich one.</li>
+    <li><b>Judge.</b> Useful as a rough guide, especially at PPP, but best used with non-monetary indicators.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Real per capita</td><td>"Real GDP per head adjusts for inflation and population, so it may show average living standards more accurately than nominal GDP."</td></tr>
+    <tr><td>PPP</td><td>"Purchasing power parity adjusts for differences in price levels, so it could give a fairer comparison than market exchange rates."</td></tr>
+    <tr><td>Limits</td><td>"National income statistics may understate output in countries with large informal or subsistence sectors."</td></tr>
+    <tr><td>Average</td><td>"Average income could hide inequality, so living standards for the typical person may differ from the average."</td></tr>
+    <tr><td>Alternatives</td><td>"Non-monetary indicators may capture health, education and the environment that income does not."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Define / State</td><td>Give the exact meaning, briefly. No explanation needed.</td></tr>
+    <tr><td>Explain</td><td>Give reasons, with a clear chain of cause and effect.</td></tr>
+    <tr><td>Consider</td><td>Look at the issue from several sides and judge how strong each is.</td></tr>
+    <tr><td>Discuss</td><td>Arguments on both sides, then a judgement.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+/* ---------- GDP to NNI ---------- */
+const GY = (v) => 300 - v * 2.2;
+function gdpDraw(s) {
+  let o = axes(70, 300, 730, 30, "", "$bn"); [0, 40, 80, 120].forEach((v) => (o += SV.text(64, GY(v) + 4, v, "sm", { "text-anchor": "end" })));
+  const bar = (i, v, c, l, k) => (k > 0 ? SV.rect(110 + i * 150, GY(v), 100, 300 - GY(v), c, op(k)) + tag(160 + i * 150, GY(v) - 8, v, "t1", k, "middle") + tag(160 + i * 150, 322, l, "t1", k, "middle") : "");
+  o += bar(0, 120, "f1", "GDP", s.a) + bar(1, 114, "f1", "GNI", s.b) + bar(2, 105, "f3", "NNI", s.c);
+  if (s.b > 0) o += tag(310, GY(114) - 28, "− 6 net income paid abroad", "t2", s.b, "middle");
+  if (s.c > 0) o += tag(460, GY(105) - 28, "− 9 depreciation", "t2", s.c, "middle");
+  if (s.d > 0) o += SV.rect(600, 190, 130, 110, "f2", op(0.6 * s.d)) + tag(665, 230, "÷ 10m people", "t4", s.d, "middle") + tag(665, 256, "= $10,500", "t4", s.d, "middle") + tag(665, 322, "NNI per head", "t4", s.d, "middle");
+  return o;
+}
+$("#pic1").innerHTML = `<svg viewBox="0 0 760 340" role="img" aria-label="GDP of 120, GNI of 114 after net income paid abroad and NNI of 105 after depreciation, then NNI per head">${gdpDraw({ a: 1, b: 1, c: 1, d: 1 })}</svg>`;
+Lib.stepper($("#stG"), { w: 760, h: 340, label: "From GDP to GNI to NNI and then per head", base: { a: 0, b: 0, c: 0, d: 0 }, draw: gdpDraw, tween: 1100, dwell: 5600, steps: [
+  { cap: "<b>GDP</b> is the value of everything produced inside the country: $120bn.", s: { a: 1 } },
+  { cap: "<b>GNI.</b> Foreign firms and investors take $6bn of profit and interest abroad that residents do not earn. Add net property income from abroad (here −$6bn): GNI is $114bn.", s: { a: 1, b: 1 } },
+  { cap: "<b>NNI.</b> Capital wears out (depreciation $9bn). Deduct it to find income that could be spent without shrinking the capital stock: $105bn.", s: { a: 1, b: 1, c: 1 } },
+  { cap: "<b>Per head.</b> With a population of 10 million, NNI per head is $10,500. Adjusting for inflation gives the real figure used to track living standards.", s: { a: 1, b: 1, c: 1, d: 1 } },
+] });
+
+/* ---------- Market versus PPP ---------- */
+const PB = (v) => 300 - v * 0.0052;
+function ppDraw(s) {
+  let o = axes(70, 300, 730, 30, "", "GDP per head ($)"); [0, 15000, 30000, 45000].forEach((v) => (o += SV.text(64, PB(v) + 4, v.toLocaleString("en-US"), "sm", { "text-anchor": "end" })));
+  const bar = (x, v, c, l, k) => (k > 0 ? SV.rect(x, PB(v), 80, 300 - PB(v), c, op(k)) + tag(x + 40, PB(v) - 8, "$" + Math.round(v).toLocaleString("en-US"), "t1", k, "middle") + tag(x + 40, 322, l, "sm", k, "middle") : "");
+  o += bar(120, 3000, "f2", "Country A: market", s.a) + bar(240, 45000, "f1", "Country B: market", s.a);
+  o += bar(400, 3000 + 6000 * Math.min(1, s.b), "f2", "Country A: PPP", s.b) + bar(520, 45000, "f1", "Country B: PPP", s.b);
+  if (s.c > 0) o += tag(400, 34, "Gap: 15 to 1 at market rates, 5 to 1 at PPP", "t4", s.c, "middle");
+  return o;
+}
+Lib.stepper($("#stP"), { w: 760, h: 340, label: "GDP per head at market exchange rates compared with PPP for a low-price and a high-price country", base: { a: 0, b: 0, c: 0 }, draw: ppDraw, tween: 1300, dwell: 5800, steps: [
+  { cap: "<b>At market exchange rates</b> country A's GDP per head is $3,000 and country B's is $45,000: B looks 15 times richer.", s: { a: 1 } },
+  { cap: "<b>But prices differ.</b> Food, housing and services cost much less in A. A basket of goods costs one third of what it does in B.", s: { a: 1 } },
+  { cap: "<b>PPP adjustment.</b> Using the cost of the same basket, A's income buys what $9,000 buys in B. The gap narrows to 5 to 1.", s: { a: 1, b: 1, c: 1 } },
+] });
+
+/* ---------- Lab 1 ---------- */
+function labR() {
+  if (!$("#ng") || !$("#pi") || !$("#pp")) return;
+  const n = +$("#ng").value / 10, p = +$("#pi").value / 10, q = +$("#pp").value / 10, real = ((1 + n / 100) / (1 + p / 100) - 1) * 100, ph = ((1 + real / 100) / (1 + q / 100) - 1) * 100;
+  $("#r1").textContent = Lib.fmtN(real, 1) + "%"; $("#r2").textContent = (ph >= 0 ? "+" : "") + Lib.fmtN(ph, 1) + "%"; $("#r3").textContent = ph > 0.05 ? Lib.fmtN(70 / ph, 0) + " yrs" : "never";
+  $("#rv").textContent = `Nominal GDP grows ${Lib.fmtN(n, 1)}%, but inflation of ${Lib.fmtN(p, 1)}% leaves real growth of ${Lib.fmtN(real, 1)}%. With population growth of ${Lib.fmtN(q, 1)}%, real GDP per head changes by ${Lib.fmtN(ph, 1)}%. ${ph > 0.05 ? "At that rate real income per head doubles in about " + Lib.fmtN(70 / ph, 0) + " years (rule of 70)." : "Real income per head is not rising, so material living standards are not improving on this measure."}`;
+  const Y = (v) => 150 - v * 8; let o = SV.line(40, 150, 400, 150) + SV.line(40, 20, 40, 280) + SV.text(46, 16, "% a year", "sm");
+  [["Nominal GDP", n, "f1"], ["Real GDP", real, "f1"], ["Real GDP per head", ph, "f3"]].forEach(([l, v, c], i) => { const x = 60 + i * 115, y = Y(Math.max(-17, Math.min(17, v))); o += SV.rect(x, Math.min(y, 150), 80, Math.abs(y - 150), c) + SV.text(x + 40, 296, l, "sm", { "text-anchor": "middle" }) + tag(x + 40, v >= 0 ? y - 8 : y + 18, Lib.fmtN(v, 1) + "%", "t1", 1, "middle"); });
+  $("#labA").innerHTML = o;
+}
+Lib.slider($("#g1"), { id: "ng", label: "Nominal GDP growth, % ", min: 0, max: 200, step: 5, value: 90, fmt: (v) => (v / 10).toFixed(1), onInput: labR });
+Lib.slider($("#g2"), { id: "pi", label: "Inflation, % ", min: 0, max: 150, step: 5, value: 40, fmt: (v) => (v / 10).toFixed(1), onInput: labR });
+Lib.slider($("#g3"), { id: "pp", label: "Population growth, % ", min: 0, max: 50, step: 1, value: 15, fmt: (v) => (v / 10).toFixed(1), onInput: labR });
+labR();
+
+/* ---------- Lab 2 ---------- */
+function labP() {
+  if (!$("#bk")) return;
+  const b = +$("#bk").value, ppp = b / 10, mk = 600000 / 60, pp = 600000 / ppp;
+  $("#t1").textContent = Lib.fmtN(ppp, 0) + " per $"; $("#t2").textContent = "$" + Math.round(mk).toLocaleString("en-US"); $("#t3").textContent = "$" + Math.round(pp).toLocaleString("en-US");
+  $("#tv").textContent = b < 600 ? `The basket costs ${b} local units against $10 in the US, so one dollar of income buys the same basket as ${Lib.fmtN(ppp, 0)} local units, compared with the market rate of 60. The currency is worth more at PPP, so GDP per head at PPP ($${Math.round(pp).toLocaleString("en-US")}) is higher than at the market rate.` : b > 600 ? `Prices here are higher than the market exchange rate suggests, so GDP per head at PPP is lower than at the market rate.` : "The PPP rate equals the market rate, so both measures agree.";
+  const Y = (v) => 270 - v / 40000 * 240; let o = SV.line(60, 270, 400, 270) + SV.line(60, 270, 60, 20) + SV.text(66, 16, "GDP per head ($)", "sm");
+  [["Market rate", mk, "f1"], ["PPP", pp, "f3"]].forEach(([l, v, c], i) => { const x = 100 + i * 140; o += SV.rect(x, Y(Math.min(v, 40000)), 90, 270 - Y(Math.min(v, 40000)), c) + SV.text(x + 45, 290, l, "sm", { "text-anchor": "middle" }) + tag(x + 45, Y(Math.min(v, 40000)) - 8, "$" + Math.round(v).toLocaleString("en-US"), "t1", 1, "middle"); });
+  $("#labB").innerHTML = o;
+}
+Lib.slider($("#g4"), { id: "bk", label: "Local price of the basket (units) ", min: 100, max: 900, step: 25, value: 300, fmt: (v) => v, onInput: labP });
+labP();
+
+/* ---------- Practise ---------- */
+Lib.classify($("#cl1"), { prompt: "Which measure is it?", buckets: [{"label": "GDP"}, {"label": "GNI"}, {"label": "NNI"}], items: [{"text": "Value of output produced inside the country's borders", "b": 0}, {"text": "GDP plus net property income from abroad", "b": 1}, {"text": "GNI minus depreciation of capital", "b": 2}, {"text": "Includes profits that foreign-owned firms in the country send home", "b": 0}, {"text": "Income earned by a country's residents wherever their assets are", "b": 1}, {"text": "Shows income that could be consumed without running down the capital stock", "b": 2}, {"text": "Output method, income method or expenditure method", "b": 0}, {"text": "Used by the World Bank for income classification", "b": 1}], done: "GDP: inside the borders. GNI: residents' income. NNI: GNI minus depreciation." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Real GDP per capita", "GDP adjusted for inflation and divided by the population"], ["Purchasing power parity", "Compares the cost of the same basket of goods in two countries"], ["Informal economy", "Unrecorded economic activity that is missing from official statistics"], ["Net property income from abroad", "Income earned abroad less income paid abroad"], ["Rule of 70", "Years to double ≈ 70 ÷ growth rate"], ["Low base effect", "A poor country's fast growth adds little in absolute terms"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the steps to a real per capita figure in order.", items: ["Start with GDP (or GNI) in current prices", "Adjust for price changes using a price index and a base year", "Divide by the population", "Compare the growth rate over time", "Use PPP if comparing between countries"], done: "Real removes inflation; per capita removes population; PPP adjusts for price levels." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "GDP is $200bn. Net property income from abroad is −$12bn and depreciation is $15bn. Calculate NNI ($bn).", "a": 173, "unit": "$bn", "tol": 0.5, "hint": "GDP + net income − depreciation.", "sol": "200 − 12 − 15 = <b>$173bn</b>."},
+  {"q": "Real GDP is $90bn and the population is 30 million. Calculate real GDP per head ($).", "a": 3000, "unit": "$", "tol": 0.5, "hint": "90,000m ÷ 30m.", "sol": "<b>$3,000</b>."},
+  {"q": "Nominal GDP rises by 8% and prices by 5%. Calculate the approximate real growth (%, 1 decimal place).", "a": 2.9, "unit": "%", "tol": 0.1, "hint": "1.08 ÷ 1.05 − 1.", "sol": "1.08 ÷ 1.05 = 1.0286, so about <b>2.9%</b> (roughly 3%)."},
+  {"q": "A basket costs 750 rupees in one country and $5 in the US. Calculate the PPP rate (rupees per $).", "a": 150, "unit": "rupees", "tol": 0.5, "hint": "750 ÷ 5.", "sol": "<b>150 rupees = $1</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "GNI is calculated as:", opts: ["GDP + net property income from abroad", "GDP − depreciation", "GDP + imports", "GDP − taxes"], a: 0, why: "GNI adds income from abroad and subtracts income paid abroad." },
+  { q: "PPP is used to:", opts: ["Adjust for differences in price levels between countries", "Measure inflation", "Calculate unemployment", "Convert at market exchange rates"], a: 0, why: "It compares the cost of the same basket." },
+  { q: "Which is a problem with GDP per head as a measure of living standards?", opts: ["It ignores income distribution", "It is always accurate", "It includes leisure", "It includes the informal economy fully"], a: 0, why: "An average hides who gets the income." },
+  { q: "Real GDP per head differs from nominal GDP because it:", opts: ["Removes the effect of inflation", "Includes the shadow economy", "Is measured in dollars", "Counts only exports"], a: 0, why: "Prices are held constant using a base year." },
+  { q: "Which is a non-monetary indicator of the standard of living?", opts: ["Life expectancy", "GDP per head", "GNI", "Average wage"], a: 0, why: "Life expectancy measures health outcomes directly." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["GDP", "Value of output within the country."],
+  ["GNI", "GDP + net property income from abroad."],
+  ["NNI", "GNI − depreciation."],
+  ["Real", "Adjusted for inflation."],
+  ["Per capita", "Divided by population."],
+  ["PPP", "Cost of the same basket in two countries."],
+  ["Problems of GDP", "Informal economy, distribution, externalities, accuracy."],
+  ["Rule of 70", "70 ÷ growth rate = years to double."],
+] });
+Lib.quiz($("#qz2"), { qs: [
+  { q: "Which statement about national income accounting is correct? (May/June 2021 · 31 · Q21, reworded)", opts: ["Depreciation does not need to be subtracted from GDP because firms have already allowed for it", "GDP overstates the value of output because profit includes supernormal profit", "GDP is a better measure of living standards than GNP because net property income from abroad is not available to citizens", "GNP per capita ignores many important factors that affect citizens' living standards"], a: 3, why: "GNP per head is an average of money income. It ignores distribution, leisure, the environment and many non-material factors." },
+  { q: "A government uses personal disposable income per head as a measure of the standard of living. What does this measure not take into account? (Oct/Nov 2021 · 31 · Q21, reworded)", opts: ["Changes in the average price level", "The level of direct taxation", "The level of national income", "The size of the population"], a: 0, why: "Disposable income is after tax and per head, but unless it is deflated (made real) it ignores price changes." },
+  { q: "GNP per head has increased by 10% over five years. What is not a valid reason to doubt that average living standards have risen by 10%? (Oct/Nov 2021 · 33 · Q19, reworded)", opts: ["The distribution of income may have changed a lot", "The general price level is likely to have changed", "The size of the population may have changed", "The workforce may have produced more by working longer hours"], a: 2, why: "A per head figure already allows for population. The other three are valid doubts: distribution, inflation and longer working hours." },
+  { q: "Real GNP per capita is used to compare living standards in a developed and a developing country. What is not a good reason to question the accuracy of this comparison? (Oct/Nov 2022 · 33 · Q20, reworded)", opts: ["Spending patterns differ, so price indices are not accurate", "People enjoy very different amounts of leisure time", "The extent of the unrecorded economy differs", "Purchasing power parity has been used to make the comparison"], a: 3, why: "PPP improves the comparison. The other three are genuine reasons for caution." },
+  { q: "What is a definition of purchasing power parity? (Oct/Nov 2023 · 31 · Q28, reworded)", opts: ["The amount of domestic currency needed to buy a unit of foreign currency", "The quantity of a currency needed to buy the same basket of goods in both countries", "The quantity of goods a person on an average income can buy", "The value of household spending on goods and services in a country"], a: 1, why: "PPP compares the cost of an identical basket in two countries." },
+  { q: "Which combination indicates that GDP per capita is likely to be an accurate indicator of living standards over time? Hidden economy as a share of GDP, quality of goods and services, income distribution. (Oct/Nov 2022 · 31 · Q20, reworded)", opts: ["Large, improving, unequal", "Large, constant, equal", "Small, improving, equal", "Small, constant, unequal"], a: 2, why: "A small hidden economy, improving quality and equal distribution make average income closer to the typical person's experience." },
+  { q: "The table shows GDP and population of four countries. Which is most likely to have the lowest standard of living? A: Bangladesh, GDP $206.7bn, population 153.5m. B: India, $2,989bn, 1,147.9m. C: Nigeria, $292.7bn, 138.3m. D: South Africa, $467.1bn, 43.8m. (May/June 2024 · 31 · Q28, reworded)", opts: ["A", "B", "C", "D"], a: 0, why: "GDP per head: A about $1,350, B about $2,600, C about $2,100, D about $10,700. Bangladesh has the lowest." },
+  { q: "Why is real GDP per head thought to be an imperfect measure of welfare in developed economies? (Feb/March 2022 · 32 · Q19, reworded)", opts: ["Governments often manipulate data", "No account is taken of inflation", "The data's content and coverage are restricted", "The shadow economy is bigger than the official economy"], a: 2, why: "It leaves out unpaid work, leisure, the environment and distribution." },
+] });
+
+Lib.initTabs();
+</script>
+</body></html>
