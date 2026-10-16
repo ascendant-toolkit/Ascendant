@@ -7,7 +7,7 @@ const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, 
 function btnTable(btnId, outId, rows, heads) {
   const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
   box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
-  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.slice(1).map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
   $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
 }
 
@@ -82,7 +82,7 @@ function labTarget() {
   o += SV.path(Lib.ptsPath(infl.map((v, i) => [X(i), Y(Math.min(v, 28))])), tg < nru ? "c2" : "c3") + tag(396, Y(Math.min(infl[6], 28)) - 8, Lib.fmtN(infl[6], 1) + "%", tg < nru ? "t2" : "t3", 1, "end");
   $("#labB").innerHTML = o;
 }
-Lib.slider($("#g5"), { id: "tg", label: "Unemployment target (x10 %) ", min: 20, max: 80, step: 5, value: 30, fmt: (v) => Lib.fmtN(v / 10, 1), onInput: labTarget });
+Lib.slider($("#g5"), { id: "tg", label: "Unemployment target (%) ", min: 20, max: 80, step: 5, value: 30, fmt: (v) => Lib.fmtN(v / 10, 1), onInput: labTarget });
 labTarget();
 
 /* ---------- Practise ---------- */

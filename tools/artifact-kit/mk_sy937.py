@@ -226,8 +226,8 @@ function labStim() {
   $("#labA").innerHTML = o;
 }
 Lib.slider($("#g1"), { id: "gp", label: "Size of negative output gap (%) ", min: 1, max: 10, step: 1, value: 6, fmt: (v) => v, onInput: labStim });
-Lib.slider($("#g2"), { id: "st", label: "Stimulus (% of GDP, x10) ", min: 0, max: 60, step: 5, value: 30, fmt: (v) => Lib.fmtN(v / 10, 1), onInput: labStim });
-Lib.slider($("#g3"), { id: "km", label: "Multiplier (x10) ", min: 8, max: 25, step: 1, value: 15, fmt: (v) => Lib.fmtN(v / 10, 1), onInput: labStim });
+Lib.slider($("#g2"), { id: "st", label: "Stimulus (% of GDP) ", min: 0, max: 60, step: 5, value: 30, fmt: (v) => Lib.fmtN(v / 10, 1), onInput: labStim });
+Lib.slider($("#g3"), { id: "km", label: "Multiplier", min: 8, max: 25, step: 1, value: 15, fmt: (v) => Lib.fmtN(v / 10, 1), onInput: labStim });
 labStim();
 btnTable("lbBtns", "lbOut", [
   ["Increase government spending", "Cyclical", "Months to 2 years", "Deficit, crowding out, leakages, inflation near capacity"],

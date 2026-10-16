@@ -215,7 +215,7 @@ function labTarget() {
   o += SV.path(Lib.ptsPath(infl.map((v, i) => [X(i), Y(Math.min(v, 28))])), tg < nru ? "c2" : "c3") + tag(396, Y(Math.min(infl[6], 28)) - 8, Lib.fmtN(infl[6], 1) + "%", tg < nru ? "t2" : "t3", 1, "end");
   $("#labB").innerHTML = o;
 }
-Lib.slider($("#g5"), { id: "tg", label: "Unemployment target (x10 %) ", min: 20, max: 80, step: 5, value: 30, fmt: (v) => Lib.fmtN(v / 10, 1), onInput: labTarget });
+Lib.slider($("#g5"), { id: "tg", label: "Unemployment target (%) ", min: 20, max: 80, step: 5, value: 30, fmt: (v) => Lib.fmtN(v / 10, 1), onInput: labTarget });
 labTarget();
 
 /* ---------- Practise ---------- */

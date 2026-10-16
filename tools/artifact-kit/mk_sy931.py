@@ -216,7 +216,7 @@ function labLab() {
   $("#labA").innerHTML = o;
 }
 Lib.slider($("#g1"), { id: "dd", label: "Change in demand for labour ", min: -30, max: 20, step: 5, value: 0, fmt: (v) => v, onInput: labLab });
-Lib.slider($("#g2"), { id: "wf", label: "Wage floor (x10) ", min: 0, max: 90, step: 1, value: 0, fmt: (v) => Lib.fmtN(v / 10, 1), onInput: labLab });
+Lib.slider($("#g2"), { id: "wf", label: "Wage floor", min: 0, max: 90, step: 1, value: 0, fmt: (v) => Lib.fmtN(v / 10, 1), onInput: labLab });
 labLab();
 btnTable("lbBtns", "lbOut", [
   ["Amira is between jobs and searching", "Frictional", "Equilibrium", "Voluntary (search)", "Better job information, shorter search"],
