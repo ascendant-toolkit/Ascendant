@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>6.1 Automated Systems</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<style>
+.txin{font:600 1.05rem var(--mono);padding:9px 12px;border-radius:9px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,420px)}
+.drill select,.sel{font:600 .95rem var(--sans);padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.drill .qline{font-size:1.1rem;font-weight:600;margin:8px 0}
+.drill input{font:700 1.1rem var(--mono);padding:8px 12px;border-radius:8px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,220px);text-transform:uppercase}
+.drill .fb{font-weight:700;margin-left:8px}.drill .fb.ok{color:var(--good)}.drill .fb.no{color:var(--bad)}
+.flag{display:inline-block;font:700 .7rem var(--sans);padding:1px 7px;border-radius:99px;background:var(--bad-soft);color:var(--bad)}
+.okf{display:inline-block;font:700 .7rem var(--sans);padding:1px 7px;border-radius:99px;background:var(--good-soft);color:var(--good)}
+.lab{font:700 .7rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 4px}
+.out{font:700 1.15rem var(--mono);letter-spacing:.12em;padding:10px 14px;border-radius:9px;background:var(--soft);border:1px solid var(--line);word-break:break-all;min-height:46px}
+.out.bad{color:var(--bad)}.out.good{color:var(--good)}
+.cip{font-family:var(--mono);font-size:.82rem;text-align:center}
+.cip td,.cip th{padding:4px 6px;text-align:center}
+.ch{display:grid;gap:8px;margin:10px 0}
+.ch button{text-align:left;font:600 .95rem var(--sans);padding:10px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.ch button:hover{border-color:var(--accent)}
+.ch button.ok{border-color:var(--good);background:var(--good-soft)}.ch button.no{border-color:var(--bad);background:var(--bad-soft)}
+.kpub{color:var(--good);font-weight:700}.kpri{color:var(--bad);font-weight:700}
+</style>
+<style>
+.ipin{font:600 1.05rem var(--mono);padding:9px 12px;border-radius:9px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,420px)}
+.mac{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.mac span{font:700 1.1rem var(--mono);padding:8px 10px;border-radius:8px;border:2px solid var(--line);background:var(--surface)}
+.mac .m1{border-color:var(--accent);color:var(--accent)}.mac .m2{border-color:var(--good);color:var(--good)}
+.scn{display:grid;gap:8px;margin:10px 0}.scn .r{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface)}
+.scn .r.ok{border-color:var(--good);background:var(--good-soft)}.scn .r.no{border-color:var(--bad);background:var(--bad-soft)}.scn .r span.q{flex:1 1 240px;font-weight:600}
+.mem{display:flex;gap:4px;margin:6px 0}.mem i{flex:1;height:26px;border-radius:5px;background:var(--soft);border:1px solid var(--line)}.mem i.u{background:var(--accent);border-color:var(--accent)}.mem i.v{background:var(--bad);border-color:var(--bad)}
+</style>
+<style>
+.mono td,.mono th{font-family:var(--mono)}
+.ln2{font-family:var(--mono);font-size:.9rem}
+.fcw{overflow-x:auto}
+.chk{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.chk label{display:flex;align-items:center;gap:6px;padding:7px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;font-weight:600}
+.chk label.ok{border-color:var(--good);background:var(--good-soft)}.chk label.no{border-color:var(--bad);background:var(--bad-soft)}
+</style>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">IGCSE Computer Science · 0478 · Chapter 6 · 6.1</div>
+  <h1>Automated Systems</h1>
+  <p class="lead">How sensors, microprocessors and actuators work together, and the advantages and disadvantages of automation in industry, transport, agriculture, weather, gaming, lighting and science.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<!-- LEARN -->
+<section id="learn" role="tabpanel">
+  <div class="card big">
+    <h3>The big idea</h3>
+    <p>An <span class="kw">automated system</span> uses <b>sensors</b>, a <b>microprocessor</b> and <b>actuators</b> in a loop of <b>feedback</b>, so a task can run with little human help.</p>
+  </div>
+
+  <h2>6.1 Automated systems</h2>
+  <p>An <span class="kw">automated system</span> carries out a task with <b>little or no human involvement</b>. It does this by combining <b>sensors</b>, a <b>microprocessor</b> and <b>actuators</b> in a repeating loop.</p>
+  <div class="grid2">
+    <div class="card"><h3>Sensor</h3><p>Measures a physical quantity (temperature, light, pressure, moisture) and sends the reading in. Sensors give <b>analogue</b> data, so an <b>analogue-to-digital converter (ADC)</b> turns it into digital data.</p></div>
+    <div class="card"><h3>Microprocessor</h3><p>Compares each reading with the <b>stored value</b> (the target or limit), and decides what to do. It follows a stored <b>program</b>.</p></div>
+    <div class="card"><h3>Actuator</h3><p>Turns the microprocessor's signal into <b>physical action</b>: a motor, valve, pump, heater, lamp or alarm. A <b>digital-to-analogue converter (DAC)</b> may be needed.</p></div>
+    <div class="card"><h3>Feedback</h3><p>The effect of the action changes the next reading, so the sensor <b>keeps measuring</b> and the loop repeats. This is how the system keeps a value steady.</p></div>
+  </div>
+  <div class="card"><h3>The control loop</h3><p style="font-family:var(--mono);font-size:.92rem">sensor measures → ADC → microprocessor compares with the stored value → signal → actuator acts → (the sensor measures again)</p></div>
+  <div id="cdAuto" class="code"></div>
+  <p class="note">The program on the left runs for ever, checking the sensor each time round the loop.</p>
+
+  <h3>Advantages and disadvantages</h3>
+  <div class="grid2">
+    <div class="card"><h3>Advantages</h3><ul>
+      <li><b>Works 24 hours a day</b> without breaks, sleep or holidays</li>
+      <li><b>More accurate and consistent</b> than a person; fewer human errors</li>
+      <li><b>Faster</b> responses to changes</li>
+      <li>Can work in <b>dangerous or remote</b> places</li>
+      <li>Running costs can be <b>lower</b> in the long term</li></ul></div>
+    <div class="card"><h3>Disadvantages</h3><ul>
+      <li><b>High initial cost</b> to buy, install and program</li>
+      <li><b>Jobs may be lost</b> because fewer people are needed</li>
+      <li>Needs <b>maintenance</b>; faults, power cuts or software bugs can stop it</li>
+      <li>Cannot easily cope with <b>unexpected</b> situations</li>
+      <li>Can be a target for <b>hackers</b>; people may depend on it too much</li></ul></div>
+  </div>
+
+  <h3>Scenarios</h3>
+  <div class="tw"><table class="t">
+    <tr><th>Area</th><th>Automated system</th><th>Advantage</th><th>Disadvantage</th></tr>
+    <tr><td><b>Industry</b></td><td>Production line that assembles and checks products</td><td>Constant speed and quality, 24 hours a day</td><td>Expensive; workers lose jobs</td></tr>
+    <tr><td><b>Transport</b></td><td>Automatic traffic lights, driverless trains and cars</td><td>Fewer errors from tired drivers; smoother traffic</td><td>A software or sensor fault could cause an accident</td></tr>
+    <tr><td><b>Agriculture</b></td><td>Automatic watering from soil moisture sensors; automated milking</td><td>Right amount of water; less water wasted; saves labour</td><td>Costly to set up; a broken sensor could over- or under-water</td></tr>
+    <tr><td><b>Weather</b></td><td>Automatic weather stations measuring temperature, pressure, rainfall</td><td>Readings all day, in remote places, without staff</td><td>Needs maintenance; a damaged sensor gives wrong readings</td></tr>
+    <tr><td><b>Gaming</b></td><td>Computer-controlled characters and sensors that track the player's movement</td><td>Players can play alone at any time; characters respond instantly</td><td>Can feel repetitive; can reduce social play</td></tr>
+    <tr><td><b>Lighting</b></td><td>Street lights switched by light sensors; motion-activated lights</td><td>Saves energy; works without anyone switching it</td><td>A faulty sensor can leave lights on or off at the wrong time</td></tr>
+    <tr><td><b>Science</b></td><td>Automated experiments and remote probes recording data</td><td>Accurate readings, repeated for long periods, in dangerous places</td><td>Cannot react creatively to unexpected results</td></tr>
+  </table></div>
+  <div class="warn"><b class="h">Exam tip</b>For "describe how it works", name the <b>sensor</b>, say the <b>microprocessor compares the reading with a stored value</b>, and name the <b>actuator</b>. Always link your advantage or disadvantage to the <b>scenario</b> in the question.</div>
+</section>
+
+<!-- WATCH -->
+<section id="watch" role="tabpanel" hidden>
+  <p>Press Play, or click the numbered steps.</p>
+  <h2>1 · An automatic street light</h2><div id="stA"></div>
+  <h2>2 · Feedback: automatic watering</h2><div id="stB"></div>
+</section>
+
+<!-- EXPLORE -->
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Automatic greenhouse</h2>
+  <p>A temperature sensor, a microprocessor, a heater and a window actuator keep the greenhouse between the low and high limits. Change the limits and the outside temperature, and compare with a greenhouse with no automation (dashed line).</p>
+  <div class="card"><div class="grid2"><div><div id="g1"></div><div id="g2"></div><div id="g3"></div></div><div><div class="readout"><div><small>Time in range</small><strong id="ga"></strong></div><div><small>Heater switch-ons</small><strong id="gb"></strong></div><div><small>Window opens</small><strong id="gc"></strong></div></div></div></div><svg id="gs" viewBox="0 0 640 240" role="img" aria-label="Greenhouse temperature over time"></svg><div class="verdict" id="gv" aria-live="polite"></div></div>
+
+  <h2>Lab 2 · Sensor and actuator pairs</h2>
+  <p>Choose the sensor and actuator pair for each automated system.</p>
+  <div class="card"><div class="scn" id="sn"></div><div class="verdict" id="sv" aria-live="polite"></div></div>
+</section>
+
+<!-- PRACTISE -->
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Advantage or disadvantage?</h2>
+  <div id="cl1" class="card"></div>
+
+  <h2>2 · Which area of life?</h2>
+  <div id="cl2" class="card"></div>
+
+  <h2>3 · The control loop in order</h2>
+  <div id="o1" class="card"></div>
+
+  <h2>4 · Match the part to its job</h2>
+  <div id="m1" class="card"></div>
+
+  <h2>5 · Calculations</h2>
+  <p class="note">A street light switches ON when the reading is below 30.</p>
+  <div id="c1"></div>
+
+  <h2>6 · Multiple choice</h2>
+  <div id="qz1"></div>
+</section>
+
+<!-- REAL WORLD -->
+<section id="real" role="tabpanel" hidden>
+  <p class="note">Descriptions are kept general. Check current details before quoting specifics.</p>
+  <div class="rw"><h3>Street lights</h3><p>A light sensor reads the daylight. When it falls below a stored value, the microprocessor switches the lamp on; when it rises again, it switches it off.</p><div class="use"><b>Exam use:</b> a one-sensor, one-actuator example with a clear stored value.</div></div>
+  <div class="rw"><h3>Central heating thermostat</h3><p>A temperature sensor tells the microprocessor how warm the room is. It switches the boiler on below the set temperature and off above it.</p><div class="use"><b>Exam use:</b> feedback: the heating changes the temperature, which the sensor reads again.</div></div>
+  <div class="rw"><h3>An automated factory</h3><p>Robot arms and conveyor belts run all day, with sensors checking each product.</p><div class="use"><b>Exam use:</b> industry: constant quality and 24-hour work, against high cost and lost jobs.</div></div>
+  <div class="rw"><h3>Automatic weather station</h3><p>Sensors measure temperature, pressure, humidity and rainfall in remote places and send data back without staff.</p><div class="use"><b>Exam use:</b> the weather scenario: accurate data in dangerous or remote places.</div></div>
+  <div class="rw"><h3>A smart irrigation system</h3><p>Moisture sensors in a field tell the system when to switch on pumps, so crops get just enough water.</p><div class="use"><b>Exam use:</b> agriculture: less waste, but it relies on working sensors.</div></div>
+  <div class="rw"><h3>Space and deep-sea probes</h3><p>Automated probes collect data in places too dangerous or far away for people.</p><div class="use"><b>Exam use:</b> science: working where humans cannot, but unable to react creatively.</div></div>
+</section>
+
+<!-- EXAM -->
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam-style questions</h2>
+  <p>Open each question for reminders, a model answer and common mistakes. Each underlined phrase earns one mark; the number shows which mark point it is.</p>
+
+  <details class="eq"><summary>Q1 <span class="cmd">Describe</span> <span class="mark">4 marks</span> A greenhouse uses an automated system to keep the temperature at 25 °C. Describe how a sensor, a microprocessor and an actuator work together.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Sensor measures, ADC, compare, actuator, repeat.</div>
+    <div class="ans"><span class="mk k" data-t="1">A temperature sensor measures the temperature in the greenhouse (analogue data, converted by an ADC).</span> <span class="mk k" data-t="2">The data is sent to the microprocessor.</span> <span class="mk k" data-t="3">The microprocessor compares the reading with the stored value (25 °C).</span> <span class="mk k" data-t="4">If it is too high (or low), it sends a signal to an actuator (for example to open a window or switch the heater), and the process repeats.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying the sensor "turns on the heater". Sensors <b>measure</b>; actuators <b>act</b>.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q2 <span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why an analogue-to-digital converter (ADC) is needed in an automated system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Analogue in, digital out.</div>
+    <div class="ans"><span class="mk k" data-t="1">Sensors collect analogue data (real-world measurements).</span> <span class="mk k" data-t="2">A microprocessor can only process digital data, so the ADC converts it.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying the ADC "makes the data bigger" or "stores it".</div>
+  </div></details>
+
+  <details class="eq"><summary>Q3 <span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain how feedback is used in an automated system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The effect is read again.</div>
+    <div class="ans"><span class="mk k" data-t="1">The sensor keeps measuring (continuously or at regular intervals).</span> <span class="mk k" data-t="2">The actuator's action changes the quantity being measured.</span> <span class="mk k" data-t="3">The microprocessor uses the new reading to decide the next action, keeping the value steady.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Describing one measurement only. Feedback needs the loop to <b>repeat</b>.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q4 <span class="cmd">Describe</span> <span class="mark">4 marks</span> Farmers use an automated irrigation system. Give two advantages and two disadvantages.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two of each, linked to farming.</div>
+    <div class="ans"><span class="mk k" data-t="1">Advantage: the right amount of water is supplied, so less water is wasted.</span> <span class="mk k" data-t="2">Advantage: saves labour, and works day and night.</span> <span class="mk k" data-t="3">Disadvantage: expensive to buy and install.</span> <span class="mk k" data-t="4">Disadvantage: a faulty sensor could cause over- or under-watering (or needs maintenance).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing general answers such as "it is faster". Link each point to <b>farming</b>.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q5 <span class="cmd">Explain</span> <span class="mark">3 marks</span> A factory replaces some workers with an automated production line. Explain the advantages and a disadvantage for the factory.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Output, accuracy, cost.</div>
+    <div class="ans"><span class="mk k" data-t="1">It can work 24 hours a day without breaks, so more is produced.</span> <span class="mk k" data-t="2">It is more accurate and consistent, so fewer errors and less waste.</span> <span class="mk k" data-t="3">Disadvantage: high initial cost (and jobs may be lost).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Only giving advantages when the question asks for both.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q6 <span class="cmd">Describe</span> <span class="mark">3 marks</span> An automatic weather station is placed in a remote mountain area. Describe two advantages and one disadvantage of using an automated system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Remote, continuous, maintenance.</div>
+    <div class="ans"><span class="mk k" data-t="1">It can collect readings in a remote or dangerous place without a person present.</span> <span class="mk k" data-t="2">It can record data continuously, day and night.</span> <span class="mk k" data-t="3">Disadvantage: it needs maintenance, and a damaged sensor or a power failure would stop or spoil the readings.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting to link answers to <b>remote</b> or <b>weather</b>.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q7 <span class="cmd">Explain</span> <span class="mark">2 marks</span> A street light turns on when it gets dark. State what the microprocessor compares and what it does when the reading is below the stored value.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Reading against stored value.</div>
+    <div class="ans"><span class="mk k" data-t="1">It compares the light sensor reading with the stored (threshold) value.</span> <span class="mk k" data-t="2">If it is lower, it sends a signal to switch the lamp (actuator) on.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying the sensor makes the decision. The <b>microprocessor</b> decides.</div>
+  </div></details>
+</section>
+
+<!-- TIPS -->
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Sensor measures, microprocessor decides, actuator acts.</b></li>
+    <li><b>The microprocessor compares the reading with a stored value.</b> Always say this.</li>
+    <li><b>ADC:</b> sensors give analogue data; the microprocessor needs digital.</li>
+    <li><b>Feedback:</b> the loop repeats, and the action changes the next reading.</li>
+    <li><b>Link each advantage and disadvantage to the scenario:</b> industry, transport, agriculture, weather, gaming, lighting, science.</li>
+  </ul>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Name / Identify</td><td>A short fact. No explanation.</td></tr>
+    <tr><td>Describe</td><td>What happens, step by step, or the main features.</td></tr>
+    <tr><td>Explain</td><td>What happens and why. Use because or so.</td></tr>
+    <tr><td>Complete</td><td>Fill in the gaps, trace table or code you are given.</td></tr>
+    <tr><td>Write / Give</td><td>Produce an algorithm, code or an example. Be precise.</td></tr>
+  </table></div>
+  <h2>Keyword flashcards</h2>
+  <div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const GOOD = "var(--good)", BAD = "var(--bad)", ACC = "var(--accent)", MUT = "var(--muted)", WARN = "var(--warn)";
+const note = (x, y, t, cls = "", anchor = "middle") => SV.text(x, y, t, "lbl bd " + cls, { "text-anchor": anchor });
+const sm = (x, y, t, anchor = "middle") => SV.text(x, y, t, "sm", { "text-anchor": anchor });
+const panel = (x, y, w, h, title, col, o = 1) => SV.rect(x, y, w, h, "", { rx: 12, style: `fill:var(--surface);stroke:${col};stroke-width:3`, opacity: o }) + (title ? SV.text(x + w / 2, y + 22, title, "lbl bd", { "text-anchor": "middle", style: `fill:${col}` }) : "");
+const arr = (x1, y1, x2, y2, col, dash) => SV.line(x1, y1, x2, y2, "", { style: `stroke:${col};stroke-width:3;${dash ? "stroke-dasharray:7 6" : ""}` });
+const chip = (x, y, w, t, col) => SV.rect(x, y, w, 26, "", { rx: 13, style: `fill:${col}` }) + SV.text(x + w / 2, y + 18, t, "lbl bd", { "text-anchor": "middle", style: "fill:#fff;font-size:12px" });
+const range = (a, b) => { const r = []; for (let i = a; i <= b; i++) r.push(i); return r; };
+/* select-one-per-row chooser. items: [text, correctOption] */
+function chooser(el, v, opts, items, ph) {
+  el.innerHTML = items.map((s) => `<div class="r" data-a="${esc(s[1])}"><span class="q">${s[0]}</span><select class="sel" aria-label="${esc(s[0].replace(/<[^>]+>/g, ""))}"><option value="">${ph || "Choose…"}</option>${opts.map((x) => `<option>${esc(x)}</option>`).join("")}</select></div>`).join("");
+  v.textContent = "Choose an answer for each row.";
+  $$(".r", el).forEach((r) => $("select", r).addEventListener("change", (e) => { r.classList.remove("ok", "no"); if (e.target.value) r.classList.add(e.target.value === r.dataset.a ? "ok" : "no"); v.textContent = `${$$(".r.ok", el).length} of ${$$(".r", el).length} correct. Red means a different answer fits better.`; }));
+}
+/* ---------- 1. street light ---------- */
+function slChart(s) {
+  const k = Math.round(s.k), night = k >= 1 && k <= 3, reading = [80, 25, 25, 5, 60][k], on = k === 3 || k === 2 && false;
+  let o = SV.rect(10, 10, 290, 230, "", { rx: 12, style: `fill:${night ? "#1f2a44" : "#cfe6f7"};stroke:var(--line);stroke-width:2` });
+  o += night ? SV.circle(240, 55, 22, "", { style: "fill:#f3f0d8" }) + SV.circle(250, 50, 18, "", { style: "fill:#1f2a44" }) : SV.circle(240, 55, 24, "", { style: "fill:#f5c542" });
+  o += SV.rect(110, 90, 8, 130, "", { style: "fill:#555" }) + SV.rect(80, 84, 60, 10, "", { rx: 4, style: "fill:#555" }) + SV.circle(110, 104, 12, "", { style: `fill:${on ? "#ffe066" : "#999"}` });
+  if (on) o += SV.poly([[96, 112], [124, 112], [160, 220], [60, 220]], "", { style: "fill:#ffe066;opacity:.3" });
+  o += SV.rect(10, 220, 290, 20, "", { style: "fill:#3b6b3b" });
+  o += panel(330, 40, 120, 110, "Light sensor", k === 1 || k === 4 ? ACC : MUT) + SV.text(390, 100, String(reading), "lbl bd", { "text-anchor": "middle", style: "font-size:28px;font-family:var(--mono)" }) + sm(390, 125, "reading");
+  o += panel(480, 40, 130, 110, "Microprocessor", k === 2 || k === 4 ? ACC : MUT) + sm(545, 85, "stored value: 30") + SV.text(545, 118, k === 2 ? "25 < 30: ON" : k === 4 ? "60 > 30: OFF" : k === 1 ? "comparing…" : "waiting", "lbl bd", { "text-anchor": "middle", style: `fill:${k === 2 ? GOOD : k === 4 ? BAD : "var(--muted)"}` });
+  o += panel(640, 40, 110, 110, "Actuator", k === 3 ? GOOD : MUT) + sm(695, 100, "lamp switch") + sm(695, 122, on ? "ON" : "OFF");
+  if (k >= 1) o += arr(450, 95, 480, 95, ACC); if (k >= 2 && k !== 4 || k === 4) o += arr(610, 95, 640, 95, k === 4 ? BAD : GOOD);
+  o += note(540, 200, ["Daytime: bright, lamp off", "Dusk: the light level falls", "25 is below the stored value of 30", "Night: lamp on", "Dawn: 60 is above 30, lamp off"][k], "t1");
+  return o;
+}
+Lib.stepper($("#stA"), { w: 760, h: 250, label: "An automatic street light", base: { k: 0 }, tween: 1, dwell: 3800, draw: slChart, steps: [
+  { cap: "It is day. The <b>light sensor</b> reads 80. The microprocessor has a stored value of <b>30</b>. The lamp is off.", s: { k: 0 } },
+  { cap: "At dusk the light falls. The sensor measures <b>25</b> (analogue, converted by an ADC).", s: { k: 1 } },
+  { cap: "The <b>microprocessor compares</b> 25 with the stored value 30. It is lower, so it sends the signal to switch the lamp <b>on</b>.", s: { k: 2 } },
+  { cap: "The <b>actuator</b> (a switch) turns the lamp on. The sensor keeps measuring through the night.", s: { k: 3 } },
+  { cap: "At dawn the sensor reads <b>60</b>, above 30, so the microprocessor sends a signal and the lamp goes <b>off</b>. The loop repeats every day.", s: { k: 4 } },
+] });
+
+/* ---------- 2. feedback ---------- */
+function fbChart(s) {
+  const k = Math.round(s.k), m = s.m, pump = k >= 2 && k <= 4;
+  let o = panel(20, 20, 150, 80, "Moisture sensor", k === 1 || k === 5 ? ACC : MUT) + sm(95, 76, "reads " + Math.round(m) + " %");
+  o += panel(235, 20, 150, 80, "Microprocessor", k === 1 || k === 4 || k === 5 ? ACC : MUT) + sm(310, 76, "target: 50 %");
+  o += panel(450, 20, 140, 80, "Pump (actuator)", pump ? GOOD : MUT) + sm(520, 76, pump ? "ON" : "OFF");
+  o += arr(170, 60, 235, 60, ACC) + arr(385, 60, 450, 60, pump ? GOOD : MUT);
+  o += SV.rect(640, 20, 100, 170, "", { rx: 10, style: "fill:var(--surface);stroke:var(--muted);stroke-width:2" }) + SV.rect(641, 190 - m * 1.7, 98, m * 1.7, "", { style: "fill:#7a5230;opacity:.8" }) + sm(690, 14, "soil") + SV.line(640, 190 - 85, 740, 190 - 85, "", { style: "stroke:var(--good);stroke-width:2;stroke-dasharray:5 4" });
+  o += SV.path("M520 100 L520 150 L640 150", "", { style: `fill:none;stroke:${pump ? "var(--good)" : "var(--muted)"};stroke-width:3;stroke-dasharray:6 5` });
+  o += SV.path("M690 190 L690 215 L95 215 L95 100", "", { style: "fill:none;stroke:var(--muted);stroke-width:2;stroke-dasharray:3 4" }) + sm(390, 232, "feedback: the sensor measures the soil again");
+  return o;
+}
+Lib.stepper($("#stB"), { w: 760, h: 245, label: "Feedback in automatic watering", base: { k: 0, m: 30 }, tween: 1000, dwell: 3800, draw: fbChart, steps: [
+  { cap: "The soil is dry: <b>30 %</b> moisture. The target is 50 %.", s: { k: 0, m: 30 } },
+  { cap: "The sensor sends the reading. The microprocessor <b>compares</b> 30 % with the stored target 50 %: too dry.", s: { k: 1, m: 30 } },
+  { cap: "It sends a signal to the <b>pump</b> (actuator), which switches on.", s: { k: 2, m: 38 } },
+  { cap: "Water soaks in. The sensor keeps measuring: 45 %. Still below 50 %, so the pump stays on.", s: { k: 3, m: 45 } },
+  { cap: "At 52 % the microprocessor sees the target is reached and switches the pump <b>off</b>.", s: { k: 4, m: 52 } },
+  { cap: "The loop never stops: as the soil dries, the reading falls and the cycle starts again. That is <b>feedback</b>.", s: { k: 5, m: 48 } },
+] });
+
+/* ---------- Learn code ---------- */
+Lib.codePanel($("#cdAuto"), { pseudo: ["WHILE TRUE DO", "    INPUT Temperature", "    IF Temperature > 26", "      THEN", "        Window ← OPEN", "      ELSE", "        Window ← CLOSED", "    ENDIF", "    IF Temperature < 18", "      THEN", "        Heater ← ON", "      ELSE", "        Heater ← OFF", "    ENDIF", "ENDWHILE"], py: ["while True:", "    temperature = read_sensor()", "    if temperature > 26:", "        window = OPEN", "    else:", "        window = CLOSED", "    if temperature < 18:", "        heater = ON", "    else:", "        heater = OFF"] });
+
+/* ---------- Lab 1: greenhouse ---------- */
+(() => {
+  let lo, hi, out;
+  const svg = $("#gs");
+  function sim(auto) {
+    const L = lo.get(), H = Math.max(hi.get(), L + 1), O = out.get(); let T = 22, heat = false, win = false, ts = [T], hs = 0, wo = 0, inr = 0;
+    for (let i = 0; i < 100; i++) {
+      if (auto) { const wasH = heat, wasW = win; heat = T < L ? true : T > L + 1 ? false : heat; win = T > H ? true : T < H - 1 ? false : win; if (heat && !wasH) hs++; if (win && !wasW) wo++; }
+      T += (O - T) * 0.06 + (heat ? 1.1 : 0) - (win ? 1.1 : 0); ts.push(T); if (T >= L && T <= H) inr++;
+    }
+    return { ts, hs, wo, inr };
+  }
+  function upd() {
+    if (!lo || !hi || !out) return;
+    const a = sim(true), b = sim(false), L = lo.get(), H = Math.max(hi.get(), L + 1), y = (t) => 220 - ((t - 0) / 45) * 200, x = (i) => 40 + i * 5.7;
+    let s = SV.rect(40, y(H), 570, y(L) - y(H), "", { style: "fill:var(--good-soft)" }) + SV.line(40, 20, 40, 220, "", { style: "stroke:var(--muted);stroke-width:2" }) + SV.line(40, 220, 610, 220, "", { style: "stroke:var(--muted);stroke-width:2" });
+    [0, 10, 20, 30, 40].forEach((t) => (s += sm(30, y(t) + 4, t, "end")));
+    s += sm(325, 238, "time") + SV.text(14, 120, "°C", "sm", {});
+    s += SV.path("M" + b.ts.map((t, i) => `${x(i)} ${y(t)}`).join(" L"), "", { style: "fill:none;stroke:var(--muted);stroke-width:2;stroke-dasharray:5 4" });
+    s += SV.path("M" + a.ts.map((t, i) => `${x(i)} ${y(t)}`).join(" L"), "", { style: "fill:none;stroke:var(--accent);stroke-width:3" });
+    svg.innerHTML = s;
+    $("#ga").textContent = Math.round((a.inr / 100) * 100) + " %"; $("#gb").textContent = a.hs; $("#gc").textContent = a.wo;
+    $("#gv").innerHTML = `Automated (solid line): in range <b>${Math.round(a.inr)}%</b> of the time. With no automation (dashed): <b>${Math.round(b.inr)}%</b>. The sensor-microprocessor-actuator loop keeps the temperature between ${L} and ${H} °C by switching the heater and the window.`;
+  }
+  lo = Lib.slider($("#g1"), { id: "gl", label: "Low limit", min: 10, max: 25, value: 20, fmt: (v) => v + " °C", onInput: upd });
+  hi = Lib.slider($("#g2"), { id: "gh", label: "High limit", min: 18, max: 35, value: 26, fmt: (v) => v + " °C", onInput: upd });
+  out = Lib.slider($("#g3"), { id: "go", label: "Outside temperature", min: 0, max: 40, value: 8, fmt: (v) => v + " °C", onInput: upd });
+  upd();
+})();
+
+/* ---------- Lab 2 ---------- */
+const PAIRS = ["Light sensor → lamp", "Moisture sensor → pump", "Temperature sensor → heater", "Pressure sensor → alarm siren", "Infra-red sensor → door motor", "Gas sensor → ventilation fan", "Proximity sensor → brakes"];
+chooser($("#sn"), $("#sv"), PAIRS, [
+  ["Street lights that switch on at dusk", "Light sensor → lamp"], ["Watering a field only when the soil is dry", "Moisture sensor → pump"], ["Keeping a greenhouse warm on cold nights", "Temperature sensor → heater"], ["A burglar alarm triggered by someone stepping on a mat", "Pressure sensor → alarm siren"],
+  ["A supermarket door that opens when someone approaches", "Infra-red sensor → door motor"], ["A kitchen that clears a dangerous gas leak", "Gas sensor → ventilation fan"], ["A driverless car stopping before an obstacle", "Proximity sensor → brakes"],
+]);
+
+/* ---------- Practise ---------- */
+Lib.classify($("#cl1"), { prompt: "Is each point an advantage or a disadvantage of an automated system?", buckets: [{ label: "Advantage" }, { label: "Disadvantage" }], items: [
+  { text: "Works 24 hours a day without breaks", b: 0 },
+  { text: "More accurate and consistent than people", b: 0 },
+  { text: "Can work in dangerous places", b: 0 },
+  { text: "Fast response to changes", b: 0 },
+  { text: "High cost to install and program", b: 1 },
+  { text: "Jobs may be lost", b: 1 },
+  { text: "A fault or power cut can stop it", b: 1 },
+  { text: "Cannot cope with unexpected situations", b: 1 },
+  { text: "Can be hacked", b: 1 },
+], done: "Speed and accuracy against cost, jobs and faults." });
+
+Lib.classify($("#cl2"), { prompt: "Which area is each automated system from?", buckets: [{ label: "Industry" }, { label: "Transport" }, { label: "Agriculture" }, { label: "Weather" }, { label: "Lighting" }], items: [
+  { text: "Production line that assembles cars", b: 0 },
+  { text: "Robot checking products for faults", b: 0 },
+  { text: "Driverless train", b: 1 },
+  { text: "Automatic traffic lights", b: 1 },
+  { text: "Moisture sensors switching on pumps", b: 2 },
+  { text: "Automated milking machines", b: 2 },
+  { text: "Weather station measuring rainfall", b: 3 },
+  { text: "Storm warning sensors", b: 3 },
+  { text: "Street lights that react to daylight", b: 4 },
+  { text: "Motion-activated lights", b: 4 },
+], done: "Match the system to its area." });
+
+Lib.order($("#o1"), { prompt: "Put the steps of an automated control loop in order.", items: [
+  "The sensor measures a physical quantity",
+  "An ADC converts the analogue reading to digital",
+  "The microprocessor compares it with the stored value",
+  "The microprocessor sends a signal to the actuator",
+  "The actuator acts, and the sensor measures again"
+], done: "Measure, convert, compare, signal, act, repeat." });
+
+Lib.match($("#m1"), { prompt: "Match each part to its job.", pairs: [
+  ["Sensor", "Measures a physical quantity"],
+  ["ADC", "Converts analogue readings to digital data"],
+  ["Microprocessor", "Compares readings with a stored value and decides"],
+  ["Actuator", "Turns a signal into physical action"],
+  ["Feedback", "The action changes the next reading, and the loop repeats"],
+  ["Stored value", "The limit or target the reading is compared with"]
+] });
+
+Lib.calc($("#c1"), { qs: [
+  { q: "The street light switches ON when the reading is below 30. The readings are 55, 42, 28, 31, 19. How many readings switch the light ON?", a: 2, sol: "28 and 19 are below 30: 2 readings." },
+  { q: "A greenhouse heater turns ON below 18 °C. Readings: 20, 17, 18, 15, 22. How many readings turn the heater ON?", a: 2, sol: "17 and 15 are below 18: 2 (18 is not below 18).", hint: "Is 18 below 18?" },
+  { q: "An automated factory makes 12 items an hour for 24 hours. How many items does it make?", a: 288, sol: "12 × 24 = 288." },
+  { q: "A worker makes 5 items an hour for an 8-hour shift. How many items?", a: 40, sol: "5 × 8 = 40." },
+  { q: "A sensor reading of 7 is converted to 4-bit binary by an ADC. Give the binary number.", t: ["0111"], ph: "4 bits", sol: "7 = 4 + 2 + 1 = 0111." }
+] });
+
+Lib.quiz($("#qz1"), { qs: [
+  { q: "What does an actuator do?", opts: ["Measures", "Turns a signal into action", "Stores data", "Compares values"], a: 1, why: "Actuators move or switch something." },
+  { q: "What does the microprocessor compare a sensor reading with?", opts: ["A stored value", "A random number", "The previous user", "Nothing"], a: 0, why: "It compares with a stored (target or limit) value." },
+  { q: "Why is an ADC needed?", opts: ["Sensors give analogue data", "Actuators are digital", "To save power", "To make noise"], a: 0, why: "The microprocessor needs digital data." },
+  { q: "Which is an advantage of automation?", opts: ["High cost", "Can work 24 hours a day", "Needs maintenance", "Jobs lost"], a: 1, why: "Automated systems do not need breaks." },
+  { q: "What is feedback?", opts: ["The action changes the next reading", "A user complaint", "An error message", "A power cut"], a: 0, why: "The loop repeats using the new reading." },
+  { q: "Which sensor suits automatic watering?", opts: ["Moisture", "Sound", "Pressure plate", "Magnetic"], a: 0, why: "A moisture sensor reads soil dampness." }
+] });
+
+Lib.cards($("#fc1"), { cards: [
+  ["Automated system", "A system that carries out a task with little or no human involvement, using sensors, a microprocessor and actuators."],
+  ["Sensor", "An input device that measures a physical quantity."],
+  ["Microprocessor", "Compares sensor readings with stored values and decides what to do."],
+  ["Actuator", "An output device that turns a signal into physical action."],
+  ["ADC", "Analogue-to-digital converter: converts sensor readings for the microprocessor."],
+  ["DAC", "Digital-to-analogue converter: converts a digital signal for an analogue actuator."],
+  ["Feedback", "The effect of an action changes the next reading, so the loop repeats."],
+  ["Stored value", "The target or limit that readings are compared with."]
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

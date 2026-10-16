@@ -1,0 +1,2098 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Linked Lists</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>/* Base for artifacts that keep their own page CSS: the tab bar plus kit components scoped under .kit, mapped onto whatever palette the page defines. */
+.kit,.kitvars{--soft:var(--accent-soft);--warn:var(--amber,#a85d00);--warn-soft:var(--amber-soft,#fbead2);--accent-ink:var(--bg);--sans:var(--body,system-ui,sans-serif);--serif:var(--display,Georgia,serif);--k:#1f5fa8;--a:#1d7a4c;--n:#7a3fa0;--e:#b25a00}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) :is(.kit,.kitvars){--k:#7fb2ee;--a:#6ccb9b;--n:#c79be6;--e:#f0a95a}}
+:root[data-theme="dark"] :is(.kit,.kitvars){--k:#7fb2ee;--a:#6ccb9b;--n:#c79be6;--e:#f0a95a}
+.tl-wrap{max-width:var(--tl-w,900px);margin:0 auto}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+.kit .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.kit .card.big{background:var(--accent-soft);border-color:var(--accent)}
+.kit .card h3:first-child{margin-top:0}
+.kit .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.kit .grid2>.card{margin:0}
+.kit .formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kit .kw{font-weight:700;color:var(--accent)}
+.kit table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+.kit table.t th,.kit table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.kit table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.kit .tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.kit .b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.kit .b:hover{background:var(--soft)}
+.kit .b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.kit .b:disabled{opacity:.5;cursor:default}
+.kit .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.kit .note{font-size:.88rem;color:var(--muted)}
+.kit .pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.kit .tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.kit .tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.kit .warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.kit .warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+.kit /* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.kit .stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.kit .stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.kit .stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.kit .stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.kit .stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.kit .stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.kit .stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+.kit /* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+.kit svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+.kit svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+.kit svg .lbl{font-size:13px}
+.kit svg .sm{font-size:11.5px;fill:var(--muted)}
+.kit svg .bd{font-weight:700}
+.kit svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+.kit svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+.kit svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+.kit svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+.kit svg .f1{fill:var(--accent);opacity:.18}
+.kit svg .f2{fill:var(--bad);opacity:.18}
+.kit svg .f3{fill:var(--good);opacity:.2}
+.kit svg .f4{fill:var(--warn);opacity:.22}
+.kit svg .dash{stroke-dasharray:6 5}
+.kit svg .t1{fill:var(--accent)}
+.kit svg .t2{fill:var(--bad)}
+.kit svg .t3{fill:var(--good)}
+.kit svg .t4{fill:var(--warn)}
+.kit svg .dot1{fill:var(--accent)}
+.kit svg .dot2{fill:var(--bad)}
+.kit svg .dot3{fill:var(--good)}
+.kit svg .dot4{fill:var(--warn)}
+.kit /* sliders */
+.sl{margin:10px 0}
+.kit .sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.kit .sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.kit .sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.kit .readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.kit .readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.kit .readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.kit .readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.kit .verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+.kit /* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.kit .cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.kit .cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.kit .cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.kit .cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.kit .cls .bk.over,.kit .cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.kit .chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.kit .chip.sel{background:var(--accent);color:var(--accent-ink)}
+.kit .chip.ok{border-color:var(--good);background:var(--good-soft)}
+.kit .chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.kit .cls .msg,.kit .ord .msg,.kit .calc .msg{font-weight:700;margin:8px 0}
+.kit .match .bk h4{font-size:.9rem;color:var(--ink)}
+.kit /* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.kit .ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.kit .ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.kit .ord li.ok{border-color:var(--good);background:var(--good-soft)}
+.kit .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.kit .ord li.drag{opacity:.4}
+.kit .ord li span{flex:1}
+.kit .ord li button{padding:2px 8px}
+.kit /* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.kit .qz .q p.qt{font-weight:700;margin-bottom:8px}
+.kit .opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.kit .opt:hover{border-color:var(--accent)}
+.kit .opt.ok{border-color:var(--good);background:var(--good-soft)}
+.kit .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.kit .why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.kit .q.done .why{display:block}
+.kit .score{font:700 1.05rem var(--sans);margin:10px 0}
+.kit /* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.kit .calc input[type=number],.kit .calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.kit .calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.kit .calc .sol.show{display:block}
+.kit .calc .fb{font-weight:700;margin-left:8px}
+.kit .calc .fb.ok{color:var(--good)}
+.kit .calc .fb.no{color:var(--bad)}
+.kit /* cards */
+.fc{perspective:900px;max-width:520px}
+.kit .fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.kit .fc .face.back{background:var(--accent-soft)}
+.kit .fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+.kit /* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+.kit details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.kit details.eq>summary::-webkit-details-marker{display:none}
+.kit details.eq>summary::before{content:"▸";color:var(--accent)}
+.kit details.eq[open]>summary::before{content:"▾"}
+.kit details.eq .body{padding:4px 18px 16px}
+.kit .mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.kit .cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.kit .ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.kit .mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.kit .mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.kit .mk.k{color:var(--k)}
+.kit .mk.a{color:var(--a)}
+.kit .mk.n{color:var(--n)}
+.kit .mk.e{color:var(--e)}
+.kit .key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.kit .key span{display:inline-flex;gap:5px;align-items:center}
+.kit .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.kit .key .k i{background:var(--k)}
+.kit .key .a i{background:var(--a)}
+.kit .key .n i{background:var(--n)}
+.kit .key .e i{background:var(--e)}
+.kit .rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.kit .rw h3{margin:0 0 4px}
+.kit .rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.kit .rw .use b{color:var(--accent)}
+.kit ul.tips{list-style:none;padding:0;margin:0}
+.kit ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+.kit ul.tips li b{color:var(--warn)}
+.kit .algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.kit .algo .stp{margin:0}
+.kit @media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.kit .code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.kit .ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.kit .ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.kit .ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+.kit svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+.kit svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+.kit svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+.kit svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+.kit svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+.kit svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+.kit svg .cell-dimg{opacity:.28}
+.kit svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+.kit svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+.kit svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+.kit svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+.kit svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+.kit svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+.kit svg .arr{fill:var(--muted)}
+.kit svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.kit .vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.kit .vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.kit .bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.kit .bar.b2{background:var(--bad)}
+.kit .bar.b3{background:var(--good)}
+.kit .bar.b4{background:var(--warn)}
+.kit table.mx td,.kit table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+.kit table.mx td.z{color:var(--muted);opacity:.6}
+.kit table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.kit table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+.kit table.mx td.ls{text-align:left}
+.kit .stp{scroll-margin-top:70px}
+
+/* legacy */
+
+  :root{
+    --bg:#faf8f3;
+    --surface:#ffffff;
+    --surface-2:#f2efe6;
+    --ink:#1c211f;
+    --ink-soft:#3c443f;
+    --muted:#6b756e;
+    --line:#e1ddd0;
+    --accent:#0f6b5c;
+    --accent-soft:#e3f0eb;
+    --accent2:#b5541c;
+    --accent2-soft:#f7e9de;
+    --code-bg:#f3f0e6;
+    --code-ink:#2c332d;
+    --node-fill:#ffffff;
+    --node-stroke:#22403a;
+    --ptr-color:#b5541c;
+    --shadow: 0 1px 2px rgba(20,20,10,0.06), 0 6px 20px rgba(20,20,10,0.05);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#121613;
+      --surface:#191f1b;
+      --surface-2:#20271f;
+      --ink:#eef1ec;
+      --ink-soft:#c9d1c9;
+      --muted:#8fa094;
+      --line:#2b332c;
+      --accent:#4fd6b8;
+      --accent-soft:#1a3630;
+      --accent2:#e6a06a;
+      --accent2-soft:#332319;
+      --code-bg:#161c17;
+      --code-ink:#dbe6dd;
+      --node-fill:#1c231e;
+      --node-stroke:#7fd9c1;
+      --ptr-color:#e6a06a;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#121613;
+    --surface:#191f1b;
+    --surface-2:#20271f;
+    --ink:#eef1ec;
+    --ink-soft:#c9d1c9;
+    --muted:#8fa094;
+    --line:#2b332c;
+    --accent:#4fd6b8;
+    --accent-soft:#1a3630;
+    --accent2:#e6a06a;
+    --accent2-soft:#332319;
+    --code-bg:#161c17;
+    --code-ink:#dbe6dd;
+    --node-fill:#1c231e;
+    --node-stroke:#7fd9c1;
+    --ptr-color:#e6a06a;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Source Sans 3', system-ui, sans-serif;
+    font-size:16px;
+    line-height:1.55;
+    padding-inline:16px;
+  }
+  ::selection{ background: var(--accent-soft); color:var(--ink); }
+
+  a{ color:var(--accent); }
+
+  .wrap{
+    max-width:760px;
+    margin:0 auto;
+    padding-block: 28px 80px;
+  }
+
+  header.hero{
+    padding-block: 8px 28px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 28px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    font-weight: 600;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size: clamp(2rem, 5vw, 2.7rem);
+    line-height:1.08;
+    margin: 8px 0 10px;
+    text-wrap: balance;
+  }
+  .dek{
+    color: var(--muted);
+    font-size: 1.02rem;
+    max-width: 60ch;
+  }
+  .meta-row{
+    margin-top:16px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    padding:4px 9px;
+    border-radius:99px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+  }
+
+  nav.toc{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px 8px;
+    margin: 22px 0 8px;
+    padding: 12px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+  }
+  nav.toc a{
+    font-size:13px;
+    font-family:'IBM Plex Mono', monospace;
+    text-decoration:none;
+    color:var(--ink-soft);
+    padding:5px 9px;
+    border-radius:6px;
+  }
+  nav.toc a:hover{ background:var(--surface-2); color:var(--accent); }
+
+  section{
+    margin-top:44px;
+    scroll-margin-top: 16px;
+  }
+  h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size: 1.55rem;
+    margin: 0 0 6px;
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  h2 .num{
+    font-family:'IBM Plex Mono', monospace;
+    color: var(--accent2);
+    font-size: 0.95rem;
+    font-weight:600;
+  }
+  h3{
+    font-family:'Source Sans 3', sans-serif;
+    font-weight:700;
+    font-size:1.08rem;
+    margin: 22px 0 8px;
+    color:var(--ink);
+  }
+  p{ margin: 10px 0; }
+  .lede{ color:var(--ink-soft); }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+    margin: 14px 0;
+  }
+  .note{
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    border-radius: 0 10px 10px 0;
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size:0.95rem;
+  }
+  .note strong{ color: var(--accent); }
+  .warn{
+    border-left: 3px solid var(--accent2);
+    background: var(--accent2-soft);
+    border-radius: 0 10px 10px 0;
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size:0.95rem;
+  }
+  .warn strong{ color: var(--accent2); }
+
+  code{
+    font-family:'IBM Plex Mono', monospace;
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 1px 5px;
+    border-radius:4px;
+    font-size: 0.9em;
+  }
+  pre{
+    font-family:'IBM Plex Mono', monospace;
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 14px 16px;
+    border-radius: 10px;
+    overflow-x:auto;
+    font-size: 13.2px;
+    line-height:1.55;
+    border:1px solid var(--line);
+    margin: 10px 0;
+  }
+  pre code{ background:none; padding:0; }
+
+  table{
+    border-collapse: collapse;
+    width:100%;
+    font-size: 14px;
+    margin: 10px 0;
+  }
+  th, td{
+    border:1px solid var(--line);
+    padding: 7px 10px;
+    text-align:left;
+    font-variant-numeric: tabular-nums;
+  }
+  th{
+    background: var(--surface-2);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--muted);
+  }
+  .tbl-wrap{ overflow-x:auto; }
+
+  ul, ol{ padding-left: 22px; margin: 10px 0; }
+  li{ margin: 5px 0; }
+
+  .glossary dt{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    color:var(--accent);
+    margin-top:12px;
+  }
+  .glossary dd{ margin:2px 0 0 0; color:var(--ink-soft); }
+
+  /* tab switcher for pseudocode/python/java */
+  .tabs{ display:flex; gap:4px; margin: 12px 0 0; flex-wrap:wrap; }
+  .tab-btn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    padding:6px 12px;
+    border-radius: 7px 7px 0 0;
+    border:1px solid var(--line);
+    border-bottom:none;
+    background:var(--surface-2);
+    color:var(--muted);
+    cursor:pointer;
+  }
+  .tab-btn[aria-selected="true"]{
+    background:var(--code-bg);
+    color:var(--ink);
+    font-weight:600;
+  }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
+  .tab-panel pre{ margin-top:0; border-top-left-radius:0; }
+
+  /* SVG diagram */
+  .diagram-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding: 18px 14px;
+    box-shadow: var(--shadow);
+    margin:14px 0;
+    overflow-x:auto;
+  }
+  .diagram-card svg{ display:block; margin:0 auto; max-width:100%; height:auto; }
+  .cap{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--muted);
+    text-align:center;
+    margin-top:8px;
+  }
+
+  /* exam question card */
+  .exam-card{
+    border:1px solid var(--line);
+    border-radius:12px;
+    overflow:hidden;
+    margin:16px 0;
+    box-shadow: var(--shadow);
+  }
+  .exam-head{
+    background: var(--surface-2);
+    padding:10px 16px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .exam-src{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--muted);
+  }
+  .marks{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    background: var(--accent);
+    color: var(--surface);
+    padding:2px 9px;
+    border-radius:99px;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  .exam-body{ padding: 14px 16px; background:var(--surface); }
+  .examiner{
+    background: var(--surface-2);
+    border-top:1px dashed var(--line);
+    padding:12px 16px;
+    font-size:0.92rem;
+  }
+  .examiner .who{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--accent2);
+    font-weight:700;
+    display:block;
+    margin-bottom:4px;
+  }
+
+  details.answer{
+    margin-top:10px;
+    border:1px dashed var(--line);
+    border-radius:8px;
+    background:var(--surface-2);
+  }
+  details.answer summary{
+    cursor:pointer;
+    padding:8px 12px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--accent);
+  }
+  details.answer .answer-body{ padding: 0 14px 12px; font-size:0.93rem; }
+
+  footer{
+    margin-top:56px;
+    padding-top:18px;
+    border-top:1px solid var(--line);
+    color:var(--muted);
+    font-size:12.5px;
+    font-family:'IBM Plex Mono', monospace;
+  }
+
+  @media (max-width:480px){
+    h1{ font-size:1.7rem; }
+    .exam-head{ flex-direction:column; align-items:flex-start; }
+  }
+
+  /* step-through visualiser */
+  .stepper{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding: 14px 14px 16px;
+    margin: 18px 0;
+    box-shadow: var(--shadow);
+  }
+  .stepper-title{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--accent2);
+    font-weight:700;
+    margin-bottom:10px;
+  }
+  .stepper-controls{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+  .step-btn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    padding:7px 12px;
+    border-radius:7px;
+    border:1px solid var(--line);
+    background:var(--surface-2);
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .step-btn:hover:not(:disabled){ border-color:var(--accent); color:var(--accent); }
+  .step-btn:disabled{ opacity:0.4; cursor:default; }
+  .step-btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--surface); font-weight:600; }
+  .step-btn.primary:hover:not(:disabled){ filter:brightness(1.08); color:var(--surface); }
+  .step-count{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--muted);
+    margin-left:auto;
+    font-variant-numeric: tabular-nums;
+  }
+  .stepper-pointers{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .ptr-badge{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    padding:4px 10px;
+    border-radius:99px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+  }
+  .ptr-badge.hl{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent); font-weight:600; }
+  .stepper-array{ margin-bottom:8px; }
+  .stepper-array-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--muted);
+    margin-bottom:4px;
+  }
+  .stepper-row{
+    display:flex;
+    gap:4px;
+    overflow-x:auto;
+    padding-bottom:4px;
+  }
+  .stepper-row .cell{
+    flex: 0 0 auto;
+    min-width:36px;
+    border:1.5px solid var(--line);
+    border-radius:7px;
+    background:var(--surface-2);
+    text-align:center;
+    padding:4px 2px 6px;
+  }
+  .stepper-row .cell-idx{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9.5px;
+    color:var(--muted);
+  }
+  .stepper-row .cell-val{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+    margin-top:1px;
+  }
+  .stepper-row .cell-cur, .stepper-row .cell-new{
+    border-color:var(--accent);
+    background:var(--accent-soft);
+    box-shadow: 0 0 0 2px var(--accent-soft);
+  }
+  .stepper-row .cell-prev{
+    border-color:var(--accent2);
+    background:var(--accent2-soft);
+  }
+  .stepper-caption{
+    font-size:0.92rem;
+    color:var(--ink-soft);
+    background:var(--surface-2);
+    border-radius:8px;
+    padding:10px 12px;
+    margin-top:10px;
+    min-height:2.6em;
+  }
+  .stepper-caption code{ background:none; padding:0; color:var(--accent); }
+
+  .stepper-code{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.3px;
+    line-height:1.6;
+    background:var(--code-bg);
+    color:var(--code-ink);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding: 10px 0;
+    overflow-x:auto;
+    margin-top:4px;
+  }
+  .code-line{
+    display:block;
+    padding: 1px 14px;
+    white-space:pre;
+    border-left:3px solid transparent;
+  }
+  .code-line.active{
+    background: var(--accent-soft);
+    border-left-color: var(--accent);
+    color: var(--ink);
+    font-weight:600;
+  }
+
+  /* top-level section tabs */
+  .section-tabs{
+    display:flex;
+    gap:4px;
+    overflow-x:auto;
+    margin: 22px 0 0;
+    padding-bottom:1px;
+    border-bottom:1px solid var(--line);
+  }
+  .section-tab-btn{
+    flex:0 0 auto;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    padding:9px 13px;
+    border:none;
+    background:none;
+    color:var(--muted);
+    cursor:pointer;
+    border-bottom:2px solid transparent;
+    white-space:nowrap;
+  }
+  .section-tab-btn .num{ color:var(--accent2); margin-right:5px; }
+  .section-tab-btn[aria-selected="true"]{
+    color:var(--ink);
+    font-weight:600;
+    border-bottom-color:var(--accent);
+  }
+  .section-tab-btn:hover{ color:var(--ink); }
+  section[data-panel]{ display:none; margin-top:28px; }
+  section[data-panel].active{ display:block; }
+
+section[data-panel]{display:block!important;margin-top:18px}
+</style></head>
+<body>
+<div class="kitvars">
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">A-Level Computer Science · 9618 · Data Structures &amp; ADTs</div>
+  <h1>Linked Lists</h1>
+  <p>How an array-based linked list works: nodes, pointers, the heap of free space, and the find, insert and delete algorithms, with Cambridge exam questions and mark schemes.</p>
+</header>
+
+<div class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</div>
+<section id="learn" role="tabpanel">
+<section id="concept" data-panel="concept" class="active">
+    <h2><span class="num">01</span> The idea</h2>
+    <p class="lede">A <strong>linked list</strong> is an Abstract Data Type (ADT): a collection of data plus a defined set of operations on it &mdash; find, add, delete &mdash; where you only care <em>what</em> those operations do, not how they're built underneath.</p>
+    <p>Every item in the list ("node") is stored together with a pointer to the <em>next</em> item. A <code>startPointer</code> marks the first node. The last node's pointer is set to <code>&minus;1</code>, a <strong>null pointer</strong> &mdash; the signal that there's nothing further to follow.</p>
+
+    <div class="diagram-card">
+      <svg viewBox="0 0 720 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A linked list of four nodes: 27, 34, 82, 79, with a start pointer arrow into 27 and pointer arrows chaining each node to the next, ending in a null pointer.">
+        <text x="8" y="20" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--muted)">startPointer</text>
+        <line x1="8" y1="30" x2="55" y2="30" stroke="var(--ptr-color)" stroke-width="2" marker-end="url(#arrow)"/>
+
+        <!-- node 1 -->
+        <g transform="translate(55,45)">
+          <rect width="76" height="46" rx="6" fill="var(--node-fill)" stroke="var(--node-stroke)" stroke-width="1.6"/>
+          <line x1="54" y1="0" x2="54" y2="46" stroke="var(--node-stroke)" stroke-width="1.2"/>
+          <text x="27" y="29" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="15" font-weight="600" fill="var(--ink)">27</text>
+          <text x="65" y="27" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--ptr-color)">&#8226;</text>
+        </g>
+        <line x1="131" y1="68" x2="215" y2="68" stroke="var(--ptr-color)" stroke-width="2" marker-end="url(#arrow)"/>
+
+        <!-- node 2 -->
+        <g transform="translate(215,45)">
+          <rect width="76" height="46" rx="6" fill="var(--node-fill)" stroke="var(--node-stroke)" stroke-width="1.6"/>
+          <line x1="54" y1="0" x2="54" y2="46" stroke="var(--node-stroke)" stroke-width="1.2"/>
+          <text x="27" y="29" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="15" font-weight="600" fill="var(--ink)">34</text>
+        </g>
+        <line x1="291" y1="68" x2="375" y2="68" stroke="var(--ptr-color)" stroke-width="2" marker-end="url(#arrow)"/>
+
+        <!-- node 3 -->
+        <g transform="translate(375,45)">
+          <rect width="76" height="46" rx="6" fill="var(--node-fill)" stroke="var(--node-stroke)" stroke-width="1.6"/>
+          <line x1="54" y1="0" x2="54" y2="46" stroke="var(--node-stroke)" stroke-width="1.2"/>
+          <text x="27" y="29" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="15" font-weight="600" fill="var(--ink)">82</text>
+        </g>
+        <line x1="451" y1="68" x2="535" y2="68" stroke="var(--ptr-color)" stroke-width="2" marker-end="url(#arrow)"/>
+
+        <!-- node 4 -->
+        <g transform="translate(535,45)">
+          <rect width="76" height="46" rx="6" fill="var(--node-fill)" stroke="var(--node-stroke)" stroke-width="1.6"/>
+          <line x1="54" y1="0" x2="54" y2="46" stroke="var(--node-stroke)" stroke-width="1.2"/>
+          <text x="27" y="29" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="15" font-weight="600" fill="var(--ink)">79</text>
+          <text x="65" y="27" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--muted)">&#8709;</text>
+        </g>
+        <text x="573" y="30" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)">null pointer</text>
+
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="var(--ptr-color)"/>
+          </marker>
+        </defs>
+      </svg>
+      <div class="cap">Fig. 1 &mdash; a populated linked list (coursebook Fig. 10.12)</div>
+    </div>
+
+    <div class="note"><strong>Why bother?</strong> Linked lists keep data in order (usually ascending or descending) without having to shuffle every element along, the way inserting into the middle of a sorted array would. You only ever rewrite two pointers.</div>
+  </section>
+<section id="anatomy" data-panel="anatomy">
+    <h2><span class="num">02</span> Anatomy: two arrays, one heap</h2>
+    <p>On the exam, a linked list is almost always <strong>implemented using two parallel 1D arrays</strong> of the same fixed size &mdash; never real pointers/memory addresses. This is the detail examiners repeatedly say candidates skip.</p>
+    <ul>
+      <li><code>myLinkedList</code> &mdash; holds the actual data, one item per index.</li>
+      <li><code>myLinkedListPointers</code> &mdash; holds, for the same index, the index of the <em>next</em> node in the list.</li>
+      <li><code>startPointer</code> &mdash; the index of the first node in the ordered list (<code>&minus;1</code> if the list is empty).</li>
+      <li><code>heapStartPointer</code> &mdash; the index of the first <em>free</em> slot. The unused array positions are themselves managed as a linked list &mdash; the "heap" or free list.</li>
+    </ul>
+    <p>Together, one array index represents one <strong>node</strong>: the data at <code>myLinkedList[i]</code> and the "next" pointer at <code>myLinkedListPointers[i]</code> belong to the same node.</p>
+
+    <h3>Worked example</h3>
+    <p>Starting from an empty 12-element list and adding <code>27, 19, 36, 42, 16</code> in that order &mdash; using the <strong>ordered insert</strong> algorithm in section 4, which walks the chain to splice each new node into its correct sorted position &mdash; the arrays end up like this:</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Index</th><th>myLinkedList</th><th>myLinkedListPointers</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td>27</td><td>2</td><td></td></tr>
+          <tr><td>1</td><td>19</td><td>0</td><td></td></tr>
+          <tr><td>2</td><td>36</td><td>3</td><td></td></tr>
+          <tr><td>3</td><td>42</td><td>&minus;1</td><td></td></tr>
+          <tr><td>4</td><td>16</td><td>1</td><td><span class="tag">start&nbsp;pointer&nbsp;=&nbsp;4</span></td></tr>
+          <tr><td>5</td><td></td><td>6</td><td></td></tr>
+          <tr><td>6</td><td></td><td>7</td><td></td></tr>
+          <tr><td>7</td><td></td><td>8</td><td></td></tr>
+          <tr><td>8</td><td></td><td>9</td><td></td></tr>
+          <tr><td>9</td><td></td><td>10</td><td></td></tr>
+          <tr><td>10</td><td></td><td>11</td><td></td></tr>
+          <tr><td>11</td><td></td><td>&minus;1</td><td><span class="tag">heap&nbsp;start&nbsp;=&nbsp;5</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Read it by following the chain: <code>startPointer</code> is 4 &rarr; index 4 holds <strong>16</strong>, whose pointer is 1 &rarr; index 1 holds <strong>19</strong>, pointer 0 &rarr; <strong>27</strong>, pointer 2 &rarr; <strong>36</strong>, pointer 3 &rarr; <strong>42</strong>, pointer &minus;1 &rarr; end of list. So the pointers give the list order <strong>16, 19, 27, 36, 42</strong> &mdash; genuinely ascending, even though the items sit at whatever array index they happened to be allocated from the heap (in insertion order: 27, 19, 36, 42, 16). Only the pointer chain decides the list's real order; the physical array positions are just where each node's data happens to live.</p>
+    <div class="note"><strong>This is not insertion sort.</strong> Insertion sort (section 19.1.2) repeatedly shifts array elements along to sort a whole array that's already fully populated. This is different: it's inserting <em>one new node</em> into a linked list that is already sorted, by walking pointers to find the right gap and splicing it in &mdash; no data ever moves, only two pointers change. That's the entire point of using a linked list for ordered data instead of a plain array.</div>
+
+    <h3>To set up an empty linked list</h3>
+    <div class="tabs" role="tablist" data-group="setup">
+      <button class="tab-btn" role="tab" aria-selected="true" data-tab="setup-pseudo">Pseudocode</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="setup-py">Python</button>
+    </div>
+    <div class="tab-panel active" id="setup-pseudo">
+      <pre><code>DECLARE myLinkedList ARRAY[0:11] OF INTEGER
+DECLARE myLinkedListPointers ARRAY[0:11] OF INTEGER
+DECLARE startPointer : INTEGER
+DECLARE heapStartPointer : INTEGER
+DECLARE index : INTEGER
+
+heapStartPointer &larr; 0
+startPointer &larr; -1        // list empty
+
+FOR index &larr; 0 TO 11
+    myLinkedListPointers[index] &larr; index + 1
+NEXT index
+
+// the heap is itself a linked list of every free space,
+// set up once when the linked list is initialised
+myLinkedListPointers[11] &larr; -1
+// the final heap pointer is -1: no further free links</code></pre>
+    </div>
+    <div class="tab-panel" id="setup-py">
+      <pre><code># set up an empty linked list of 12 elements
+myLinkedList = [None] * 12
+myLinkedListPointers = [None] * 12
+
+heapStartPointer = 0
+startPointer = -1        # list empty
+
+for index in range(12):
+    myLinkedListPointers[index] = index + 1
+
+# the heap is itself a linked list of every free space,
+# set up once when the linked list is initialised
+myLinkedListPointers[11] = -1
+# the final heap pointer is -1: no further free links</code></pre>
+    </div>
+
+    <div class="stepper" id="stepper-setup">
+      <div class="stepper-title">Step through it &mdash; click Next</div>
+    </div>
+  </section>
+<section id="compare" data-panel="compare">
+    <h2><span class="num">06</span> Linked list vs. plain array</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th></th><th>Sorted array</th><th>Linked list</th></tr></thead>
+        <tbody>
+          <tr><td>Insert in order</td><td>Shift every element after the insertion point</td><td>Rewrite two pointers</td></tr>
+          <tr><td>Delete</td><td>Shift every element after the deleted one</td><td>Rewrite two pointers; slot returned to heap</td></tr>
+          <tr><td>Direct access by position</td><td>O(1) &mdash; <code>array[i]</code></td><td>O(n) &mdash; must follow pointers from the start</td></tr>
+          <tr><td>Memory overhead</td><td>None extra</td><td>Second array needed, purely for pointers</td></tr>
+          <tr><td>Fixed capacity?</td><td>Yes</td><td>Yes (both use fixed-size arrays here)</td></tr>
+          <tr><td>Data structure type</td><td>Static &mdash; generally fixed in size</td><td>Dynamic &mdash; freedom to expand/contract as nodes are added or removed</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>This trade-off &mdash; cheap insert/delete vs. expensive direct access &mdash; is exactly what several past-paper "explain the advantage / disadvantage" questions are testing. Say <em>why</em>, not just <em>that</em> it's faster or slower.</p>
+    <div class="note"><strong>Paper 3 mark-scheme language.</strong> The "static vs dynamic" framing is the actual wording Cambridge examiners credit (9618/32, Oct/Nov 2023, Q9(b) &mdash; see Exam corner): "a linked list is a dynamic data structure / not restricted in size... has greater freedom to expand or contract by adding or removing nodes as necessary", vs. "an array is a static data structure, generally fixed in size... when the array is full, [it] cannot be extended any further." Use those exact terms &mdash; <em>static</em>, <em>dynamic</em>, <em>fixed in size</em> &mdash; rather than vaguer phrasing like "more flexible".</div>
+  </section>
+
+</section>
+<section id="watch" role="tabpanel" hidden>
+<section id="find" data-panel="find">
+    <h2><span class="num">03</span> Finding an item</h2>
+    <p>To search, start at <code>startPointer</code> and follow the chain of "next" pointers &mdash; comparing the data at each index &mdash; until either the item is found, or the pointer reaches <code>&minus;1</code> (not found). This is <strong>not</strong> a linear scan of the array from index 0; you must follow the links.</p>
+
+    <div class="tabs" role="tablist" data-group="find">
+      <button class="tab-btn" role="tab" aria-selected="true" data-tab="find-pseudo">Pseudocode</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="find-py">Python</button>
+    </div>
+    <div class="tab-panel active" id="find-pseudo">
+      <pre><code>FUNCTION find(itemSearch) RETURNS INTEGER
+    DECLARE found : BOOLEAN
+    CONSTANT nullPointer = -1
+    itemPointer &larr; startPointer
+    found &larr; FALSE
+
+    WHILE (itemPointer &lt;&gt; nullPointer) AND NOT found DO
+        IF myLinkedList[itemPointer] = itemSearch
+          THEN
+            found &larr; TRUE
+          ELSE
+            itemPointer &larr; myLinkedListPointers[itemPointer]
+        ENDIF
+    ENDWHILE
+
+    RETURN itemPointer
+    // returns the item's index, or -1 if not found
+ENDFUNCTION</code></pre>
+    </div>
+    <div class="tab-panel" id="find-py">
+      <pre><code>def find(itemSearch):
+    found = False
+    itemPointer = startPointer
+    while itemPointer != nullPointer and not found:
+        if myLinkedList[itemPointer] == itemSearch:
+            found = True
+        else:
+            itemPointer = myLinkedListPointers[itemPointer]
+    return itemPointer</code></pre>
+    </div>
+
+    <div class="note"><strong>Trace tables come up constantly.</strong> Examiners set questions that ask you to trace <code>itemPointer</code> step by step. Practise writing out the pointer value on every loop iteration &mdash; not just the final answer.</div>
+
+    <h3>Worked trace: searching for 42</h3>
+    <p>Using the linked list from the worked example above (<code>startPointer = 4</code>, values <code>16&rarr;19&rarr;27&rarr;36&rarr;42</code> in that pointer order), here's <code>find(42)</code> traced iteration by iteration:</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Iteration</th><th>itemPointer</th><th>myLinkedList[itemPointer]</th><th>= itemSearch (42)?</th><th>next itemPointer &larr;</th><th>found</th></tr></thead>
+        <tbody>
+          <tr><td>start</td><td>4</td><td>16</td><td>no</td><td><code>myLinkedListPointers[4]</code></td><td>FALSE</td></tr>
+          <tr><td>1</td><td>1</td><td>19</td><td>no</td><td><code>myLinkedListPointers[1]</code></td><td>FALSE</td></tr>
+          <tr><td>2</td><td>0</td><td>27</td><td>no</td><td><code>myLinkedListPointers[0]</code></td><td>FALSE</td></tr>
+          <tr><td>3</td><td>2</td><td>36</td><td>no</td><td><code>myLinkedListPointers[2]</code></td><td>FALSE</td></tr>
+          <tr><td>4</td><td>3</td><td>42</td><td><strong>yes</strong></td><td>&mdash;</td><td>TRUE</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Loop exits because <code>found</code> is now <code>TRUE</code>. <code>RETURN itemPointer</code> gives back <strong>3</strong> &mdash; the array index where 42 happens to be stored. It took four hops to get there because 42 is the <em>last</em> item in sorted order, even though it only sits three slots into the physical array.</p>
+
+    <div class="exam-card">
+      <div class="exam-head">
+        <span class="exam-src">9618/12 &middot; Nov 2022 &middot; Question 11 (adapted pattern)</span>
+        <span class="marks">trace-table style</span>
+      </div>
+      <div class="exam-body">
+        <p>This is exactly the style examiners use: give a populated linked list and its pointers, then ask you to complete a trace table showing <code>itemPointer</code> at every pass of the loop for a given search value, before stating whether the item is found.</p>
+        <div class="examiner">
+          <span class="who">Examiner report &mdash; November 2022, Q11(a)</span>
+          "The vast majority of candidates recognised how <code>NextPointer</code> was used to order the linked list. Many candidates gave fully correct answers." &mdash; but full marks on the accompanying pseudocode/trace parts were rarer: "very few candidates achieved full marks. Typical errors included an incorrect WHILE condition, incorrect assignment of the next value of Pointer, missing out THEN in the IF statement..."
+        </div>
+      </div>
+    </div>
+
+    <div class="stepper" id="stepper-find">
+      <div class="stepper-title">Step through it &mdash; searching for 42</div>
+    </div>
+  </section>
+
+</section>
+<section id="explore" role="tabpanel" hidden>
+<section id="insert" data-panel="insert">
+    <h2><span class="num">04</span> Inserting an item</h2>
+    <p>Adding an item always means the same first step &mdash; take the next free slot from the <strong>heap</strong> and write the data there. What changes is where the new node gets stitched into the chain.</p>
+
+    <h3>Ordered insert &mdash; keeps the list sorted</h3>
+    <p>This is the version behind the worked example in section 2. It walks the pointers to find the correct sorted position (the node whose data is just larger than the new item), then splices the new node in between its predecessor and that node &mdash; no data ever moves, only pointers.</p>
+    <div class="tabs" role="tablist" data-group="insert-ordered">
+      <button class="tab-btn" role="tab" aria-selected="true" data-tab="insert-ordered-pseudo">Pseudocode</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="insert-ordered-py">Python</button>
+    </div>
+    <div class="tab-panel active" id="insert-ordered-pseudo">
+      <pre><code>PROCEDURE linkedListAdd(itemAdd)
+  IF heapStartPointer = nullPointer
+    THEN
+      OUTPUT "Linked list full"
+    ELSE
+      // claim the next free slot from the heap
+      newPointer &larr; heapStartPointer
+      heapStartPointer &larr; myLinkedListPointers[heapStartPointer]
+      myLinkedList[newPointer] &larr; itemAdd
+
+      IF (startPointer = nullPointer) OR (itemAdd &lt; myLinkedList[startPointer])
+        THEN
+          // itemAdd is the new smallest value: insert at the head
+          myLinkedListPointers[newPointer] &larr; startPointer
+          startPointer &larr; newPointer
+        ELSE
+          // walk the chain to find the node just before the right spot
+          previousPointer &larr; startPointer
+          currentPointer &larr; myLinkedListPointers[startPointer]
+          WHILE (currentPointer &lt;&gt; nullPointer) AND (myLinkedList[currentPointer] &lt; itemAdd) DO
+              previousPointer &larr; currentPointer
+              currentPointer &larr; myLinkedListPointers[currentPointer]
+          ENDWHILE
+          // splice the new node in between previousPointer and currentPointer
+          myLinkedListPointers[newPointer] &larr; currentPointer
+          myLinkedListPointers[previousPointer] &larr; newPointer
+      ENDIF
+  ENDIF
+ENDPROCEDURE</code></pre>
+    </div>
+    <div class="tab-panel" id="insert-ordered-py">
+      <pre><code>def linkedListAdd(itemAdd):
+    global startPointer, heapStartPointer
+    if heapStartPointer == nullPointer:
+        print("Linked list full")
+        return
+
+    # claim the next free slot from the heap
+    newPointer = heapStartPointer
+    heapStartPointer = myLinkedListPointers[heapStartPointer]
+    myLinkedList[newPointer] = itemAdd
+
+    if startPointer == nullPointer or itemAdd < myLinkedList[startPointer]:
+        # itemAdd is the new smallest value: insert at the head
+        myLinkedListPointers[newPointer] = startPointer
+        startPointer = newPointer
+    else:
+        # walk the chain to find the node just before the right spot
+        previousPointer = startPointer
+        currentPointer = myLinkedListPointers[startPointer]
+        while currentPointer != nullPointer and myLinkedList[currentPointer] < itemAdd:
+            previousPointer = currentPointer
+            currentPointer = myLinkedListPointers[currentPointer]
+        # splice the new node in between previousPointer and currentPointer
+        myLinkedListPointers[newPointer] = currentPointer
+        myLinkedListPointers[previousPointer] = newPointer</code></pre>
+    </div>
+
+    <h3>Simple insert &mdash; the version given in the coursebook</h3>
+    <p>The AS-level pseudocode Cambridge actually gives (coursebook Table 19.16) is simpler: it skips the search entirely and always makes the new item the new head of the list. Fine for a stack-like structure, but it will <strong>not</strong> keep the list sorted &mdash; each new item just lands in front of whatever was already there.</p>
+    <div class="tabs" role="tablist" data-group="insert-simple">
+      <button class="tab-btn" role="tab" aria-selected="true" data-tab="insert-simple-pseudo">Pseudocode</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="insert-simple-py">Python</button>
+    </div>
+    <div class="tab-panel active" id="insert-simple-pseudo">
+      <pre><code>PROCEDURE linkedListAdd(itemAdd)
+  IF heapStartPointer = nullPointer
+    THEN
+      OUTPUT "Linked list full"
+    ELSE
+      tempPointer &larr; startPointer          // keep old start pointer
+      startPointer &larr; heapStartPointer     // new node claims this slot
+      heapStartPointer &larr; myLinkedListPointers[heapStartPointer]  // heap moves on
+      myLinkedList[startPointer] &larr; itemAdd
+      myLinkedListPointers[startPointer] &larr; tempPointer
+  ENDIF
+ENDPROCEDURE</code></pre>
+    </div>
+    <div class="tab-panel" id="insert-simple-py">
+      <pre><code>def linkedListAdd(itemAdd):
+    global startPointer, heapStartPointer
+    if heapStartPointer == nullPointer:
+        print("Linked list full")
+        return
+
+    tempPointer = startPointer              # keep old start pointer
+    startPointer = heapStartPointer         # new node claims this slot
+    heapStartPointer = myLinkedListPointers[heapStartPointer]  # heap moves on
+    myLinkedList[startPointer] = itemAdd
+    myLinkedListPointers[startPointer] = tempPointer</code></pre>
+    </div>
+
+    <div class="warn"><strong>Exam trap:</strong> always check <code>heapStartPointer = &minus;1</code> (list full) before writing to the heap. Cambridge mark schemes give a method point specifically for this check &mdash; in both versions above.</div>
+
+    <div class="stepper" id="stepper-insert">
+      <div class="stepper-title">Step through it &mdash; building the worked example (27, 19, 36, 42, 16)</div>
+    </div>
+  </section>
+<section id="delete" data-panel="delete">
+    <h2><span class="num">05</span> Deleting an item</h2>
+    <p>Deleting doesn't shuffle data along, unlike a plain array. Instead: find the node, splice it out by pointing its <em>predecessor</em> directly at its successor, then return the freed index to the front of the heap so it can be reused.</p>
+    <div class="tabs" role="tablist" data-group="delete-code">
+      <button class="tab-btn" role="tab" aria-selected="true" data-tab="delete-pseudo">Pseudocode</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="delete-py">Python</button>
+    </div>
+    <div class="tab-panel active" id="delete-pseudo">
+      <pre><code>PROCEDURE linkedListDelete(itemDelete)
+  IF startPointer = nullPointer
+    THEN
+      OUTPUT "Linked list empty"
+    ELSE
+      index &larr; startPointer
+      WHILE myLinkedList[index] &lt;&gt; itemDelete AND (index &lt;&gt; nullPointer) DO
+          oldIndex &larr; index
+          index &larr; myLinkedListPointers[index]
+      ENDWHILE
+
+      IF index = nullPointer
+        THEN
+          OUTPUT "Item ", itemDelete, " not found"
+        ELSE
+          // unhook the node and return its slot to the heap
+          tempPointer &larr; myLinkedListPointers[index]
+          myLinkedListPointers[index] &larr; heapStartPointer
+          heapStartPointer &larr; index
+          myLinkedListPointers[oldIndex] &larr; tempPointer
+      ENDIF
+  ENDIF
+ENDPROCEDURE</code></pre>
+    </div>
+    <div class="tab-panel" id="delete-py">
+      <pre><code>def linkedListDelete(itemDelete):
+    global startPointer, heapStartPointer
+    if startPointer == nullPointer:
+        print("Linked list empty")
+        return
+
+    index = startPointer
+    oldIndex = None
+    while myLinkedList[index] != itemDelete and index != nullPointer:
+        oldIndex = index
+        index = myLinkedListPointers[index]
+
+    if index == nullPointer:
+        print("Item", itemDelete, "not found")
+    else:
+        # unhook the node and return its slot to the heap
+        tempPointer = myLinkedListPointers[index]
+        myLinkedListPointers[index] = heapStartPointer
+        heapStartPointer = index
+        myLinkedListPointers[oldIndex] = tempPointer</code></pre>
+    </div>
+    <div class="note"><strong>2022 examiner report, verbatim:</strong> "candidates are asked to explain how the simplified linked list structure could be improved... expected to explain how the spaces where data had been deleted could be re-used using a free list pointer." That free list <em>is</em> the heap above &mdash; know the term.</div>
+
+    <div class="stepper" id="stepper-delete">
+      <div class="stepper-title">Step through it &mdash; deleting 36</div>
+    </div>
+  </section>
+
+</section>
+<section id="practise" role="tabpanel" hidden>
+<div class="kit">
+  <h2>1 · Array or linked list?</h2>
+  <p>Drag each statement into the box it describes. Tap an item, then tap a box if dragging is awkward.</p>
+  <div id="cl1" class="card"></div>
+  <h2>2 · Match the term to its meaning</h2>
+  <div id="m1" class="card"></div>
+  <h2>3 · Put the delete steps in order</h2>
+  <div id="o1" class="card"></div>
+  <h2>4 · Multiple choice</h2>
+  <div id="qz1"></div>
+</div>
+
+</section>
+<section id="real" role="tabpanel" hidden>
+<div class="kit">
+  <p class="note">Examples are explained in general terms.</p>
+  <div class="rw"><h3>A music playlist</h3><p>Each track can store where the next one is. Adding a song in the middle only changes two links, with no need to move every later song.</p><div class="use"><b>Use it for:</b> why insertion is cheap in a linked list.</div></div>
+  <div class="rw"><h3>Free memory managed by an operating system</h3><p>The operating system can keep a list of free blocks, each pointing to the next. Handing out a block means taking the first one off the list; freeing it puts it back on the front.</p><div class="use"><b>Use it for:</b> the heap pointer and reusing deleted slots.</div></div>
+  <div class="rw"><h3>Undo history in an editor</h3><p>Each change can point to the previous one, so the program can walk back through the history one step at a time.</p><div class="use"><b>Use it for:</b> following pointers rather than searching an array.</div></div>
+  <div class="rw"><h3>Blockchain</h3><p>Each block contains a reference to the one before it, forming a chain. Changing an old block would break every later reference.</p><div class="use"><b>Use it for:</b> the idea of data linked by pointers.</div></div>
+</div>
+
+</section>
+<section id="exam" role="tabpanel" hidden>
+<section id="lg-exam" data-panel="exam">
+    <h2><span class="num">07</span> Exam corner</h2>
+    <p class="lede">Three real Cambridge 9618 questions &mdash; two from the A2 written paper (Paper 3) and one full practical question from Paper 4 &mdash; with mark schemes and examiner-report commentary built in.</p>
+
+    <div class="note">
+      <strong>Paper 3 vs Paper 4 &mdash; same logic, two different formats.</strong>
+      <div class="tbl-wrap" style="margin-top:10px;">
+        <table>
+          <thead><tr><th></th><th>Paper 3</th><th>Paper 4</th></tr></thead>
+          <tbody>
+            <tr><td>Format</td><td>Written, on paper (A2 Advanced Theory)</td><td>Practical, on a computer (A2)</td></tr>
+            <tr><td>What you write</td><td>Cambridge pseudocode, by hand</td><td>Real code &mdash; usually Python &mdash; in an IDE</td></tr>
+            <tr><td>Can you test it?</td><td>No &mdash; it has to be right on paper, no computer in the room</td><td>Yes &mdash; you run it against test data and screenshot the output into an Evidence Document</td></tr>
+            <tr><td>What's actually hard</td><td>Recalling the correct logic and writing it out flawlessly from memory, unaided</td><td>Typing fluent, working code fast enough, and debugging under time pressure &mdash; no coursebook or internet either</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin:10px 0 0;">Sections 1&ndash;6 of this page are Paper 3's territory &mdash; the pseudocode, trace tables and step-through visualisers are exactly what you need to hold in your head and reproduce by hand, unaided. The Paper 4 question below shows the same underlying node/pointer idea implemented a completely different way: as an OOP <code>Node</code>/<code>LinkedList</code> class in Python, run and tested live rather than traced on paper.</p>
+    </div>
+
+    <div class="exam-card">
+      <div class="exam-head">
+        <span class="exam-src">9618/32 &middot; Paper 3 &middot; Oct/Nov 2023 &middot; Question 9(b)</span>
+        <span class="marks">2 marks</span>
+      </div>
+      <div class="exam-body">
+        <p>Following on from pseudocode to set up and push onto an array-based stack: <strong>"Justify the use of a linked list instead of an array to implement a stack."</strong></p>
+        <details class="answer">
+          <summary>Show mark scheme</summary>
+          <div class="answer-body">
+            <p>One mark for a correct point about each structure (max 2):</p>
+            <p><strong>Linked list</strong> &mdash; a linked list is a <em>dynamic</em> data structure, not restricted in size; it has greater freedom to expand or contract by adding or removing nodes as necessary; it allows more efficient editing using pointers (instead of moving the data).</p>
+            <p><strong>Array</strong> &mdash; an array is a <em>static</em> data structure, generally fixed in size; when the array is full, the stack cannot be extended any further.</p>
+          </div>
+        </details>
+        <div class="examiner">
+          <span class="who">Why this is a 2-mark trap</span>
+          Most candidates only argue one side (just the linked list, or just the array) and cap themselves at 1 mark. The mark scheme awards a point <em>per structure</em> &mdash; you need a correct statement about <strong>both</strong> to get full marks, and the reward words are <em>dynamic</em>/<em>static</em>, not looser phrasing like "more flexible".
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-card">
+      <div class="exam-head">
+        <span class="exam-src">9618/31 &middot; Paper 3 &middot; Oct/Nov 2024 &middot; Question 11</span>
+        <span class="marks">12 marks total</span>
+      </div>
+      <div class="exam-body">
+        <p>An ordered binary tree (Red &rarr; Green/Yellow &rarr; Blue/Orange/Violet &rarr; Indigo) is to be stored as <strong>a linked list of nodes, where each node has a left pointer, the data, and a right pointer</strong> &mdash; the same node/pointer idea as this page, just with two pointers per node instead of one.</p>
+        <p><strong>(a)</strong> Complete the linked list (as a node diagram) to represent the given binary tree, including correct null pointers. <em>[4]</em></p>
+        <p><strong>(b)</strong> The linked list from (a) is stored in a 1D array of records (<code>LeftPtr</code>, <code>Data</code>, <code>RightPtr</code>). Complete the array. <em>[4]</em></p>
+        <p><strong>(c)</strong> This pseudocode searches the array <code>BinTree</code> for an item, returning its index or a null pointer if not found. Complete the gaps:</p>
+        <pre><code>FUNCTION SearchTree(Item : STRING) RETURNS .....................
+    NowPtr &larr; .....................
+    WHILE NowPtr &lt;&gt; -1
+        IF ..................................................... THEN
+            NowPtr &larr; BinTree[NowPtr].LeftPtr
+        ELSE
+            IF BinTree[NowPtr].Data &lt; Item THEN
+                .....................................................
+            ELSE
+                RETURN NowPtr
+            ENDIF
+        ENDIF
+    ENDWHILE
+    RETURN NowPtr
+ENDFUNCTION</code></pre>
+        <details class="answer">
+          <summary>Show mark scheme</summary>
+          <div class="answer-body">
+            <p><strong>(a)</strong> Four nodes added (Blue, Orange, Indigo, Violet) with correct data values; correct null pointers (&minus;1) in all six leaf-side pointers where there's no child; correct arrows joining each parent node to its left/right child; all nodes in the correct left-smaller/right-larger order.</p>
+            <p><strong>(b)</strong> With <code>RootPtr = 0</code>: index 0 = Red (LeftPtr 1, RightPtr 2), index 1 = Green (3, 4), index 2 = Yellow (6, &minus;1), index 3 = Blue (&minus;1, &minus;1), index 4 = Orange (5, &minus;1), index 5 = Indigo (&minus;1, &minus;1), index 6 = Violet (&minus;1, &minus;1), with <code>FreePtr = 7</code> and index 7 blank.</p>
+            <p><strong>(c)</strong> <code>RETURNS INTEGER</code> &middot; <code>NowPtr &larr; RootPtr</code> &middot; <code>IF BinTree[NowPtr].Data &gt; Item THEN</code> &middot; <code>NowPtr &larr; BinTree[NowPtr].RightPtr</code>. One mark awarded per correct line (max 4).</p>
+          </div>
+        </details>
+        <div class="examiner">
+          <span class="who">How this connects to the rest of this page</span>
+          This is the exact same array-of-records pattern as sections 2&ndash;5, just with <strong>two</strong> next-pointers per node (left/right) instead of one &mdash; so <code>NowPtr</code> moving via <code>.LeftPtr</code> or <code>.RightPtr</code> is doing the same job as <code>itemPointer &larr; myLinkedListPointers[itemPointer]</code> in the <code>find</code> function in section 3. Notice <code>BinTree[NowPtr].Data</code> &mdash; this only works because each array element is a <strong>record</strong> (a user-defined type bundling LeftPtr/Data/RightPtr together), not a single value, so <code>.Data</code> picks out just one field of that record.
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-card">
+      <div class="exam-head">
+        <span class="exam-src">9618/43 &middot; Paper 4 &middot; May/June 2025 &middot; Question 3</span>
+        <span class="marks">29 marks total</span>
+      </div>
+      <div class="exam-body">
+        <p>A full practical question: build a linked list using <strong>Object-Oriented Programming</strong>. A <code>Node</code> class stores <code>TheData</code> and <code>NextNode</code>; a <code>LinkedList</code> class stores <code>HeadNode</code> and implements <code>InsertNode()</code>, <code>RemoveNode()</code> and <code>Traverse()</code>. This is the Paper 4 equivalent of everything in sections 2&ndash;5 &mdash; same node/pointer idea, built as objects instead of two parallel arrays.</p>
+        <p><strong>(a)</strong> Write the <code>Node</code> class with its constructor <em>[4]</em>; its two get methods <em>[3]</em>; and <code>SetNextNode()</code> <em>[2]</em>.</p>
+        <p><strong>(b)</strong> Write the <code>LinkedList</code> class with its constructor <em>[2]</em>; <code>InsertNode()</code>, which creates a new node, uses <code>SetNextNode()</code> to point it at the current head, then replaces the head with it <em>[4]</em>; <code>Traverse()</code>, concatenating every node's data into one string <em>[3]</em>; and <code>RemoveNode()</code>, which finds and unhooks the first node matching a given value <em>[6]</em>.</p>
+        <p><strong>(c)</strong> Insert the values <code>10, 20, 30, 40, 50</code>, call <code>Traverse()</code>, remove <code>30</code>, then call <code>Traverse()</code> again and screenshot the output. <em>[5]</em></p>
+        <details class="answer">
+          <summary>Show example mark-scheme code (Python)</summary>
+          <div class="answer-body">
+            <pre><code>class Node:
+    def __init__(self, NodeData):
+        self._TheData = NodeData   # Integer
+        self._NextNode = None      # Node
+
+    def GetData(self):
+        return self._TheData
+
+    def GetNextNode(self):
+        return self._NextNode
+
+    def SetNextNode(self, pNextNode):
+        self._NextNode = pNextNode
+
+
+class LinkedList:
+    def __init__(self):
+        self._HeadNode = None      # Node
+
+    def InsertNode(self, NodeData):
+        TheNode = Node(NodeData)
+        TheNode.SetNextNode(self._HeadNode)
+        self._HeadNode = TheNode
+
+    def Traverse(self):
+        ReturnValue = ""
+        CurrentNode = self._HeadNode
+        while CurrentNode != None:
+            ReturnValue = ReturnValue + str(CurrentNode.GetData()) + " "
+            CurrentNode = CurrentNode.GetNextNode()
+        return ReturnValue
+
+    def RemoveNode(self, DataToRemove):
+        if self._HeadNode == None:
+            return False
+        elif self._HeadNode.GetData() == DataToRemove:
+            self._HeadNode = self._HeadNode.GetNextNode()
+            return True
+        Found = False
+        CurrentNode = self._HeadNode
+        while not(Found) and CurrentNode != None:
+            if (CurrentNode.GetNextNode()).GetData() == DataToRemove:
+                CurrentNode.SetNextNode(CurrentNode.GetNextNode().GetNextNode())
+                Found = True
+            else:
+                CurrentNode = CurrentNode.GetNextNode()
+        return False
+
+
+# (c) test program
+CreateList = LinkedList()
+CreateList.InsertNode(10)
+CreateList.InsertNode(20)
+CreateList.InsertNode(30)
+CreateList.InsertNode(40)
+CreateList.InsertNode(50)
+ReturnValue1 = CreateList.Traverse()
+CreateList.RemoveNode(30)
+ReturnValue2 = CreateList.Traverse()
+# ReturnValue1: "50 40 30 20 10 "
+# ReturnValue2: "50 40 20 10 "</code></pre>
+          </div>
+        </details>
+        <div class="examiner">
+          <span class="who">Why the output isn't 10, 20, 30, 40, 50</span>
+          <code>InsertNode()</code> always points the new node at the current <code>HeadNode</code> and then replaces it &mdash; exactly the "simple insert" pseudocode from section 4, translated into OOP. That means every insert goes to the <strong>front</strong> of the list, so inserting 10 then 20 then 30 then 40 then 50 produces the list <strong>50, 40, 30, 20, 10</strong> when traversed &mdash; the official mark scheme's own expected output. If you expected ascending order here, you're thinking of the <em>ordered insert</em> from section 4, which this exam question deliberately doesn't ask for.
+        </div>
+      </div>
+    </div>
+
+    <div class="warn">
+      <strong>The thread connecting all three questions above:</strong> every single one is really testing the same node/pointer idea from section 1 &mdash; a static array-of-records version (Paper 3, Q11), an abstract justify-the-choice version (Paper 3, Q9), and a fully object-oriented version (Paper 4, Q3). Learn the <em>concept</em> once, and recognise it under each of these three disguises.
+    </div>
+  </section>
+
+</section>
+<section id="tips" role="tabpanel" hidden>
+<section id="glossary" data-panel="glossary">
+    <h2><span class="num">08</span> Glossary</h2>
+    <dl class="glossary">
+      <dt>Node</dt>
+      <dd>One item of data stored together with a pointer to the next item &mdash; on paper, one shared array index across <code>myLinkedList</code> and <code>myLinkedListPointers</code>.</dd>
+      <dt>Start pointer</dt>
+      <dd>Index of the first node in the ordered list; &minus;1 when the list is empty.</dd>
+      <dt>Null pointer</dt>
+      <dd>A pointer value (conventionally &minus;1) that is not a valid array index, marking the end of a chain.</dd>
+      <dt>Heap / free list</dt>
+      <dd>The set of unused array positions, itself managed as a linked list of available slots via a <code>heapStartPointer</code>.</dd>
+      <dt>Abstract Data Type (ADT)</dt>
+      <dd>A collection of data plus a defined set of operations on it (e.g. find, add, delete), independent of how it's implemented underneath.</dd>
+      <dt>Traversal</dt>
+      <dd>Following the chain of pointers from the start pointer to visit every node in order.</dd>
+    </dl>
+  </section>
+<div class="kit">
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Two parallel arrays.</b> Exams use one array for data and one for the pointers, with the same index for each node.</li>
+    <li><b>Say what −1 means.</b> A null pointer: no next node, or an empty list.</li>
+    <li><b>Follow pointers, do not scan the array.</b> Start at the start pointer and follow the chain.</li>
+    <li><b>Insert and delete rewrite pointers.</b> Nothing is shifted along, unlike an array.</li>
+    <li><b>Return a deleted slot to the heap</b> so it can be reused.</li>
+    <li><b>Trace on paper</b> and write the pointer values after every step.</li>
+  </ul>
+  <h2>Keyword flashcards</h2>
+  <p>Click the card to flip it. Mark the ones you know.</p>
+  <div id="fc1"></div>
+</div>
+
+</section>
+</div>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+Lib.classify($("#cl1"), {
+  prompt: "Does each statement describe a plain sorted array or a linked list?",
+  buckets: [{ label: "Sorted array" }, { label: "Linked list" }],
+  items: [
+    { text: "Inserting in order shifts every later element", b: 0 }, { text: "Direct access to any position by index", b: 0 }, { text: "Deleting shifts every later element", b: 0 },
+    { text: "Inserting in order rewrites two pointers", b: 1 }, { text: "Follow pointers from the start to find an item", b: 1 }, { text: "A deleted slot returns to the heap", b: 1 }, { text: "Needs a start pointer and a null value", b: 1 },
+  ],
+  done: "Linked lists make insert and delete cheap; arrays make access by position cheap.",
+});
+Lib.match($("#m1"), { prompt: "Match each term to its meaning.", pairs: [
+  ["Node", "One item of data together with a pointer to the next item"],
+  ["Start pointer", "Index of the first node in the list, or −1 if the list is empty"],
+  ["Heap start pointer", "Index of the first free slot"],
+  ["Null pointer", "A value (−1) meaning there is no next node"],
+  ["Predecessor", "The node that comes before the one being deleted"],
+  ["Splice out", "Point the predecessor directly at the successor"],
+] });
+Lib.order($("#o1"), { prompt: "Put the steps for deleting a node from a linked list in order.", items: [
+  "Follow the pointers from the start pointer to find the node and its predecessor.",
+  "Point the predecessor's pointer at the node's successor.",
+  "Point the deleted node's pointer at the old heap start pointer.",
+  "Set the heap start pointer to the deleted node's index.",
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "In an array-based linked list, what does a pointer value of −1 mean?", opts: ["The first node", "There is no next node", "The list is full", "An error"], a: 1, why: "−1 is the null pointer, so the chain ends." },
+  { q: "To find an item you should", opts: ["scan the data array from index 0", "start at the start pointer and follow the chain", "use binary search", "start at the heap pointer"], a: 1, why: "The order is held in the pointers, so the array indexes may not be in order." },
+  { q: "When a node is deleted, what happens to its slot?", opts: ["It is lost", "It is returned to the front of the heap for reuse", "It is filled with zeros and stays in the list", "The array is shifted along"], a: 1, why: "Freed slots join the heap so new nodes can use them." },
+  { q: "Which operation is cheaper in a linked list than in a sorted array?", opts: ["Access by position", "Insert in order", "Reading the last value", "Sorting"], a: 1, why: "Only two pointers change, and no data is shifted." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Linked list", "An ADT where each node holds data and a pointer to the next node."],
+  ["Node", "One item of data stored together with a pointer to the next item."],
+  ["Start pointer", "Index of the first node in the ordered list; −1 when empty."],
+  ["Heap", "The pool of unused slots, held as a chain through a heap start pointer."],
+  ["Null pointer", "A pointer value (−1) meaning there is no next node."],
+  ["Predecessor", "The node before the one you are working on."],
+  ["Parallel arrays", "Two arrays that use the same index for the data and its pointer."],
+] });
+
+/* ---------- original page scripts (own scope) ---------- */
+(function(){
+
+  // ---- top-level section tabs ----
+  (function(){
+    var btns = document.querySelectorAll('.section-tab-btn');
+    var panels = document.querySelectorAll('section[data-panel]');
+    btns.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        btns.forEach(function(b){ b.setAttribute('aria-selected','false'); });
+        btn.setAttribute('aria-selected','true');
+        panels.forEach(function(p){ p.classList.remove('active'); });
+        var target = document.querySelector('section[data-panel="' + btn.dataset.panelTab + '"]');
+        if (target){
+          target.classList.add('active');
+          window.scrollTo({ top: 0, behavior: 'instant' });
+        }
+      });
+    });
+  })();
+
+  document.querySelectorAll('.tabs').forEach(function(tabs){
+    var btns = tabs.querySelectorAll('.tab-btn');
+    btns.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        btns.forEach(function(b){ b.setAttribute('aria-selected','false'); });
+        btn.setAttribute('aria-selected','true');
+        var container = tabs.parentElement;
+        container.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+        var target = container.querySelector('#' + btn.dataset.tab);
+        if(target) target.classList.add('active');
+      });
+    });
+  });
+
+  // ---- linked-list step-through visualiser ----
+  (function(){
+    var N = 12;
+
+    function emptyState(){
+      return { list: new Array(N).fill(null), ptr: new Array(N).fill(null), start: -1, heapStart: -1 };
+    }
+    function clone(s){
+      return { list: s.list.slice(), ptr: s.ptr.slice(), start: s.start, heapStart: s.heapStart };
+    }
+    function fmt(v){ return v === null ? '&mdash;' : (v === -1 ? '&minus;1' : String(v)); }
+
+    // ---- full pseudocode blocks, matched line-for-line to the <pre> blocks in the article ----
+    var CODE = {
+      setup: [
+        'DECLARE myLinkedList ARRAY[0:11] OF INTEGER',
+        'DECLARE myLinkedListPointers ARRAY[0:11] OF INTEGER',
+        'DECLARE startPointer : INTEGER',
+        'DECLARE heapStartPointer : INTEGER',
+        'DECLARE index : INTEGER',
+        '',
+        'heapStartPointer ← 0',
+        'startPointer ← -1        // list empty',
+        '',
+        'FOR index ← 0 TO 11',
+        '    myLinkedListPointers[index] ← index + 1',
+        'NEXT index',
+        '',
+        '// the heap is itself a linked list of every free space,',
+        '// set up once when the linked list is initialised',
+        'myLinkedListPointers[11] ← -1',
+        '// the final heap pointer is -1: no further free links'
+      ],
+      find: [
+        'FUNCTION find(itemSearch) RETURNS INTEGER',
+        '    DECLARE found : BOOLEAN',
+        '    CONSTANT nullPointer = -1',
+        '    itemPointer ← startPointer',
+        '    found ← FALSE',
+        '',
+        '    WHILE (itemPointer <> nullPointer) AND NOT found DO',
+        '        IF myLinkedList[itemPointer] = itemSearch',
+        '          THEN',
+        '            found ← TRUE',
+        '          ELSE',
+        '            itemPointer ← myLinkedListPointers[itemPointer]',
+        '        ENDIF',
+        '    ENDWHILE',
+        '',
+        '    RETURN itemPointer',
+        "    // returns the item's index, or -1 if not found",
+        'ENDFUNCTION'
+      ],
+      insert: [
+        'PROCEDURE linkedListAdd(itemAdd)',
+        '  IF heapStartPointer = nullPointer',
+        '    THEN',
+        '      OUTPUT "Linked list full"',
+        '    ELSE',
+        '      // claim the next free slot from the heap',
+        '      newPointer ← heapStartPointer',
+        '      heapStartPointer ← myLinkedListPointers[heapStartPointer]',
+        '      myLinkedList[newPointer] ← itemAdd',
+        '',
+        '      IF (startPointer = nullPointer) OR (itemAdd < myLinkedList[startPointer])',
+        '        THEN',
+        '          // itemAdd is the new smallest value: insert at the head',
+        '          myLinkedListPointers[newPointer] ← startPointer',
+        '          startPointer ← newPointer',
+        '        ELSE',
+        '          // walk the chain to find the node just before the right spot',
+        '          previousPointer ← startPointer',
+        '          currentPointer ← myLinkedListPointers[startPointer]',
+        '          WHILE (currentPointer <> nullPointer) AND (myLinkedList[currentPointer] < itemAdd) DO',
+        '              previousPointer ← currentPointer',
+        '              currentPointer ← myLinkedListPointers[currentPointer]',
+        '          ENDWHILE',
+        '          // splice the new node in between previousPointer and currentPointer',
+        '          myLinkedListPointers[newPointer] ← currentPointer',
+        '          myLinkedListPointers[previousPointer] ← newPointer',
+        '      ENDIF',
+        '  ENDIF',
+        'ENDPROCEDURE'
+      ],
+      del: [
+        'PROCEDURE linkedListDelete(itemDelete)',
+        '  IF startPointer = nullPointer',
+        '    THEN',
+        '      OUTPUT "Linked list empty"',
+        '    ELSE',
+        '      index ← startPointer',
+        '      WHILE myLinkedList[index] <> itemDelete AND (index <> nullPointer) DO',
+        '          oldIndex ← index',
+        '          index ← myLinkedListPointers[index]',
+        '      ENDWHILE',
+        '',
+        '      IF index = nullPointer',
+        '        THEN',
+        '          OUTPUT "Item ", itemDelete, " not found"',
+        '        ELSE',
+        '          // unhook the node and return its slot to the heap',
+        '          tempPointer ← myLinkedListPointers[index]',
+        '          myLinkedListPointers[index] ← heapStartPointer',
+        '          heapStartPointer ← index',
+        '          myLinkedListPointers[oldIndex] ← tempPointer',
+        '      ENDIF',
+        '  ENDIF',
+        'ENDPROCEDURE'
+      ]
+    };
+
+    // ---- setup: build the empty list + heap chain ----
+    function genSetupSteps(){
+      var steps = [];
+      var s = emptyState();
+      steps.push({ state: clone(s), caption: 'Arrays are declared but nothing is initialised yet.', hl: {}, lines: [0,1,2,3,4] });
+
+      s.heapStart = 0;
+      steps.push({ state: clone(s), caption: '<code>heapStartPointer &larr; 0</code> &mdash; the free-slot chain will start at index 0.', hl: { heap: true }, lines: [6] });
+
+      s.start = -1;
+      steps.push({ state: clone(s), caption: '<code>startPointer &larr; -1</code> &mdash; the list is empty.', hl: { start: true }, lines: [7] });
+
+      for (var i = 0; i < N; i++){
+        s.ptr[i] = i + 1;
+        steps.push({ state: clone(s), caption: '<code>index = ' + i + '</code>: <code>myLinkedListPointers[' + i + '] &larr; ' + (i+1) + '</code> &mdash; slot ' + i + ' points to the next free slot.', hl: { cell: i, kind: 'cur' }, lines: [9,10] });
+      }
+
+      s.ptr[N-1] = -1;
+      steps.push({ state: clone(s), caption: '<code>myLinkedListPointers[' + (N-1) + '] &larr; -1</code> &mdash; the loop would have set the last slot to ' + N + ' (out of range), so this line corrects it to a null pointer, properly ending the heap chain.', hl: { cell: N-1, kind: 'cur' }, lines: [15] });
+
+      return { steps: steps, finalState: clone(s) };
+    }
+
+    // ---- insert: ordered insert of one value, returns steps + mutates a working state ----
+    function insertOne(state, val){
+      var steps = [];
+      function push(caption, hl, lines){ steps.push({ state: clone(state), caption: caption, hl: hl || {}, lines: lines || [] }); }
+
+      if (state.heapStart === -1){
+        push('Heap is full &mdash; cannot insert ' + val + '.', {}, [1,3]);
+        return steps;
+      }
+
+      var newPointer = state.heapStart;
+      push('<code>newPointer &larr; heapStartPointer = ' + newPointer + '</code> &mdash; claim this free slot from the heap.', { cell: newPointer, kind: 'new' }, [1,6]);
+
+      state.heapStart = state.ptr[newPointer];
+      push('<code>heapStartPointer &larr; myLinkedListPointers[' + newPointer + '] = ' + fmt(state.heapStart) + '</code> &mdash; heap pointer moves on.', { heap: true }, [7]);
+
+      state.list[newPointer] = val;
+      push('<code>myLinkedList[' + newPointer + '] &larr; ' + val + '</code> &mdash; the data is written into the new node.', { cell: newPointer, kind: 'new' }, [8]);
+
+      if (state.start === -1){
+        state.ptr[newPointer] = -1;
+        state.start = newPointer;
+        push('List was empty, so ' + val + ' becomes the only node: <code>myLinkedListPointers[' + newPointer + '] &larr; -1</code>, <code>startPointer &larr; ' + newPointer + '</code>.', { cell: newPointer, kind: 'new', start: true }, [10,11,13,14]);
+      } else if (val < state.list[state.start]){
+        var oldStart = state.start;
+        state.ptr[newPointer] = oldStart;
+        state.start = newPointer;
+        push(val + ' &lt; myLinkedList[startPointer] (' + state.list[oldStart] + '), so it becomes the new smallest value: <code>myLinkedListPointers[' + newPointer + '] &larr; ' + oldStart + '</code> (old start), <code>startPointer &larr; ' + newPointer + '</code>.', { cell: newPointer, kind: 'new', start: true }, [10,11,13,14]);
+      } else {
+        var previousPointer = state.start;
+        var currentPointer = state.ptr[state.start];
+        push(val + ' &ge; myLinkedList[startPointer] (' + state.list[state.start] + ') &mdash; walk the chain: <code>previousPointer &larr; startPointer = ' + previousPointer + '</code>, <code>currentPointer &larr; ' + fmt(currentPointer) + '</code>.', { cell: previousPointer, kind: 'prev' }, [15,16,17,18]);
+
+        while (currentPointer !== -1 && state.list[currentPointer] < val){
+          push('myLinkedList[currentPointer] (' + state.list[currentPointer] + ') &lt; ' + val + ' &mdash; keep walking.', { cell: currentPointer, kind: 'cur' }, [19]);
+          previousPointer = currentPointer;
+          currentPointer = state.ptr[currentPointer];
+          push('<code>previousPointer &larr; ' + previousPointer + '</code>, <code>currentPointer &larr; ' + fmt(currentPointer) + '</code>.', { cell: previousPointer, kind: 'prev' }, [20,21]);
+        }
+
+        push('Found the gap &mdash; splice ' + val + ' in between index ' + previousPointer + ' and ' + (currentPointer === -1 ? 'the end of the list' : 'index ' + currentPointer) + '.', { cell: previousPointer, kind: 'prev' }, [19,22]);
+
+        state.ptr[newPointer] = currentPointer;
+        state.ptr[previousPointer] = newPointer;
+        push('<code>myLinkedListPointers[' + newPointer + '] &larr; ' + fmt(currentPointer) + '</code>, <code>myLinkedListPointers[' + previousPointer + '] &larr; ' + newPointer + '</code>.', { cell: newPointer, kind: 'new' }, [23,24,25]);
+      }
+
+      return steps;
+    }
+
+    function genInsertSteps(initialState, values){
+      var state = clone(initialState);
+      var steps = [{ state: clone(state), caption: 'Starting point: empty list, full heap (from the setup above).', hl: {}, lines: [0] }];
+      values.forEach(function(val){
+        steps.push({ state: clone(state), caption: '&mdash; Inserting ' + val + ' &mdash;', hl: {}, lines: [0] });
+        steps = steps.concat(insertOne(state, val));
+      });
+      return { steps: steps, finalState: clone(state) };
+    }
+
+    // ---- find: search for a value ----
+    function genFindSteps(initialState, target){
+      var state = clone(initialState);
+      var steps = [];
+      var itemPointer = state.start;
+      steps.push({ state: clone(state), caption: '<code>itemPointer &larr; startPointer = ' + itemPointer + '</code>', hl: { cell: itemPointer, kind: 'cur' }, lines: [3] });
+
+      var found = false;
+      while (itemPointer !== -1 && !found){
+        if (state.list[itemPointer] === target){
+          found = true;
+          steps.push({ state: clone(state), caption: 'myLinkedList[' + itemPointer + '] (' + state.list[itemPointer] + ') = ' + target + ' &rarr; <code>found &larr; TRUE</code>', hl: { cell: itemPointer, kind: 'cur' }, lines: [6,7,8,9] });
+        } else {
+          steps.push({ state: clone(state), caption: 'myLinkedList[' + itemPointer + '] (' + state.list[itemPointer] + ') &ne; ' + target, hl: { cell: itemPointer, kind: 'cur' }, lines: [6,7,10,11] });
+          itemPointer = state.ptr[itemPointer];
+          steps.push({ state: clone(state), caption: '<code>itemPointer &larr; myLinkedListPointers[...] = ' + fmt(itemPointer) + '</code>', hl: { cell: itemPointer, kind: 'cur' }, lines: [11] });
+        }
+      }
+      steps.push({ state: clone(state), caption: 'Loop ends. <code>RETURN itemPointer</code> = ' + (itemPointer === -1 ? '&minus;1 (not found)' : itemPointer) + '.', hl: { cell: itemPointer, kind: 'cur' }, lines: [13,15] });
+      return { steps: steps, finalState: state };
+    }
+
+    // ---- delete: remove a value ----
+    function genDeleteSteps(initialState, target){
+      var state = clone(initialState);
+      var steps = [];
+      var index = state.start;
+      var oldIndex = null;
+      steps.push({ state: clone(state), caption: '<code>index &larr; startPointer = ' + index + '</code>', hl: { cell: index, kind: 'cur' }, lines: [5] });
+
+      while (index !== -1 && state.list[index] !== target){
+        steps.push({ state: clone(state), caption: 'myLinkedList[' + index + '] (' + state.list[index] + ') &ne; ' + target, hl: { cell: index, kind: 'cur' }, lines: [6] });
+        oldIndex = index;
+        index = state.ptr[index];
+        steps.push({ state: clone(state), caption: '<code>oldIndex &larr; ' + oldIndex + '</code>, <code>index &larr; myLinkedListPointers[' + oldIndex + '] = ' + fmt(index) + '</code>', hl: { cell: index, kind: 'cur', prevCell: oldIndex }, lines: [7,8] });
+      }
+
+      steps.push({ state: clone(state), caption: 'myLinkedList[' + index + '] (' + state.list[index] + ') = ' + target + ' &mdash; found it at index ' + index + '; predecessor is index ' + oldIndex + '.', hl: { cell: index, kind: 'cur', prevCell: oldIndex }, lines: [6,11] });
+
+      var tempPointer = state.ptr[index];
+      steps.push({ state: clone(state), caption: '<code>tempPointer &larr; myLinkedListPointers[' + index + '] = ' + fmt(tempPointer) + '</code> &mdash; save where the deleted node used to point.', hl: { cell: index, kind: 'cur' }, lines: [16] });
+
+      state.ptr[index] = state.heapStart;
+      steps.push({ state: clone(state), caption: '<code>myLinkedListPointers[' + index + '] &larr; heapStartPointer = ' + state.heapStart + '</code> &mdash; the freed slot joins the front of the heap chain.', hl: { cell: index, kind: 'cur' }, lines: [17] });
+
+      state.heapStart = index;
+      steps.push({ state: clone(state), caption: '<code>heapStartPointer &larr; ' + index + '</code> &mdash; heap now starts at the freed slot.', hl: { heap: true }, lines: [18] });
+
+      state.ptr[oldIndex] = tempPointer;
+      steps.push({ state: clone(state), caption: '<code>myLinkedListPointers[' + oldIndex + '] &larr; tempPointer = ' + fmt(tempPointer) + '</code> &mdash; predecessor now points straight past the deleted node.', hl: { cell: oldIndex, kind: 'prev' }, lines: [19] });
+
+      return { steps: steps, finalState: state };
+    }
+
+    // ---- renderer, shared by all four widgets ----
+    function renderStepper(container, steps, codeLines){
+      var title = container.querySelector('.stepper-title');
+      container.innerHTML = '';
+      if (title) container.appendChild(title);
+
+      container.insertAdjacentHTML('beforeend',
+        '<div class="stepper-controls">' +
+          '<button class="step-btn" data-action="reset" type="button">Reset</button>' +
+          '<button class="step-btn" data-action="prev" type="button">&larr; Back</button>' +
+          '<span class="step-count"></span>' +
+          '<button class="step-btn primary" data-action="next" type="button">Next &rarr;</button>' +
+        '</div>' +
+        '<div class="stepper-pointers"></div>' +
+        '<div class="stepper-array">' +
+          '<div class="stepper-array-label">myLinkedList</div>' +
+          '<div class="stepper-row" data-row="list"></div>' +
+        '</div>' +
+        '<div class="stepper-array">' +
+          '<div class="stepper-array-label">myLinkedListPointers</div>' +
+          '<div class="stepper-row" data-row="ptr"></div>' +
+        '</div>' +
+        '<pre class="stepper-code" data-code></pre>' +
+        '<div class="stepper-caption"></div>'
+      );
+
+      var els = {
+        count: container.querySelector('.step-count'),
+        pointers: container.querySelector('.stepper-pointers'),
+        rowList: container.querySelector('[data-row="list"]'),
+        rowPtr: container.querySelector('[data-row="ptr"]'),
+        code: container.querySelector('[data-code]'),
+        caption: container.querySelector('.stepper-caption'),
+        btnReset: container.querySelector('[data-action="reset"]'),
+        btnPrev: container.querySelector('[data-action="prev"]'),
+        btnNext: container.querySelector('[data-action="next"]')
+      };
+
+      // build the full code block once; each line is its own element so we can
+      // just toggle a class on it per step rather than re-render the text
+      var lineEls = codeLines.map(function(text){
+        var span = document.createElement('span');
+        span.className = 'code-line';
+        span.textContent = text.length ? text : ' ';
+        els.code.appendChild(span);
+        return span;
+      });
+
+      var i = 0;
+
+      function cellClass(idx, hl){
+        if (!hl) return '';
+        if (hl.cell === idx) return ' cell-' + (hl.kind || 'cur');
+        if (hl.prevCell === idx) return ' cell-prev';
+        return '';
+      }
+
+      function render(){
+        var step = steps[i];
+        var s = step.state;
+        els.count.textContent = 'Step ' + (i+1) + ' of ' + steps.length;
+        els.btnPrev.disabled = i === 0;
+        els.btnNext.disabled = i === steps.length - 1;
+
+        els.pointers.innerHTML =
+          '<span class="ptr-badge' + (step.hl.start ? ' hl' : '') + '">startPointer = ' + fmt(s.start) + '</span>' +
+          '<span class="ptr-badge' + (step.hl.heap ? ' hl' : '') + '">heapStartPointer = ' + fmt(s.heapStart) + '</span>';
+
+        els.rowList.innerHTML = s.list.map(function(v, idx){
+          return '<div class="cell' + cellClass(idx, step.hl) + '"><span class="cell-idx">' + idx + '</span><span class="cell-val">' + (v === null ? '&nbsp;' : v) + '</span></div>';
+        }).join('');
+
+        els.rowPtr.innerHTML = s.ptr.map(function(v, idx){
+          return '<div class="cell' + cellClass(idx, step.hl) + '"><span class="cell-idx">' + idx + '</span><span class="cell-val">' + (v === null ? '&nbsp;' : fmt(v)) + '</span></div>';
+        }).join('');
+
+        lineEls.forEach(function(el, idx){
+          el.classList.toggle('active', step.lines.indexOf(idx) !== -1);
+        });
+        if (step.lines.length){
+          lineEls[step.lines[0]].scrollIntoView({ block: 'nearest' });
+        }
+
+        els.caption.innerHTML = step.caption;
+      }
+
+      els.btnNext.addEventListener('click', function(){ if (i < steps.length - 1){ i++; render(); } });
+      els.btnPrev.addEventListener('click', function(){ if (i > 0){ i--; render(); } });
+      els.btnReset.addEventListener('click', function(){ i = 0; render(); });
+
+      render();
+    }
+
+    // ---- build the four demos, sharing one consistent worked example ----
+    var setupResult = genSetupSteps();
+    var insertResult = genInsertSteps(setupResult.finalState, [27, 19, 36, 42, 16]);
+    var findResult = genFindSteps(insertResult.finalState, 42);
+    var deleteResult = genDeleteSteps(insertResult.finalState, 36);
+
+    var mounts = {
+      'stepper-setup': { steps: setupResult.steps, code: CODE.setup },
+      'stepper-insert': { steps: insertResult.steps, code: CODE.insert },
+      'stepper-find': { steps: findResult.steps, code: CODE.find },
+      'stepper-delete': { steps: deleteResult.steps, code: CODE.del }
+    };
+    Object.keys(mounts).forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) renderStepper(el, mounts[id].steps, mounts[id].code);
+    });
+  })();
+
+})();
+
+Lib.initTabs();
+</script>
+</body></html>

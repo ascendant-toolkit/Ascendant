@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>9.3 Structured Query Language (SQL)</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<style>
+.txin{font:600 1.05rem var(--mono);padding:9px 12px;border-radius:9px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,420px)}
+.drill select,.sel{font:600 .95rem var(--sans);padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.drill .qline{font-size:1.1rem;font-weight:600;margin:8px 0}
+.drill input{font:700 1.1rem var(--mono);padding:8px 12px;border-radius:8px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,220px);text-transform:uppercase}
+.drill .fb{font-weight:700;margin-left:8px}.drill .fb.ok{color:var(--good)}.drill .fb.no{color:var(--bad)}
+.flag{display:inline-block;font:700 .7rem var(--sans);padding:1px 7px;border-radius:99px;background:var(--bad-soft);color:var(--bad)}
+.okf{display:inline-block;font:700 .7rem var(--sans);padding:1px 7px;border-radius:99px;background:var(--good-soft);color:var(--good)}
+.lab{font:700 .7rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 4px}
+.out{font:700 1.15rem var(--mono);letter-spacing:.12em;padding:10px 14px;border-radius:9px;background:var(--soft);border:1px solid var(--line);word-break:break-all;min-height:46px}
+.out.bad{color:var(--bad)}.out.good{color:var(--good)}
+.cip{font-family:var(--mono);font-size:.82rem;text-align:center}
+.cip td,.cip th{padding:4px 6px;text-align:center}
+.ch{display:grid;gap:8px;margin:10px 0}
+.ch button{text-align:left;font:600 .95rem var(--sans);padding:10px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.ch button:hover{border-color:var(--accent)}
+.ch button.ok{border-color:var(--good);background:var(--good-soft)}.ch button.no{border-color:var(--bad);background:var(--bad-soft)}
+.kpub{color:var(--good);font-weight:700}.kpri{color:var(--bad);font-weight:700}
+</style>
+<style>
+.ipin{font:600 1.05rem var(--mono);padding:9px 12px;border-radius:9px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,420px)}
+.mac{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.mac span{font:700 1.1rem var(--mono);padding:8px 10px;border-radius:8px;border:2px solid var(--line);background:var(--surface)}
+.mac .m1{border-color:var(--accent);color:var(--accent)}.mac .m2{border-color:var(--good);color:var(--good)}
+.scn{display:grid;gap:8px;margin:10px 0}.scn .r{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface)}
+.scn .r.ok{border-color:var(--good);background:var(--good-soft)}.scn .r.no{border-color:var(--bad);background:var(--bad-soft)}.scn .r span.q{flex:1 1 240px;font-weight:600}
+.mem{display:flex;gap:4px;margin:6px 0}.mem i{flex:1;height:26px;border-radius:5px;background:var(--soft);border:1px solid var(--line)}.mem i.u{background:var(--accent);border-color:var(--accent)}.mem i.v{background:var(--bad);border-color:var(--bad)}
+</style>
+<style>
+.mono td,.mono th{font-family:var(--mono)}
+.ln2{font-family:var(--mono);font-size:.9rem}
+.fcw{overflow-x:auto}
+.chk{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.chk label{display:flex;align-items:center;gap:6px;padding:7px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;font-weight:600}
+.chk label.ok{border-color:var(--good);background:var(--good-soft)}.chk label.no{border-color:var(--bad);background:var(--bad-soft)}
+</style>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">IGCSE Computer Science · 0478 · Chapter 9 · 9.3</div>
+  <h1>Structured Query Language (SQL)</h1>
+  <p class="lead">Reading, completing and writing SQL queries on a single table: SELECT, FROM, WHERE, ORDER BY, AND, OR, COUNT and SUM.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<!-- LEARN -->
+<section id="learn" role="tabpanel">
+  <div class="card big">
+    <h3>The big idea</h3>
+    <p><span class="kw">SQL</span> asks questions of a table. <b>SELECT</b> picks the fields, <b>FROM</b> names the table, <b>WHERE</b> picks the records and <b>ORDER BY</b> sorts them, while <b>COUNT</b> and <b>SUM</b> summarise.</p>
+  </div>
+
+  <h2>9.3 Structured query language (SQL)</h2>
+  <p><span class="kw">SQL (structured query language)</span> is the language used to <b>ask questions of a database</b> (a <b>query</b>). You must be able to <b>read</b> an SQL statement, <b>complete</b> one, and <b>work out its output</b> for a single table. All the examples use this <b>Products</b> table:</p>
+  <div class="tw"><table class="t mono"><tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th></tr><tr><td>1</td><td>Pencil</td><td>Stationery</td><td>0.50</td><td>200</td></tr><tr><td>2</td><td>Notebook</td><td>Stationery</td><td>2.25</td><td>80</td></tr><tr><td>3</td><td>Backpack</td><td>Bags</td><td>24.99</td><td>15</td></tr><tr><td>4</td><td>Calculator</td><td>Electronics</td><td>9.99</td><td>40</td></tr><tr><td>5</td><td>Headphones</td><td>Electronics</td><td>19.50</td><td>25</td></tr><tr><td>6</td><td>Ruler</td><td>Stationery</td><td>1.20</td><td>120</td></tr><tr><td>7</td><td>Lunchbox</td><td>Bags</td><td>7.80</td><td>30</td></tr><tr><td>8</td><td>USB Drive</td><td>Electronics</td><td>6.99</td><td>0</td></tr></table></div>
+  <h3>The structure of a query</h3>
+  <div class="card"><pre class="ln2" style="margin:0;white-space:pre-wrap">SELECT  &lt;fields to show&gt;
+FROM    &lt;table&gt;
+WHERE   &lt;condition&gt;
+ORDER BY &lt;field&gt; ASC | DESC;</pre></div>
+  <div class="tw"><table class="t">
+    <tr><th>Keyword</th><th>Purpose</th></tr>
+    <tr><td><b>SELECT</b></td><td>Chooses <b>which fields</b> (columns) to show, separated by commas. <span class="ln2">*</span> means all fields.</td></tr>
+    <tr><td><b>FROM</b></td><td>Names the <b>table</b> to use.</td></tr>
+    <tr><td><b>WHERE</b></td><td>Chooses <b>which records</b> (rows) to show, using a condition.</td></tr>
+    <tr><td><b>ORDER BY</b></td><td>Sorts the results: <b>ASC</b> (ascending, smallest first, A to Z) or <b>DESC</b> (descending, largest first).</td></tr>
+    <tr><td><b>AND</b>, <b>OR</b></td><td>Combine conditions. <b>AND</b>: both must be true. <b>OR</b>: at least one must be true.</td></tr>
+    <tr><td><b>COUNT</b></td><td>Counts the <b>number of records</b> that match.</td></tr>
+    <tr><td><b>SUM</b></td><td>Adds up the values of a <b>numeric</b> field for the records that match.</td></tr>
+  </table></div>
+  <p>The comparison operators are <span class="ln2">=  &lt;&gt;  &lt;  &lt;=  &gt;  &gt;=</span>. <b>Text values go in quotes</b> ('Electronics'); <b>numbers do not</b> (Price &gt; 5). A statement ends with a semicolon.</p>
+
+  <h3>Examples</h3>
+  <div class="card"><pre class="ln2" style="margin:0 0 8px;white-space:pre-wrap">SELECT Name, Price<br>FROM Products;</pre><div class="tw"><table class="t mono"><tr><th>Name</th><th>Price</th></tr><tr><td>Pencil</td><td>0.50</td></tr><tr><td>Notebook</td><td>2.25</td></tr><tr><td>Backpack</td><td>24.99</td></tr><tr><td>Calculator</td><td>9.99</td></tr><tr><td>Headphones</td><td>19.50</td></tr><tr><td>Ruler</td><td>1.20</td></tr><tr><td>Lunchbox</td><td>7.80</td></tr><tr><td>USB Drive</td><td>6.99</td></tr></table></div><p class='note'>No WHERE, so every record is shown, but only two fields.</p></div>
+  <div class="card"><pre class="ln2" style="margin:0 0 8px;white-space:pre-wrap">SELECT Name<br>FROM Products<br>WHERE Category = 'Electronics';</pre><div class="tw"><table class="t mono"><tr><th>Name</th></tr><tr><td>Calculator</td></tr><tr><td>Headphones</td></tr><tr><td>USB Drive</td></tr></table></div></div>
+  <div class="card"><pre class="ln2" style="margin:0 0 8px;white-space:pre-wrap">SELECT Name, Price<br>FROM Products<br>WHERE Price &gt; 5 AND Stock &gt; 20;</pre><div class="tw"><table class="t mono"><tr><th>Name</th><th>Price</th></tr><tr><td>Calculator</td><td>9.99</td></tr><tr><td>Headphones</td><td>19.50</td></tr><tr><td>Lunchbox</td><td>7.80</td></tr></table></div><p class='note'>Both conditions must be true. Backpack fails Stock &gt; 20; USB Drive fails Stock &gt; 20.</p></div>
+  <div class="card"><pre class="ln2" style="margin:0 0 8px;white-space:pre-wrap">SELECT Name<br>FROM Products<br>WHERE Category = 'Bags' OR Stock = 0;</pre><div class="tw"><table class="t mono"><tr><th>Name</th></tr><tr><td>Backpack</td></tr><tr><td>Lunchbox</td></tr><tr><td>USB Drive</td></tr></table></div><p class='note'>A record needs only one condition: the two bags, plus the item with no stock.</p></div>
+  <div class="card"><pre class="ln2" style="margin:0 0 8px;white-space:pre-wrap">SELECT Name, Price<br>FROM Products<br>ORDER BY Price DESC;</pre><div class="tw"><table class="t mono"><tr><th>Name</th><th>Price</th></tr><tr><td>Backpack</td><td>24.99</td></tr><tr><td>Headphones</td><td>19.50</td></tr><tr><td>Calculator</td><td>9.99</td></tr><tr><td>Lunchbox</td><td>7.80</td></tr><tr><td>USB Drive</td><td>6.99</td></tr><tr><td>Notebook</td><td>2.25</td></tr><tr><td>Ruler</td><td>1.20</td></tr><tr><td>Pencil</td><td>0.50</td></tr></table></div><p class='note'>DESC puts the largest price first.</p></div>
+  <div class="card"><pre class="ln2" style="margin:0 0 8px;white-space:pre-wrap">SELECT COUNT(*)<br>FROM Products<br>WHERE Category = 'Stationery';</pre><div class="tw"><table class="t mono"><tr><th>COUNT(*)</th></tr><tr><td>3</td></tr></table></div><p class='note'>Counts the records: Pencil, Notebook and Ruler.</p></div>
+  <div class="card"><pre class="ln2" style="margin:0 0 8px;white-space:pre-wrap">SELECT SUM(Stock)<br>FROM Products<br>WHERE Category = 'Electronics';</pre><div class="tw"><table class="t mono"><tr><th>SUM(Stock)</th></tr><tr><td>65</td></tr></table></div><p class='note'>40 + 25 + 0 = 65.</p></div>
+  <h3>How to work out the output</h3>
+  <ol>
+    <li><b>FROM</b>: start with all the records in the table.</li>
+    <li><b>WHERE</b>: keep only the records where the condition is true.</li>
+    <li><b>ORDER BY</b>: sort what is left.</li>
+    <li><b>SELECT</b>: show only the chosen fields (or the COUNT / SUM).</li>
+  </ol>
+  <div class="warn"><b class="h">Common mistakes</b>Missing quote marks around text; using AND when OR is needed (or the reverse); putting ORDER BY before WHERE; using SUM on a text field; forgetting that COUNT counts records but SUM adds values.</div>
+</section>
+
+<!-- WATCH -->
+<section id="watch" role="tabpanel" hidden>
+  <p>Press Play, or click the numbered steps.</p>
+  <h2>1 · Running a query step by step</h2><div id="stA"></div>
+  <h2>2 · COUNT and SUM</h2><div id="stB"></div>
+</section>
+
+<!-- EXPLORE -->
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Query builder</h2>
+  <p>Build a query on the Products table and see the SQL and its output. Try an AND and an OR, and sort in both directions.</p>
+  <div class="card"><div class="grid2"><div><p class="lab">SELECT</p><select class="sel" id="qa" aria-label="Aggregate"><option value="">Choose fields</option><option value="COUNT(*)">COUNT(*)</option><option value="SUM(Price)">SUM(Price)</option><option value="SUM(Stock)">SUM(Stock)</option></select><div class="chk" id="qf"></div><p class="lab">WHERE</p><div class="row"><select class="sel" id="w1f" aria-label="Field 1"></select><select class="sel" id="w1o" aria-label="Operator 1"></select><input class="ipin" style="width:120px" id="w1v" type="text" aria-label="Value 1" spellcheck="false"></div><div class="row" style="margin-top:6px"><select class="sel" id="wl" aria-label="AND or OR"><option>AND</option><option>OR</option></select></div><div class="row" style="margin-top:6px"><select class="sel" id="w2f" aria-label="Field 2"></select><select class="sel" id="w2o" aria-label="Operator 2"></select><input class="ipin" style="width:120px" id="w2v" type="text" aria-label="Value 2" spellcheck="false"></div><p class="lab">ORDER BY</p><div class="row"><select class="sel" id="of" aria-label="Order field"></select><select class="sel" id="od" aria-label="Direction"><option>ASC</option><option>DESC</option></select></div></div><div><p class="lab">SQL</p><pre class="ln2" id="qs" style="margin:0;white-space:pre-wrap"></pre><p class="lab">Output</p><div class="tw"><table class="t mono" id="qt"></table></div></div></div><div class="verdict" id="qv" aria-live="polite"></div></div>
+
+  <h2>Lab 2 · Spot the SQL error</h2>
+  <p>Each statement has one mistake, or none. Choose what is wrong.</p>
+  <div class="card"><div class="scn" id="sn"></div><div class="verdict" id="sv" aria-live="polite"></div></div>
+</section>
+
+<!-- PRACTISE -->
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which keyword?</h2>
+  <div id="cl1" class="card"></div>
+
+  <h2>2 · Match the SQL to its meaning</h2>
+  <div id="m1" class="card"></div>
+
+  <h2>3 · Put the query in order</h2>
+  <div id="o1" class="card"></div>
+
+  <h2>4 · How a query is worked out, in order</h2>
+  <div id="o2" class="card"></div>
+
+  <h2>5 · What does it output?</h2>
+  <p class="note">Use the Products table in the Learn tab. Answer with a number, or type the product name without quote marks.</p>
+  <div id="c1"></div>
+
+  <h2>6 · Multiple choice</h2>
+  <div id="qz1"></div>
+</section>
+
+<!-- REAL WORLD -->
+<section id="real" role="tabpanel" hidden>
+  <p class="note">Descriptions are kept general. Check current details before quoting specifics.</p>
+  <div class="rw"><h3>An online shop's search</h3><p>When you filter by "Electronics" and sort by price, the shop runs a query like SELECT ... WHERE Category = 'Electronics' ORDER BY Price.</p><div class="use"><b>Exam use:</b> reading a WHERE and an ORDER BY in a familiar example.</div></div>
+  <div class="rw"><h3>A school's attendance list</h3><p>"Show all Year 10 students who were absent" becomes WHERE Year = 10 AND Absent = TRUE.</p><div class="use"><b>Exam use:</b> combining two conditions with AND.</div></div>
+  <div class="rw"><h3>A library's overdue books</h3><p>"How many books are overdue?" is a COUNT with a WHERE condition.</p><div class="use"><b>Exam use:</b> COUNT counts matching records.</div></div>
+  <div class="rw"><h3>A cinema's takings</h3><p>"What is the total of today's ticket sales?" is a SUM of the Price field.</p><div class="use"><b>Exam use:</b> SUM adds up a numeric field.</div></div>
+  <div class="rw"><h3>A sports league table</h3><p>Sorting teams by points, highest first, is ORDER BY Points DESC.</p><div class="use"><b>Exam use:</b> sorting with ORDER BY and DESC.</div></div>
+</section>
+
+<!-- EXAM -->
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam-style questions</h2>
+  <p>Open each question for reminders, a model answer and common mistakes. Each underlined phrase earns one mark; the number shows which mark point it is.</p>
+
+  <details class="eq"><summary>Q1 <span class="cmd">State</span> <span class="mark">3 marks</span> State the purpose of the SQL keywords SELECT, FROM and WHERE.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Fields, table, records.</div>
+    <div class="ans"><span class="mk k" data-t="1">SELECT: chooses which fields (columns) to display.</span> <span class="mk k" data-t="2">FROM: names the table that holds the data.</span> <span class="mk k" data-t="3">WHERE: sets the condition that records must meet.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying WHERE chooses fields. It chooses <b>records</b>.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q2 <span class="cmd">Write</span> <span class="mark">4 marks</span> Write an SQL statement to display the Name and Stock of all Stationery products, with the smallest stock first.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>SELECT, FROM, WHERE with quotes, ORDER BY ASC.</div>
+    <div class="ans"><span class="mk k" data-t="1">SELECT Name, Stock</span> <span class="mk k" data-t="2">FROM Products</span> <span class="mk k" data-t="3">WHERE Category = 'Stationery'</span> <span class="mk k" data-t="4">ORDER BY Stock ASC;</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Missing quote marks around Stationery.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q3 <span class="cmd">Identify</span> <span class="mark">3 marks</span> State the output of: SELECT Name FROM Products WHERE Category = 'Bags';</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Which records match?</div>
+    <div class="ans"><span class="mk k" data-t="1">Backpack</span> <span class="mk k" data-t="2">Lunchbox</span> <span class="mk k" data-t="3">(no other names; only these two records match)</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Listing the Category as well. Only Name is selected.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q4 <span class="cmd">Identify</span> <span class="mark">3 marks</span> State the output of: SELECT Name, Price FROM Products WHERE Price &gt; 5 AND Stock &gt; 20;</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Both conditions.</div>
+    <div class="ans"><span class="mk k" data-t="1">Calculator 9.99</span> <span class="mk k" data-t="2">Headphones 19.50</span> <span class="mk k" data-t="3">Lunchbox 7.80</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Including Backpack (stock is only 15).</div>
+  </div></details>
+
+  <details class="eq"><summary>Q5 <span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain the difference between AND and OR in a WHERE clause.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Both against either.</div>
+    <div class="ans"><span class="mk k" data-t="1">AND: both conditions must be true for the record to be selected.</span> <span class="mk k" data-t="2">OR: only one of the conditions needs to be true.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Swapping them over.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q6 <span class="cmd">Write</span> <span class="mark">3 marks</span> Write SQL to find how many products have a Price of more than 5.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>COUNT with WHERE.</div>
+    <div class="ans"><span class="mk k" data-t="1">SELECT COUNT(*)</span> <span class="mk k" data-t="2">FROM Products</span> <span class="mk k" data-t="3">WHERE Price > 5;</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Using SUM(Price), which adds the prices.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q7 <span class="cmd">Write</span> <span class="mark">3 marks</span> Write SQL to find the total number of items in stock (the total of the Stock field) for Electronics products.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>SUM with WHERE.</div>
+    <div class="ans"><span class="mk k" data-t="1">SELECT SUM(Stock)</span> <span class="mk k" data-t="2">FROM Products</span> <span class="mk k" data-t="3">WHERE Category = 'Electronics';</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Using COUNT, which counts records rather than adding values.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q8 <span class="cmd">Complete</span> <span class="mark">2 marks</span> Complete the SQL to list all product names with the most expensive first: SELECT Name FROM Products ____ Price ____;</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two keywords.</div>
+    <div class="ans"><span class="mk k" data-t="1">ORDER BY</span> <span class="mk k" data-t="2">DESC</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Using ASC, which gives the cheapest first.</div>
+  </div></details>
+</section>
+
+<!-- TIPS -->
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Order of clauses:</b> SELECT, FROM, WHERE, ORDER BY.</li>
+    <li><b>SELECT = fields (columns). WHERE = records (rows).</b></li>
+    <li><b>Text in quotes, numbers without quotes.</b></li>
+    <li><b>AND = both true. OR = at least one true.</b></li>
+    <li><b>COUNT counts records. SUM adds values.</b></li>
+    <li><b>To find the output:</b> start with all records, apply WHERE, then ORDER BY, then show only the SELECT fields.</li>
+  </ul>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Name / Identify</td><td>A short fact. No explanation.</td></tr>
+    <tr><td>Describe</td><td>What happens, step by step, or the main features.</td></tr>
+    <tr><td>Explain</td><td>What happens and why. Use because or so.</td></tr>
+    <tr><td>Complete</td><td>Fill in the gaps, trace table or code you are given.</td></tr>
+    <tr><td>Write / Give</td><td>Produce an algorithm, code or an example. Be precise.</td></tr>
+  </table></div>
+  <h2>Keyword flashcards</h2>
+  <div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const GOOD = "var(--good)", BAD = "var(--bad)", ACC = "var(--accent)", MUT = "var(--muted)", WARN = "var(--warn)";
+const note = (x, y, t, cls = "", anchor = "middle") => SV.text(x, y, t, "lbl bd " + cls, { "text-anchor": anchor });
+const sm = (x, y, t, anchor = "middle") => SV.text(x, y, t, "sm", { "text-anchor": anchor });
+const panel = (x, y, w, h, title, col, o = 1) => SV.rect(x, y, w, h, "", { rx: 12, style: `fill:var(--surface);stroke:${col};stroke-width:3`, opacity: o }) + (title ? SV.text(x + w / 2, y + 22, title, "lbl bd", { "text-anchor": "middle", style: `fill:${col}` }) : "");
+const arr = (x1, y1, x2, y2, col, dash) => SV.line(x1, y1, x2, y2, "", { style: `stroke:${col};stroke-width:3;${dash ? "stroke-dasharray:7 6" : ""}` });
+const chip = (x, y, w, t, col) => SV.rect(x, y, w, 26, "", { rx: 13, style: `fill:${col}` }) + SV.text(x + w / 2, y + 18, t, "lbl bd", { "text-anchor": "middle", style: "fill:#fff;font-size:12px" });
+const range = (a, b) => { const r = []; for (let i = a; i <= b; i++) r.push(i); return r; };
+/* select-one-per-row chooser. items: [text, correctOption] */
+function chooser(el, v, opts, items, ph) {
+  el.innerHTML = items.map((s) => `<div class="r" data-a="${esc(s[1])}"><span class="q">${s[0]}</span><select class="sel" aria-label="${esc(s[0].replace(/<[^>]+>/g, ""))}"><option value="">${ph || "Choose…"}</option>${opts.map((x) => `<option>${esc(x)}</option>`).join("")}</select></div>`).join("");
+  v.textContent = "Choose an answer for each row.";
+  $$(".r", el).forEach((r) => $("select", r).addEventListener("change", (e) => { r.classList.remove("ok", "no"); if (e.target.value) r.classList.add(e.target.value === r.dataset.a ? "ok" : "no"); v.textContent = `${$$(".r.ok", el).length} of ${$$(".r", el).length} correct. Red means a different answer fits better.`; }));
+}
+const DATA = [[1, 'Pencil', 'Stationery', 0.5, 200], [2, 'Notebook', 'Stationery', 2.25, 80], [3, 'Backpack', 'Bags', 24.99, 15], [4, 'Calculator', 'Electronics', 9.99, 40], [5, 'Headphones', 'Electronics', 19.5, 25], [6, 'Ruler', 'Stationery', 1.2, 120], [7, 'Lunchbox', 'Bags', 7.8, 30], [8, 'USB Drive', 'Electronics', 6.99, 0]];
+const COLS = ["ID", "Name", "Category", "Price", "Stock"], NUM = { ID: 1, Price: 1, Stock: 1 };
+/* ---------- 1. query pipeline ---------- */
+const Q1 = (r) => r[2] === "Electronics";
+const ORD = DATA.map((r, i) => [i, r]).filter(([i, r]) => Q1(r)).sort((a, b) => b[1][3] - a[1][3]).map((x) => x[0]);
+function qState(k) {
+  const s = { k }; DATA.forEach((r, i) => { const keep = Q1(r), rank = ORD.indexOf(i); s["y" + i] = k >= 2 ? (keep ? rank * 40 : 400 + i * 10) : i * 40; s["o" + i] = k >= 1 ? (keep ? 1 : 0.15) : 1; if (k >= 2 && !keep) s["o" + i] = 0; });
+  s.cc = k >= 3 ? 0.12 : 1; return s;
+}
+function qChart(s) {
+  const cx = [20, 70, 220, 360, 460], cw = [48, 148, 138, 98, 98]; let o = "";
+  COLS.forEach((c, i) => (o += SV.text(cx[i] + cw[i] / 2, 22, c, "lbl bd t1", { "text-anchor": "middle", style: `opacity:${[1, 3].includes(i) ? 1 : s.cc}` })));
+  o += SV.line(20, 32, 580, 32, "", { style: "stroke:var(--muted);stroke-width:2" });
+  DATA.forEach((r, i) => { const y = 42 + s["y" + i]; if (s["o" + i] <= 0.01) return; o += SV.rect(16, y, 568, 34, "", { rx: 6, style: `fill:${s.k >= 1 && Q1(r) ? "var(--good-soft)" : "var(--surface)"};stroke:var(--line);stroke-width:1.5`, opacity: s["o" + i] });
+    r.forEach((v, c) => (o += SV.text(cx[c] + cw[c] / 2, y + 22, c === 3 ? v.toFixed(2) : v, "lbl", { "text-anchor": "middle", style: `font-family:var(--mono);font-size:13px;opacity:${s["o" + i] * ([1, 3].includes(c) ? 1 : s.cc) }` }))); });
+  return o;
+}
+Lib.stepper($("#stA"), { w: 600, h: 380, label: "A query running step by step", base: qState(0), tween: 900, dwell: 3800, draw: qChart, steps: [
+  { cap: "The query: <b>SELECT Name, Price FROM Products WHERE Category = 'Electronics' ORDER BY Price DESC;</b> Step 1, <b>FROM</b>: start with every record in the Products table.", s: qState(0) },
+  { cap: "Step 2, <b>WHERE Category = 'Electronics'</b>: keep only the matching records (green). The others drop out.", s: qState(1) },
+  { cap: "Step 3, <b>ORDER BY Price DESC</b>: sort what is left, the most expensive first.", s: qState(2) },
+  { cap: "Step 4, <b>SELECT Name, Price</b>: show only those two fields. Output: Headphones 19.50, Calculator 9.99, USB Drive 6.99.", s: qState(3) },
+] });
+
+/* ---------- 2. COUNT and SUM ---------- */
+function agChart(s) {
+  const k = Math.round(s.k); let o = SV.text(20, 24, "SELECT SUM(Stock) FROM Products WHERE Category = 'Electronics';", "lbl bd", { "text-anchor": "start", style: "font-family:var(--mono);font-size:13px" });
+  let run = 0; DATA.forEach((r, i) => { const y = 44 + i * 34, hit = r[2] === "Electronics", seen = hit && DATA.slice(0, i + 1).filter((x) => x[2] === "Electronics").length <= k - 1; if (seen) run += r[4];
+    const on = hit && seen; o += SV.rect(16, y, 500, 30, "", { rx: 6, style: `fill:${on ? "var(--good-soft)" : "var(--surface)"};stroke:${on ? "var(--good)" : "var(--line)"};stroke-width:${on ? 3 : 1.5};opacity:${k >= 1 && !hit ? 0.3 : 1}` }) + SV.text(30, y + 20, r[1], "lbl", { "text-anchor": "start", style: "font-family:var(--mono);font-size:13px" }) + SV.text(250, y + 20, r[2], "lbl", { "text-anchor": "start", style: "font-family:var(--mono);font-size:13px" }) + SV.text(480, y + 20, "Stock " + r[4], "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:13px" }); });
+  o += SV.rect(540, 60, 200, 110, "", { rx: 12, style: "fill:var(--surface);stroke:var(--accent);stroke-width:3" }) + SV.text(640, 90, k >= 4 ? "SUM(Stock)" : "running total", "lbl bd t1", { "text-anchor": "middle" }) + SV.text(640, 145, String(run), "lbl bd", { "text-anchor": "middle", style: "font-size:40px;font-family:var(--mono)" });
+  if (k === 4) o += SV.text(640, 200, "COUNT(*) would give 3", "lbl bd t4", { "text-anchor": "middle" });
+  return o;
+}
+Lib.stepper($("#stB"), { w: 760, h: 330, label: "SUM of a field for matching records", base: { k: 0 }, tween: 1, dwell: 3400, draw: agChart, steps: [
+  { cap: "<b>SUM(Stock)</b> adds up the Stock values, but only for the records that pass the <b>WHERE</b> condition.", s: { k: 0 } },
+  { cap: "Calculator is Electronics: Stock <b>40</b> is added. Running total 40.", s: { k: 1 } },
+  { cap: "Headphones is Electronics: <b>25</b> is added. Running total 65.", s: { k: 2 } },
+  { cap: "USB Drive is Electronics: Stock <b>0</b> is added. The total stays 65.", s: { k: 3 } },
+  { cap: "Result: <b>SUM(Stock) = 65</b>. COUNT(*) would count the <b>records</b>, giving 3.", s: { k: 4 } },
+] });
+
+/* ---------- Lab 1: query builder ---------- */
+(() => {
+  const OPS = ["=", "<>", "<", "<=", ">", ">="], qf = $("#qf"), q = (id) => $(id);
+  qf.innerHTML = COLS.map((c) => `<label><input type="checkbox" data-c="${c}" ${["Name", "Price"].includes(c) ? "checked" : ""}> ${c}</label>`).join("");
+  ["w1f", "w2f"].forEach((id) => (q("#" + id).innerHTML = `<option value="">(no condition)</option>` + COLS.map((c) => `<option>${c}</option>`).join(""))); ["w1o", "w2o"].forEach((id) => (q("#" + id).innerHTML = OPS.map((o) => `<option>${o}</option>`).join("")));
+  q("#of").innerHTML = `<option value="">(no order)</option>` + COLS.map((c) => `<option>${c}</option>`).join("");
+  q("#w1f").value = "Category"; q("#w1v").value = "Electronics";
+  const test = (r, f, op, v) => { const i = COLS.indexOf(f), a = r[i], b = NUM[f] ? parseFloat(v) : v; if (NUM[f] && isNaN(b)) return false; return { "=": a === b, "<>": a !== b, "<": a < b, "<=": a <= b, ">": a > b, ">=": a >= b }[op]; };
+  const lit = (f, v) => (NUM[f] ? v : `'${v}'`);
+  function upd() {
+    const agg = q("#qa").value, fields = $$("input", qf).filter((i) => i.checked).map((i) => i.dataset.c);
+    qf.style.opacity = agg ? 0.4 : 1;
+    const conds = [[q("#w1f").value, q("#w1o").value, q("#w1v").value], [q("#w2f").value, q("#w2o").value, q("#w2v").value]].filter((c) => c[0] && c[2] !== "");
+    let rows = DATA.filter((r) => !conds.length || (conds.length === 1 ? test(r, ...conds[0]) : q("#wl").value === "AND" ? test(r, ...conds[0]) && test(r, ...conds[1]) : test(r, ...conds[0]) || test(r, ...conds[1])));
+    const of = q("#of").value; if (of) { const i = COLS.indexOf(of), d = q("#od").value === "DESC" ? -1 : 1; rows = [...rows].sort((a, b) => (a[i] < b[i] ? -d : a[i] > b[i] ? d : 0)); }
+    let sql = "SELECT " + (agg || (fields.length ? fields.join(", ") : "*")) + "\nFROM Products"; if (conds.length) sql += "\nWHERE " + conds.map((c) => `${c[0]} ${c[1]} ${lit(c[0], c[2])}`).join(` ${q("#wl").value} `); if (of && !agg) sql += `\nORDER BY ${of} ${q("#od").value}`; sql += ";";
+    q("#qs").textContent = sql;
+    const t = q("#qt");
+    if (agg) { const v = agg === "COUNT(*)" ? rows.length : agg === "SUM(Price)" ? Math.round(rows.reduce((a, r) => a + r[3], 0) * 100) / 100 : rows.reduce((a, r) => a + r[4], 0); t.innerHTML = `<tr><th>${agg}</th></tr><tr><td>${v}</td></tr>`; q("#qv").innerHTML = `${agg} of the <b>${rows.length}</b> matching record${rows.length === 1 ? "" : "s"}.`; return; }
+    const cs = fields.length ? fields : COLS, idx = cs.map((c) => COLS.indexOf(c));
+    t.innerHTML = `<tr>${cs.map((c) => `<th>${c}</th>`).join("")}</tr>` + rows.map((r) => `<tr>${idx.map((i) => `<td>${COLS[i] === "Price" ? r[i].toFixed(2) : r[i]}</td>`).join("")}</tr>`).join("");
+    q("#qv").innerHTML = rows.length ? `<b>${rows.length}</b> record${rows.length === 1 ? "" : "s"} match the WHERE clause. SELECT then shows ${fields.length ? "the fields you ticked" : "every field"}.` : "No records match, so nothing is shown.";
+  }
+  $$("select,input", q("#explore")).filter((e) => e.closest(".card") && e.closest(".card").querySelector("#qs")).forEach((e) => { e.addEventListener("input", upd); e.addEventListener("change", upd); }); upd();
+})();
+
+/* ---------- Lab 2 ---------- */
+chooser($("#sn"), $("#sv"), ["Missing quotes", "Clauses in the wrong order", "Missing comma", "SUM on a text field", "No error"], [
+  ["<span class=\"ln2\">SELECT Name<br>FROM Products<br>WHERE Category = Stationery;</span>", "Missing quotes"],
+  ["<span class=\"ln2\">SELECT Name<br>FROM Products<br>ORDER BY Price DESC<br>WHERE Stock &gt; 0;</span>", "Clauses in the wrong order"],
+  ["<span class=\"ln2\">SELECT Name Price<br>FROM Products;</span>", "Missing comma"],
+  ["<span class=\"ln2\">SELECT SUM(Name)<br>FROM Products;</span>", "SUM on a text field"],
+  ["<span class=\"ln2\">SELECT Name, Price<br>FROM Products<br>WHERE Price &gt; 5<br>ORDER BY Price ASC;</span>", "No error"],
+]);
+
+/* ---------- Practise ---------- */
+Lib.classify($("#cl1"), { prompt: "Which SQL keyword does each description fit?", buckets: [{ label: "SELECT" }, { label: "FROM" }, { label: "WHERE" }, { label: "ORDER BY" }], items: [
+  { text: "Chooses the fields to show", b: 0 },
+  { text: "Can use * for all fields", b: 0 },
+  { text: "Names the table", b: 1 },
+  { text: "Chooses which records are included", b: 2 },
+  { text: "Contains a condition such as Price > 5", b: 2 },
+  { text: "Sorts the results", b: 3 },
+  { text: "ASC or DESC follows it", b: 3 },
+], done: "Fields, table, records, sort." });
+
+Lib.match($("#m1"), { prompt: "Match each SQL statement or part to its meaning.", pairs: [
+  ["COUNT(*)", "Counts the number of matching records"],
+  ["SUM(Stock)", "Adds up the Stock values of matching records"],
+  ["ORDER BY Price DESC", "Sorts with the highest price first"],
+  ["WHERE A AND B", "Both conditions must be true"],
+  ["WHERE A OR B", "At least one condition must be true"],
+  ["SELECT *", "Shows all fields"]
+] });
+
+Lib.order($("#o1"), { prompt: "Put the lines of this query in the correct order.", items: [
+  "SELECT Name, Price",
+  "FROM Products",
+  "WHERE Stock > 20",
+  "ORDER BY Price ASC;"
+], done: "SELECT, FROM, WHERE, ORDER BY." });
+
+Lib.order($("#o2"), { prompt: "Put the steps of working out a query's output in order.", items: [
+  "Start with all records in the table (FROM)",
+  "Keep only the records that meet the condition (WHERE)",
+  "Sort the remaining records (ORDER BY)",
+  "Show only the chosen fields (SELECT)"
+], done: "FROM, WHERE, ORDER BY, SELECT." });
+
+Lib.calc($("#c1"), { qs: [
+  { q: "SELECT COUNT(*) FROM Products WHERE Price > 5; What is the output?", a: 5, sol: "Backpack, Calculator, Headphones, Lunchbox and USB Drive: 5." },
+  { q: "SELECT SUM(Stock) FROM Products WHERE Category = 'Stationery'; What is the output?", a: 400, sol: "200 + 80 + 120 = 400." },
+  { q: "SELECT Name FROM Products WHERE Stock < 20; How many records are output?", a: 2, sol: "Backpack (15) and USB Drive (0)." },
+  { q: "SELECT Name FROM Products ORDER BY Stock DESC; Which name is output first?", t: ["PENCIL"], ph: "product name", sol: "Pencil has the largest stock, 200." },
+  { q: "SELECT Name FROM Products WHERE Category = 'Bags' OR Price < 1; How many records are output?", a: 3, sol: "Backpack and Lunchbox (Bags) and Pencil (price 0.50)." },
+  { q: "SELECT Name FROM Products WHERE Category = 'Electronics' AND Stock > 30; How many records are output?", a: 1, sol: "Only Calculator (stock 40)." },
+  { q: "SELECT SUM(Price) FROM Products WHERE Category = 'Bags'; What is the output?", a: 32.79, sol: "24.99 + 7.80 = 32.79." },
+  { q: "SELECT Name FROM Products ORDER BY Price ASC; Which name is output first?", t: ["PENCIL"], ph: "product name", sol: "Pencil has the lowest price, 0.50." }
+] });
+
+Lib.quiz($("#qz1"), { qs: [
+  { q: "Which keyword chooses the fields to display?", opts: ["SELECT", "FROM", "WHERE", "ORDER BY"], a: 0, why: "SELECT lists the fields." },
+  { q: "Which keyword sorts the output?", opts: ["ORDER BY", "WHERE", "FROM", "COUNT"], a: 0, why: "ORDER BY, with ASC or DESC." },
+  { q: "What does DESC mean?", opts: ["Largest (or Z to A) first", "Smallest first", "Delete", "Describe"], a: 0, why: "Descending order." },
+  { q: "Which operator means \"not equal to\"?", opts: ["<>", "=", ">=", "!"], a: 0, why: "<> is not equal to." },
+  { q: "How should text be written in a condition?", opts: ["In quotes: 'Bags'", "Without quotes", "In brackets", "In capitals only"], a: 0, why: "Text values are quoted." },
+  { q: "What does COUNT(*) return?", opts: ["The number of matching records", "The total of a field", "The largest value", "The field names"], a: 0, why: "A count of records." },
+  { q: "What does SUM(Price) return?", opts: ["The total of the Price values", "The number of records", "The average", "The first price"], a: 0, why: "SUM adds numeric values." },
+  { q: "Which is the correct clause order?", opts: ["SELECT, FROM, WHERE, ORDER BY", "FROM, SELECT, ORDER BY, WHERE", "WHERE, FROM, SELECT", "ORDER BY, SELECT, FROM"], a: 0, why: "SELECT, FROM, WHERE, ORDER BY." }
+] });
+
+Lib.cards($("#fc1"), { cards: [
+  ["SQL", "Structured query language, used to query a database."],
+  ["Query", "A request for data from a database."],
+  ["SELECT", "Chooses which fields to display."],
+  ["FROM", "Names the table to use."],
+  ["WHERE", "Chooses which records to include, using a condition."],
+  ["ORDER BY", "Sorts the results."],
+  ["ASC", "Ascending order: smallest or A to Z first."],
+  ["DESC", "Descending order: largest or Z to A first."],
+  ["AND", "Both conditions must be true."],
+  ["OR", "At least one condition must be true."],
+  ["COUNT", "Counts the number of matching records."],
+  ["SUM", "Adds up the values of a numeric field in the matching records."]
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

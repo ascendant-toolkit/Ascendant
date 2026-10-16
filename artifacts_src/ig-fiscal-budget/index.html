@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Government Budget</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">IGCSE Economics · 0455 · 4.2.1 Government budget</div>
+  <h1>Government Budget</h1>
+  <p class="lead">What a government budget is, how to calculate a deficit or surplus, and how borrowing builds the national debt. Syllabus 4.2.1.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>The big idea</h3>
+  <p>A government plans each year how much it will <b>spend</b> and how much it expects to <b>raise</b>, mainly through taxes. That plan is the <span class="kw">government budget</span>. The gap between the two is the <b>budget deficit</b> or <b>budget surplus</b>, and it tells you whether the government has to borrow. Everything else in fiscal policy shows up here first.</p></div>
+  <h2>The budget</h2>
+  <p>A government publishes a <span class="kw">budget</span>: how much it plans to spend and how much it expects to raise. The result is one of three positions.</p>
+  <div class="grid2">
+    <div class="card"><h3>Budget deficit</h3><p>Spending is <b>higher</b> than revenue. The government has to borrow the gap.</p></div>
+    <div class="card"><h3>Budget surplus</h3><p>Revenue is <b>higher</b> than spending. The extra can repay debt or be saved.</p></div>
+    <div class="card"><h3>Balanced budget</h3><p>Spending and revenue are <b>equal</b>. This happens less often.</p></div>
+  </div>
+  <div class="formula">Budget balance = government revenue − government spending</div>
+  <p>A negative answer is a deficit. It can be shown in dollars or as a percentage of GDP. The <span class="kw">national debt</span> is different: it is the <b>total</b> the government has borrowed over time. Deficits add to it each year.</p>
+
+  <h2>Calculating a budget position</h2>
+  <p>Work in three steps: add up all revenue, add up all spending, then subtract. Show each total and say whether the answer is a deficit or a surplus.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Item</th><th>$bn</th></tr>
+    <tr><td>Income tax</td><td>40</td></tr><tr><td>Sales tax</td><td>25</td></tr><tr><td>Other revenue</td><td>10</td></tr>
+    <tr><td><b>Total revenue</b></td><td><b>75</b></td></tr>
+    <tr><td>Healthcare and education</td><td>45</td></tr><tr><td>Pensions and benefits</td><td>25</td></tr><tr><td>Other spending</td><td>10</td></tr>
+    <tr><td><b>Total spending</b></td><td><b>80</b></td></tr>
+  </table></div>
+  <p>Budget balance = 75 − 80 = <b>−$5bn</b>, a <b>deficit of $5bn</b>. If GDP is $100bn the deficit is 5% of GDP.</p>
+  <h2>Why a budget changes without a new policy</h2>
+  <p><span class="kw">Automatic stabilisers</span> are spending and taxes that move with the economy. In a slump, incomes fall so tax revenue falls, and more people claim unemployment benefit, so spending rises: the deficit widens with no new decision. In a boom the opposite happens. They cushion the swings in demand.</p>
+  <h2>Why deficits matter</h2>
+  <ul>
+    <li>A deficit has to be <b>borrowed</b>, so it adds to the national debt.</li>
+    <li>Debt means <b>interest payments</b> in future years, which is spending that does not buy new services (an opportunity cost).</li>
+    <li>A deficit during a slump can support spending and jobs; a deficit that persists in a boom may be harder to justify.</li>
+    <li>A surplus can repay debt, but raising taxes or cutting spending to get one may slow the economy.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+<p>Press Play, or click the numbered steps.</p>
+  <h2>1 · Budget deficit, surplus and national debt</h2><div id="stB"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Budget and automatic stabilisers</h2>
+  <p>Based on New Zealand's 2016 budget (NZ$bn). Move the first slider to put the economy in a boom or a slump and watch the budget change with <b>no policy change</b>. Then use the other two sliders to make policy changes.</p>
+  <div class="card"><div class="grid2"><div><div id="g1"></div><div id="g2"></div><div id="g3"></div></div>
+    <div><div class="readout"><div><small>Total spending</small><strong id="ba1"></strong></div><div><small>Total revenue</small><strong id="ba2"></strong></div><div><small>Budget balance</small><strong id="ba3"></strong></div><div><small>Income tax share of revenue</small><strong id="ba4"></strong></div></div><div class="verdict" id="bav"></div></div></div>
+    <svg id="labA" viewBox="0 0 760 420" role="img" aria-label="Government revenue and spending stacked bars"></svg>
+    <p class="note">Illustrative model: in a boom income tax revenue rises by 1.5 times the change in income, corporation tax by 2 times, sales taxes by 1 times, and benefit spending falls by 2 times.</p>
+  </div>
+
+
+  <h2>Lab 2 · Deficits build the national debt</h2>
+  <p>The national debt starts at $60bn and GDP is $200bn. Set a yearly budget position and a number of years. Negative means a deficit.</p>
+  <div class="card"><div class="grid2"><div><div id="g9"></div><div id="g10"></div></div>
+    <div><div class="readout"><div><small>National debt at the end</small><strong id="da1"></strong></div><div><small>Change since the start</small><strong id="da2"></strong></div><div><small>Debt as % of GDP</small><strong id="da3"></strong></div></div><div class="verdict" id="dav"></div></div></div>
+    <svg id="labD" viewBox="0 0 760 360" role="img" aria-label="National debt each year"></svg>
+    <p class="note">Simplified: GDP stays at $200bn and debt interest is ignored, to show that deficits add to the debt and surpluses reduce it.</p>
+  </div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Deficit, surplus or balanced?</h2>
+  <div id="cl1" class="card"></div>
+
+  <h2>2 · Match the term</h2>
+  <div id="m1" class="card"></div>
+
+  <h2>3 · Order the recession chain</h2>
+  <div id="o1" class="card"></div>
+
+  <h2>4 · Calculations</h2>
+  <div id="c1"></div>
+
+  <h2>5 · Multiple choice</h2>
+  <div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are described in general terms so they stay accurate. Check current details before quoting figures.</p>
+  <div class="rw"><h3>Tourism and the Maldives budget</h3><p>The Maldives gets government revenue from taxes and from leasing islands for resorts, fisheries and agriculture, and a big share of spending goes on public sector wages. When tourism falls, revenue falls while wage bills do not, so the deficit widens.</p><div class="use"><b>Exam use:</b> a budget-position question. Calculate spending as revenue plus the deficit, then explain how a fall in tourist numbers cuts tax and leasing income.</div></div>
+  <div class="rw"><h3>Recessions and automatic stabilisers</h3><p>When the economy slumps, firms lay off workers. Income tax revenue falls and spending on unemployment benefit rises automatically, so the deficit widens without any new policy and support for spending is maintained.</p><div class="use"><b>Exam use:</b> a clean example of automatic stabilisers. Explain the mechanism, then evaluate: it limits the damage but does not remove the recession.</div></div>
+  <div class="rw"><h3>Austerity and the cost of tightening</h3><p>Some countries with large deficits raised taxes and cut spending to reduce borrowing. Public finances improved, but critics argued the cuts slowed growth and raised unemployment, which cut tax revenue.</p><div class="use"><b>Exam use:</b> contractionary fiscal policy, and a standard evaluation point: reducing the deficit may take longer or cost more output than hoped.</div></div>
+  <div class="rw"><h3>Stimulus after a crisis</h3><p>After the 2008 financial crisis and during the COVID-19 pandemic, many governments raised spending (support payments, wage subsidies, infrastructure) and some cut taxes temporarily such as lowering VAT rates. Deficits and national debt rose sharply as a result.</p><div class="use"><b>Exam use:</b> expansionary fiscal policy in action. Cover AD, growth and jobs, then the cost: bigger deficit, higher debt and interest payments.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+<h2>Exam-style questions</h2>
+  <p>Open each question for the reminders, a model answer and common mistakes. Answers are colour-coded to the mark scheme. Past-paper questions show the session.</p>
+  <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+
+  <details class="eq"><summary>Q1 <span class="cmd">Define</span> <span class="mark">2 marks</span> What is meant by a budget deficit?</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two ideas: spending is higher than revenue, and it has to be borrowed (or funded from savings).</div>
+    <div class="ans"><span class="mk k" data-t="K">A budget deficit is when a government's spending is higher than its revenue in a period,</span> <span class="mk k" data-t="K">so it has to borrow the difference.</span></div>
+  </div></details>
+
+  <details class="eq"><summary>Q2 <span class="cmd">Calculate</span> <span class="mark">4 marks</span> Using the table (New Zealand, 2016, NZ$bn), calculate (a) the budget position and (b) the percentage of revenue from income tax.</summary><div class="body">
+    <div class="tw"><table class="t"><tr><th>Spending</th><th>NZ$bn</th><th>Revenue</th><th>NZ$bn</th></tr>
+    <tr><td>Healthcare</td><td>16.2</td><td>Income tax</td><td>32.5</td></tr><tr><td>Education</td><td>13.5</td><td>GST</td><td>19.1</td></tr><tr><td>Pensions</td><td>12.9</td><td>Other indirect tax</td><td>6.5</td></tr><tr><td>Unemployment &amp; other benefits</td><td>12.3</td><td>Corporate tax</td><td>11.6</td></tr><tr><td>Law and order</td><td>3.8</td><td>Other revenue</td><td>8.8</td></tr><tr><td>Other</td><td>18.8</td><td></td><td></td></tr></table></div>
+    <div class="tip"><b class="h">Reminder</b>Add each column first. Show working and give units. Budget position = revenue − spending: say whether it is a deficit or surplus.</div>
+    <div class="ans"><span class="mk a" data-t="A">(a) Revenue = 32.5 + 19.1 + 6.5 + 11.6 + 8.8 = NZ$78.5bn. Spending = 16.2 + 13.5 + 12.9 + 12.3 + 3.8 + 18.8 = NZ$77.5bn.</span> <span class="mk a" data-t="A">Budget position = 78.5 − 77.5 = NZ$1.0bn surplus.</span> <span class="mk a" data-t="A">(b) 32.5 ÷ 78.5 × 100 = </span><span class="mk a" data-t="A">41.4%.</span></div>
+  </div></details>
+
+  <details class="eq"><summary>Q3 <span class="cmd">Explain</span> <span class="mark">4 marks</span> Explain two reasons why a government may have a budget deficit.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two reasons, each with a link. Good pairs: recession (revenue falls, benefits rise), extra spending on services or stimulus, tax cuts, debt interest.</div>
+    <div class="ans"><span class="mk k" data-t="K">One reason is a recession.</span> <span class="mk n" data-t="N">Incomes and spending fall, so tax revenue falls, and more people claim unemployment benefit, so government spending rises. The gap between spending and revenue could widen.</span> <span class="mk k" data-t="K">A second reason is a decision to raise spending, for example on healthcare or infrastructure,</span> <span class="mk n" data-t="N">without raising taxes by as much, which means spending exceeds revenue and the government may borrow the difference.</span></div>
+  </div></details>
+
+  <details class="eq"><summary>Q4 <span class="cmd">Discuss</span> <span class="mark">8 marks</span> Discuss whether or not a government should always aim for a balanced budget.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two sides and a judgement. For: debt and interest costs, fairness to future taxpayers. Against: deficits can support jobs in a slump, borrowing to invest can raise future growth. End with 'it depends on…'.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans"><span class="mk k" data-t="K">A balanced budget is where government spending equals revenue, so no new borrowing is needed.</span> <span class="mk n" data-t="N">Aiming for one could help to keep the national debt under control, which limits interest payments and leaves more of future tax revenue for services.</span> <span class="mk n" data-t="N">Lenders may also trust a government that does not keep borrowing, which could keep its borrowing costs low.</span> <span class="mk e" data-t="E">However, these benefits may be smaller if the debt is already small compared with GDP.</span> <span class="mk n" data-t="N">On the other hand, an insistence on balance could force spending cuts or tax rises in a recession, which are likely to reduce aggregate demand, raise unemployment and cut tax revenue further.</span> <span class="mk n" data-t="N">Borrowing to build roads, schools or hospitals may raise productivity and output, so that future revenue could rise.</span> <span class="mk e" data-t="E">Overall, a government is more likely to benefit from balancing the budget over the economic cycle, running deficits in slumps and surpluses in booms, rather than every year. The best approach depends on the size of the existing debt, the state of the economy and what the borrowing is used for.</span></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Budget balance = revenue − spending.</b> A negative answer is a deficit; a positive answer is a surplus.</li>
+    <li><b>Deficit is a yearly flow; national debt is the running total.</b> Deficits add to the debt.</li>
+    <li><b>Show your totals.</b> Add the revenue column and the spending column before you subtract.</li>
+    <li><b>A recession widens the deficit by itself.</b> Tax revenue falls and benefit spending rises: automatic stabilisers.</li>
+    <li><b>Give a cost of borrowing.</b> Interest payments are an opportunity cost: money not spent on services.</li>
+    <li><b>Use hedged words.</b> A deficit 'could' raise the debt; spending 'may' support jobs.</li>
+  </ul>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Define</td><td>A precise meaning, in a sentence.</td></tr>
+    <tr><td>Calculate</td><td>Working, answer, units.</td></tr>
+    <tr><td>Explain</td><td>Reasons with a developed link.</td></tr>
+    <tr><td>Discuss</td><td>Both sides, then a justified judgement.</td></tr>
+  </table></div>
+  <h2>Keyword flashcards</h2>
+  <div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const QX = (q) => 80 + 6 * q, PY = (p) => 360 - 2.7 * p;
+function seg(m, c) { // clip P = mQ + c to 0<=Q<=100, 0<=P<=120
+  let lo = 0, hi = 100;
+  if (m !== 0) { const a = (0 - c) / m, z = (120 - c) / m; lo = Math.max(lo, Math.min(a, z)); hi = Math.min(hi, Math.max(a, z)); }
+  return [lo, m * lo + c, hi, m * hi + c];
+}
+function curve(m, c, cls, label, o = {}) {
+  const [q1, p1, q2, p2] = seg(m, c);
+  if (q2 <= q1) return "";
+  let s = SV.line(QX(q1), PY(p1), QX(q2), PY(p2), cls, o.attrs);
+  if (label) { const a = { "text-anchor": "start" }; if (o.attrs && o.attrs.opacity !== undefined) a.opacity = o.attrs.opacity; s += SV.text(QX(q2) + (o.dx ?? 6), PY(p2) + (o.dy ?? 4), label, "lbl bd " + (o.t || "t1"), a); }
+  return s;
+}
+function axes(yl = "Price", xl = "Quantity") {
+  return SV.line(QX(0), PY(120), QX(0), PY(0)) + SV.line(QX(0), PY(0), QX(104), PY(0)) +
+    SV.text(QX(0) + 6, PY(120) + 6, yl, "sm") + SV.text(QX(104), PY(0) + 22, xl, "sm", { "text-anchor": "end" });
+}
+const hline = (p, c = "gr", x2 = 100) => SV.line(QX(0), PY(p), QX(x2), PY(p), c);
+const vline = (q, p, c = "gr") => SV.line(QX(q), PY(p), QX(q), PY(0), c);
+const ylab = (p, t, c = "sm") => SV.text(QX(0) - 8, PY(p) + 4, t, c, { "text-anchor": "end" });
+const xlab = (q, t, c = "sm") => SV.text(QX(q), PY(0) + 18, t, c, { "text-anchor": "middle" });
+const D = (b) => [-b, 50 + 50 * b], S = (d, shift = 0) => [d, 50 - 50 * d + shift];
+const fmtSteep = (v) => (v < 0.8 ? "flat (elastic)" : v > 1.4 ? "steep (inelastic)" : "medium");
+const money = (v, d = 1) => Lib.fmtN(v, d);
+/* ---------- 1. budget bars ---------- */
+function budgetChart(s) {
+  const base = 340, k = 1.75, r = s.rev, sp = s.spend, d = r - sp;
+  let o = SV.line(70, base, 570, base);
+  o += SV.rect(120, base - r * k, 150, r * k, "", { style: "fill:var(--accent)", opacity: 0.85 });
+  o += SV.rect(330, base - sp * k, 150, sp * k, "", { style: "fill:var(--warn)", opacity: 0.85 });
+  if (d < -0.5) o += SV.rect(120, base - sp * k, 150, -d * k, "", { style: "fill:none;stroke:var(--bad);stroke-width:2.5;stroke-dasharray:6 4" }) + SV.text(195, base - sp * k + (-d * k) / 2 + 5, "Gap " + money(-d, 0), "lbl bd t2", { "text-anchor": "middle" });
+  if (d > 0.5) o += SV.rect(330, base - r * k, 150, d * k, "", { style: "fill:none;stroke:var(--good);stroke-width:2.5;stroke-dasharray:6 4" }) + SV.text(405, base - r * k + (d * k) / 2 + 5, "Spare " + money(d, 0), "lbl bd t3", { "text-anchor": "middle" });
+  const inbar = { "text-anchor": "middle", style: "font-size:15px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" };
+  o += SV.text(195, base - r * k + 24, "$" + money(r, 0) + "bn", "lbl bd", inbar) + SV.text(405, base - sp * k + 24, "$" + money(sp, 0) + "bn", "lbl bd", inbar);
+  o += SV.text(195, base + 22, "Government revenue", "lbl", { "text-anchor": "middle" }) + SV.text(405, base + 22, "Government spending", "lbl", { "text-anchor": "middle" });
+  const verdict = Math.abs(d) < 0.5 ? "Balanced budget: revenue = spending" : d < 0 ? "Budget deficit of $" + money(-d, 0) + "bn: the government must borrow" : "Budget surplus of $" + money(d, 0) + "bn: revenue exceeds spending";
+  o += SV.text(300, 52, verdict, "lbl bd " + (Math.abs(d) < 0.5 ? "" : d < 0 ? "t2" : "t3"), { "text-anchor": "middle", style: "font-size:16px" });
+  o += SV.rect(620, base - s.debt * k, 90, s.debt * k, "", { style: "fill:var(--bad)", opacity: 0.6 });
+  o += SV.text(665, base - s.debt * k - 8, "$" + money(s.debt, 0) + "bn", "lbl bd t2", { "text-anchor": "middle" }) + SV.text(665, base + 22, "National debt", "lbl", { "text-anchor": "middle" });
+  return o;
+}
+Lib.stepper($("#stB"), { w: 760, h: 400, label: "Budget deficit, surplus and national debt", base: { rev: 100, spend: 100, debt: 60 }, draw: budgetChart, steps: [
+  { cap: "A government's <b>budget</b> compares what it raises (revenue, mostly tax) with what it spends. Here both are <b>$100bn</b>: a <b>balanced budget</b>, which is less common than the other two. Past borrowing has built up a <b>national debt</b> of $60bn.", s: { rev: 100, spend: 100, debt: 60 } },
+  { cap: "The government raises spending to <b>$120bn</b> but revenue stays at $100bn. Spending is higher than revenue: a <b>budget deficit</b> of $20bn.", s: { spend: 120 } },
+  { cap: "To pay for the gap the government has to <b>borrow</b> $20bn. The <b>national debt</b>, the total borrowed over time, rises from $60bn to $80bn. A deficit adds to the debt; the debt is the running total.", s: { spend: 120, debt: 80 } },
+  { cap: "Now the government raises tax revenue to <b>$125bn</b> and brings spending back to $100bn. Revenue is higher than spending: a <b>budget surplus</b> of $25bn.", s: { rev: 125, spend: 100, debt: 80 } },
+  { cap: "A surplus can be used to <b>repay debt</b>, which also cuts the interest the government has to pay. The debt falls to $55bn. <b>Budget deficit or surplus = revenue − spending</b> (a negative answer is a deficit).", s: { rev: 125, spend: 100, debt: 55 } },
+] });
+
+/* ================= LABS ================= */
+/* Lab 1: budget, with automatic stabilisers (New Zealand 2016 table, NZ$bn) */
+const SPEND = [["Healthcare", 16.2, "--accent"], ["Education", 13.5, "--good"], ["Pensions", 12.9, "--n"], ["Unemployment and other benefits", 12.3, "--bad"], ["Law and order", 3.8, "--warn"], ["Other", 18.8, "--muted"]];
+const REV = [["Income tax", 32.5, "--accent"], ["GST", 19.1, "--good"], ["Other indirect tax", 6.5, "--n"], ["Corporate tax", 11.6, "--warn"], ["Other revenue", 8.8, "--muted"]];
+function stack(items, x, base, k, w) {
+  let y = base, o = "";
+  items.forEach(([name, v, col]) => {
+    const h = v * k;
+    y -= h;
+    o += SV.rect(x, y, w, h, "", { style: `fill:var(${col});stroke:var(--surface);stroke-width:2`, opacity: 0.85 });
+    if (h > 17) o += SV.text(x + w / 2, y + h / 2 + 4, name + " " + money(v, 1), "sm bd", { "text-anchor": "middle", style: "font-size:11px;paint-order:stroke;stroke:var(--surface);stroke-width:3px" });
+  });
+  return o;
+}
+function labA() {
+  if (!$("#ba") || !$("#bb") || !$("#bc")) return;
+  const act = +$("#ba").value, dH = +$("#bb").value, dT = +$("#bc").value;
+  const rev = [["Income tax", 32.5 * (1 + (1.5 * act) / 100) + dT, "--accent"], ["GST", 19.1 * (1 + act / 100), "--good"], ["Other indirect tax", 6.5 * (1 + act / 100), "--n"], ["Corporate tax", 11.6 * (1 + (2 * act) / 100), "--warn"], ["Other revenue", 8.8, "--muted"]];
+  const sp = [["Healthcare", 16.2 + dH, "--accent"], ["Education", 13.5, "--good"], ["Pensions", 12.9, "--n"], ["Unemployment and other benefits", 12.3 * (1 - (2 * act) / 100), "--bad"], ["Law and order", 3.8, "--warn"], ["Other", 18.8, "--muted"]];
+  const tr = rev.reduce((a, x) => a + x[1], 0), ts = sp.reduce((a, x) => a + x[1], 0), bal = tr - ts;
+  $("#ba1").textContent = "$" + money(ts) + "bn"; $("#ba2").textContent = "$" + money(tr) + "bn";
+  $("#ba3").textContent = (bal >= 0 ? "+" : "−") + "$" + money(Math.abs(bal)) + "bn"; $("#ba4").textContent = money((rev[0][1] / tr) * 100, 1) + "%";
+  $("#bav").textContent = Math.abs(bal) < 0.05 ? "A balanced budget." : bal > 0 ? `Revenue is higher than spending: a budget surplus of $${money(bal)}bn.` : `Spending is higher than revenue: a budget deficit of $${money(-bal)}bn, which has to be borrowed.`;
+  const note = act !== 0 && dH === 0 && dT === 0 ? (act < 0 ? " In a slump tax revenue falls and benefit spending rises automatically, so the budget moves towards deficit with no change in policy: that is an automatic stabiliser." : " In a boom tax revenue rises and benefit spending falls automatically, which moves the budget towards surplus and helps cool demand.") : "";
+  $("#bav").textContent += note;
+  const k = 3.1, base = 372;
+  $("#labA").innerHTML = SV.line(60, base, 700, base) + stack(rev, 90, base, k, 230) + stack(sp, 420, base, k, 230) +
+    SV.text(205, base + 22, "Revenue: $" + money(tr), "lbl bd", { "text-anchor": "middle" }) + SV.text(535, base + 22, "Spending: $" + money(ts), "lbl bd", { "text-anchor": "middle" });
+}
+Lib.slider($("#g1"), { id: "ba", label: "State of the economy (change in national income)", min: -10, max: 10, step: 1, value: 0, fmt: (v) => (v > 0 ? "+" : "") + v + "%" + (v < 0 ? " slump" : v > 0 ? " boom" : ""), onInput: labA });
+Lib.slider($("#g2"), { id: "bb", label: "Policy: change in healthcare spending", min: -5, max: 10, step: 0.5, value: 0, fmt: (v) => (v > 0 ? "+$" : v < 0 ? "−$" : "$") + Math.abs(v) + "bn", onInput: labA });
+Lib.slider($("#g3"), { id: "bc", label: "Policy: change in income tax revenue (rate change)", min: -10, max: 10, step: 0.5, value: 0, fmt: (v) => (v > 0 ? "+$" : v < 0 ? "−$" : "$") + Math.abs(v) + "bn", onInput: labA });
+
+
+function labD() {
+  if (!$("#da") || !$("#db")) return;
+  const bal = +$("#da").value, n = +$("#db").value, d0 = 60, GDP = 200;
+  const debt = [d0]; for (let i = 1; i <= n; i++) debt.push(Math.max(0, debt[i - 1] - bal));
+  const end = debt[n];
+  $("#da1").textContent = "$" + money(end, 0) + "bn"; $("#da2").textContent = (end - d0 >= 0 ? "+" : "−") + "$" + money(Math.abs(end - d0), 0) + "bn"; $("#da3").textContent = money((end / GDP) * 100, 1) + "%";
+  $("#dav").textContent = bal < 0 ? `A deficit of $${-bal}bn a year is borrowed every year, so the debt rises by $${-bal * n}bn over ${n} years. The debt is the running total of past deficits.` : bal > 0 ? `A surplus of $${bal}bn a year can repay debt, so the debt falls (it cannot go below zero).` : "A balanced budget leaves the debt unchanged: no new borrowing is needed.";
+  const base = 320, mx = Math.max(100, ...debt), k = 250 / mx, w = Math.min(54, 600 / (n + 1)), gap = w * 0.25;
+  let o = SV.line(40, base, 730, base);
+  debt.forEach((v, i) => {
+    const x = 50 + i * (w + gap);
+    o += SV.rect(x, base - v * k, w, v * k, "", { style: "fill:var(--bad)", opacity: 0.6 }) + SV.text(x + w / 2, base - v * k - 6, money(v, 0), "sm bd", { "text-anchor": "middle" }) + SV.text(x + w / 2, base + 18, i ? "Yr " + i : "Now", "sm", { "text-anchor": "middle" });
+  });
+  $("#labD").innerHTML = o + SV.text(40, 24, "National debt ($bn)", "sm");
+}
+Lib.slider($("#g9"), { id: "da", label: "Budget position each year", min: -30, max: 30, step: 5, value: -10, fmt: (v) => (v < 0 ? "deficit $" + -v : v > 0 ? "surplus $" + v : "balanced") + (v ? "bn" : ""), onInput: labD });
+Lib.slider($("#g10"), { id: "db", label: "Number of years", min: 1, max: 10, step: 1, value: 5, fmt: (v) => v + " years", onInput: labD });
+
+/* ================= PRACTISE ================= */
+Lib.classify($("#cl1"), { prompt: "Deficit, surplus or balanced? Revenue first, spending second.", buckets: [{ label: "Budget deficit" }, { label: "Budget surplus" }, { label: "Balanced budget" }], items: [
+  { text: "Revenue $90bn, spending $100bn", b: 0 }, { text: "Revenue $52bn, spending $60bn", b: 0 }, { text: "Revenue $120bn, spending $110bn", b: 1 }, { text: "Revenue $75bn, spending $70bn", b: 1 },
+  { text: "Revenue $80bn, spending $80bn", b: 2 }, { text: "Spending is higher than revenue, so the government borrows", b: 0 }, { text: "Revenue exceeds spending, so debt can be repaid", b: 1 }, { text: "Spending and revenue are equal", b: 2 },
+], done: "Compare revenue with spending: whichever is higher decides it." });
+Lib.match($("#m1"), { prompt: "Match the term to its definition.", pairs: [
+  ["Government budget", "A plan of what the government expects to raise and spend"],
+  ["Budget deficit", "Government spending is higher than revenue"],
+  ["Budget surplus", "Government revenue is higher than spending"],
+  ["Balanced budget", "Government spending and revenue are equal"],
+  ["National debt", "Total amount the government has borrowed over time"],
+  ["Automatic stabilisers", "Spending and taxes that change with the economy without a new policy"],
+], done: "Good vocabulary scores marks." });
+Lib.order($("#o1"), { prompt: "Put the steps in order: how a <b>recession</b> widens the deficit with no change in policy.", items: [
+  "The economy slows and firms lay off workers",
+  "Household incomes and spending fall",
+  "Income tax and sales tax revenue fall",
+  "More people claim unemployment benefit, so spending rises",
+  "Spending rises while revenue falls: the budget deficit widens",
+  "The government borrows more, adding to the national debt",
+], done: "That is how automatic stabilisers work." });
+Lib.calc($("#c1"), { qs: [
+  { q: "The Maldives forecast a budget deficit of $200m and government revenue of $1.4bn ($1,400m). How much did it plan to spend ($m)?", a: 1600, hint: "Deficit = spending − revenue.", sol: "Spending = revenue + deficit = 1,400 + 200 = <b>$1,600m</b> ($1.6bn)." },
+  { q: "A government has revenue of $85bn and spending of $92bn. What is its budget balance ($bn)? Use a minus sign for a deficit.", a: -7, hint: "Budget balance = revenue − spending.", sol: "85 − 92 = <b>−$7bn</b>, a budget deficit of $7bn." },
+  { q: "New Zealand 2016: revenue was NZ$78.5bn and spending NZ$77.5bn. What is the budget position (NZ$bn; positive for a surplus)?", a: 1, sol: "78.5 − 77.5 = <b>+NZ$1.0bn</b>, a small budget surplus." },
+  { q: "Income tax was NZ$32.5bn out of total revenue of NZ$78.5bn. What percentage of revenue came from income tax? (1 d.p.)", a: 41.4, tol: 0.1, sol: "32.5 ÷ 78.5 × 100 = <b>41.4%</b>." },
+  { q: "An economy has a budget deficit of $5bn and GDP of $100bn. What is the deficit as a percentage of GDP?", a: 5, sol: "5 ÷ 100 × 100 = <b>5%</b>." },
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "What is a budget deficit?", opts: ["Revenue is higher than spending", "Spending is higher than revenue", "The total amount borrowed over time", "Revenue and spending are equal"], a: 1, why: "A deficit means the government spends more than it raises in that period." },
+  { q: "A government has revenue of $60bn and spending of $68bn. What is its budget position?", opts: ["Surplus of $8bn", "Surplus of $128bn", "Deficit of $8bn", "Balanced"], a: 2, why: "60 − 68 = −8: a deficit of $8bn." },
+  { q: "What is the national debt?", opts: ["The yearly budget deficit", "The total the government has borrowed over time", "Spending on imports", "The gap between exports and imports"], a: 1, why: "Deficits add to the debt each year; the debt is the running total." },
+  { q: "A recession is likely to cause the deficit to:", opts: ["Narrow, as tax revenue rises", "Widen, as tax revenue falls and benefit spending rises", "Disappear", "Stay unchanged whatever the government does"], a: 1, why: "Automatic stabilisers move the budget towards deficit in a slump." },
+  { q: "Which is most likely to happen if a government runs a budget surplus?", opts: ["It has to borrow more", "It can repay some debt", "The national debt must rise", "Taxes must fall"], a: 1, why: "A surplus gives spare money which can repay debt." },
+  { q: "Which is an opportunity cost of a large national debt?", opts: ["Higher interest payments each year", "Larger tax revenues", "Fewer imports", "More workers employed"], a: 0, why: "Interest on the debt uses money that could have paid for services." },
+] });
+
+Lib.cards($("#fc1"), { cards: [
+  ["Budget", "The relationship between government revenue and government spending."],
+  ["Budget deficit", "Government spending is higher than revenue"],
+  ["Budget deficit", "Government spending is higher than government revenue. Budget balance = revenue − spending is negative."],
+  ["Budget surplus", "Government revenue is higher than spending"],
+  ["Budget surplus", "Government revenue is higher than government spending."],
+  ["Balanced budget", "Government spending and revenue are equal."],
+  ["National debt", "Total amount the government has borrowed over time"],
+  ["National debt", "The total amount the government has borrowed over time."],
+  ["Automatic stabilisers", "Spending and taxes that cushion booms and slumps with no policy change"],
+  ["Automatic stabilisers", "Government spending and taxation that reduce fluctuations in economic activity with no change in policy."],
+  ["Tax burden", "The amount of tax paid, often shown as a percentage of GDP."],
+  ["Government budget", "A plan of what the government expects to raise in revenue and spend over a year."],
+  ["Borrowing", "Money a government raises, usually by selling bonds, to cover a deficit."],
+] });
+labA(); labD();
+
+Lib.initTabs();
+</script>
+</body></html>

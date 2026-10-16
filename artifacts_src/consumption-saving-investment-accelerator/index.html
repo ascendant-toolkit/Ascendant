@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Consumption, Saving, Investment and the Accelerator</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Economics · 9708 · Syllabus 9.1 · Part 3 of 3</div>
+  <h1>Consumption, Saving, Investment and the Accelerator</h1>
+  <p class="lead">The consumption function, the MPC and APC, what shifts consumption and saving, what determines investment, and the accelerator principle. Animated diagrams, labs, drills and the past paper questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This part in four sentences</h3>
+  <p>Consumption is the largest part of aggregate demand and depends mainly on <b>disposable income</b>: the <b>consumption function</b> is <b>C = a + cY</b>, where <b>a</b> is autonomous consumption and <b>c</b> is the <b>marginal propensity to consume (MPC)</b>. What is not consumed is <b>saved</b>, so S = Y − C and MPC + MPS = 1. Consumption and saving also depend on wealth, interest rates, confidence, credit and taxes, while <b>investment</b> depends on interest rates, expected profit and confidence, and on the <b>accelerator principle</b>: investment depends on the <b>rate of change of national income</b>. Because investment is an injection that is also volatile, it is a main cause of swings in the economy.</p></div>
+
+  <h2>1 · The consumption function</h2>
+  <div class="formula">C = a + cY &nbsp;·&nbsp; S = Y − C &nbsp;·&nbsp; MPC = ΔC ÷ ΔY &nbsp;·&nbsp; APC = C ÷ Y</div>
+  <p>With a = 100 and c = 0.75, a household with income $400 consumes 100 + 0.75 × 400 = $400, so it saves nothing (break-even income). At income $200 it consumes $250 (it dissaves, using savings or borrowing); at income $800 it consumes $700 and saves $100.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Income Y</th><th>Consumption C</th><th>Saving S</th><th>APC = C ÷ Y</th><th>MPC (extra C ÷ extra Y)</th></tr>
+    <tr><td>200</td><td>250</td><td>−50</td><td>1.25</td><td></td></tr>
+    <tr><td>400</td><td>400</td><td>0</td><td>1.00</td><td>0.75</td></tr>
+    <tr><td>600</td><td>550</td><td>50</td><td>0.92</td><td>0.75</td></tr>
+    <tr><td>800</td><td>700</td><td>100</td><td>0.88</td><td>0.75</td></tr>
+  </table></div>
+  <p>The <b>average propensity to consume</b> falls as income rises, while the MPC stays constant on a straight-line function. A change in income moves you <b>along</b> the function; a change in anything else (wealth, confidence, interest rates) <b>shifts</b> it.</p>
+
+  <h2>2 · Determinants of consumption and saving</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Factor</th><th>Effect on consumption</th></tr>
+    <tr><td>Disposable income</td><td>The main determinant: more income, more consumption (a movement along the function)</td></tr>
+    <tr><td>Wealth</td><td>Higher house or share prices raise consumption (the wealth effect)</td></tr>
+    <tr><td>Interest rates</td><td>A lower rate cuts the reward for saving and the cost of borrowing: consumption rises</td></tr>
+    <tr><td>Consumer confidence</td><td>Optimism about jobs and incomes raises spending; fear raises saving</td></tr>
+    <tr><td>Availability of credit</td><td>Easier borrowing raises consumption now</td></tr>
+    <tr><td>Taxes and benefits</td><td>Lower income tax raises disposable income</td></tr>
+    <tr><td>Age structure and expectations of inflation</td><td>Younger households spend more of income; expected price rises may bring spending forward</td></tr>
+  </table></div>
+
+  <h2>3 · Investment and the accelerator</h2>
+  <p>Investment (spending on capital goods) depends on the <b>rate of interest</b> (the cost of borrowing), <b>expected profit and business confidence</b>, the amount of <b>spare capacity</b>, technology and government policy. The <b>accelerator principle</b> says that investment depends on the <b>rate of change of national income</b>, not its level: I = v × ΔY, where v is the accelerator (the capital-output ratio).</p>
+  <div class="tw"><table class="t">
+    <tr><th>Year</th><th>National income</th><th>Change in income</th><th>Investment (v = 2)</th></tr>
+    <tr><td>1</td><td>100</td><td></td><td></td></tr>
+    <tr><td>2</td><td>110</td><td>10</td><td>20</td></tr>
+    <tr><td>3</td><td>125</td><td>15</td><td>30</td></tr>
+    <tr><td>4</td><td>135</td><td>10</td><td>20</td></tr>
+    <tr><td>5</td><td>140</td><td>5</td><td>10</td></tr>
+    <tr><td>6</td><td>140</td><td>0</td><td>0</td></tr>
+  </table></div>
+  <div class="tip"><b class="h">The key insight</b>Investment falls in year 4 even though income is still rising, because income is growing more slowly. That makes investment, and so aggregate demand, unstable. A slowdown in the growth of income can cut investment sharply, and a stronger recovery can lift it by more than the rise in income.</div>
+  <h3>Evaluating the accelerator</h3>
+  <ul>
+    <li>It assumes firms are already at full capacity. With spare capacity, a rise in demand can be met without new investment.</li>
+    <li>It assumes a constant capital-output ratio, and that firms can get the capital goods and finance.</li>
+    <li>Expectations and interest rates also matter: firms may invest because they expect growth, or hold back despite growth if confidence is low.</li>
+    <li>Time lags: orders for machinery follow changes in income after a delay.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · The consumption function</h2>
+  <p>C = 100 + 0.75Y. Press Play, or click the steps.</p><div id="stC"></div>
+  <h2>2 · The accelerator</h2>
+  <p>Income grows by smaller amounts each year; investment is twice the change in income.</p><div id="stA"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Consumption, saving and propensities</h2>
+  <p>Set autonomous consumption and the MPC, then move income. The dotted line is C = Y, where saving is zero.</p>
+  <div class="card"><div class="grid2"><div><div id="g1"></div><div id="g2"></div><div id="g3"></div>
+    <div class="readout"><div><small>Consumption C</small><strong id="c1r"></strong></div><div><small>Saving S</small><strong id="c2r"></strong></div><div><small>APC</small><strong id="c3r"></strong></div><div><small>MPC</small><strong id="c4r"></strong></div></div>
+    <div class="verdict" id="cv"></div></div>
+    <div><svg id="labN" viewBox="0 0 420 300" role="img" aria-label="Consumption function with the 45 degree line and the chosen income level"></svg></div></div></div>
+
+  <h2>Lab 2 · The accelerator</h2>
+  <p>Income is 100 in year 1. Choose the growth rate in each of the next three years and the accelerator v. Investment is v times the change in income.</p>
+  <div class="card"><div class="grid2"><div><div id="g4"></div><div id="g5"></div><div id="g6"></div><div id="g7"></div>
+    <div class="readout"><div><small>Investment, year 2</small><strong id="a1"></strong></div><div><small>Investment, year 3</small><strong id="a2"></strong></div><div><small>Investment, year 4</small><strong id="a3"></strong></div></div>
+    <div class="verdict" id="av"></div></div>
+    <div><svg id="labO" viewBox="0 0 420 280" role="img" aria-label="Bars of national income and investment over four years"></svg></div></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Movement along or shift of the consumption function?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Match the word to its meaning</h2><div id="m1" class="card"></div>
+  <h2>3 · Put the accelerator chain in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Calculations</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A housing boom</h3><p>When house prices rise, owners feel wealthier and may spend more, and may borrow against the value of their homes. Consumption rises even with no change in current income: the consumption function shifts up.</p><div class="use"><b>Exam use:</b> the wealth effect as a shift of the consumption function.</div></div>
+  <div class="rw"><h3>Car makers during a slowdown</h3><p>If sales of cars are still rising but more slowly, car makers may stop expanding their factories. Orders for machines and robots fall even though the market has not shrunk, which hits the firms that make capital equipment hardest.</p><div class="use"><b>Exam use:</b> the accelerator: investment depends on the rate of change of income.</div></div>
+  <div class="rw"><h3>Interest rate cuts and business confidence</h3><p>A central bank cuts rates to encourage investment. If firms expect weak demand, they may leave projects on hold, so investment responds little.</p><div class="use"><b>Exam use:</b> interest-inelastic investment and the role of confidence.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Past paper questions on consumption, saving and investment</h2>
+  <p>We searched the A Level Economics papers in the folder (2020 to 2025). Below are the Paper 4 essay parts on the marginal propensity to consume and on saving, and seven Paper 3 multiple choice questions on the accelerator and the consumption function. Mark scheme points are summarised in our own words, not copied.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Type</th><th>Examples found</th><th>Where</th></tr>
+    <tr><td>Essay parts, 12 and 13 marks</td><td>2</td><td>Oct/Nov 2021 (41)</td></tr>
+    <tr><td>Multiple choice (Paper 3)</td><td>7 shown below</td><td>2020 to 2025</td></tr>
+  </table></div>
+  <h2>A · Essay parts</h2>
+  <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+  <details class="eq"><summary>Oct/Nov 2021 · 9708/41 · Q4(a) <span class="mark">12 marks</span> Explain what economists mean by the marginal propensity to consume and consider the importance of this concept in relation to government macroeconomic policy.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul><li>The <b>MPC</b>: the proportion of an extra unit of income that is spent (the change in consumption divided by the change in income), with the link to the MPS.</li><li>Its importance for the government's macroeconomic aims: the MPC determines the size of the <b>multiplier</b>, so it affects how far fiscal changes (or tax cuts) change income, output, employment and inflation, and how much is needed to close a gap.</li><li>Developed analysis relates the MPC to each of several policy goals, with comment on its limits (it may change, and varies between groups).</li></ul></div>
+  </div></details>
+
+  <details class="eq"><summary>Oct/Nov 2021 · 9708/41 · Q4(b) <span class="mark">13 marks</span> Discuss what determines the level of savings in an economy and assess the impact of an increase in the level of savings upon economic growth and employment.</summary><div class="body">
+    <div class="tip"><b class="h">Plan</b>
+      <ul><li><b>Determinants:</b> income and its distribution, interest rates, confidence and expectations, wealth, age structure, access to credit, tax treatment of saving.</li><li><b>Impact:</b> a rise in saving is a withdrawal, so if investment does not rise to match it, injections are below withdrawals and income, growth and employment may fall (the paradox of thrift). If savings fund investment, <b>capacity</b> and long-run growth can rise.</li><li>Evaluate: depends on whether savings are lent to firms and on confidence, on the interest rate, on the state of the economy (recession or boom), and on time.</li></ul></div>
+  </div></details>
+
+  <h2>B · Practice question with a model answer</h2>
+  <details class="eq"><summary>Practice (not a past paper question) <span class="mark">8 marks</span> Explain the accelerator principle and why it makes investment unstable.</summary><div class="body">
+    <div class="tip"><b class="h">Plan</b>State the principle. Give a numerical example showing investment falling while income rises. Link to instability. One evaluative point.</div>
+    <div class="key"><span class="k"><i></i>K</span><span class="a"><i></i>A</span><span class="n"><i></i>N</span><span class="e"><i></i>E</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">The accelerator principle states that the level of investment depends on the rate of change of national income, not its level. If the capital-output ratio is 2, investment in new capital equals twice the change in income.</span></p>
+    <p><span class="mk a" data-t="A">For example, if national income rises by $10m in one year and by $15m the next, investment would be $20m and then $30m. If income then rises by only $10m, investment falls to $20m even though national income is still rising.</span> <span class="mk n" data-t="N">Because a small change in the growth of income causes a larger change in investment, and investment is an injection, aggregate demand can swing sharply, which may amplify booms and recessions.</span> <span class="mk e" data-t="E">The effect could be weaker if firms have spare capacity, if the capital-output ratio is not constant, or if confidence and interest rates matter more than current growth.</span></p></div>
+  </div></details>
+
+  <h2>C · Multiple choice questions (Paper 3)</h2>
+  <p>Choose an answer, then read the reason. Source: paper code and question number.</p>
+  <div id="qz2"></div>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Define MPC as a change:</b> extra consumption divided by extra income. Do not confuse it with the average propensity to consume (C ÷ Y).</li>
+    <li><b>Separate movements from shifts:</b> a change in income moves you along the consumption function; wealth, confidence, interest rates and taxes shift it.</li>
+    <li><b>Remember MPC + MPS = 1</b> in a simple model, and use it to find the multiplier.</li>
+    <li><b>For the accelerator, talk about the rate of change of income.</b> Investment can fall while income is still rising.</li>
+    <li><b>Use the numbers.</b> A short example with income, change in income and investment gains application marks.</li>
+    <li><b>Evaluate the accelerator</b> with spare capacity, constant capital-output ratio, confidence and interest rates.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>MPC</td><td>"The marginal propensity to consume is the proportion of an additional dollar of income that is spent."</td></tr>
+    <tr><td>Shift</td><td>"A rise in wealth could shift the consumption function upwards, so consumption is higher at every level of income."</td></tr>
+    <tr><td>Accelerator</td><td>"According to the accelerator principle, investment depends on the rate of change of national income, so a fall in the growth of income could cut investment."</td></tr>
+    <tr><td>Saving</td><td>"A rise in saving is a withdrawal, so unless investment rises, national income may fall."</td></tr>
+  </table></div>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Explain</td><td>Give reasons, with a clear chain of cause and effect.</td></tr>
+    <tr><td>Consider</td><td>Look at the issue from several sides and judge how strong each is.</td></tr>
+    <tr><td>Discuss / Assess</td><td>Arguments on both sides, then a judgement.</td></tr>
+  </table></div>
+  <h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+
+/* ---------- Watch 1: consumption function ---------- */
+const CXs = (y) => 70 + y * 0.85, CYs = (v) => 330 - v * 0.42;
+function consDraw(s) {
+  let o = SV.line(70, 330, 760, 330) + SV.line(70, 330, 70, 30) + SV.text(760, 370, "Disposable income Y", "sm", { "text-anchor": "end" }) + SV.text(76, 24, "Consumption C", "sm");
+  [0, 200, 400, 600, 800].forEach((y) => { o += SV.text(CXs(y), 346, y, "sm", { "text-anchor": "middle" }); });
+  if (s.l > 0) o += SV.line(CXs(0), CYs(0), CXs(700), CYs(700), "gr", { "stroke-dasharray": "5 5", ...op(s.l) }) + SV.text(CXs(700) - 4, CYs(700) + 18, "C = Y", "sm bd", { "text-anchor": "end", ...halo, ...op(s.l) });
+  if (s.c > 0) o += SV.line(CXs(0), CYs(100), CXs(800), CYs(700), "c1", op(s.c)) + SV.text(CXs(800) - 4, CYs(700) - 10, "C = 100 + 0.75Y", "lbl bd t1", { "text-anchor": "end", ...halo, ...op(s.c) });
+  if (s.a > 0) o += SV.circle(CXs(0), CYs(100), 6, "dot3", op(s.a)) + SV.text(CXs(0) + 12, CYs(100) - 8, "autonomous consumption = 100", "lbl bd t3", { ...halo, ...op(s.a) });
+  if (s.b > 0) o += SV.line(CXs(400), CYs(400), CXs(400), 330, "gr", op(s.b)) + SV.circle(CXs(400), CYs(400), 7, "dot2", op(s.b)) + SV.text(CXs(400), 372, "Y = 400: C = Y, saving = 0", "lbl bd t2", { "text-anchor": "middle", ...op(s.b) });
+  if (s.m > 0) o += SV.line(CXs(600), CYs(550), CXs(800), CYs(550), "c4", { "stroke-width": 3, ...op(s.m) }) + SV.line(CXs(800), CYs(550), CXs(800), CYs(700), "c4", { "stroke-width": 3, ...op(s.m) }) + SV.text(CXs(700), CYs(550) + 18, "ΔY = 200", "sm bd t4", { "text-anchor": "middle", ...halo, ...op(s.m) }) + SV.text(CXs(800) + 6, CYs(625), "ΔC = 150", "sm bd t4", { ...halo, ...op(s.m) });
+  return o;
+}
+Lib.stepper($("#stC"), { w: 780, h: 385, label: "Consumption function C equals 100 plus 0.75 Y with the 45 degree line", base: { l: 0, c: 0, a: 0, b: 0, m: 0 }, draw: consDraw, tween: 800, dwell: 5600, steps: [
+  { cap: "<b>The 45° line.</b> Points on C = Y show consumption equal to income, so saving is zero.", s: { l: 1 } },
+  { cap: "<b>The consumption function.</b> C = 100 + 0.75Y slopes up: more income, more consumption, but less than one-for-one.", s: { l: 1, c: 1 } },
+  { cap: "<b>Autonomous consumption.</b> The intercept (100) is spending that does not depend on income: it is funded by savings or borrowing at low incomes.", s: { l: 1, c: 1, a: 1 } },
+  { cap: "<b>Break-even income.</b> Where the function crosses the 45° line (Y = 400) households spend all their income. Below it they dissave; above it they save.", s: { l: 1, c: 1, a: 1, b: 1 } },
+  { cap: "<b>The MPC.</b> The slope is the marginal propensity to consume: when income rises by 200 consumption rises by 150, so <b>MPC = 150 ÷ 200 = 0.75</b>, and MPS = 0.25.", s: { l: 1, c: 1, a: 0.4, b: 0.4, m: 1 } },
+] });
+
+/* ---------- Watch 2: accelerator ---------- */
+const AY = [100, 110, 125, 135, 140, 140];
+function accDraw(s) {
+  let o = SV.line(60, 150, 740, 150) + SV.text(62, 24, "National income", "sm") + SV.line(60, 340, 740, 340) + SV.text(62, 196, "Investment = 2 × change in income", "sm");
+  AY.forEach((y, i) => {
+    const k = Math.max(0, Math.min(1, s.n - i)), x = 90 + i * 108; if (k <= 0) return;
+    o += SV.rect(x, 150 - y * 0.8 * k, 56, y * 0.8 * k, "f1", op(k)) + SV.text(x + 28, 150 - y * 0.8 * k - 6, y, "sm bd", { "text-anchor": "middle", ...op(k) }) + SV.text(x + 28, 168, "year " + (i + 1), "sm", { "text-anchor": "middle", ...op(k) });
+    if (i > 0) { const inv = 2 * (y - AY[i - 1]); o += SV.rect(x, 340 - inv * 3 * k, 56, inv * 3 * k, inv >= (i > 1 ? 2 * (AY[i - 1] - AY[i - 2]) : 0) ? "f3" : "f2", op(k)) + SV.text(x + 28, 340 - inv * 3 * k - 6, inv, "sm bd", { "text-anchor": "middle", ...op(k) }); }
+  });
+  if (s.f > 0) o += SV.text(560, 232, "income still rising, investment falls", "lbl bd t2", { "text-anchor": "middle", ...halo, ...op(s.f) });
+  return o;
+}
+Lib.stepper($("#stA"), { w: 780, h: 365, label: "National income growing by smaller amounts and the investment that follows from the accelerator", base: { n: 0, f: 0 }, draw: accDraw, tween: 800, dwell: 5600, steps: [
+  { cap: "<b>Year 1.</b> National income is 100 and there is no change yet, so no net investment is needed.", s: { n: 1 } },
+  { cap: "<b>Year 2.</b> Income rises by 10 to 110. With an accelerator of 2, firms need 20 of extra capital: <b>investment = 20</b>.", s: { n: 2 } },
+  { cap: "<b>Year 3.</b> Income rises by 15 to 125, a faster rise, so <b>investment rises to 30</b>.", s: { n: 3 } },
+  { cap: "<b>Year 4.</b> Income rises by only 10 to 135. Investment falls to <b>20</b> even though income is still rising.", s: { n: 4, f: 1 } },
+  { cap: "<b>Years 5 and 6.</b> Growth slows to 5 and then 0, so investment falls to 10 and then 0. A slowdown in growth can cut investment (an injection) sharply.", s: { n: 6, f: 1 } },
+] });
+
+/* ---------- Lab 1 ---------- */
+function labCons() {
+  if (!$("#ca") || !$("#cc") || !$("#cy")) return;
+  const a = +$("#ca").value, c = +$("#cc").value, y = +$("#cy").value, C = a + c * y, S = y - C, F = { x: (v) => 40 + v * 0.42, y: (v) => 270 - v * 0.34 };
+  $("#c1r").textContent = "$" + Lib.fmtN(C, 0); $("#c2r").textContent = (S < 0 ? "−$" : "$") + Lib.fmtN(Math.abs(S), 0); $("#c3r").textContent = y ? Lib.fmtN(C / y, 2) : "–"; $("#c4r").textContent = Lib.fmtN(c, 2);
+  $("#cv").textContent = S < -0.5 ? `At income $${y} consumption ($${Lib.fmtN(C, 0)}) is above income, so households dissave $${Lib.fmtN(-S, 0)} (APC is above 1).` : S > 0.5 ? `At income $${y} households consume $${Lib.fmtN(C, 0)} and save $${Lib.fmtN(S, 0)}. The APC (${Lib.fmtN(C / y, 2)}) is below 1, while the MPC stays at ${Lib.fmtN(c, 2)}.` : `At income $${y} consumption equals income: break-even, saving is zero.`;
+  let o = SV.line(40, 270, 400, 270) + SV.line(40, 270, 40, 20) + SV.text(396, 292, "Income Y", "sm", { "text-anchor": "end" }) + SV.text(46, 24, "C", "sm");
+  o += SV.line(F.x(0), F.y(0), F.x(800), F.y(800), "gr", { "stroke-dasharray": "5 5" }) + SV.line(F.x(0), F.y(a), F.x(800), F.y(a + c * 800), "c1") + SV.line(F.x(y), F.y(C), F.x(y), 270, "gr") + SV.circle(F.x(y), F.y(C), 6, "dot1") + SV.text(F.x(800) - 4, F.y(800) + 16, "C = Y", "sm bd", { "text-anchor": "end" }) + SV.text(F.x(y), 288, y, "sm bd", { "text-anchor": "middle" });
+  $("#labN").innerHTML = o;
+}
+Lib.slider($("#g1"), { id: "ca", label: "Autonomous consumption a ($): ", min: 0, max: 200, step: 20, value: 100, fmt: (v) => v, onInput: labCons });
+Lib.slider($("#g2"), { id: "cc", label: "Marginal propensity to consume c: ", min: 0.5, max: 0.95, step: 0.05, value: 0.75, fmt: (v) => Lib.fmtN(v, 2), onInput: labCons });
+Lib.slider($("#g3"), { id: "cy", label: "Disposable income Y ($): ", min: 0, max: 800, step: 50, value: 400, fmt: (v) => v, onInput: labCons });
+
+/* ---------- Lab 2 ---------- */
+function labAcc() {
+  if (!$("#v2") || !$("#v3") || !$("#v4") || !$("#vv")) return;
+  const g = [+$("#v2").value / 100, +$("#v3").value / 100, +$("#v4").value / 100], v = +$("#vv").value, y = [100]; g.forEach((r) => y.push(y[y.length - 1] * (1 + r)));
+  const inv = [1, 2, 3].map((i) => v * (y[i] - y[i - 1]));
+  $("#a1").textContent = "$" + Lib.fmtN(inv[0], 1); $("#a2").textContent = "$" + Lib.fmtN(inv[1], 1); $("#a3").textContent = "$" + Lib.fmtN(inv[2], 1);
+  const fall = inv[2] < inv[1] - 0.05 && y[3] > y[2], fall2 = inv[1] < inv[0] - 0.05 && y[2] > y[1];
+  $("#av").textContent = fall || fall2 ? `Income is still rising, but investment falls (${Lib.fmtN(inv[fall2 && !fall ? 0 : 1], 1)} to ${Lib.fmtN(inv[fall2 && !fall ? 1 : 2], 1)}) because the increase in income is smaller than the year before: the accelerator.` : "Investment follows the change in income. Lower the growth rate in a later year to see investment fall while income is still rising.";
+  const base = 240;
+  let o = SV.line(30, base, 400, base);
+  y.forEach((val, i) => { const x = 50 + i * 85; o += SV.rect(x, base - val * 0.8, 28, val * 0.8, "f1") + SV.text(x + 14, base - val * 0.8 - 6, Lib.fmtN(val, 0), "sm bd", { "text-anchor": "middle" }) + SV.text(x + 14, base + 14, "Y" + (i + 1), "sm", { "text-anchor": "middle" }); if (i > 0) { const h = Math.max(0, inv[i - 1]) * 2; o += SV.rect(x + 32, base - h, 28, h, "f3") + SV.text(x + 46, base - h - 6, Lib.fmtN(inv[i - 1], 0), "sm bd t3", { "text-anchor": "middle" }); } });
+  o += SV.text(210, 268, "blue: national income · green: investment", "sm", { "text-anchor": "middle" });
+  $("#labO").innerHTML = o;
+}
+Lib.slider($("#g4"), { id: "v2", label: "Growth in year 2: ", min: -2, max: 20, step: 1, value: 10, fmt: (v) => v + "%", onInput: labAcc });
+Lib.slider($("#g5"), { id: "v3", label: "Growth in year 3: ", min: -2, max: 20, step: 1, value: 14, fmt: (v) => v + "%", onInput: labAcc });
+Lib.slider($("#g6"), { id: "v4", label: "Growth in year 4: ", min: -2, max: 20, step: 1, value: 8, fmt: (v) => v + "%", onInput: labAcc });
+Lib.slider($("#g7"), { id: "vv", label: "Accelerator v (capital-output ratio): ", min: 1, max: 4, step: 0.5, value: 2, fmt: (v) => Lib.fmtN(v, 1), onInput: labAcc });
+
+/* ---------- Practise ---------- */
+Lib.classify($("#cl1"), {
+  prompt: "Does each change move households along the consumption function or shift it?",
+  buckets: [{ label: "Movement along the function" }, { label: "Shift of the function" }],
+  items: [
+    { text: "A rise in disposable income from a pay rise", b: 0 }, { text: "A fall in disposable income after a tax rise", b: 0 },
+    { text: "A rise in house prices (wealth)", b: 1 }, { text: "Households become more confident about jobs", b: 1 }, { text: "Credit becomes easier to get", b: 1 }, { text: "A fall in interest rates that discourages saving", b: 1 }, { text: "Fear of a recession raises saving at every income", b: 1 },
+  ], done: "Income changes move you along the function; everything else shifts it.",
+});
+Lib.match($("#m1"), { prompt: "Match each word to its meaning.", pairs: [
+  ["Consumption function", "The relationship between consumption and disposable income: C = a + cY"],
+  ["Autonomous consumption", "Spending that does not depend on current income"],
+  ["Marginal propensity to consume", "The share of an extra dollar of income that is spent"],
+  ["Average propensity to consume", "Consumption divided by income"],
+  ["Wealth effect", "A change in consumption caused by a change in the value of assets"],
+  ["Accelerator principle", "Investment depends on the rate of change of national income"],
+  ["Capital-output ratio", "The amount of capital needed to produce a unit of output (the accelerator)"],
+], done: "Seven words for consumption and investment." });
+Lib.order($("#o1"), { prompt: "Put the accelerator chain in order.", items: [
+  "Demand and national income grow",
+  "Firms need more capital to meet the extra output",
+  "Investment rises by the accelerator times the change in income",
+  "National income continues to rise, but by less",
+  "The change in income falls, so the extra capital needed falls",
+  "Investment falls, reducing aggregate demand even though income is still rising",
+], done: "The key point is the rate of change of income." });
+Lib.calc($("#c1"), { qs: [
+  { q: "Consumption is C = 100 + 0.75Y. What is consumption when income is $600?", a: 550, sol: "100 + 0.75 × 600 = <b>$550</b>." },
+  { q: "What is saving at income $600 ($)?", a: 50, sol: "600 − 550 = <b>$50</b>." },
+  { q: "What is the average propensity to consume at income $600 (2 decimal places)?", a: 0.92, tol: 0.01, sol: "550 ÷ 600 = <b>0.92</b>." },
+  { q: "Income rises from $1,000 to $1,200 and consumption rises from $800 to $900. What is the MPC?", a: 0.5, tol: 0.01, sol: "100 ÷ 200 = <b>0.5</b>." },
+  { q: "The MPC is 0.8. What is the MPS?", a: 0.2, tol: 0.01, sol: "1 − 0.8 = <b>0.2</b>." },
+  { q: "The accelerator is 3. National income rises by $20m. What is the investment ($m)?", a: 60, sol: "3 × 20 = <b>$60m</b>." },
+  { q: "Income rises by $20m in one year and by $15m the next. With an accelerator of 3, by how much does investment fall ($m)?", a: 15, sol: "Investment falls from 60 to 45: a fall of <b>$15m</b>, although income is still rising." },
+  { q: "A consumer's income is $1,000 and she spends 80% of it. What is her average propensity to consume?", a: 0.8, tol: 0.01, sol: "800 ÷ 1,000 = <b>0.8</b>." },
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "The marginal propensity to consume is:", opts: ["total consumption ÷ total income", "the change in consumption ÷ the change in income", "income − saving", "saving ÷ income"], a: 1, why: "It is about extra income, not total income." },
+  { q: "An increase in house prices is most likely to:", opts: ["move households along the consumption function", "shift the consumption function upwards", "reduce the MPC to zero", "have no effect"], a: 1, why: "A wealth effect raises consumption at every income." },
+  { q: "According to the accelerator principle, investment will fall when:", opts: ["income falls only", "the rate of growth of income falls", "income rises at a constant rate", "interest rates fall"], a: 1, why: "Investment depends on the rate of change of income." },
+  { q: "If MPC = 0.9, then MPS =", opts: ["0.1", "0.9", "1.9", "0.09"], a: 0, why: "MPC + MPS = 1." },
+  { q: "A rise in saving that is not matched by a rise in investment will probably:", opts: ["raise national income", "lower national income", "not affect national income", "raise the multiplier"], a: 1, why: "Withdrawals exceed injections, so income falls." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Consumption function", "C = a + cY: consumption depends on disposable income."],
+  ["Autonomous consumption", "Spending that does not depend on current income (the intercept a)."],
+  ["MPC", "Change in consumption ÷ change in income."],
+  ["APC", "Consumption ÷ income."],
+  ["MPS", "Change in saving ÷ change in income; MPC + MPS = 1."],
+  ["Wealth effect", "A rise in asset values raises consumption."],
+  ["Accelerator principle", "Investment depends on the rate of change of national income."],
+  ["Investment determinants", "Interest rates, expected profit, confidence, spare capacity and technology."],
+  ["Paradox of thrift", "If everyone saves more, income may fall and total saving may not rise."],
+] });
+Lib.quiz($("#qz2"), { qs: [
+  { q: '[Feb/March 2023 · 32 · Q21] What does the accelerator principle state?', opts: ['Consumption is a function of the rate of change of income.', 'Income is a function of the rate of change of investment.', 'Investment is a function of the rate of change of income.', 'Investment is a function of the rate of interest.'], a: 2, why: 'The accelerator links investment to the rate of change of income.' },
+  { q: '[May/June 2020 (not sat) · 31 · Q24] What does the accelerator principle explain?', opts: ['how changes in consumption lead to changes in income', 'how changes in income lead to changes in consumption', 'how changes in income lead to changes in investment', 'how changes in investment lead to changes in income'], a: 2, why: 'The accelerator explains how changes in income lead to changes in investment. Option D is the multiplier.' },
+  { q: '[Feb/March 2025 · 32 · Q15] What does the accelerator principle explain?', opts: ['how changes in consumption lead to changes in income', 'how changes in income lead to changes in consumption', 'how changes in income lead to changes in investment', 'how changes in investment lead to changes in income'], a: 2, why: 'Income changes lead to changes in investment through the accelerator.' },
+  { q: '[Oct/Nov 2020 · 31 · Q24] According to the accelerator theory, what would cause investment in an economy to be lower than in the previous year?', opts: ['a lower marginal propensity to consume than in the previous year', 'a lower marginal propensity to save than in the previous year', 'a smaller fall in national income than occurred in the previous year', 'a smaller rise in national income than occurred in the previous year'], a: 3, why: 'A smaller rise in income means a smaller change in income, so investment falls.' },
+  { q: '[Oct/Nov 2023 · 33 · Q21] What, according to the accelerator principle, will cause the level of investment to fall?', opts: ['a decrease in confidence', 'a decrease in the rate of growth of national income', 'an increase in the price of capital equipment', 'an increase in the rate of interest'], a: 1, why: 'The accelerator principle is about the rate of growth of national income. The other options are real influences, but not part of the accelerator.' },
+  { q: '[Oct/Nov 2023 · 31 · Q22] What is the basic assumption underlying the accelerator theory?', opts: ['Investment depends on the level of business confidence.', 'Investment depends on the level of savings.', 'Investment depends on the rate of change in national income.', 'Investment depends on the rate of change of interest rates.'], a: 2, why: 'Investment depends on the rate of change of national income.' },
+  { q: '[Oct/Nov 2024 · 31 · Q19] A consumer has an income of $1000 per week and spends 80% of this. After income rises to $1200 per week, consumption increases to $900 per week. Which statement is correct?', opts: ['The average propensity to consume does not change.', 'The initial average propensity to consume is 5.', 'The marginal propensity to consume is 0.5.', 'The marginal propensity to consume is 2.'], a: 2, why: 'The MPC is the change in consumption (900 − 800 = 100) divided by the change in income (200) = 0.5. The APC falls from 0.8 to 0.75.' },
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

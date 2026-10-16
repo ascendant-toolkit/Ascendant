@@ -1,0 +1,1195 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Recursion in Action: Compound Interest and Its Trace Table</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<style>
+.pick{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:6px 0 10px}
+.pick select{font:600 .95rem var(--sans);padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.pick label{font-weight:600;font-size:.92rem}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .85rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+#ciChart svg{display:block;width:100%;height:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.callbox{font:700 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:8px 14px;border-radius:0 8px 8px 0;margin:8px 0;overflow-x:auto}
+.step4{counter-reset:s;list-style:none;padding:0;margin:8px 0}
+.step4 li{counter-increment:s;display:flex;gap:10px;padding:8px 12px;margin-bottom:6px;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
+.step4 li::before{content:counter(s);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+.algo{grid-template-columns:minmax(0,1fr)}
+table.t td,table.t th{white-space:normal}
+table.t.mono td,table.t.mono th{white-space:nowrap}
+</style>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Chapter 19 · 19.2</div>
+  <h1>Recursion in Action: Compound Interest and Its Trace Table</h1>
+  <p class="lead">One small recursive function, followed all the way through: what each call does, how the call stack grows and shrinks, how the trace table is filled in row by row, and every past-paper question that tests the same skills. Includes a check of the coursebook’s Table 19.29.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<!-- LEARN -->
+<section id="learn" role="tabpanel">
+  <div class="card big">
+    <h3>The problem</h3>
+    <p>Put 100 in an account that pays 5% a year, and leave the interest in. After one year there is 100 × 1.05 = 105. After two years there is 105 × 1.05 = 110.25. After three years, 110.25 × 1.05 = 115.7625. This is <span class="kw">compound interest</span>: each year’s interest is earned on the previous year’s total, which already includes earlier interest.</p>
+    <p>Spot the recursion. The amount after <i>n</i> years is the amount after <i>n − 1</i> years, multiplied by 1.05. And the amount after 0 years is just the principal. A problem defined in terms of a smaller copy of itself is exactly what recursion is for.</p>
+  </div>
+
+  <h2>The two cases</h2>
+  <div class="grid2">
+    <div class="card"><h3>Base case</h3><div class="formula">total₀ = principal</div><p>When <code>years = 0</code> no interest has been added. The answer is known, so no further call is made.</p></div>
+    <div class="card"><h3>General case</h3><div class="formula">totalₙ = totalₙ₋₁ × rate</div><p>Any other number of years: find the total for one year fewer, then multiply by the rate. This is the recursive call.</p></div>
+  </div>
+  <div class="tip"><b class="h">rate is a multiplier</b>5% interest is passed as <b>1.05</b>, not 5 and not 0.05. 1.05 means “100% of what you had, plus 5% more”. For 8% pass 1.08; for 3.5% pass 1.035.</div>
+
+  <h2>The function, line by line</h2>
+  <p>This is the pseudocode from the coursebook (Table 19.28 gives the two cases), written so the trace matches the table’s RETURN column. Switch between Pseudocode and Python.</p>
+  <div id="codeA"></div>
+  <ol class="step4">
+    <li><span><b>Header.</b> Three parameters: the starting <code>principal</code>, the growth factor <code>rate</code> and the number of <code>years</code>. It RETURNS a REAL, the final amount.</span></li>
+    <li><span><b>IF years = 0.</b> The base case test. If true, <code>total ← principal</code> and the calls stop.</span></li>
+    <li><span><b>The recursive line.</b> <code>compoundInt(principal, rate, years - 1)</code> asks the same question for one year fewer, then <code>* rate</code> adds this year’s growth. <code>years - 1</code> is what moves each call towards the base case.</span></li>
+    <li><span><b>RETURN total.</b> Both branches finish here, so every call hands its answer back to whoever called it.</span></li>
+  </ol>
+  <p><b>Why the multiplying waits.</b> In <code>compoundInt(100, 1.05, 3)</code>, the final <code>* rate</code> cannot be worked out until <code>compoundInt(100, 1.05, 2)</code> has an answer, which needs <code>compoundInt(100, 1.05, 1)</code>, which needs the base case. So the calls <b>wind</b> down to <code>years = 0</code>, and then the multiplications happen one by one as the calls <b>unwind</b>. The principal stays at 100 in every call.</p>
+
+  <h2>Reading a trace table</h2>
+  <p>This is the same trace table layout that the exam uses (Call number, Function call, a column for each parameter or variable, then the return value). For <code>compoundInt(100, 1.05, 3)</code>:</p>
+  <div data-tt="A,100,1.05,3"></div>
+  <p class="note">Amber row: the base case. Green rows: unwinding. The “cont” rows are the same call carrying on after the call beneath it returned (the exam mark schemes write these as the call number in brackets). In the exam, the total column is often written as the calculation, like <code>100 * 1.05</code>, with the value in RETURN.</p>
+  <ol class="step4">
+    <li><span><b>Go down first.</b> One row per call until the base case, with the years value counting down.</span></li>
+    <li><span><b>Mark the base case row</b> and write its return value. Only now do you have a number.</span></li>
+    <li><span><b>Work back up.</b> Each “cont” row takes the value just returned and finishes its own calculation.</span></li>
+    <li><span><b>The answer is the last row</b>, the original call: 115.7625 (115.76 to 2 decimal places).</span></li>
+  </ol>
+
+  <h2>A check of coursebook Table 19.29</h2>
+  <div class="warn"><b class="h">The printed trace mixes two versions of the function</b>The code in the coursebook passes <code>principal * rate</code> into the recursive call. The printed trace table, however, (1) shows the principal as 105 in calls 2, 3 and 4 when the code would give 105, 110.25 and 115.7625, and (2) has a RETURN column that climbs 100, 105, 110.25, 115.76, which would not happen with that code (every call would return 115.76).</div>
+  <p>The two columns come from different versions. Both give 115.7625, and both are valid recursion, but they work differently:</p>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Version A: multiply on the way up</th><th>Version B: pass the growing principal down</th></tr>
+    <tr><td>Recursive line</td><td><code>compoundInt(principal, rate, years - 1) * rate</code></td><td><code>compoundInt(principal * rate, rate, years - 1)</code></td></tr>
+    <tr><td>Principal in each call</td><td>100, 100, 100, 100</td><td>100, 105, 110.25, 115.7625</td></tr>
+    <tr><td>Base case returns</td><td>100 (the original principal)</td><td>115.7625 (the final amount)</td></tr>
+    <tr><td>RETURN column, bottom to top</td><td>100, 105, 110.25, 115.76</td><td>115.76 in every row</td></tr>
+    <tr><td>Matches Table 19.28 formula</td><td>Yes</td><td>No (it is an accumulator)</td></tr>
+  </table></div>
+  <p>This page uses <b>Version A</b>, because it matches the two cases in Table 19.28 and the table’s RETURN column. Version B is shown alongside it in the Watch tab, so you can compare the two traces row by row. <span class="note">Version B is a form of <i>tail recursion</i>: nothing is left to do after the call, so nothing waits. The syllabus does not name it, but it is a good talking point.</span></p>
+
+  <h2>The same job with a loop</h2>
+<pre class="plain">FUNCTION compoundIntLoop(principal, rate : REAL, years : INTEGER) RETURNS REAL
+   total ← principal
+   FOR count ← 1 TO years
+      total ← total * rate
+   NEXT count
+   RETURN total
+ENDFUNCTION</pre>
+  <p>The loop variable <code>total</code> plays the role that the waiting calls played in recursion. For this particular job the loop (or simply <code>principal * rate ^ years</code>) is simpler and uses no stack. Compound interest is taught recursively because the idea is easy to see, not because it is the best tool. Exam questions may ask you to convert between the two.</p>
+</section>
+
+<!-- WATCH -->
+<section id="watch" role="tabpanel" hidden>
+  <p>Press Play, or click the numbered dots. In the stack diagrams, the left is the <b>call stack</b> (top box = running now) and the right is the <b>call tree</b> (amber = waiting, blue = running, green = returned, with the returned value). Under each is the matching <b>trace table</b> filling in row by row. The highlighted code line follows each step.</p>
+
+  <h2>1 · Version A: compoundInt(100, 1.05, 3), the call stack</h2>
+  <p>Watch the stack grow to four frames, each still holding principal = 100. The amount only starts changing once the base case has returned.</p>
+  <div id="aStackA"></div>
+  <h2>2 · Version A: the same call as a trace table</h2>
+  <p>This is the table you would draw in an exam. Compare each row with what the stack was doing above.</p>
+  <div id="aTabA"></div>
+  <div class="tip"><b class="h">Remember</b>The interest is added during the unwinding: 100 → 105 → 110.25 → 115.7625, one call at a time, from the bottom of the stack upwards.</div>
+
+  <h2>3 · Version B: the coursebook’s printed code</h2>
+  <p>Here <code>principal * rate</code> is worked out before each call and passed down. Notice how the principal in the frames grows on the way <i>down</i>, and the base case returns the finished answer, which is just passed up.</p>
+  <div id="aStackB"></div>
+  <h2>4 · Version B: its trace table</h2>
+  <p>Compare with the table in 2: the function call column now shows the growing principal, and the RETURN column is 115.7625 all the way up.</p>
+  <div id="aTabB"></div>
+  <div class="warn"><b class="h">Spot the difference</b>If you see a trace table where the principal goes 100, 105, 110.25… and the RETURN column also goes 100, 105, 110.25… one of the two columns has been copied from the wrong version. Version A has a fixed principal and a climbing RETURN column. Version B has a climbing principal and a flat RETURN column.</div>
+</section>
+
+<!-- EXPLORE -->
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Compound interest explorer</h2>
+  <p>Change the principal, rate and years. The bars show the amount after each year (the same numbers the unwinding produces). The trace table underneath is for the call shown. Switch version to see how the table changes while the answer stays the same.</p>
+  <div id="slP"></div><div id="slR"></div><div id="slY"></div>
+  <div class="pick"><label for="ciVer">Trace table for:</label><select id="ciVer"><option value="A">Version A (× rate on the way up)</option><option value="B">Version B (principal * rate passed down)</option></select></div>
+  <div class="callbox" id="ciCall"></div>
+  <div class="readout" id="ciRO"></div>
+  <div id="ciChart"></div>
+  <div id="ciTbl"></div>
+  <div class="tip"><b class="h">Try this</b>Set years to 0. There is only one call and it is the base case. Then raise years by 1 at a time and watch the number of rows grow by 2 (one down, one up) each time. A trace with <i>n</i> years has 2n + 1 rows.</div>
+
+  <h2>Activity 1 · Order the events</h2>
+  <div id="o1"></div>
+
+  <h2>Activity 2 · Sort the code into its roles</h2>
+  <div id="cl1"></div>
+
+  <h2>Activity 3 · Version A or Version B?</h2>
+  <div id="cl2"></div>
+
+  <h2>Activity 4 · Match the terms</h2>
+  <div id="m1"></div>
+</section>
+
+<!-- PRACTISE -->
+<section id="practise" role="tabpanel" hidden>
+  <h2>Trace it yourself</h2>
+  <p>Work down to the base case first, then back up. Use <b>Hint</b> before <b>Show working</b>.</p>
+  <div id="c1"></div>
+  <h2>Quick quiz</h2>
+  <div id="qz1"></div>
+  <h2>Flashcards</h2>
+  <div id="fc1"></div>
+</section>
+
+<!-- REAL WORLD -->
+<section id="real" role="tabpanel" hidden>
+  <p class="note">General descriptions of how the same idea appears elsewhere. Numbers are illustrative only.</p>
+  <div class="rw"><h3>A savings account over time</h3><p>If a balance earns 5% a year and the interest stays in the account, the balance after <i>n</i> years is the balance after <i>n − 1</i> years × 1.05. That sentence is the whole recursive function.</p><div class="use"><b>Exam use:</b> a clear example of a problem defined in terms of a smaller version of itself, with a natural base case (year 0 = the principal).</div></div>
+  <div class="rw"><h3>A loan or credit-card balance</h3><p>A balance that grows by a percentage each month follows the same pattern, so the debt can grow faster and faster if nothing is paid off. Understanding it as repeated multiplication helps show why.</p><div class="use"><b>Exam use:</b> a different context for the same function; only rate and the meaning of the numbers change.</div></div>
+  <div class="rw"><h3>Prices and inflation</h3><p>If prices rise 3% a year, an item costing 20 would cost 20 × 1.03 next year, 20 × 1.03 × 1.03 the year after, and so on. The rate argument would be 1.03.</p><div class="use"><b>Exam use:</b> shows that the growth factor is 1 + the percentage as a decimal.</div></div>
+  <div class="rw"><h3>Population and bacteria growth</h3><p>A population that grows by a fixed percentage each period can be modelled by the same function. If the population shrinks by 10% each period, the rate is 0.9.</p><div class="use"><b>Exam use:</b> a rate below 1 gives decay, with the same code and the same trace.</div></div>
+  <div class="rw"><h3>Depreciation of equipment</h3><p>A machine that loses 20% of its value each year is worth 0.8 × the previous year’s value. Recursion with rate = 0.8 gives its value after <i>n</i> years.</p><div class="use"><b>Exam use:</b> another example where the base case is the starting value.</div></div>
+  <div class="rw"><h3>Why real programs would use a loop here</h3><p>For compound interest, a loop or the formula principal × rate ^ years is quicker, uses no stack and has no stack overflow risk. Recursion is better kept for problems that split into smaller copies, such as trees and divide and conquer.</p><div class="use"><b>Exam use:</b> the standard evaluation point: recursion may be easier to read, but it uses more memory (a frame per call) and can be slower than iteration.</div></div>
+</section>
+
+<!-- EXAM -->
+<section id="exam" role="tabpanel" hidden>
+  <h2>What 9618 has asked about recursion</h2>
+  <p>Every 9618 question paper in the resource folder was searched (Papers 1 to 4, May/June 2021 to May/June 2026; Oct/Nov 2025 is not in the folder). Recursion has <b>never appeared in Paper 1 or 2</b>. It appears in Paper 3 (theory and tracing) and Paper 4 (programming). <b>No past paper traces a compound interest function</b>, but the 2025 Paper 32 mark scheme names compound interest as an acceptable example of a recursive application, and the Fib(5), Delete() and Unknown() questions below use exactly the same trace table skills.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>O/N 2021</td><td>31, 32</td><td>10(a), 10(b)</td><td>3 + 3</td><td>State three features of recursion; why a stack suits recursion</td></tr>
+    <tr><td>O/N 2021</td><td>41, 42</td><td>1</td><td>3 + 3 + 2 + 7</td><td>Write recursive <code>Unknown()</code>, run three calls, rewrite iteratively</td></tr>
+    <tr><td>O/N 2021</td><td>41, 42</td><td>3(e)(i)</td><td>7</td><td>Recursive in-order tree traversal</td></tr>
+    <tr><td>M/J 2022</td><td>42</td><td>2(c)(i)</td><td>8</td><td>Recursive binary search</td></tr>
+    <tr><td>O/N 2022</td><td>41, 43</td><td>3(c), 3(d)</td><td>5 + 7</td><td>Recursive tree search; PostOrder traversal</td></tr>
+    <tr><td>O/N 2022</td><td>42</td><td>3(d)</td><td>6</td><td>Rewrite an iterative queue total as recursive</td></tr>
+    <tr><td>M/J 2023</td><td>31, 33</td><td>12(a), 12(b)</td><td>2 + 5</td><td>Describe recursion; <b>trace table for Fib(5)</b></td></tr>
+    <tr><td>O/N 2023</td><td>32</td><td>9(c)</td><td>4</td><td>How a compiler uses a stack for recursion</td></tr>
+    <tr><td>O/N 2023</td><td>41, 43</td><td>1(b)(i)</td><td>6</td><td>Rewrite <code>IterativeVowels()</code> as recursive</td></tr>
+    <tr><td>O/N 2023</td><td>42</td><td>2(b)(i)</td><td>7</td><td>Complete recursive <code>RecursiveValue()</code></td></tr>
+    <tr><td>M/J 2024</td><td>42</td><td>3(b)(i)</td><td>4</td><td>Recursive insertion sort</td></tr>
+    <tr><td>M/J 2025</td><td>31</td><td>4(b), 4(c)</td><td>2 + 1</td><td>Describe recursion; identify a suitable ADT (stack)</td></tr>
+    <tr><td>M/J 2025</td><td>32</td><td>11(b)</td><td>2</td><td>Feature that makes recursion beneficial, plus an example (<b>mark scheme lists compound interest</b>)</td></tr>
+    <tr><td>M/J 2025</td><td>33</td><td>13</td><td>4</td><td><b>Trace table for recursive Delete()</b></td></tr>
+    <tr><td>M/J 2025</td><td>41</td><td>3(d)</td><td>5</td><td>Recursive OutputInOrder</td></tr>
+    <tr><td>M/J 2026</td><td>43</td><td>3(e)(i)</td><td>7</td><td>Recursive InOrder</td></tr>
+  </table></div>
+  <p class="note">Paper 4 answers are program code written on a computer. Past paper mark schemes list Python, VB.NET and Java; only Python is shown here. Questions below are reworded from the papers; always check the original paper and mark scheme for the exact wording.</p>
+
+  <div class="key"><span class="k"><i></i> mark-scheme point</span></div>
+
+  <h3>Past papers: tracing and trace tables</h3>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/31 and 33 · Q12(b)</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> Complete the trace table for Fib(5).
+<pre class="plain">FUNCTION Fib(Number : INTEGER) RETURNS INTEGER
+   IF Number <= 1 THEN
+      Result ← Number
+   ELSE
+      Result ← Fib(Number - 1) + Fib(Number - 2)
+   ENDIF
+   RETURN Result
+ENDFUNCTION</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The table’s columns were: Call number, Function call, Number, Result, Return value. It is the same layout as the compound interest trace. Go down the first branch to the base case, then back up. The mark scheme only expects the leftmost path with known values filled in for the other branch.</div>
+    <div class="ans"><div class="tw"><table class="t mono">
+      <tr><th>Call number</th><th>Function call</th><th>Number</th><th>Result</th><th>Return value</th></tr>
+      <tr><td>1</td><td>Fib(5)</td><td>5</td><td>Fib(4) + Fib(3)</td><td></td></tr>
+      <tr><td>2</td><td>Fib(4)</td><td>4</td><td>Fib(3) + Fib(2)</td><td></td></tr>
+      <tr><td>3</td><td>Fib(3)</td><td>3</td><td>Fib(2) + Fib(1)</td><td></td></tr>
+      <tr><td>4</td><td>Fib(2)</td><td>2</td><td>Fib(1) + Fib(0)</td><td></td></tr>
+      <tr><td>5</td><td>Fib(1)</td><td>1</td><td>1</td><td><b>1</b></td></tr>
+      <tr><td>6</td><td>Fib(0)</td><td>0</td><td>0</td><td><b>0</b></td></tr>
+      <tr style="background:var(--good-soft)"><td>(4)</td><td>Fib(2)</td><td>2</td><td>1 + 0</td><td><b>1</b></td></tr>
+      <tr style="background:var(--good-soft)"><td>(3)</td><td>Fib(3)</td><td>3</td><td>1 + 1</td><td><b>2</b></td></tr>
+      <tr style="background:var(--good-soft)"><td>(2)</td><td>Fib(4)</td><td>4</td><td>2 + 1</td><td><b>3</b></td></tr>
+      <tr style="background:var(--good-soft)"><td>(1)</td><td>Fib(5)</td><td>5</td><td>3 + 2</td><td><b>5</b></td></tr></table></div>
+      <p>Mark points, one each: <span class="mk k" data-t="1">call number column correct</span>; <span class="mk k" data-t="2">function call and Number columns correct</span>; <span class="mk k" data-t="3">Result column correct going down to the base case (winding, rows 1 to 6)</span>; <span class="mk k" data-t="4">Result column correct going back up (unwinding, rows 7 to 10)</span>; <span class="mk k" data-t="5">Return value column correct</span>.</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Filling the Return value column on the winding rows (1 to 4). Those calls have not returned yet. Another: leaving out the base case calls Fib(1) and Fib(0). Same layout as compound interest: expression in the Result column on the way down, numbers on the way up.</div>
+  </div></details>
+
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/33 · Q13</span> <span class="cmd">Complete</span> <span class="mark">4 marks</span> The recursive procedure <code>Delete()</code> is called as <code>CALL Delete(1, 15)</code>. Complete the trace table.
+<pre class="plain">PROCEDURE Delete(Index, Target)
+   IF Numbers[Index] > 0 THEN
+      IF Numbers[Index] >= Target THEN
+         Numbers[Index] ← Numbers[Index + 1]
+      ENDIF
+      Index ← Index + 1
+      CALL Delete(Index, Target)
+   ENDIF
+ENDPROCEDURE</pre>
+Numbers[1] to Numbers[10] start as 2, 3, 7, 11, 15, 17, 19, 23, 0, 0.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>This procedure returns nothing, so there is no unwinding work and no Return column. The trace is just one row per call, with the array columns showing what changes. Only write a value in an array column when it changes. The calls stop at Index 9, where Numbers[9] is 0, so the IF fails.</div>
+    <div class="ans"><div class="tw"><table class="t mono">
+      <tr><th>Index</th><th>Target</th><th>[1]</th><th>[2]</th><th>[3]</th><th>[4]</th><th>[5]</th><th>[6]</th><th>[7]</th><th>[8]</th><th>[9]</th><th>[10]</th></tr>
+      <tr><td>1</td><td>15</td><td>2</td><td>3</td><td>7</td><td>11</td><td>15</td><td>17</td><td>19</td><td>23</td><td>0</td><td>0</td></tr>
+      <tr><td>2</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>3</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>4</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>5</td><td></td><td></td><td></td><td></td><td></td><td><b>17</b></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>6</td><td></td><td></td><td></td><td></td><td></td><td></td><td><b>19</b></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>7</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td><b>23</b></td><td></td><td></td><td></td></tr>
+      <tr><td>8</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td><b>0</b></td><td></td><td></td></tr>
+      <tr><td>9</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></table></div>
+      <p>Mark points, one each: <span class="mk k" data-t="1">Index and Target columns correct (Index 1 to 9, Target 15)</span>; <span class="mk k" data-t="2">Numbers[5] changes to 17</span>; <span class="mk k" data-t="3">Numbers[6] and Numbers[7] change to 19 and 23</span>; <span class="mk k" data-t="4">Numbers[8] changes to 0, and no incorrect data in any other column</span>.</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Changing Numbers[9] or Numbers[10], or continuing to Index 10. At Index 9, Numbers[9] is 0, so nothing happens and the calls stop. Each element from 15 onwards is overwritten with the one after it, so the 15 is deleted and the rest shift left.</div>
+  </div></details>
+
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/41 and 42 · Q1</span> <span class="cmd">Trace</span> <span class="mark">2 marks</span> Work out what is output by Unknown(10, 15), Unknown(10, 10) and Unknown(15, 10), then describe what Unknown(10, 13) does.
+<pre class="plain">FUNCTION Unknown(X, Y : INTEGER) RETURNS INTEGER
+   IF X < Y THEN
+      OUTPUT X + Y
+      RETURN (Unknown(X + 1, Y) * 2)
+   ELSE
+      IF X = Y THEN
+         RETURN 1
+      ELSE
+         OUTPUT X + Y
+         RETURN (Unknown(X - 1, Y) DIV 2)
+      ENDIF
+   ENDIF
+ENDFUNCTION</pre>DIV gives the whole-number part, so 13 DIV 2 = 6. In the paper this was a practical question: students wrote the code and ran it for the output marks.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>It is compound interest in disguise: a base case that returns 1 (like the principal), then a multiplication <i>after</i> the call returns (× 2, like × rate). The OUTPUT comes <i>before</i> the call, so it prints on the way down.</div>
+    <div class="ans">
+      <p><b>Unknown(10, 15):</b> <span class="mk k" data-t="1">output 25, 26, 27, 28, 29</span> on the way down, then Unknown(15, 15) returns 1 and each of the 5 waiting calls doubles it: 2, 4, 8, 16, 32, so the call returns <span class="mk k" data-t="2">32</span>.<br><b>Unknown(10, 10):</b> X = Y, nothing is output, it returns 1.<br><b>Unknown(15, 10):</b> output 25, 24, 23, 22, 21, then the base case returns 1 and each waiting call does <code>DIV 2</code>: 1 DIV 2 = 0, and 0 stays 0, so it returns 0.</p>
+      <p>A shorter trace to see the pattern, Unknown(10, 13):</p>
+      <div class="tw"><table class="t mono">
+        <tr><th>Call number</th><th>Function call</th><th>X + Y output</th><th>RETURN</th></tr>
+        <tr><td>1</td><td>Unknown(10, 13)</td><td>23</td><td></td></tr>
+        <tr><td>2</td><td>Unknown(11, 13)</td><td>24</td><td></td></tr>
+        <tr><td>3</td><td>Unknown(12, 13)</td><td>25</td><td></td></tr>
+        <tr style="background:var(--warn-soft)"><td>4</td><td>Unknown(13, 13)</td><td></td><td><b>1</b></td></tr>
+        <tr style="background:var(--good-soft)"><td>3 cont</td><td>Unknown(12, 13)</td><td></td><td><b>1 * 2 = 2</b></td></tr>
+        <tr style="background:var(--good-soft)"><td>2 cont</td><td>Unknown(11, 13)</td><td></td><td><b>2 * 2 = 4</b></td></tr>
+        <tr style="background:var(--good-soft)"><td>1 cont</td><td>Unknown(10, 13)</td><td></td><td><b>4 * 2 = 8</b></td></tr></table></div>
+      <p>The iterative rewrite (7 marks in the paper) uses: <span class="mk a" data-t="3">a total starting at 1</span>, <span class="mk a" data-t="4">a loop while X is not equal to Y</span>, <span class="mk a" data-t="5">output X + Y each time round</span>, <span class="mk a" data-t="6">total × 2 and X + 1 when X &lt; Y; total DIV 2 and X − 1 otherwise</span>, <span class="mk a" data-t="7">return the total</span>. Same move as converting compound interest to a loop.</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Printing the numbers on the way back up. The OUTPUT is before the call, so the order is 25 first. Also stopping the doubling one call early; count the waiting calls.</div>
+  </div></details>
+
+  <h3>Past papers: theory</h3>
+  <details class="eq"><summary><span class="src">M/J 2023 · 31, 33 Q12(a) and M/J 2025 · 31 Q4(b)</span> <span class="cmd">Describe</span> <span class="mark">2 marks</span> Describe what is meant by recursion.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Both papers award the same marks. Two ideas: it calls itself, and it stops at a base case. “Unwinding” also earns the second mark in 2023.</div>
+    <div class="ans"><span class="mk k" data-t="1">A technique where a function or procedure is defined in terms of itself / calls itself (the general case).</span> <span class="mk k" data-t="2">It does so until a terminating condition / base case is reached, where no further recursive call is made (then the calls unwind).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing “it repeats” or “it loops”. A loop repeats too; recursion is the self-call plus the base case.</div>
+  </div></details>
+
+  <details class="eq"><summary><span class="src">O/N 2021 · 31, 32 · Q10(a), (b)</span> <span class="cmd">State / Explain</span> <span class="mark">3 + 3 marks</span> (a) State three essential features of recursion. (b) Explain why a stack is a suitable ADT to implement recursion.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) is a list, no explanation. (b) needs LIFO, push on call, pop on return, and why that order matters.</div>
+    <div class="ans"><b>(a)</b> <span class="mk k" data-t="1">It must have a base case / stopping condition.</span> <span class="mk k" data-t="2">It must have a general case that calls itself (the subroutine is defined in terms of itself).</span> <span class="mk k" data-t="3">Each call changes its state, moving towards the base case; unwinding can occur once the base case is reached.</span><br>
+    <b>(b)</b> <span class="mk a" data-t="1">A stack is a last in, first out structure.</span> <span class="mk a" data-t="2">Each recursive call is pushed onto the stack, and is popped when the function ends.</span> <span class="mk a" data-t="3">This allows backtracking / unwinding in the correct order.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying a queue would also work. It would give the calls back in the wrong order: the last call made must finish first.</div>
+  </div></details>
+
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/32 · Q9(c)</span> <span class="cmd">Explain</span> <span class="mark">4 marks</span> Explain how a compiler makes use of a stack when translating recursive programming code.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Say what goes on the stack, when it goes on, when it comes off. For compoundInt: four frames at the deepest point.</div>
+    <div class="ans"><span class="mk k" data-t="1">The compiler produces object code to use a stack for the calls.</span> <span class="mk k" data-t="2">Return addresses and the values of local variables / parameters are pushed onto the stack</span> <span class="mk k" data-t="3">with each recursive call (winding).</span> <span class="mk k" data-t="4">They are popped off after the base case is reached, one by one in reverse order (unwinding).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Describing what the program does without saying what the <i>compiler</i> generates. Name the return address and the pushing and popping.</div>
+  </div></details>
+
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/32 · Q11(b)</span> <span class="cmd">Identify / Give</span> <span class="mark">2 marks</span> Identify one feature of an algorithm that makes it beneficial to use recursion. Give one example of an application that could use a recursive algorithm.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One mark for the feature, one for the example. The published mark scheme lists compound interest among the accepted examples, so the function on this page is an exam-ready answer.</div>
+    <div class="ans"><span class="mk k" data-t="1">Feature: the problem naturally breaks down into smaller versions of itself.</span> <span class="mk k" data-t="2">Example: calculating compound interest (also accepted: factorial, Fibonacci or another mathematical series, tree traversal, evaluating RPN expressions).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving a benefit that is not a feature of the algorithm, such as “it is faster”. Recursion is usually not faster than a loop.</div>
+  </div></details>
+
+  <h3>Past papers: writing and converting recursion</h3>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/42 · Q2(b)</span> <span class="cmd">Complete</span> <span class="mark">7 + 1 marks</span> <code>IterativeCalculate()</code> adds up the numbers from Number down to 1 that divide exactly into ToFind. Complete the recursive version, then call it with 50 and 50.
+<pre class="plain">FUNCTION RecursiveValue(Number : INTEGER, ToFind : INTEGER) RETURNS INTEGER
+   IF Number = ............ THEN
+      RETURN 0
+   ELSE
+      IF ToFind ............ Number = 0 THEN
+         RETURN ............ + RecursiveValue(Number - 1, ............)
+      ELSE
+         ............ RecursiveValue(Number - 1, ............)
+      ENDIF
+   ENDIF
+ENDFUNCTION</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Use the loop to find the pieces. The loop stopped when Number reached 0, so that is the base case. The loop’s Total + Number becomes <code>Number + RecursiveValue(…)</code>, and Number ← Number − 1 becomes the argument. This is the same “accumulate on the way up” shape as compoundInt.</div>
+    <div class="ans"><pre class="plain">FUNCTION RecursiveValue(Number : INTEGER, ToFind : INTEGER) RETURNS INTEGER
+   IF Number = <span class="mk k">0</span> THEN
+      RETURN 0
+   ELSE
+      IF ToFind <span class="mk k">MODULUS</span> Number = 0 THEN
+         RETURN <span class="mk k">Number</span> + RecursiveValue(Number - 1, <span class="mk k">ToFind</span>)
+      ELSE
+         <span class="mk k">RETURN</span> RecursiveValue(Number - 1, <span class="mk k">ToFind</span>)
+      ENDIF
+   ENDIF
+ENDFUNCTION</pre>
+    <p>One mark for each of the five gaps, one for the recursive calls both accurate and in the right places, one for the rest of the function with nothing extra. <span class="mk a" data-t="8">RecursiveValue(50, 50) returns 93</span>, the total of the factors 1 + 2 + 5 + 10 + 25 + 50.</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Leaving out RETURN in the ELSE branch. Without it the answer from the call below is thrown away.</div>
+  </div></details>
+
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/41, 43 · Q1(b)(i)</span> <span class="cmd">Rewrite</span> <span class="mark">6 marks</span> Rewrite <code>IterativeVowels()</code>, which counts the vowels in a string, as a recursive function <code>RecursiveVowels()</code>.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Base case: empty string returns 0. General case: look at the first character, then recurse on the rest of the string.</div>
+    <div class="ans"><p>Six marks: <span class="mk k" data-t="1">a recursive call</span>; <span class="mk k" data-t="2">function header taking a string, returning an integer</span>; <span class="mk k" data-t="3">base case: length is 0, return 0</span>; <span class="mk k" data-t="4">extract the first character and check whether it is a vowel</span>; <span class="mk k" data-t="5">vowel: return 1 + the recursive call on the string with one fewer character</span>; <span class="mk k" data-t="6">not a vowel: return the recursive call with one fewer character</span>.</p>
+<pre class="plain">def recursive_vowels(value):
+    if len(value) == 0:
+        return 0
+    if value[0] in "aeiou":
+        return 1 + recursive_vowels(value[1:])
+    return recursive_vowels(value[1:])</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>A shorter string is the equivalent of years - 1: forget to shorten it and the base case is never reached.</div>
+  </div></details>
+
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/42 · Q3(d)</span> <span class="cmd">Rewrite</span> <span class="mark">6 marks</span> Rewrite the iterative function <code>IterativeOutput()</code>, which adds up values in a queue, as a recursive function.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A loop with a running total becomes: base case at the end of the data, then “this item + the recursive call for the rest”.</div>
+    <div class="ans"><p>Six marks: <span class="mk k" data-t="1">function header taking a parameter</span>; <span class="mk k" data-t="2">check whether at the start of the queue</span>; <span class="mk k" data-t="3">return the last value in the queue</span>; <span class="mk k" data-t="4">otherwise add the value to the result of the recursive call</span>; <span class="mk k" data-t="5">recursive call with the pointer reduced by 1</span>; <span class="mk k" data-t="6">return the final total</span>.</p>
+<pre class="plain">def recursive_output(start):
+    if start == 0:
+        return queue[start]
+    return queue[start] + recursive_output(start - 1)</pre></div>
+  </div></details>
+
+  <h3>Exam-style questions on this function</h3>
+  <p class="note">Written for this resource in the style of Paper 3. Model answers use cautious wording where a judgement is needed.</p>
+
+  <details class="eq"><summary><span class="cmd">Identify</span> <span class="mark">2 marks</span> Identify the base case and the general case in <code>compoundInt</code> (Version A).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Quote the line, not just the word.</div>
+    <div class="ans"><span class="mk k" data-t="1">Base case: IF years = 0 THEN total ← principal</span><br><span class="mk k" data-t="2">General case: total ← compoundInt(principal, rate, years - 1) * rate</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Calling <code>years - 1</code> the base case. It is what moves the calls towards the base case.</div>
+  </div></details>
+
+  <details class="eq"><summary><span class="cmd">Complete</span> <span class="mark">5 marks</span> Complete the trace table for the call <code>compoundInt(100, 1.1, 2)</code> (Version A).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Five rows for 2 years: three calls going down, then two unwinding rows. Total column: the calculation going down, the value at the base case.</div>
+    <div class="ans"><div data-tt="A,100,1.1,2"></div>
+      <p>One mark each for: <span class="mk k" data-t="1">call number column</span>; <span class="mk k" data-t="2">function call and years columns</span>; <span class="mk k" data-t="3">total column down to the base case</span>; <span class="mk k" data-t="4">total column back up (100 × 1.1, 110 × 1.1)</span>; <span class="mk k" data-t="5">RETURN column (100, 110, 121)</span>.</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Changing the principal to 110 in call 2, which is Version B’s behaviour. In Version A the principal never changes.</div>
+  </div></details>
+
+  <details class="eq"><summary><span class="cmd">Complete</span> <span class="mark">5 marks</span> Complete the function.
+<pre class="plain">FUNCTION compoundInt(principal, rate : REAL, years : INTEGER) RETURNS REAL
+   IF years = ............
+      THEN
+         total ← ............
+      ELSE
+         total ← compoundInt(............, rate, ............) * ............
+   ENDIF
+   RETURN total
+ENDFUNCTION</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The base case value for money growth is the starting amount. The argument that changes must move towards the base case.</div>
+    <div class="ans"><span class="mk k" data-t="1">0</span>, <span class="mk k" data-t="2">principal</span>, <span class="mk k" data-t="3">principal</span> (unchanged), <span class="mk k" data-t="4">years - 1</span>, <span class="mk k" data-t="5">rate</span>.</div>
+    <div class="warn"><b class="h">Common mistake</b>Writing years + 1, or years in the recursive call (never ends), or 0 as the base case value (every answer would be 0).</div>
+  </div></details>
+
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">4 marks</span> Write an iterative version of <code>compoundInt</code> using a FOR loop.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Start with the base case value, then repeat the general-case step <code>years</code> times.</div>
+    <div class="ans"><pre class="plain">FUNCTION compoundIntLoop(principal, rate : REAL, years : INTEGER) RETURNS REAL
+   total ← principal
+   FOR count ← 1 TO years
+      total ← total * rate
+   NEXT count
+   RETURN total
+ENDFUNCTION</pre><span class="mk k" data-t="1">Function header with the same parameters and a REAL return</span>; <span class="mk k" data-t="2">total initialised to principal</span>; <span class="mk k" data-t="3">loop that repeats years times</span>; <span class="mk k" data-t="4">total multiplied by rate inside the loop, and total returned</span>.</div>
+    <div class="warn"><b class="h">Common mistake</b>Initialising total to 0 or 1. Starting with 0 gives 0; the starting value is the principal.</div>
+  </div></details>
+
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">4 marks</span> Describe how the call stack is used when <code>compoundInt(100, 1.05, 3)</code> is run.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Use the numbers: four frames at the deepest point, each holding principal, rate and years.</div>
+    <div class="ans"><span class="mk k" data-t="1">Each call pushes a stack frame holding its parameters (principal, rate, years), local variable total and the return address.</span> <span class="mk k" data-t="2">Four frames are pushed (years = 3, 2, 1, 0) before the base case is reached.</span> <span class="mk k" data-t="3">The base case returns 100 and its frame is popped.</span> <span class="mk k" data-t="4">Each earlier frame is then popped in reverse order, multiplying the value returned to it by 1.05 to give 105, 110.25 and finally 115.7625.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying three frames. The base case call, years = 0, also has its own frame.</div>
+  </div></details>
+
+  <details class="eq"><summary><span class="cmd">Discuss</span> <span class="mark">4 marks</span> A programmer says compound interest should be calculated with a loop, not recursion. Discuss whether this could be a better choice.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Give a point for each side, apply it to this function, and make a judgement.</div>
+    <div class="ans"><span class="mk k" data-t="1">Recursion could use more memory, because every call needs a stack frame, so a long period could risk a stack overflow.</span> <span class="mk a" data-t="2">A loop is likely to be quicker, as there is no overhead from pushing and popping frames.</span> <span class="mk n" data-t="3">Recursion may be easier to read here, since the code closely mirrors the definition: the total for n years is the total for n − 1 years × rate.</span> <span class="mk e" data-t="4">Overall, a loop is likely to be the better choice for this simple repeated calculation, although recursion may be worth using where the problem splits into smaller copies, as in a tree.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying recursion is “slower” without a reason, or never reaching a judgement. “Discuss” needs both sides and a conclusion.</div>
+  </div></details>
+</section>
+
+<!-- TIPS -->
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Find the base case first.</b> Here it is <code>years = 0</code>, and it returns the principal.</li>
+    <li><b>Go down, then back up.</b> Write every call down to the base case before calculating anything. Only the base case has a number at that point.</li>
+    <li><b>Count the base case call.</b> compoundInt(100, 1.05, 3) is four calls and four frames, and a trace table with 7 rows.</li>
+    <li><b>Check which version you are tracing.</b> Principal fixed and RETURN climbing means × rate on the way up. Principal climbing and RETURN flat means principal * rate passed down.</li>
+    <li><b>In the total column, write the calculation going down</b> (like <code>Fib(4) + Fib(3)</code> or <code>100 * 1.05</code>) and the value going up. The exam wants the Result column to show both stages.</li>
+    <li><b>Rate is 1.05, not 5%.</b> It is a multiplier. If a question gives “3% interest”, the argument is 1.03.</li>
+    <li><b>The argument must move towards the base case.</b> years - 1. If it moved away, there would be a stack overflow.</li>
+    <li><b>Don’t fill RETURN on winding rows.</b> Those calls have not finished.</li>
+    <li><b>Procedures return nothing.</b> A trace for a recursive PROCEDURE (like Delete) has no return column and no unwinding work.</li>
+    <li><b>Converting to iteration:</b> the starting value becomes the initial value of a variable, and the repeating step goes in a loop.</li>
+    <li><b>Say “frame”, “return address”, “push”, “pop” and “last in, first out”</b> in any stack answer.</li>
+    <li><b>For drawbacks, name the stack.</b> More memory, risk of stack overflow, overhead of calls. “Slower” alone earns nothing.</li>
+  </ul>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Identify</td><td>A short fact or the line of code. No explanation.</td></tr>
+    <tr><td>Describe</td><td>The steps in order, or how something works.</td></tr>
+    <tr><td>Explain</td><td>What happens and why.</td></tr>
+    <tr><td>Complete</td><td>Fill every gap or cell, with exact values or code.</td></tr>
+    <tr><td>Trace</td><td>Show each call, parameter and return, in order.</td></tr>
+    <tr><td>Write / Rewrite</td><td>Full code with header, structure and end statements.</td></tr>
+    <tr><td>Discuss</td><td>Both sides, applied to the scenario, with a judgement.</td></tr>
+  </table></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+/* ===== 19.2 Recursion: trace engine ===== */
+const RW = 720, RH = 372;
+
+/* Records every call/return of a recursive function as snapshots, then draws stack + call tree. */
+function Trace(o = {}) {
+  const nodes = [], stack = [], snaps = [], out = [];
+  let phase = "down", pdata = null, alert = null;
+  const clonePanel = () => (pdata ? JSON.parse(JSON.stringify(pdata)) : null);
+  const snap = (cap, ps, py) => snaps.push({
+    cap, ps, py, phase, alert, out: [...out], n: nodes.length, panel: clonePanel(),
+    ns: nodes.map((n) => [n.st, n.val]),
+    stack: stack.map((f) => ({ label: f.label, ra: f.ra, status: f.status, st: f.st })),
+  });
+  const T = {
+    nodes, out, o,
+    setPanel(d) { pdata = d; },
+    print(t) { out.push(t); },
+    setStatus(nd, s) { nd.fr.status = s; },
+    call(label, short, parent, ra, cap, ps, py, status = "", st = "run") {
+      if (parent) { parent.st = "wait"; parent.fr.st = "wait"; }
+      const nd = { label, short, parent, kids: [], st: "act", val: null };
+      nodes.push(nd); parent && parent.kids.push(nd);
+      nd.fr = { label, ra, status, st }; stack.push(nd.fr);
+      phase = "down"; snap(cap, ps, py); return nd;
+    },
+    note(nd, status, cap, ps, py, st = "run") { nd.fr.status = status; nd.fr.st = st; nd.st = "act"; snap(cap, ps, py); },
+    ret(nd, val, cap, ps, py, outLine, status) {
+      nd.fr.status = status || (val === undefined || val === null ? "finished" : "returns " + val); nd.fr.st = "ret"; nd.st = "done"; nd.val = val ?? "";
+      if (outLine) out.push(outLine);
+      phase = "up"; snap(cap, ps, py); stack.pop();
+    },
+    finish(cap, ps, py, al) { alert = al || null; snap(cap, ps, py); },
+    alertNow(a) { alert = a; },
+  };
+  T.build = () => {
+    layout(nodes);
+    return snaps.map((s) => ({ cap: s.cap, ps: s.ps, py: s.py, svg: drawSnap(s, nodes, o) }));
+  };
+  T.maxDepth = () => 0;
+  return T;
+}
+
+/* tree layout: leaves spaced evenly, parents centred over children */
+function layout(nodes) {
+  if (!nodes.length) return;
+  let leaf = 0; const depthOf = (n) => (n.parent ? depthOf(n.parent) + 1 : 0);
+  const go = (n) => { if (!n.kids.length) n.lx = leaf++; else { n.kids.forEach(go); n.lx = (n.kids[0].lx + n.kids[n.kids.length - 1].lx) / 2; } };
+  go(nodes[0]); nodes.forEach((n) => (n.d = depthOf(n)));
+  nodes.leaves = leaf; nodes.depth = Math.max(...nodes.map((n) => n.d)) + 1;
+}
+
+function maxStack(snaps) { return Math.max(1, ...snaps.map((s) => s.stack.length)); }
+
+function drawSnap(s, nodes, o) {
+  const maxD = o.maxDepth || 5, fh = Math.max(34, Math.min(50, Math.floor(272 / maxD) - 5)), gap = 5, X = 14, FW = 340, base = 322;
+  let g = "";
+  // left: call stack
+  g += SV.text(X, 22, "CALL STACK", "sm bd", { "text-anchor": "start", style: "letter-spacing:.1em" });
+  g += SV.text(X + FW, 22, s.phase === "down" ? "▼ WINDING (calls)" : "▲ UNWINDING (returns)", "lbl bd " + (s.phase === "down" ? "t1" : "t3"), { "text-anchor": "end" });
+  g += SV.line(X - 4, base + 3, X + FW + 4, base + 3, "ax");
+  g += SV.text(X, base + 20, "bottom of stack: main program", "sm", { "text-anchor": "start" });
+  s.stack.forEach((f, i) => {
+    const y = base - fh - i * (fh + gap), c = { run: "cell-cur", wait: "", ret: "cell-ok", base: "cell-warn" }[f.st];
+    g += SV.rect(X, y, FW, fh, "cell " + c, { rx: 8 });
+    g += SV.text(X + 10, y + (fh > 40 ? 20 : 15), esc(f.label), "lbl bd", { "text-anchor": "start", style: "font-family:var(--mono);font-size:14px" });
+    g += SV.text(X + FW - 10, y + fh - (fh > 40 ? 10 : 6), "↩ " + esc(f.ra), "sm", { "text-anchor": "end" });
+    if (f.status) g += SV.text(X + 10, y + fh - (fh > 40 ? 10 : 6), esc(f.status), "lbl", { "text-anchor": "start", style: "font-size:12.5px" });
+  });
+  if (!s.stack.length) g += SV.text(X + FW / 2, base - 40, "stack is empty", "lbl", { "text-anchor": "middle", style: "font-style:italic;fill:var(--muted)" });
+  // right: call tree
+  const RX = 388, RWd = RW - RX - 10;
+  g += SV.text(RX, 22, "CALL TREE  " + (o.treeName || ""), "sm bd", { "text-anchor": "start", style: "letter-spacing:.1em" });
+  const lv = nodes.depth || 1, lvs = nodes.leaves || 1, r = nodes.length > 12 ? 14 : nodes.some((n) => String(n.short).length > 3) ? 22 : 17, dy = Math.min(52, 190 / Math.max(1, lv - 1 || 1)), sp = lvs > 1 ? Math.min(54, (RWd - 2 * r) / (lvs - 1)) : 0;
+  const tw = (lvs - 1) * sp, ox = RX + RWd / 2 - tw / 2, oy = 52;
+  const px = (n) => ox + n.lx * sp, py = (n) => oy + n.d * dy;
+  nodes.forEach((n, i) => { if (n.parent) { const live = i < s.n; g += SV.line(px(n.parent), py(n.parent), px(n), py(n), live ? "edge" : "edge", { opacity: live ? 1 : 0.18 }); } });
+  nodes.forEach((n, i) => {
+    const live = i < s.n, st = live ? s.ns[i][0] : "new", val = live ? s.ns[i][1] : null;
+    const cls = { new: "nd", wait: "nd", act: "nd nd-cur", done: "nd nd-ok" }[st];
+    g += `<g opacity="${live ? 1 : 0.22}">` + SV.circle(px(n), py(n), r, cls, st === "wait" ? { style: "stroke:var(--warn);stroke-width:3.5;fill:var(--warn-soft)" } : {}) + SV.text(px(n), py(n) + 5, esc(n.short), "lbl bd", { "text-anchor": "middle", style: "font-size:" + (String(n.short).length > 3 ? 10 : String(n.short).length > 2 ? 10.5 : r < 16 ? 11 : 13) + "px" });
+    if (st === "done" && val !== "" && val !== null) g += SV.text(px(n) + r + 3, py(n) + 4, esc(val), "sm bd t3", { "text-anchor": "start", style: "font-family:var(--mono);font-size:11.5px" });
+    g += "</g>";
+  });
+  // bottom right: output / returned values / custom panel
+  const BY = 268;
+  g += SV.rect(RX, BY, RWd, 90, "cell", { rx: 8 });
+  if (s.panel && o.panelFn) g += o.panelFn(s.panel, RX, BY, RWd);
+  else {
+    g += SV.text(RX + 10, BY + 16, (o.outTitle || "OUTPUT").toUpperCase(), "sm bd", { "text-anchor": "start", style: "letter-spacing:.1em" });
+    s.out.forEach((t, i) => { const col = i < 5 ? 0 : 1, row = i % 5; g += SV.text(RX + 10 + col * (RWd / 2), BY + 33 + row * 13.5, esc(t), "lbl", { "text-anchor": "start", style: "font-family:var(--mono);font-size:12px" }); });
+  }
+  if (s.alert) { g += SV.rect(RX, BY, RWd, 90, "cell cell-no", { rx: 8 }) + SV.text(RX + RWd / 2, BY + 52, esc(s.alert), "lbl bd t2", { "text-anchor": "middle", style: "font-size:17px" }); }
+  return g;
+}
+
+/* helper: run a simulation and hand the frames to Lib.algo */
+function showAlgo(sel, T, code, label, dwell = 2600) {
+  const frames = T.build();
+  Lib.algo($(sel), { w: RW, h: RH, label, pseudo: code.ps, py: code.py, dwell, frames });
+}
+
+/* ===== Compound interest: recursive function, trace tables, past papers ===== */
+const r4 = (x) => Math.round(x * 1e4) / 1e4;
+const f2 = (x) => String(r4(x));
+const cc = (p, y, r) => `compoundInt(${f2(p)}, ${r}, ${y})`;
+
+const PS_A = ["FUNCTION compoundInt(principal, rate : REAL, years : INTEGER) RETURNS REAL", "   IF years = 0", "      THEN", "         total ← principal", "      ELSE", "         total ← compoundInt(principal, rate, years - 1) * rate", "   ENDIF", "   RETURN total", "ENDFUNCTION"];
+const PY_A = ["def compound_int(principal, rate, years):", "    if years == 0:", "        total = principal", "    else:", "        total = compound_int(principal, rate, years - 1) * rate", "    return total"];
+const PS_B = PS_A.map((l, i) => (i === 5 ? "         total ← compoundInt(principal * rate, rate, years - 1)" : l));
+const PY_B = PY_A.map((l, i) => (i === 4 ? "        total = compound_int(principal * rate, rate, years - 1)" : l));
+const CODE = { A: { ps: PS_A, py: PY_A }, B: { ps: PS_B, py: PY_B } };
+
+/* Trace-table rows for either version. Version A multiplies on the way up (coursebook Table 19.28 and its RETURN column);
+   Version B passes principal * rate down (the coursebook's printed code). */
+function rowsFor(ver, P, r, y) {
+  const v = [P]; for (let j = 1; j <= y; j++) v.push(r4(v[j - 1] * r));
+  const fin = v[y], rows = [];
+  for (let k = 0; k <= y; k++) {
+    const yrs = y - k, no = k + 1, pk = ver === "A" ? P : v[k], fc = cc(pk, yrs, r);
+    if (yrs > 0) {
+      const tot = ver === "A" ? `${cc(P, yrs - 1, r)} * ${r}` : cc(v[k + 1], yrs - 1, r);
+      rows.push({ no, fc, yrs, tot, ret: "", kind: "down", ps: [1, 5], py: [1, 4],
+        cap: ver === "A"
+          ? `<b>Call ${no}: ${fc}.</b> years is ${yrs}, not 0, so this is the <b>general case</b>. The total cell holds the calculation it cannot finish yet: ${tot}. The call waits, so nothing is returned.`
+          : `<b>Call ${no}: ${fc}.</b> years is ${yrs}, so this is the <b>general case</b>. It passes principal × rate = ${f2(v[k + 1])} down to the next call. The money grows <i>on the way down</i>; the call then waits.` });
+    } else {
+      const val = ver === "A" ? P : fin;
+      rows.push({ no, fc, yrs, tot: f2(val), ret: f2(val), kind: "base", ps: [1, 3, 7], py: [1, 2, 5],
+        cap: ver === "A"
+          ? `<b>Call ${no}: ${fc}.</b> years = 0: the <b>base case</b>. total ← principal = ${f2(P)}, and it returns ${f2(P)}. First RETURN, so <b>unwinding starts here</b>.`
+          : `<b>Call ${no}: ${fc}.</b> years = 0: the <b>base case</b>. total ← principal. By now the principal has grown to ${f2(fin)}, so it returns ${f2(fin)}.` });
+    }
+  }
+  for (let j = 1; j <= y; j++) {
+    const no = y - j + 1, fc = cc(ver === "A" ? P : v[y - j], j, r);
+    rows.push({ no: no + " cont", fc, yrs: j, tot: ver === "A" ? `${f2(v[j - 1])} * ${r}` : f2(fin), ret: f2(v[j]), kind: "up", ps: ver === "A" ? [5, 7] : [5, 7], py: ver === "A" ? [4, 5] : [4, 5],
+      cap: ver === "A"
+        ? `<b>Call ${no} resumes</b> (${fc}). The call below returned ${f2(v[j - 1])}, so total = ${f2(v[j - 1])} × ${r} = <b>${f2(v[j])}</b>, which it returns upwards.`
+        : `<b>Call ${no} resumes.</b> The call below returned ${f2(fin)}; total ← ${f2(fin)} and it returns that <b>unchanged</b>. Nothing is calculated on the way up.` });
+  }
+  return rows;
+}
+
+const COLS = [["Call no.", 0, 62], ["Function call", 62, 232], ["years", 294, 50], ["total", 344, 276], ["RETURN", 620, 100]];
+function tableSvg(rows, n) {
+  const RH2 = 30, top = 40, H = top + rows.length * RH2 + 8;
+  let g = `<g>`;
+  COLS.forEach(([t, x, w]) => { g += SV.text(x + 8, 26, t, "sm bd", { style: "font-size:11px;text-transform:uppercase;letter-spacing:.03em" }); });
+  g += SV.line(0, 34, 720, 34, "ax");
+  rows.forEach((r, i) => {
+    const y = top + i * RH2;
+    if (i >= n) { g += SV.rect(0, y, 720, RH2, "cell", { style: "opacity:.35;stroke-width:1" }); return; }
+    const cls = i === n - 1 ? "cell cell-cur" : r.kind === "base" ? "cell cell-warn" : r.kind === "up" ? "cell cell-ok" : "cell";
+    g += SV.rect(1, y + 1, 718, RH2 - 2, cls, { style: "stroke-width:" + (i === n - 1 ? 2.5 : 1.2) });
+    const cells = [r.no, r.fc, r.yrs, r.tot, r.ret];
+    cells.forEach((c, k) => { const [, x, w] = COLS[k], mid = k === 0 || k === 2 || k === 4; g += SV.text(mid ? x + w / 2 : x + 8, y + 20, esc(c), "lbl" + (k === 4 ? " bd" : ""), { "text-anchor": mid ? "middle" : "start", style: "font-family:var(--mono);font-size:12px" }); });
+  });
+  COLS.slice(1).forEach(([, x]) => { g += SV.line(x, 34, x, top + rows.length * RH2, "gr"); });
+  return g + "</g>";
+}
+
+function tableAlgo(sel, ver, P, r, y, label) {
+  const rows = rowsFor(ver, P, r, y), fc = (i) => rows[i];
+  const frames = [{ cap: `A <b>trace table</b> has one row per call. The first rows go <b>down</b> (the calls), then the rows marked “cont” go <b>up</b> (the same calls finishing). The code line being worked on is highlighted. Press Next to fill in call 1.`, ps: [0], py: [0], svg: tableSvg(rows, 0) }];
+  rows.forEach((r2, i) => frames.push({ cap: r2.cap, ps: r2.ps, py: r2.py, svg: tableSvg(rows, i + 1) }));
+  Lib.algo($(sel), { w: 720, h: 40 + rows.length * 30 + 10, label, pseudo: CODE[ver].ps, py: CODE[ver].py, dwell: 3400, frames });
+}
+
+/* Stack + call tree animation */
+function ciTrace(ver, P, r, y) {
+  const T = Trace({ treeName: "years", outTitle: "Values returned so far", maxDepth: y + 1 });
+  const lab = (p, yy) => cc(p, yy, r);
+  const run = (p, yy, parent, ra) => {
+    const nd = T.call(lab(p, yy), yy, parent, ra, `<b>${lab(p, yy)}</b> is called. A new frame is pushed holding principal = ${f2(p)}, rate = ${r} and years = ${yy}.`, [0], [0]);
+    if (yy === 0) {
+      T.note(nd, "years = 0: BASE CASE", `Is years = 0? <b>Yes</b>: the <b>base case</b>. total ← principal, so total = ${f2(p)}. No further call is made.`, [1, 3], [1, 2], "base");
+      T.print(`years 0 returns ${f2(p)}`);
+      T.ret(nd, f2(p), `RETURN total sends <b>${f2(p)}</b> back to the waiting call. The frame is popped and <b>unwinding begins</b>.`, [7], [5]);
+      return p;
+    }
+    if (ver === "A") {
+      T.note(nd, "general case: must wait", `Is years = 0? No (${yy}). General case: total ← compoundInt(principal, rate, ${yy - 1}) * rate. The multiplication <b>cannot happen yet</b>, because the call has to return first.`, [1, 5], [1, 4]);
+      T.setStatus(nd, `paused: waiting for years = ${yy - 1}`);
+      const v = run(p, yy - 1, nd, "line 6"), t = r4(v * r);
+      T.note(nd, `${f2(v)} * ${r} = ${f2(t)}`, `The call below returned ${f2(v)}. This frame <b>resumes</b> at the same line: total ← ${f2(v)} * ${r} = <b>${f2(t)}</b>.`, [5], [4]);
+      T.print(`years ${yy} returns ${f2(t)}`);
+      T.ret(nd, f2(t), `RETURN total sends ${f2(t)} up. The frame is popped.`, [7], [5]);
+      return t;
+    }
+    const np = r4(p * r);
+    T.note(nd, `passes ${f2(np)} down`, `General case: the new principal is principal * rate = ${f2(p)} * ${r} = <b>${f2(np)}</b>. It is worked out <b>before</b> the call and handed down.`, [1, 5], [1, 4]);
+    T.setStatus(nd, `paused: waiting for years = ${yy - 1}`);
+    const v = run(np, yy - 1, nd, "line 6");
+    T.note(nd, `total ← ${f2(v)}`, `The call below returned ${f2(v)}. total ← ${f2(v)}. There is <b>nothing left to calculate</b>.`, [5], [4]);
+    T.print(`years ${yy} returns ${f2(v)}`);
+    T.ret(nd, f2(v), `RETURN total passes ${f2(v)} up <b>unchanged</b>. The frame is popped.`, [7], [5]);
+    return v;
+  };
+  const res = run(P, y, null, "main");
+  T.finish(ver === "A" ? `The stack is empty. The answer is ${f2(res)}. The money grew one year at a time <b>during the unwinding</b>: ${P} → ${Array.from({ length: y }, (_, i) => f2(P * Math.pow(r, i + 1))).join(" → ")}.` : `The stack is empty. The answer is ${f2(res)}. The money grew <b>on the way down</b>; the unwinding only passed the finished answer back up.`, [], []);
+  return T;
+}
+function stackAlgo(sel, ver, P, r, y, label) { showAlgo(sel, ciTrace(ver, P, r, y), CODE[ver], label, 2800); }
+
+stackAlgo("#aStackA", "A", 100, 1.05, 3, "Animated call stack and call tree for compoundInt(100, 1.05, 3), Version A");
+tableAlgo("#aTabA", "A", 100, 1.05, 3, "Trace table being filled in for compoundInt(100, 1.05, 3), Version A");
+stackAlgo("#aStackB", "B", 100, 1.05, 3, "Animated call stack and call tree for compoundInt(100, 1.05, 3), Version B");
+tableAlgo("#aTabB", "B", 100, 1.05, 3, "Trace table being filled in for compoundInt(100, 1.05, 3), Version B");
+
+/* trace table as plain HTML (Learn, Explore, exam answers) */
+function tableHtml(rows) {
+  const bg = { base: "var(--warn-soft)", up: "var(--good-soft)", down: "transparent" };
+  return `<div class="tw"><table class="t mono"><tr><th>Call number</th><th>Function call</th><th>years</th><th>total</th><th>RETURN</th></tr>${rows.map((r) => `<tr style="background:${bg[r.kind]}"><td>${r.no}</td><td>${esc(r.fc)}</td><td>${r.yrs}</td><td>${esc(r.tot)}</td><td><b>${esc(r.ret)}</b></td></tr>`).join("")}</table></div>`;
+}
+$$("[data-tt]").forEach((el) => { const [ver, P, r, y] = el.dataset.tt.split(","); el.innerHTML = tableHtml(rowsFor(ver, +P, +r, +y)); });
+
+/* ===== Explore lab: sliders, bars, live trace table ===== */
+(() => {
+  const S = {}; let ver = "A";
+  const bars = (P, r, y) => {
+    const W = 720, H = 250, n = y + 1, bw = Math.min(64, (W - 40) / n - 10), g = (W - 40 - n * bw) / Math.max(1, n - 1 || 1), base = 205, vals = [P];
+    for (let j = 1; j <= y; j++) vals.push(r4(vals[j - 1] * r));
+    const mx = vals[y] * 1.12;
+    let s = SV.line(20, base, W - 20, base, "ax");
+    vals.forEach((v, i) => {
+      const x = n === 1 ? W / 2 - bw / 2 : 20 + i * (bw + g), hp = (P / mx) * 170, ht = (v / mx) * 170;
+      s += SV.rect(x, base - hp, bw, hp, "", { rx: 3, style: "fill:var(--accent)" });
+      if (ht - hp > 0.5) s += SV.rect(x, base - ht, bw, ht - hp, "", { rx: 3, style: "fill:var(--good)" });
+      s += SV.text(x + bw / 2, base - ht - 7, f2(Math.round(v * 100) / 100), "lbl bd", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+      s += SV.text(x + bw / 2, base + 18, "year " + i, "sm", { "text-anchor": "middle" });
+    });
+    s += SV.rect(20, 232, 12, 12, "", { style: "fill:var(--accent)" }) + SV.text(38, 243, "principal", "sm") + SV.rect(120, 232, 12, 12, "", { style: "fill:var(--good)" }) + SV.text(138, 243, "interest added", "sm");
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Bar chart of the balance each year">${s}</svg>`;
+  };
+  const draw = () => {
+    if (!S.p || !S.r || !S.y) return;
+    const P = S.p.get(), pct = S.r.get(), y = S.y.get(), r = r4(1 + pct / 100);
+    let v = P; for (let j = 0; j < y; j++) v = r4(v * r);
+    $("#ciChart").innerHTML = bars(P, r, y);
+    $("#ciRO").innerHTML = `<div><small>Rate argument</small><strong>${r}</strong></div><div><small>Final amount</small><strong>${f2(Math.round(v * 100) / 100)}</strong></div><div><small>Interest earned</small><strong>${f2(Math.round((v - P) * 100) / 100)}</strong></div><div><small>Calls made</small><strong>${y + 1}</strong></div><div><small>Deepest stack</small><strong>${y + 1} frames</strong></div>`;
+    $("#ciCall").textContent = `compoundInt(${P}, ${r}, ${y})`;
+    $("#ciTbl").innerHTML = tableHtml(rowsFor(ver, P, r, y));
+  };
+  S.p = Lib.slider($("#slP"), { id: "sP", label: "principal: ", min: 100, max: 1000, step: 50, value: 100, onInput: draw });
+  S.r = Lib.slider($("#slR"), { id: "sR", label: "interest rate (%): ", min: 1, max: 15, step: 1, value: 5, fmt: (v) => v + "%", onInput: draw });
+  S.y = Lib.slider($("#slY"), { id: "sY", label: "years: ", min: 0, max: 8, step: 1, value: 3, onInput: draw });
+  $("#ciVer").addEventListener("change", (e) => { ver = e.target.value; draw(); });
+  draw();
+})();
+
+/* ===== Activities ===== */
+Lib.order($("#o1"), { prompt: "compoundInt(100, 1.05, 2) is called (Version A). Put the events in the order they happen.", items: ["compoundInt(100, 1.05, 2) is called and its frame is pushed", "compoundInt(100, 1.05, 1) is called and its frame is pushed", "compoundInt(100, 1.05, 0) is called: base case, returns 100", "The years = 1 call works out 100 × 1.05 and returns 105", "The years = 2 call works out 105 × 1.05 and returns 110.25"], done: "Calls go down to the base case; the multiplications happen one at a time on the way back up." });
+
+Lib.classify($("#cl1"), { prompt: "Drag each piece of the function to the part of recursion it plays (Version A).", buckets: [{ label: "Base case" }, { label: "General case (calls itself)" }, { label: "Moves towards the base case" }, { label: "Runs during unwinding" }], items: [
+  { text: "IF years = 0", b: 0 }, { text: "total ← principal", b: 0 }, { text: "compoundInt(principal, rate, years - 1)", b: 1 }, { text: "years - 1", b: 2 }, { text: "… * rate (done after the call returns)", b: 3 }, { text: "105 × 1.05 = 110.25 in the row “2 cont”", b: 3 }], done: "The base case stops it, the general case repeats it, years - 1 guarantees it ends." });
+
+Lib.classify($("#cl2"), { prompt: "Which version is each statement true of? Version A multiplies by rate after the call returns. Version B passes principal * rate down.", buckets: [{ label: "Version A: × rate on the way up" }, { label: "Version B: principal * rate passed down" }], items: [
+  { text: "The principal in every call stays at 100", b: 0 }, { text: "Call 3 is compoundInt(110.25, 1.05, 1)", b: 1 }, { text: "RETURN column from the base case upwards: 100, 105, 110.25, 115.76", b: 0 }, { text: "RETURN column shows 115.76 in every row", b: 1 }, { text: "The base case returns the original principal", b: 0 }, { text: "The base case returns the final amount", b: 1 }, { text: "The multiplying happens while unwinding", b: 0 }, { text: "The multiplying happens while winding down", b: 1 }], done: "Same answer, 115.7625, from two different routes." });
+
+Lib.match($("#m1"), { prompt: "Match each term to what it means in this function.", pairs: [
+  ["Base case", "years = 0, so total is just the principal"], ["General case", "the call that passes years - 1 to compoundInt itself"], ["Winding", "the calls being made, years counting down towards 0"], ["Unwinding", "the calls finishing and returning, in reverse order"], ["rate", "the yearly growth factor, e.g. 1.05 for 5%"], ["Stack frame", "one call's copy of principal, rate, years and its return address"]], done: "Those six ideas are all you need to explain this function." });
+
+/* ===== Practise ===== */
+Lib.calc($("#c1"), { qs: [
+  { q: "Trace compoundInt(200, 1.1, 3) (Version A). What does the <b>base-case</b> call, years = 0, return?", a: 200, hint: "years = 0, so total is the principal.", sol: "total ← principal = 200." },
+  { q: "What does compoundInt(200, 1.1, 1) return?", a: 220, hint: "It multiplies what the base case returned by the rate.", sol: "200 × 1.1 = 220." },
+  { q: "What does compoundInt(200, 1.1, 2) return?", a: 242, hint: "Take the previous answer × 1.1.", sol: "220 × 1.1 = 242." },
+  { q: "What does the original call compoundInt(200, 1.1, 3) return?", a: 266.2, tol: 0.01, hint: "Take the previous answer × 1.1.", sol: "242 × 1.1 = 266.2." },
+  { q: "How many calls to compoundInt are made in total for compoundInt(200, 1.1, 3), counting the first and the base case?", a: 4, tol: 0, hint: "years = 3, 2, 1, 0.", sol: "years goes 3, 2, 1, 0: four calls." },
+  { q: "A bank pays 8% a year. What value should be passed as rate?", a: 1.08, tol: 0.001, hint: "rate is the growth factor, not the percentage.", sol: "100% + 8% = 108% = 1.08." },
+  { q: "compoundInt(500, 1.08, 5) to the nearest 0.01 (a calculator helps).", a: 734.66, tol: 0.011, hint: "500 × 1.08, five times over.", sol: "500 × 1.08⁵ = 734.66 (734.664…)." }] });
+
+Lib.quiz($("#qz1"), { qs: [
+  { q: "What is the base case of compoundInt?", opts: ["years = 0, which returns the principal", "rate = 1, which returns the principal", "principal = 0, which returns 0", "years = 1, which returns principal * rate"], a: 0, why: "When years is 0 no interest has been added, so the total is just the principal." },
+  { q: "How many times is compoundInt called by compoundInt(100, 1.05, 4), counting the first call?", opts: ["4", "5", "6", "1"], a: 1, why: "years takes the values 4, 3, 2, 1 and 0. The base case call counts, so 5 calls." },
+  { q: "In Version A, when are the multiplications by rate carried out?", opts: ["On the way down, before each call", "Only in the base case", "On the way back up, as each call returns", "Before the function starts"], a: 2, why: "total ← compoundInt(…) * rate cannot be worked out until the inner call has returned." },
+  { q: "The recursive line is changed to compoundInt(principal, rate, years + 1) * rate. What happens when it is called with years = 3?", opts: ["It returns the right answer", "It returns 0", "It never reaches the base case and the stack overflows", "It returns the principal"], a: 2, why: "years moves away from 0, so the base case is never reached. Every call adds a frame until the stack runs out." },
+  { q: "The base case is changed to return 0 instead of principal. What does compoundInt(100, 1.05, 3) return?", opts: ["115.7625", "100", "105", "0"], a: 3, why: "0 × 1.05 × 1.05 × 1.05 = 0. The program runs, but gives the wrong answer." },
+  { q: "Which argument is correct for 3.5% interest?", opts: ["3.5", "0.035", "1.035", "35"], a: 2, why: "The rate is the growth factor: 1 + 0.035 = 1.035." },
+  { q: "In Table 19.29 style, a row labelled “2 cont” shows…", opts: ["call 2 being made for the first time", "call 2 resuming after the call below it returned", "the base case", "an error"], a: 1, why: "“cont” rows are the unwinding rows: the call carries on from where it paused and finishes." }] });
+
+Lib.cards($("#fc1"), { cards: [
+  ["Base case", "The input for which the answer is known without a further call. Here: years = 0, total = principal. Also called the terminating condition."],
+  ["General case", "The branch where the function calls itself with a simpler value (years - 1)."],
+  ["Winding", "The phase where calls are made, one after another, and frames are pushed, until the base case is reached."],
+  ["Unwinding", "The phase after the base case where each call returns and its frame is popped, in reverse order."],
+  ["Stack frame", "The block pushed on the call stack for each call: parameters, local variables and the return address."],
+  ["Return address", "Where the program carries on once a call finishes."],
+  ["Trace table", "A table that records the calls, parameter values and returned values step by step."],
+  ["Growth factor (rate)", "The number the amount is multiplied by each year: 1.05 for 5% interest."],
+  ["Stack overflow", "An error when the call stack runs out of memory, for example because the base case is never reached."],
+  ["Compound interest", "Interest calculated on the principal plus the interest already added, so each year’s growth is bigger than the last."],
+  ["Iteration", "Repeating with a loop (FOR, WHILE) instead of the subroutine calling itself."]] });
+
+Lib.codePanel($("#codeA"), { pseudo: PS_A, py: PY_A });
+
+Lib.initTabs();
+</script>
+</body></html>

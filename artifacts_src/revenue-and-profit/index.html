@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Revenue and Profit</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+/* Firm in Focus: styles for the original Learn content (topic sections, chart cards, keyword chips) mapped onto the kit palette */
+.legacy{--prod:var(--accent);--cost:var(--bad);--rev:var(--n);--profit:var(--warn);--ink-dim:var(--muted);--surface-2:var(--soft)}
+.legacy section.topic{padding:6px 0 10px;margin-bottom:12px;border-top:1px solid var(--line)}
+.legacy .topic.production{--tc:var(--prod)} .legacy .topic.cost{--tc:var(--cost)} .legacy .topic.revenue{--tc:var(--rev)} .legacy .topic.profit{--tc:var(--profit)}
+.legacy .topic-head{display:flex;align-items:center;gap:10px;margin:18px 0 8px}
+.legacy .topic-head h2{margin:0}
+.legacy .topic-num{font:700 .78rem var(--mono);color:#fff;background:var(--tc,var(--accent));width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:none}
+.legacy .keyword-row{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.legacy .keyword-row .kw{font-weight:600;font-size:.8rem;padding:4px 10px;border-radius:99px;background:var(--accent-soft);color:var(--ink);border:1px solid var(--line)}
+.legacy .card{margin:14px 0}
+.legacy .chart-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px 4px;margin:14px 0}
+.legacy .chart-card figcaption{font-size:.85rem;color:var(--muted);padding:0 4px 10px;text-align:center}
+.legacy .callout{border-left:4px solid var(--tc,var(--accent));background:var(--soft);border-radius:0 10px 10px 0;padding:12px 16px;margin:14px 0;font-size:.95rem}
+.legacy .callout b{color:var(--tc,var(--accent))}
+.legacy .table-wrap{overflow-x:auto;margin:14px 0}
+.legacy table{width:100%;border-collapse:collapse;font-size:.9rem}
+.legacy th,.legacy td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+.legacy th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.legacy .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.legacy .two-col{grid-template-columns:1fr}}
+.legacy .pill-label{display:inline-block;font:700 .7rem var(--mono);padding:2px 8px;border-radius:6px;margin-bottom:6px}
+.legacy .pill-label.internal{background:var(--accent-soft);color:var(--accent)}
+.legacy .pill-label.external{background:var(--soft);color:var(--n)}
+.legacy .qa{margin:10px 0} .legacy .qa .q{font-weight:700;margin-bottom:3px} .legacy .qa .a{color:var(--muted)}
+.legacy .mono{font-family:var(--mono)}
+.legacy svg .axis{stroke:var(--muted);stroke-width:1;fill:none}
+.legacy svg .gridline{stroke:var(--line);stroke-width:1;stroke-dasharray:3 3}
+.legacy svg .lbl{font-size:11px;fill:var(--ink)}
+.legacy svg .lbl-dim{font-size:10px;fill:var(--muted)}
+.prompt-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0}
+.prompt-card h3{font-size:1.02rem;margin:0 0 2px}
+.prompt-card .ctx{font-size:.88rem;color:var(--muted);margin-bottom:10px}
+.prompt-card .draw-box{border:1.5px dashed var(--line);border-radius:10px;height:120px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.8rem;margin-bottom:10px;background:var(--soft)}
+.prompt-card label{font:700 .72rem var(--sans);color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.prompt-card textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:.92rem;padding:9px 11px;resize:vertical;margin-top:4px}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Economics · 9708 · Syllabus 7.5 · Part 3 of 3</div>
+  <h1>Revenue and Profit</h1>
+  <p class="lead">Total, average and marginal revenue for price takers and price makers, and normal, subnormal and supernormal profit. Animated diagrams, labs, drills and the past paper questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel" class="legacy">
+<section class="topic revenue" id="revenue">
+    <div class="topic-head"><span class="topic-num">6</span><h2>Total, average and marginal revenue</h2></div>
+    <div class="keyword-row">
+      <span class="kw" style="background:var(--rev-soft)">total revenue (TR)</span>
+      <span class="kw" style="background:var(--rev-soft)">average revenue (AR)</span>
+      <span class="kw" style="background:var(--rev-soft)">marginal revenue (MR)</span>
+      <span class="kw" style="background:var(--rev-soft)">price taker</span>
+      <span class="kw" style="background:var(--rev-soft)">price maker</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Measure</th><th>Formula</th><th>Meaning</th></tr>
+        <tr><td class="mono">TR</td><td class="mono">P × Q</td><td>Total sales revenue</td></tr>
+        <tr><td class="mono">AR</td><td class="mono">TR ÷ Q  (= P)</td><td>Revenue per unit sold — always equals price</td></tr>
+        <tr><td class="mono">MR</td><td class="mono">ΔTR ÷ ΔQ</td><td>Extra revenue from selling one more unit</td></tr>
+      </table>
+    </div>
+    <p>A <b>price taker</b> (perfect competition) faces a horizontal demand curve at the market price — it can sell any quantity at that price, so <span class="mono">D = AR = MR</span>, all flat. A <b>price maker</b> faces the market's own downward-sloping demand curve: to sell more it must cut price on <i>every</i> unit, so MR falls faster than AR and sits below it throughout.</p>
+
+    <figure class="chart-card">
+      <svg viewBox="0 0 620 300" width="100%">
+        <line class="axis" x1="55" y1="15" x2="55" y2="255"/>
+        <line class="axis" x1="55" y1="255" x2="600" y2="255"/>
+        <text class="lbl-dim" x="10" y="18">Revenue ($)</text>
+        <text class="lbl-dim" x="555" y="272">Quantity</text>
+        <!-- AR (demand) straight line -->
+        <line x1="70" y1="35" x2="560" y2="245" stroke="var(--rev)" stroke-width="2.4"/>
+        <text class="lbl" x="510" y="215" fill="var(--rev)" font-weight="600">AR (= demand)</text>
+        <!-- MR straight line, twice the slope, same intercept -->
+        <line x1="70" y1="35" x2="315" y2="255" stroke="var(--cost)" stroke-width="2.4"/>
+        <text class="lbl" x="200" y="150" fill="var(--cost)" font-weight="600">MR</text>
+        <!-- elastic / inelastic markers -->
+        <line class="gridline" x1="315" y1="255" x2="315" y2="30"/>
+        <circle cx="315" cy="140" r="4" fill="var(--ink)"/>
+        <text class="lbl" x="322" y="120">PED = 1</text>
+        <text class="lbl-dim" x="322" y="135">MR = 0</text>
+        <text class="lbl-dim" x="322" y="150">TR at its maximum</text>
+        <text class="lbl-dim" x="120" y="60">elastic (PED &gt; 1)</text>
+        <text class="lbl-dim" x="380" y="80">inelastic (PED &lt; 1)</text>
+      </svg>
+      <figcaption>MR starts at the same price-intercept as AR but falls twice as fast (a straight-line demand curve halves in this way). Where MR crosses zero, AR is exactly at its mid-point — the price-elastic upper half of demand meets the price-inelastic lower half, and that's precisely where PED = 1.</figcaption>
+    </figure>
+
+    <div class="callout"><b>Revenue-maximising relationship:</b> <span class="mono">MR = 0 ⇔ PED = 1 ⇔ TR at its maximum.</span> Above that point demand is elastic — cutting price raises TR (the extra units sold outweigh the lower price on each). Below it demand is inelastic — cutting price further actually lowers TR (the price cut on all units outweighs the small extra quantity sold). A firm aiming purely to maximise revenue (not profit) should produce exactly where MR = 0.</div>
+</section>
+
+<section class="topic profit" id="profit">
+    <div class="topic-head"><span class="topic-num">7</span><h2>Normal, subnormal and supernormal profit</h2></div>
+    <p>Profit = total revenue − total costs. But an economist's "costs" already include <b>normal profit</b> — the minimum return the entrepreneur needs to bother staying in this line of business at all, given what their capital and effort could earn elsewhere. It's the opportunity cost of enterprise, and it's built into TC, not paid out on top of it.</p>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>Profit type</th><th>Condition</th><th>What it means</th></tr>
+        <tr><td><b>Normal profit</b></td><td class="mono">TR = TC (TC includes normal profit)</td><td>The firm exactly covers all its costs, including the opportunity cost of the entrepreneur's own capital and effort. Enough to keep the firm in business — no more, no less.</td></tr>
+        <tr><td><b>Supernormal profit</b></td><td class="mono">TR &gt; TC</td><td>Profit above and beyond normal profit. Signals other firms to enter the market, chasing the same excess return.</td></tr>
+        <tr><td><b>Subnormal profit</b></td><td class="mono">TR &lt; TC</td><td>The firm is earning less than the opportunity cost of staying in business — a warning sign it may exit in the long run.</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="qa">
+        <p class="q">"If normal profit is basically covering costs, is subnormal profit actually a loss?"</p>
+        <p class="a">In accounting terms, not necessarily — the firm can still be covering its cash costs and even turning an accounting profit. In economic terms, yes, in the sense that matters for decisions: because normal profit is already folded into TC, "subnormal" means the firm is earning <i>less than</i> what its resources could earn doing something else. That's a real economic loss even if the bank balance is technically positive — the entrepreneur would be financially better off redeploying their capital and labour elsewhere.</p>
+      </div>
+      <div class="qa">
+        <p class="q">Real-world example: an independent café earning just enough to pay itself the owner's old salary</p>
+        <p class="a">If the return exactly matches what the owner gave up (their previous job's salary plus a normal return on the capital tied up), that's normal profit — rational to keep operating, not spectacular, not a warning sign.</p>
+      </div>
+      <div class="qa" style="margin-bottom:0">
+        <p class="q">Real-world example: a high-street shop competing with online retailers</p>
+        <p class="a">If it earns less than the owner could get investing that capital and time elsewhere, it's running subnormal profit — economically a loss, even if it isn't technically insolvent — and a classic reason independent shops close even while still "making money" on paper.</p>
+      </div>
+    </div>
+
+    <div class="callout"><b>Supernormal profit as a market signal:</b> new firms entering a market chasing supernormal profit is exactly the mechanism that (in a competitive market) erodes it back toward normal profit over time — supply expands, price falls, until TR = TC again.</div>
+</section>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Average, marginal and total revenue</h2>
+  <p>A price maker faces the demand curve P = 20 − Q. Press Play, or click the steps.</p><div id="stR2"></div>
+  <h2>2 · Normal, subnormal and supernormal profit</h2>
+  <p>A firm sells 500 units and its total cost, which includes normal profit, is $5,200. What happens as the price changes?</p><div id="stP2"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Demand, revenue and marginal revenue</h2>
+  <p>A price maker faces the demand curve P = 20 − Q. To sell more it has to cut the price on every unit.</p>
+  <div class="grid2">
+    <div class="card"><div id="sl4"></div>
+      <div class="readout"><div><small>Price (AR)</small><strong id="r1"></strong></div><div><small>TR</small><strong id="r2"></strong></div><div><small>MR</small><strong id="r3"></strong></div><div><small>PED</small><strong id="r4"></strong></div></div>
+      <div class="verdict" id="v3"></div></div>
+    <div class="card"><svg id="lab3" viewBox="0 0 480 360" role="img" aria-label="AR and MR curves with a marker at the chosen output"></svg></div>
+  </div>
+  <h2>Lab 2 · Normal, subnormal and supernormal profit</h2>
+  <p>A price taker uses the cost curves from Lab 1 (fixed cost 20). It produces where MC = price. Change the market price and read the profit type.</p>
+  <div class="grid2">
+    <div class="card"><div id="sl5"></div>
+      <div class="readout"><div><small>Output (MC = P)</small><strong id="p1"></strong></div><div><small>ATC</small><strong id="p2"></strong></div><div><small>Profit per unit</small><strong id="p3"></strong></div><div><small>Total profit</small><strong id="p4"></strong></div></div>
+      <div class="verdict" id="v4"></div></div>
+    <div class="card"><svg id="lab4" viewBox="0 0 480 360" role="img" aria-label="Cost curves with a profit rectangle at the chosen price"></svg><p class="note">Shaded box: (P − ATC) × Q. Green is supernormal profit, red is subnormal. Costs already include normal profit.</p></div>
+  </div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>2 · Calculations</h2>
+  <p>Enter numbers only. Give answers to one decimal place where needed.</p>
+  <div id="c1"></div>
+  <h2>3 · Multiple choice</h2><div id="qz1"></div>
+  <h2>4 · Draw it. Explain it. Apply it.</h2>
+  <p>For each prompt, sketch the diagram on paper, then explain it and apply it to a real firm of your choice.</p>
+  <div id="promptList"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms so they stay true. Look up current figures before quoting them in an exam answer.</p>
+  <div class="rw"><h3>The independent café and the struggling high-street shop</h3><p>A café that earns about what the owner could have earned elsewhere is making normal profit and may reasonably carry on. A shop that earns less than the owner's best alternative is making subnormal profit, even if it still shows a small accounting surplus, and is likely to close in the long run.</p><div class="use"><b>Use it for:</b> normal, supernormal and subnormal profit, and why opportunity cost sits inside total cost.</div></div>
+  <div class="rw"><h3>A new product that sells well</h3><p>A firm with a popular new product may earn supernormal profit at first. If entry is easy, rivals could copy it, supply may rise, price may fall and profit could drift back towards normal. If there are barriers to entry, the supernormal profit may last much longer.</p><div class="use"><b>Use it for:</b> supernormal profit as a signal for entry, and evaluation based on barriers to entry.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions on revenue and profit</h2>
+  <p>The exam-style questions below were written for this page (open each one for reminders, a model answer and the common mistake). The Paper 3 multiple choice questions are real past paper questions: choose an answer, then read the reason. Mark scheme points are summarised in our own words, not copied.</p>
+
+  <div class="key" aria-label="Colour key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+  <details class="eq"><summary>Q2 <span class="cmd">Calculate</span> <span class="mark">4 marks</span> A firm sells 500 units at $12 each. Its total cost is $5,200, which includes normal profit. Calculate its total revenue and its profit, and state the type of profit.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two marks for the calculations and two for the interpretation. Show the formula and the working.</div>
+    <div class="ans"><span class="mk k" data-t="K">TR = P × Q = $12 × 500 = $6,000.</span> <span class="mk a" data-t="A">Profit = TR − TC = $6,000 − $5,200 = $800.</span> <span class="mk n" data-t="N">TR is greater than TC, so the firm is earning supernormal profit of $800.</span> <span class="mk n" data-t="N">Because TC already includes normal profit, this $800 is a return above the minimum needed to keep the firm in the industry.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Calling $800 "normal profit". Normal profit is already inside total cost.</div>
+  </div></details>
+  <details class="eq"><summary>Q5 <span class="cmd">Discuss</span> <span class="mark">12 marks</span> Discuss whether a firm earning supernormal profit in the short run is likely to continue earning it in the long run.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open each paragraph with the question's wording. Finish each paragraph with a short evaluative point and a link back to the question. Finish with a judgement that depends on barriers to entry.</div>
+    <div class="key"><span class="k"><i></i>Knowledge</span><span class="a"><i></i>Application</span><span class="n"><i></i>Analysis</span><span class="e"><i></i>Evaluation</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">Supernormal profit occurs when total revenue is greater than total cost, which already includes normal profit, the minimum return needed to keep the entrepreneur in the industry.</span></p>
+    <p><span class="mk n" data-t="N">A firm earning supernormal profit in the short run may not continue earning it in the long run if other firms can enter the market.</span> <span class="mk n" data-t="N">Supernormal profit signals that resources earn more here than elsewhere, so new firms are likely to enter, supply increases, price falls and the firm's revenue per unit falls until profit returns towards normal.</span> <span class="mk a" data-t="A">A popular new café format that rivals can easily copy could follow this path.</span> <span class="mk e" data-t="E">However, entry may take time, so the firm could enjoy supernormal profit for several years, which means the short run is not always short in practice.</span> <span class="mk n" data-t="N">Entry therefore explains why supernormal profit may disappear.</span></p>
+    <p><span class="mk n" data-t="N">A firm earning supernormal profit in the short run is likely to continue earning it in the long run if there are barriers to entry.</span> <span class="mk n" data-t="N">Patents, high minimum efficient scale, brand loyalty or control of key inputs could stop rivals entering, so supply stays restricted and price remains above average cost.</span> <span class="mk a" data-t="A">A pharmaceutical firm with a patented drug may keep high profits while the patent lasts.</span> <span class="mk e" data-t="E">Barriers rarely last for ever: patents expire and technology changes, so the profit may erode eventually.</span> <span class="mk n" data-t="N">Barriers to entry therefore explain why supernormal profit may continue.</span></p>
+    <p><span class="mk e" data-t="E">Overall, a firm is likely to keep supernormal profit in the long run only if barriers to entry are strong and lasting. In a market that is easy to enter, supernormal profit is likely to be competed away, so the answer mainly depends on how high the barriers are and how quickly rivals can respond.</span></p>
+    </div>
+    <div class="warn"><b class="h">Common mistake</b>Writing about perfect competition only. The question is about any firm, so barriers to entry are the key point of evaluation.</div>
+  </div></details>
+  <h2>Paper 3 multiple choice questions</h2>
+  <p>Choose an answer, then read the reason. Source: paper code and question number.</p>
+  <div id="qz2"></div>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Normal profit is inside total cost.</b> TR = TC means normal profit, not zero profit.</li>
+    <li><b>MR = 0 is where TR is at its maximum and PED = 1.</b> Link revenue to elasticity whenever you can.</li>
+    <li><b>Use real examples</b> and say what each one shows about the concept.</li>
+  </ul>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Calculate</td><td>Formula, substitution, answer with units.</td></tr>
+    <tr><td>Explain</td><td>Give reasons, with a clear chain of cause and effect.</td></tr>
+    <tr><td>Discuss</td><td>Arguments on both sides, then a judgement.</td></tr>
+  </table></div>
+  <h2>Keyword flashcards</h2>
+  <p>Click the card to flip it. Mark the ones you know.</p>
+  <div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+/* shared cost-curve helpers: include in an artifact with a first line of  // uses: econ */
+/* ---------- shared maths ---------- */
+// Cost model used throughout: VC = Q^3 - 6Q^2 + 15Q, FC set per lab (20 unless a slider changes it).
+const MC = (q) => 3 * q * q - 12 * q + 15, AVC = (q) => q * q - 6 * q + 15, ATC = (q, fc = 20) => AVC(q) + fc / q;
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
+function frame(W, H, l, r, t, b, xmax, ymin, ymax) {
+  return { X: (q) => l + ((r - l) * q) / xmax, Y: (v) => b - ((b - t) * (v - ymin)) / (ymax - ymin), l, r, t, b, ymax, ymin };
+}
+function curve(f, q0, q1, F) {
+  const p = [];
+  for (let q = q0; q <= q1 + 1e-9; q += 0.05) { const v = f(q); if (v > F.ymax || v < F.ymin) continue; p.push([F.X(q), F.Y(v)]); }
+  return ptsPath(p);
+}
+function axes(F, xl, yl, y0 = 0) {
+  return SV.line(F.l, F.t, F.l, F.Y(y0)) + SV.line(F.l, F.Y(y0), F.r, F.Y(y0)) + SV.text(F.l, F.t - 7, yl, "sm", { "text-anchor": "start" }) + SV.text(F.r, F.b + 24, xl, "sm", { "text-anchor": "end" });
+}
+const costSet = (F, fc, o = {}) => {
+  const op = (k) => (o[k] === undefined ? 1 : o[k]);
+  let s = "";
+  if (op("a")) s += SV.path(curve((q) => fc / q, 0.4, 5.5, F), "c4", { opacity: op("a") }) + SV.text(F.X(0.65), F.Y(Math.min(F.ymax - 2, fc / 0.65)) + 2, "AFC", "lbl bd t4", { opacity: op("a") });
+  if (op("v")) s += SV.path(curve(AVC, 0.05, 5.5, F), "c3", { opacity: op("v") }) + SV.text(F.X(1.1), F.Y(AVC(1.1)) - 8, "AVC", "lbl bd t3", { opacity: op("v") });
+  if (op("t")) s += SV.path(curve((q) => ATC(q, fc), 0.4, 5.5, F), "c1", { opacity: op("t") }) + SV.text(F.X(1.1), F.Y(ATC(1.1, fc)) - 8, "ATC", "lbl bd t1", { opacity: op("t") });
+  if (op("m")) s += SV.path(curve(MC, 0.05, 5.5, F), "c2", { opacity: op("m") }) + SV.text(F.X(5.2), F.Y(MC(5.2)) + 2, "MC", "lbl bd t2", { opacity: op("m"), "text-anchor": "end" });
+  return s;
+};
+
+
+// uses: econ
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+/* ---------- Watch 1: AR, MR and TR ---------- */
+const RLX = (q) => 70 + q * 15, RLY = (p) => 150 - p * 5, RRX = (q) => 450 + q * 14, RRY = (v) => 270 - v * 2;
+function revDraw(s) {
+  let o = SV.line(70, 150, 380, 150) + SV.line(70, 40, 70, 260) + SV.text(380, 186, "Quantity", "sm", { "text-anchor": "end" }) + SV.text(76, 34, "Price, AR, MR ($)", "sm");
+  [0, 10, 20].forEach((q) => { o += SV.text(RLX(q), 164, q, "sm", { "text-anchor": "middle" }); });
+  o += SV.line(450, 270, 740, 270) + SV.line(450, 40, 450, 276) + SV.text(740, 294, "Quantity", "sm", { "text-anchor": "end" }) + SV.text(456, 34, "Total revenue ($)", "sm");
+  if (s.ar > 0) o += SV.line(RLX(0), RLY(20), RLX(20), RLY(0), "c1", op(s.ar)) + SV.text(RLX(19), RLY(0) - 8, "AR = D", "lbl bd t1", { "text-anchor": "end", ...op(s.ar) });
+  if (s.mr > 0) o += SV.line(RLX(0), RLY(20), RLX(20), RLY(-20), "c2", op(s.mr)) + SV.text(RLX(18.5), RLY(-17) + 14, "MR", "lbl bd t2", { "text-anchor": "end", ...op(s.mr) });
+  if (s.tr > 0) { const pts = []; for (let q = 0; q <= 20 * s.tr + 0.01; q += 0.5) pts.push([RRX(q), RRY(q * (20 - q))]); if (pts.length > 1) o += SV.path(Lib.ptsPath(pts), "c3"); }
+  if (s.mk > 0) o += SV.line(RLX(10), RLY(0), RLX(10), 260, "gr", op(s.mk)) + SV.circle(RLX(10), RLY(0), 6, "dot2", op(s.mk)) + SV.line(RRX(10), RRY(100), RRX(10), 270, "gr", op(s.mk)) + SV.circle(RRX(10), RRY(100), 6, "dot3", op(s.mk)) + SV.text(RRX(10) + 10, RRY(100) - 8, "TR = $100 (maximum)", "lbl bd t3", { style: "paint-order:stroke;stroke:var(--surface);stroke-width:4px", ...op(s.mk) }) + SV.text(RLX(10) - 8, RLY(0) + 36, "MR = 0 at Q = 10", "lbl bd t2", { "text-anchor": "end", style: "paint-order:stroke;stroke:var(--surface);stroke-width:4px", ...op(s.mk) });
+  return o;
+}
+Lib.stepper($("#stR2"), { w: 780, h: 310, label: "Average revenue, marginal revenue and total revenue for a price maker", base: { ar: 0, mr: 0, tr: 0, mk: 0 }, draw: revDraw, tween: 800, dwell: 5600, steps: [
+  { cap: "<b>Average revenue.</b> The firm can only sell more by cutting its price, so average revenue (price) falls as quantity rises: <b>AR = D = 20 − Q</b>.", s: { ar: 1 } },
+  { cap: "<b>Marginal revenue.</b> To sell one more unit the firm cuts the price on <b>all</b> units, so the extra revenue is less than the price. MR = 20 − 2Q lies below AR and is twice as steep. It reaches zero at Q = 10 and then goes negative.", s: { ar: 1, mr: 1 } },
+  { cap: "<b>Total revenue.</b> TR = price × quantity. It rises while MR is positive, then falls once MR is negative.", s: { ar: 1, mr: 1, tr: 1 } },
+  { cap: "<b>MR = 0 where TR is at its maximum</b> ($100 at Q = 10). At that point price elasticity of demand is 1. A firm that wants maximum revenue stops here; a profit-maximiser stops earlier, where MR = MC.", s: { ar: 1, mr: 1, tr: 1, mk: 1 } },
+] });
+
+/* ---------- Watch 2: profit types ---------- */
+const PB = 270, PH = (v) => v / 30;
+function profDraw(s) {
+  const r = s.r, tc = 5200, ok = r > tc + 1, eq = Math.abs(r - tc) <= 1;
+  let o = SV.line(60, PB, 740, PB) + SV.text(62, 24, "$", "sm");
+  o += SV.rect(160, PB - PH(tc), 110, PH(tc), "f2") + SV.text(215, PB - PH(tc) - 8, "$5,200", "lbl bd t2", { "text-anchor": "middle" }) + SV.text(215, PB + 20, "Total cost", "sm bd", { "text-anchor": "middle" }) + SV.text(215, PB + 38, "(includes normal profit)", "sm", { "text-anchor": "middle" });
+  o += SV.rect(420, PB - PH(r), 110, PH(r), ok ? "f3" : eq ? "f4" : "f1") + SV.text(475, PB - PH(r) - 8, "$" + Math.round(r / 10) * 10, "lbl bd", { "text-anchor": "middle" }) + SV.text(475, PB + 20, "Total revenue", "sm bd", { "text-anchor": "middle" }) + SV.text(475, PB + 38, "(price × 500)", "sm", { "text-anchor": "middle" });
+  o += SV.text(640, PB - 100, ok ? "supernormal profit" : eq ? "normal profit only" : "subnormal profit", "lbl bd " + (ok ? "t3" : eq ? "t4" : "t2"), { "text-anchor": "middle" });
+  return o;
+}
+Lib.stepper($("#stP2"), { w: 780, h: 320, label: "Total revenue against total cost, showing supernormal, normal and subnormal profit", base: { r: 5200 }, draw: profDraw, tween: 800, dwell: 5600, steps: [
+  { cap: "<b>Total cost is $5,200</b>, including <b>normal profit</b>: the minimum return that keeps the entrepreneur in the industry. If total revenue equals total cost, the firm earns normal profit and is content to stay.", s: { r: 5200 } },
+  { cap: "<b>Price $12.</b> Total revenue = 12 × 500 = $6,000, which is $800 more than total cost. That extra $800 is <b>supernormal profit</b>: it may attract new firms unless there are barriers to entry.", s: { r: 6000 } },
+  { cap: "<b>Price $10.40.</b> Total revenue = $5,200 equals total cost: only <b>normal profit</b>. There is no incentive to enter or leave.", s: { r: 5200 } },
+  { cap: "<b>Price $9.</b> Total revenue = $4,500, which is $700 below total cost. The firm earns <b>subnormal profit</b>, less than the minimum needed. In the long run it may leave the industry.", s: { r: 4500 } },
+] });
+/* ---------- Lab 3: AR, MR and TR ---------- */
+Lib.slider($("#sl4"), { id: "a4", label: "Quantity sold (Q)", min: 1, max: 19, step: 0.5, value: 5, fmt: (v) => v.toFixed(1), onInput: (q) => {
+  const P = 20 - q, tr = P * q, mr = 20 - 2 * q, ped = P / q;
+  $("#r1").textContent = "$" + Lib.fmtN(P, 1); $("#r2").textContent = "$" + Lib.fmtN(tr, 1); $("#r3").textContent = (mr < 0 ? "−$" : "$") + Lib.fmtN(Math.abs(mr), 1); $("#r4").textContent = Lib.fmtN(ped, 2);
+  $("#v3").textContent = Math.abs(q - 10) < 0.01 ? "MR = 0, PED = 1 and TR is at its maximum ($100)." : q < 10 ? "MR is positive and demand is elastic (PED > 1): selling more raises TR." : "MR is negative and demand is inelastic (PED < 1): selling more lowers TR.";
+  const F = frame(480, 360, 50, 460, 20, 320, 20, -20, 20);
+  let s = axes(F, "Quantity (Q)", "Price, AR, MR ($)", 0);
+  s += SV.rect(F.X(0), F.Y(P), F.X(q) - F.X(0), F.Y(0) - F.Y(P), "f1");
+  s += SV.line(F.X(0), F.Y(20), F.X(20), F.Y(0), "c1") + SV.text(F.X(19.5), F.Y(1) + 18, "AR = D", "lbl bd t1", { "text-anchor": "end" });
+  s += SV.line(F.X(0), F.Y(20), F.X(20), F.Y(-20), "c2") + SV.text(F.X(19.5), F.Y(-18), "MR", "lbl bd t2", { "text-anchor": "end" });
+  s += SV.line(F.X(q), F.Y(Math.min(P, mr)), F.X(q), F.Y(0), "gr") + SV.circle(F.X(q), F.Y(P), 6, "dot1") + SV.circle(F.X(q), F.Y(mr), 6, "dot2");
+  s += SV.text(F.X(q / 2), (F.Y(P) + F.Y(0)) / 2 + 4, "TR = " + Lib.fmtN(tr, 0), "lbl bd t1", { "text-anchor": "middle" });
+  $("#lab3").innerHTML = s;
+} });
+
+/* ---------- Lab 4: profit types for a price taker ---------- */
+Lib.slider($("#sl5"), { id: "a5", label: "Market price (P = MR = AR)", min: 3, max: 24, step: 0.2, value: 16, fmt: (v) => "$" + v.toFixed(1), onInput: (P) => {
+  const F = frame(480, 360, 50, 460, 20, 320, 5.5, 0, 40), shut = P < 6, q = shut ? 0 : 2 + Math.sqrt((P - 3) / 3);
+  let s = axes(F, "Output (Q)", "Cost / revenue per unit ($)") + costSet(F, 20, { a: 0 }) + SV.line(F.l, F.Y(P), F.r, F.Y(P), "c4") + SV.text(F.r - 4, F.Y(P) - 8, "P = AR = MR", "lbl bd t4", { "text-anchor": "end" });
+  if (shut) {
+    $("#p1").textContent = "0"; $("#p2").textContent = "–"; $("#p3").textContent = "–"; $("#p4").textContent = "–$20";
+    $("#v4").textContent = "Price is below the lowest AVC ($6). The firm cannot even cover its variable costs, so it is likely to shut down in the short run and lose only its fixed costs.";
+  } else {
+    const atc = ATC(q), u = P - atc, tp = u * q;
+    $("#p1").textContent = Lib.fmtN(q, 2); $("#p2").textContent = "$" + Lib.fmtN(atc, 2); $("#p3").textContent = (u < 0 ? "−$" : "$") + Lib.fmtN(Math.abs(u), 2); $("#p4").textContent = (tp < 0 ? "−$" : "$") + Lib.fmtN(Math.abs(tp), 1);
+    s += SV.rect(F.X(0), Math.min(F.Y(P), F.Y(atc)), F.X(q) - F.X(0), Math.abs(F.Y(P) - F.Y(atc)), u >= 0 ? "f3" : "f2") + SV.circle(F.X(q), F.Y(P), 6, "dot4");
+    $("#v4").textContent = Math.abs(u) < 0.15 ? "P is about equal to ATC: the firm earns normal profit. TR covers all costs, including the entrepreneur's opportunity cost." : u > 0 ? "P is above ATC: supernormal profit. This is a signal that could attract new firms into the industry." : "P is below ATC but above AVC: subnormal profit. The firm covers its variable costs, so it may stay in the short run, but it is likely to leave in the long run.";
+  }
+  $("#lab4").innerHTML = s;
+} });
+
+/* ---------- Practise ---------- */
+Lib.match($("#m1"), { prompt: "Match each term to its meaning.", pairs: [
+  ["Total revenue", "Price × quantity sold"],
+  ["Average revenue", "Total revenue ÷ quantity, equal to the price"],
+  ["Marginal revenue", "The extra revenue from selling one more unit"],
+  ["Price taker", "A firm facing a horizontal demand curve that must accept the market price"],
+  ["Normal profit", "The minimum return needed to keep the firm in the industry, included in total cost"],
+  ["Supernormal profit", "Profit above normal profit: TR greater than TC"],
+  ["Subnormal profit", "Profit below normal profit: TR less than TC"],
+], done: "Seven terms for revenue and profit." });
+Lib.calc($("#c1"), { qs: [
+  { q: "A firm sells 300 units at $12 each. What is its total revenue?", a: 3600, unit: "$", hint: "TR = P × Q.", sol: "TR = 12 × 300 = $3,600." },
+  { q: "TR is $5,000 and TC (including normal profit) is $4,200. How much supernormal profit does the firm earn?", a: 800, unit: "$", hint: "Supernormal profit = TR − TC.", sol: "$5,000 − $4,200 = $800." },
+  { q: "Demand is P = 20 − Q. What is marginal revenue at Q = 6 (MR = 20 − 2Q)?", a: 8, sol: "20 − 2 × 6 = <b>$8</b>." },
+  { q: "At what output is total revenue greatest for P = 20 − Q?", a: 10, sol: "MR = 20 − 2Q = 0 gives Q = <b>10</b>." },
+  { q: "A firm sells 400 units at $9.50 each and total cost (including normal profit) is $3,600. What is its supernormal profit ($)?", a: 200, sol: "TR = 3,800; 3,800 − 3,600 = <b>$200</b>." },
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "Which statement about a firm earning normal profit is correct?", opts: ["Total revenue is below total cost", "Total revenue equals total cost, which includes normal profit", "The firm is making an accounting loss", "The firm will leave the industry"], a: 1, why: "Normal profit is the opportunity cost of enterprise and is already included in total cost, so TR = TC." },
+  { q: "A price maker's marginal revenue is zero when", opts: ["price equals average cost", "PED = 1 and total revenue is at its maximum", "demand is perfectly elastic", "the firm earns normal profit"], a: 1, why: "MR = 0 where AR is at the midpoint of a straight-line demand curve: PED = 1, and TR is at its maximum." },
+  { q: "Total revenue is $4,500 and total cost, including normal profit, is $5,200. The firm earns:", opts: ["supernormal profit", "normal profit", "subnormal profit", "zero total revenue"], a: 2, why: "Revenue is less than total cost, which already includes normal profit." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Marginal revenue", "The extra revenue from selling one more unit."],
+  ["Price taker", "A firm that faces a horizontal demand curve and must accept the market price."],
+  ["Normal profit", "The minimum return needed to keep the entrepreneur in the industry, included in total cost."],
+  ["Supernormal profit", "Profit above normal profit, when TR is greater than TC."],
+  ["Subnormal profit", "Profit below normal profit, when TR is less than TC."],
+] });
+
+/* ---------- Draw it. Explain it. Apply it. ---------- */
+const PROMPTS = [
+  { id: "pr6", title: "6 · Average and marginal revenue", ctx: "Sketch a downward-sloping AR curve with its MR curve below it, marking the point where MR = 0.", ask: "Explain the relationship between MR = 0, PED = 1 and total revenue at that point. Apply it: for a real product, would cutting the price raise or lower total revenue right now, and what would you need to know to answer?" },
+  { id: "pr7", title: "7 · Normal, subnormal and supernormal profit", ctx: "No chart needed: write TR and TC for three imagined scenarios, one earning normal profit, one supernormal and one subnormal.", ask: "Explain, using your own numbers, why normal profit is included in total costs rather than sitting on top of them. Apply it: describe a real or plausible business earning subnormal profit and say what you would expect to happen to it over the next few years." },
+];
+PROMPTS.forEach((p) => {
+  const card = document.createElement("div");
+  card.className = "prompt-card";
+  card.innerHTML = `<h3>${p.title}</h3><p class="ctx">${p.ctx}</p><div class="draw-box">sketch your diagram here (on paper or in your notebook)</div><label for="${p.id}">Explain and apply</label><textarea id="${p.id}" placeholder="${p.ask.replace(/"/g, "&quot;")}"></textarea>`;
+  $("#promptList").appendChild(card);
+  const ta = $("#" + p.id);
+  try { const saved = localStorage.getItem("firm-focus-" + p.id); if (saved) ta.value = saved; } catch (e) {}
+  ta.addEventListener("input", () => { try { localStorage.setItem("firm-focus-" + p.id, ta.value); } catch (e) {} });
+});
+Lib.quiz($("#qz2"), { qs: [
+  { q: "[May/June 2020 (not sat) · 32 · Q8] At which level of output will a firm achieve the aim of sales maximisation?", opts: ["where AC = AR", "where AC = MC", "where MC = AR", "where MR = zero"], a: 0, why: "Sales maximisation subject to a minimum profit is at AR = AC, where only normal profit is earned. MR = 0 is revenue maximisation." },
+  { q: "[Feb/March 2025 · 32 · Q7] A profit-maximising monopoly makes an abnormal profit and decides to reinvest some of this profit to improve its capital stock. What are the most likely outcomes from this change? (allocative, dynamic, productive efficiency)", opts: ["improves, improves, improves", "unchanged, improves, improves", "improves, unchanged, unchanged", "unchanged, unchanged, improves"], a: 1, why: "Investing improves capital and lowers costs over time (dynamic and productive efficiency), but price is still above marginal cost, so allocative efficiency is unchanged." },
+  { q: "[Feb/March 2023 · 32 · Q6] What is achieved in monopolistic competition in the long run? (allocative efficiency, supernormal profit)", opts: ["no, no", "no, yes", "yes, no", "yes, yes"], a: 0, why: "Entry removes supernormal profit in the long run, but price stays above marginal cost, so there is no allocative efficiency." },
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

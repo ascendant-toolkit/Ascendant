@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Inferior Goods, Giffen Goods and Evaluation</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Economics · 9708 · Syllabus 7.2 · Part 4 of 4</div>
+  <h1>Inferior Goods, Giffen Goods and Evaluation</h1>
+  <p class="lead">How the sign and size of the income effect separate normal, inferior and Giffen goods, why demand for most inferior goods still slopes down, and how to evaluate indifference curve analysis. Animated diagrams, labs, drills and the past paper questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This part in four sentences</h3>
+  <p>The sign and size of the <b>income effect</b> decide what kind of good it is. A <b>normal good</b> has a positive income effect, so both effects raise quantity when the price falls. An <b>inferior good</b> has a negative income effect, which works against the substitution effect but is smaller, so the demand curve still slopes down, though more steeply. A <b>Giffen good</b> is an inferior good whose negative income effect is <b>bigger</b> than the substitution effect, so a price fall cuts the quantity bought and the demand curve slopes up. Evaluation asks how realistic the assumptions behind the analysis are.</p></div>
+
+  <h2>1 · Three kinds of good compared</h2>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Normal good</th><th>Inferior good</th><th>Giffen good</th></tr>
+    <tr><td><b>Substitution effect of a price fall</b></td><td>Raises quantity</td><td>Raises quantity</td><td>Raises quantity</td></tr>
+    <tr><td><b>Income effect</b></td><td>Positive: raises quantity</td><td>Negative, smaller than the SE</td><td>Negative, larger than the SE</td></tr>
+    <tr><td><b>Net effect of a price fall</b></td><td>Quantity rises a lot</td><td>Quantity rises, by less</td><td>Quantity falls</td></tr>
+    <tr><td><b>Demand curve</b></td><td>Downward sloping</td><td>Downward sloping, steeper</td><td>Upward sloping</td></tr>
+  </table></div>
+  <h2>2 · The numbers for an inferior good</h2>
+  <p>Income $60, Py = $1, and Px falls from $3 to $1.50. The consumer moves from A (5.7 X) to B (9.3 X), a rise of 3.7. The compensated point C is at 11.1 X, so the <b>substitution effect is +5.4</b> and the <b>income effect is −1.7</b>: the consumer is richer in real terms and buys <b>less</b> X because X is inferior. The IE is smaller than the SE, so the net change (+3.7) is still positive and the demand curve slopes down. If the IE were larger than +5.4 in size, the net change would be negative and the good would be Giffen.</p>
+  <div class="tip"><b class="h">Giffen goods are rare</b>A Giffen good needs a strongly inferior good that takes a large part of a poor household's budget and has few substitutes. No convincing example is widely accepted today, and the textbook story is the staple food of a very poor household. The Giffen good is still examined because it is the one case where the law of demand fails.</div>
+  <h2>3 · Assumptions and evaluation</h2>
+  <div class="grid2">
+    <div class="card"><h3>Assumptions</h3><ul><li>Rational consumers who prefer more to less</li><li>A two-good world</li><li>Constant prices of other goods, constant tastes, given income</li><li>Goods can be substituted, and curves are convex</li><li>Transitivity (consistent ranking)</li><li>Perfect knowledge</li></ul></div>
+    <div class="card"><h3>Strengths and limits</h3><ul><li><b>Strength:</b> needs only a ranking, not utils; splits income and substitution effects; explains inferior and Giffen goods</li><li><b>Limit:</b> real consumers do not carry maps of preferences in their heads; many goods, not two; bundles are hard to compare; the diagram does not show demand against price directly</li><li>Fits <b>small, repeat</b> purchases better than one-off purchases</li></ul></div>
+  </div>
+</section>
+
+<!-- WATCH -->
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>2 · An inferior good: price falls</h2>
+  <p>Same method, different preferences. The income effect now works against the substitution effect.</p>
+  <div id="stB"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Inferior good: split the price effect</h2>
+  <p>Income $60, Y costs $1, price of X starts at $3. These preferences make X an inferior good: richer consumers buy less of it. Move the new price.</p>
+  <div class="card"><div class="grid2"><div><div id="g5"></div>
+    <div class="readout"><div><small>Substitution effect</small><strong id="t1"></strong></div><div><small>Income effect</small><strong id="t2"></strong></div><div><small>Total change in X</small><strong id="t3"></strong></div></div>
+    <div class="verdict" id="tv"></div></div>
+    <div><svg id="labC" viewBox="0 0 420 330" role="img" aria-label="Indifference curve diagram for an inferior good showing points A, C and B"></svg></div></div></div>
+  <h2>Lab 2 · Normal, inferior or Giffen?</h2>
+  <p>Set the sizes of the two effects of a <b>fall in the price</b> of X. The result tells you the type of good.</p>
+  <div class="card"><div class="grid2"><div><div id="g6"></div><div id="g7"></div>
+    <div class="readout"><div><small>SE</small><strong id="e1"></strong></div><div><small>IE</small><strong id="e2"></strong></div><div><small>Net</small><strong id="e3"></strong></div></div>
+    <div class="verdict" id="ev"></div></div>
+    <div><svg id="labD" viewBox="0 0 420 300" role="img" aria-label="Bars showing the substitution effect, income effect and net change in quantity"></svg></div></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Normal, inferior or Giffen?</h2>
+  <div id="cl2" class="card"></div>
+
+  <h2>2 · Match the word to its meaning</h2><div id="m1" class="card"></div>
+  <h2>3 · Calculations</h2><div id="c1"></div>
+  <h2>4 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. The numbers are simple on purpose, to show the idea.</p>
+  <div class="rw"><h3>Cheap own-brand foods</h3><p>When incomes rise, some households switch from basic own-brand products to branded goods. The basic goods are inferior for those households. When their price falls, the income effect works against the substitution effect, but usually by less.</p><div class="use"><b>Exam use:</b> an example of an inferior good that is not Giffen, with a downward sloping demand curve.</div></div>
+  <div class="rw"><h3>The Giffen idea</h3><p>The classic story is a very poor household whose diet is mostly one staple. If its price rises, the household may have to cut back on better foods and buy even more of the staple. Real-world evidence for this is very limited.</p><div class="use"><b>Exam use:</b> state the conditions: inferior, very large income effect, few substitutes. Mention that it is rare and hard to prove.</div></div>
+  <div class="rw"><h3>A manufacturer pricing a new line</h3><p>A firm wants to know how customers react to a price rise. If the good is normal, demand is likely to fall. If it is a Giffen good, demand could rise. Knowing which type it is helps the firm to set prices.</p><div class="use"><b>Exam use:</b> the Oct/Nov 2020 question on why a manufacturer cares about the type of good.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Past paper questions on inferior goods, Giffen goods and evaluation</h2>
+  <p>We searched the A Level Economics papers in the folder (2020 to 2025). Below are the essays on normal, inferior and Giffen goods and the limits of the analysis, and Paper 3 multiple choice questions. Mark scheme points are summarised in our own words, not copied.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Type</th><th>Examples found</th><th>Where</th></tr>
+    <tr><td>Essay, 20 marks</td><td>1</td><td>May/June 2024 (41, 43)</td></tr>
+    <tr><td>Essay, 25 marks</td><td>1</td><td>May/June 2022 (42)</td></tr>
+    <tr><td>Essay parts, 13 marks</td><td>3</td><td>Oct/Nov 2021 (42); Feb/March 2022 (42); Oct/Nov 2020 (43)</td></tr>
+    <tr><td>Multiple choice (Paper 3)</td><td>3 shown below</td><td>2022 to 2025</td></tr>
+  </table></div>
+  <h2>A · Essay questions</h2>
+<div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+  <details class="eq"><summary>May/June 2024 · 9708/41 and 43 · Q3 <span class="mark">20 marks</span> With the help of an indifference curve diagram, assess the extent to which a rise in price would affect the demand for a normal good differently from the demand for a Giffen good.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li><b>Analysis (14):</b> a diagram with indifference curves, budget lines and price lines; the budget line moves because of the price rise; the <b>path of consumption</b> shows the substitution and income effects for a normal good and a Giffen good; comment on overall demand from the two effects. <b>No diagram: Level 2 at most.</b></li>
+        <li><b>Evaluation (6):</b> the extent of the change depends on the price elasticity of demand, and on the slope of the indifference curve (the marginal rate of substitution).</li>
+      </ul></div>
+    <div class="tip"><b class="h">Diagram to draw</b>Two diagrams side by side with the same layout. In each: original budget line and equilibrium A; <b>new, steeper</b> budget line (price rise) and equilibrium B; dashed compensating line and point C. For the normal good, B is left of A. For the Giffen good, the large negative income effect puts B to the <b>right</b> of A.</div>
+    <div class="key"><span class="k"><i></i>K</span><span class="a"><i></i>A</span><span class="n"><i></i>N</span><span class="e"><i></i>E</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">An indifference curve shows all the combinations of two goods that give a consumer the same satisfaction, and a budget line shows the combinations the consumer can afford with a given income and given prices. The consumer is in equilibrium where the budget line is a tangent to the highest indifference curve the consumer can reach.</span> <span class="mk k" data-t="K">A rise in the price of a good pivots the budget line inwards, and the change in quantity demanded can be split into a substitution effect and an income effect.</span></p>
+    <p><span class="mk n" data-t="N">A rise in price is likely to reduce the demand for a normal good because both effects work in the same direction.</span> <span class="mk n" data-t="N">The substitution effect moves the consumer along the original indifference curve towards the relatively cheaper good, so less of the dearer good is bought. The fall in real income then lowers consumption of a normal good further, so the income effect also reduces quantity demanded. The demand curve slopes downward.</span></p>
+    <p><span class="mk n" data-t="N">For a Giffen good the effects are likely to work in opposite directions.</span> <span class="mk n" data-t="N">The substitution effect still reduces consumption, but the fall in real income causes the consumer to buy more of the good because it is inferior, as the consumer can no longer afford better alternatives. If this negative income effect is larger than the substitution effect, quantity demanded rises when the price rises, and the demand curve slopes upward.</span> <span class="mk a" data-t="A">This is a possible outcome for a very poor household that spends much of its income on a staple food.</span> <span class="mk e" data-t="E">Giffen goods appear to be very rare, so for most goods the effect of a price rise is likely to be the same as for a normal good.</span></p>
+    <p><span class="mk e" data-t="E">The extent of the difference depends on the price elasticity of demand. For a normal good a price rise could cause a large or small fall in demand depending on how many substitutes exist. It also depends on the slope of the indifference curves, which show the marginal rate of substitution: the more easily the consumer can swap one good for another, the larger the substitution effect and the more likely it is to outweigh the income effect.</span> <span class="mk e" data-t="E">Overall, a rise in price is likely to affect the demand for a normal good very differently from a Giffen good only where the income effect is large and negative. In most markets the difference is small, but it is real in theory and helps to explain why a demand curve may not always slope downward.</span></p></div>
+  </div></details>
+  <details class="eq"><summary>May/June 2022 · 9708/42 · Q2 <span class="mark">25 marks</span> A rational consumer will always purchase less of an item as the price increases. Discuss, with the use of indifference curve analysis, whether this statement is correct.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Meaning of a <b>rational consumer</b>; indifference curve; budget line; how they interact to give quantity demanded.</li>
+        <li>A price change split into SE and IE. The <b>SE is always negative</b> (price up, quantity down) and the <b>IE can be positive or negative</b>. Relevant diagrams.</li>
+        <li>A large negative income effect that outweighs the substitution effect explains a <b>Giffen</b> good. Level 4 (18 to 25) needs the size and sign of both effects, a reference to a Giffen (or Veblen) good, and evaluation.</li></ul></div>
+    <div class="tip"><b class="h">Watch the word "always"</b>Answer with "in almost all cases, but not always". Give the Giffen exception and say it is rare.</div>
+  </div></details>
+
+  <h2>B · 13 mark questions</h2>
+  <details class="eq"><summary>Oct/Nov 2021 · 9708/42 · Q3(b) <span class="mark">13 marks</span> Use indifference curve analysis to discuss whether the demand curve for a good will always slope downwards.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul><li>Define indifference curves and budget lines; show a price change and the new budget line.</li><li>Split into income and substitution effects, and say how the <b>size and sign</b> of each affect the slope of the demand curve.</li><li>Recognise that the demand curve may <b>slope upward</b>. A conclusion is needed for 12 or 13.</li></ul></div>
+    <div class="key"><span class="k"><i></i>K</span><span class="a"><i></i>A</span><span class="n"><i></i>N</span><span class="e"><i></i>E</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">An indifference curve shows combinations of two goods giving equal satisfaction, and a budget line shows the combinations that can be bought with a given income at given prices. A fall in the price of a good pivots the budget line outwards and the consumer moves to a new equilibrium where the new line touches a higher indifference curve.</span></p>
+    <p><span class="mk n" data-t="N">The demand curve for most goods is likely to slope downward because both effects of a price fall raise quantity demanded.</span> <span class="mk n" data-t="N">The substitution effect moves the consumer along the original curve towards the cheaper good. For a normal good the rise in real income also increases consumption, so the income effect reinforces the substitution effect.</span></p>
+    <p><span class="mk n" data-t="N">For an inferior good the income effect works the other way, because the consumer buys less of it as real income rises.</span> <span class="mk n" data-t="N">If the negative income effect is smaller than the substitution effect, quantity demanded still rises when the price falls and the demand curve still slopes downward, but more steeply.</span> <span class="mk n" data-t="N">If the negative income effect is larger than the substitution effect, as for a Giffen good, quantity demanded falls when the price falls and the demand curve slopes upward.</span></p>
+    <p><span class="mk e" data-t="E">Giffen goods are very rare and may only occur where a good takes up a large share of a very poor household's budget with few substitutes, so the demand curve is likely to slope downward in nearly all markets. The result also depends on the assumptions of the theory, such as rational behaviour and perfect information, which may not hold.</span> <span class="mk e" data-t="E">In conclusion, a demand curve may not always slope downward, but the exceptions are limited to special cases.</span></p></div>
+  </div></details>
+  <details class="eq"><summary>Feb/March 2022 · 9708/42 · Q3(b) <span class="mark">13 marks</span> Use indifference theory to analyse the view that the demand for an inferior good is likely to be more price inelastic than the demand for a normal good.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul><li>The assumptions of the theory and what a <b>normal good</b> is; the effect of a price change split into SE and IE; further price changes build the demand curve for a normal good.</li><li>The same for an <b>inferior good</b>, using the relative size of the SE and IE to show the shape of the demand curve: the negative IE offsets part of the SE, so quantity changes <b>less</b>, which supports the view of a more inelastic demand.</li></ul></div>
+  </div></details>
+  <details class="eq"><summary>Oct/Nov 2020 · 9708/43 · Q3(b) <span class="mark">13 marks</span> Use indifference curve analysis to discuss why a manufacturer might be interested in a consumer's reaction to an equal rise in price for a normal good and a Giffen good.</summary><div class="body"><p>Show both goods with the budget line pivoting inwards. Normal good: both effects lower quantity, so revenue effects depend on elasticity. Giffen good: the income effect outweighs the substitution effect, so quantity could rise with price. The manufacturer wants to know whether a price rise is likely to raise or cut sales and revenue.</p></div></details>
+
+  <h2>C · Multiple choice questions (Paper 3)</h2>
+  <p>Choose an answer, then read the reason. Source: paper code and question number.</p>
+  <div id="qz2"></div>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Giffen needs both conditions:</b> inferior, and the negative IE bigger than the SE. Do not confuse it with an ordinary inferior good.</li>
+    <li><b>Evaluate with the assumptions:</b> rational consumers, two goods, ranking of bundles, perfect knowledge, constant tastes, and one-off purchases.</li>
+    <li><b>Say which effect is bigger.</b> The sign of the IE alone does not make a good Giffen: the negative IE has to exceed the SE.</li>
+    <li><b>Use the inferior good diagram to explain a steeper demand curve:</b> the IE offsets part of the SE, so quantity rises by less.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Inferior good</td><td>"The negative income effect works against the substitution effect but is smaller, so demand still slopes downward."</td></tr>
+    <tr><td>Giffen good</td><td>"The negative income effect is larger than the substitution effect, so quantity demanded falls when the price falls."</td></tr>
+    <tr><td>Evaluate</td><td>"However, the analysis assumes consumers can rank bundles of two goods, which may not be realistic."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Use ... analysis</td><td>The method must appear: draw and explain the diagram.</td></tr>
+    <tr><td>Discuss</td><td>Arguments on both sides, then a judgement.</td></tr>
+    <tr><td>Evaluate / Assess</td><td>Weigh the arguments and reach a supported conclusion.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+/* ---------- two preference models ----------
+   NORM: U = sqrt(x*y) (normal goods). INF: U = y(1 - 0.02x) + 20 ln x (x is an inferior good at the incomes used). */
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const FR = (x0, y0, w, h, xm, ym) => ({ x0, y0, w, h, xm, ym, X: (x) => x0 + (x / xm) * w, Y: (y) => y0 - (y / ym) * h });
+const NORM = {
+  M: 120, py: 2, px0: 4, xm: 60, ym: 60,
+  u: (x, y) => Math.sqrt(x * y), icY: (U, x) => (U * U) / x,
+  best: (M, px, py) => ({ x: M / (2 * px), y: M / (2 * py) }),
+  comp: (U, px, py) => { const x = U * Math.sqrt(py / px), y = U * Math.sqrt(px / py); return { x, y, e: px * x + py * y }; },
+};
+const INF = {
+  M: 60, py: 1, px0: 3, xm: 20, ym: 60,
+  u: (x, y) => y * (1 - 0.02 * x) + 20 * Math.log(x), icY: (U, x) => (U - 20 * Math.log(x)) / (1 - 0.02 * x),
+  best(M, px, py) { let bx = 0, bu = -1e9; const xmax = Math.min(M / px - 1e-6, 49.9); for (let i = 1; i <= 4000; i++) { const x = (xmax * i) / 4000, y = (M - px * x) / py, u = this.u(x, y); if (u > bu) { bu = u; bx = x; } } return { x: bx, y: (M - px * bx) / py }; },
+  comp(U, px, py) { let b = { x: 0, y: 0, e: 1e9 }; for (let i = 1; i <= 4000; i++) { const x = (49 * i) / 4000, y = this.icY(U, x), y2 = this.icY(U, x + 0.01); if (!(y > 0) || !(y2 < y)) continue; const e = px * x + py * y; if (e < b.e) b = { x, y, e }; } return b; },
+};
+function decomp(m, px1) {
+  const A = m.best(m.M, m.px0, m.py), U0 = m.u(A.x, A.y), C = m.comp(U0, px1, m.py), B = m.best(m.M, px1, m.py), U1 = m.u(B.x, B.y);
+  return { A, B, C, U0, U1, SE: C.x - A.x, IE: B.x - C.x };
+}
+/* straight line  px*x + py*y = e, clipped to the frame */
+function bline(F, px, py, e, cls, o) {
+  let x1 = 0, y1 = e / py; if (y1 > F.ym) { y1 = F.ym; x1 = (e - py * y1) / px; }
+  let x2 = e / px, y2 = 0; if (x2 > F.xm) { x2 = F.xm; y2 = (e - px * x2) / py; }
+  return SV.line(F.X(x1), F.Y(y1), F.X(x2), F.Y(y2), cls, o);
+}
+function icLine(m, F, U, cls, o) {
+  const pts = []; let prev = Infinity;
+  for (let x = F.xm / 200; x <= F.xm; x += F.xm / 200) { const y = m.icY(U, x); if (!(y > 0) || y > F.ym * 1.02) { if (pts.length) break; continue; } if (y > prev) break; pts.push([F.X(x), F.Y(y)]); prev = y; }
+  return pts.length > 1 ? SV.path(Lib.ptsPath(pts), cls, o) : "";
+}
+const frameAxes = (F, xl, yl) => SV.line(F.x0, F.y0, F.x0 + F.w + 10, F.y0) + SV.line(F.x0, F.y0, F.x0, F.y0 - F.h - 10) + SV.text(F.x0 + F.w + 10, F.y0 + 22, xl, "sm", { "text-anchor": "end" }) + SV.text(F.x0 + 6, F.y0 - F.h - 14, yl, "sm");
+const dot = (F, p, cls, label, dx, dy, o) => SV.circle(F.X(p.x), F.Y(p.y), 6, cls, o) + SV.text(F.X(p.x) + dx, F.Y(p.y) + dy, label, "lbl bd", { "text-anchor": "middle", ...(o || {}) });
+
+/* full price-effect diagram. s: flags 0..1 */
+function drawDecomp(m, F, px1, s) {
+  const d = decomp(m, px1); let o = frameAxes(F, "Good X", "Good Y");
+  if (s.bl0 > 0) o += bline(F, m.px0, m.py, m.M, "gr", { "stroke-width": 2.5, ...op(s.bl0) });
+  if (s.ic0 > 0) o += icLine(m, F, d.U0, "c1", op(s.ic0)) + SV.text(F.X(F.xm * 0.9), F.Y(m.icY(d.U0, F.xm * 0.9)) - 8, "IC1", "lbl bd t1", op(s.ic0));
+  if (s.pa > 0) o += dot(F, d.A, "dot1", "A", -12, -10, op(s.pa));
+  if (s.bl1 > 0) o += bline(F, px1, m.py, m.M, "c3", op(s.bl1));
+  if (s.ic1 > 0) o += icLine(m, F, d.U1, "c4", op(s.ic1)) + SV.text(F.X(F.xm * 0.93), F.Y(m.icY(d.U1, F.xm * 0.93)) - 8, "IC2", "lbl bd t4", op(s.ic1));
+  if (s.pb > 0) o += dot(F, d.B, "dot4", "B", 14, -10, op(s.pb));
+  if (s.bc > 0) o += bline(F, px1, m.py, d.C.e, "c2", { "stroke-dasharray": "6 5", ...op(s.bc) }) + dot(F, d.C, "dot2", "C", 0, 22, op(s.bc));
+  const yy = F.y0 + 36;
+  if (s.se > 0) o += SV.line(F.X(d.A.x), yy, F.X(d.C.x), yy, "c3", { "stroke-width": 5, ...op(s.se) }) + SV.text((F.X(d.A.x) + F.X(d.C.x)) / 2, yy + 16, "SE", "lbl bd t3", { "text-anchor": "middle", ...op(s.se) });
+  if (s.ie > 0) o += SV.line(F.X(d.C.x), yy + 22, F.X(d.B.x), yy + 22, "c2", { "stroke-width": 5, ...op(s.ie) }) + SV.text((F.X(d.C.x) + F.X(d.B.x)) / 2, yy + 38, "IE", "lbl bd t2", { "text-anchor": "middle", ...op(s.ie) });
+  return o;
+}
+const sg = (v) => (v > 0.005 ? "+" : v < -0.005 ? "−" : "") + Lib.fmtN(Math.abs(v), 1);
+
+/* ---------- Watch 1 and 2: decomposition steppers ---------- */
+function decompStepper(sel, m, px1, lab, caps) {
+  const F = FR(60, 300, 600, 260, m.xm, m.ym), d = decomp(m, px1);
+  const flags = [{ bl0: 1, ic0: 1, pa: 1 }, { bl0: 1, ic0: 1, pa: 1, bl1: 1 }, { bl0: 1, ic0: 1, pa: 1, bl1: 1, ic1: 1, pb: 1 }, { bl0: 1, ic0: 1, pa: 1, bl1: 1, ic1: 1, pb: 1, bc: 1 }, { bl0: 1, ic0: 1, pa: 1, bl1: 1, ic1: 1, pb: 1, bc: 1, se: 1 }, { bl0: 1, ic0: 1, pa: 1, bl1: 1, ic1: 1, pb: 1, bc: 1, se: 1, ie: 1 }];
+  Lib.stepper($(sel), { w: 740, h: 380, label: lab, base: { bl0: 0, ic0: 0, pa: 0, bl1: 0, ic1: 0, pb: 0, bc: 0, se: 0, ie: 0 }, draw: (s) => drawDecomp(m, FR(60, 300, 600, 260, m.xm, m.ym), px1, s), tween: 800, dwell: 5600, steps: caps(d).map((c, i) => ({ cap: c, s: flags[i] })) });
+}
+decompStepper("#stB", INF, 1.5, "Price effect for an inferior good split into substitution and income effects", (d) => [
+  `<b>Equilibrium A.</b> Income $60, Y costs $1, X costs $3. The consumer buys ${Lib.fmtN(d.A.x, 1)} units of X and ${Lib.fmtN(d.A.y, 0)} of Y.`,
+  "<b>The price of X falls to $1.50.</b> The budget line pivots outwards around the Y-axis intercept.",
+  `<b>New equilibrium B</b> on a higher curve: ${Lib.fmtN(d.B.x, 1)} units of X. The total change is ${sg(d.B.x - d.A.x)}.`,
+  "<b>The compensating budget line</b> (dashed): parallel to the new budget line and touching the original curve IC1 at C.",
+  `<b>Substitution effect, A to C:</b> the consumer moves along IC1 towards the cheaper good: <b>${sg(d.SE)}</b> units of X.`,
+  `<b>Income effect, C to B:</b> the consumer is richer in real terms and buys <b>less</b> X, <b>${sg(d.IE)}</b>, because X is inferior. The IE is <b>smaller</b> than the SE, so the net change is still <b>${sg(d.B.x - d.A.x)}</b>: the demand curve still slopes downward. If the IE were bigger, the good would be Giffen.`,
+]);
+/* ---------- Lab 2 and 3: decomposition labs ---------- */
+function decompLab(m, sliderId, prefix, svgId, verdictFn) {
+  if (!$("#" + sliderId)) return;
+  const px1 = +$("#" + sliderId).value, d = decomp(m, px1), tot = d.B.x - d.A.x;
+  $("#" + prefix + "1").textContent = sg(d.SE); $("#" + prefix + "2").textContent = sg(d.IE); $("#" + prefix + "3").textContent = sg(tot);
+  $("#" + (prefix === "s" ? "sv" : "tv")).textContent = verdictFn(d, px1, tot);
+  $("#" + svgId).innerHTML = drawDecomp(m, FR(50, 270, 340, 240, m.xm, m.ym), px1, { bl0: 1, ic0: 1, pa: 1, bl1: 1, ic1: 1, pb: 1, bc: 1, se: 0, ie: 0 });
+}
+const vInf = (d, p, t) => p === INF.px0 ? "No price change: A, B and C are the same point." : p < INF.px0 ? `Price falls to $${p}. SE ${sg(d.SE)} raises X, but IE ${sg(d.IE)} works against it (inferior good). The IE is smaller than the SE, so the total ${sg(t)} is still positive: not a Giffen good.` : `Price rises to $${p}. The SE cuts X by ${sg(d.SE)}, and the IE ${sg(d.IE)} partly offsets it. Total ${sg(t)}.`;
+const l3 = () => decompLab(INF, "ip", "t", "labC", vInf);
+Lib.slider($("#g5"), { id: "ip", label: "New price of X ($): ", min: 1, max: 5, step: 0.1, value: 1.5, fmt: (v) => Lib.fmtN(v, 1), onInput: l3 });
+
+/* ---------- Lab 4: normal, inferior or Giffen ---------- */
+function lab4() {
+  if (!$("#se1") || !$("#ie1")) return;
+  const se = +$("#se1").value, ie = +$("#ie1").value, net = se + ie, cx = 240, k = 6.5;
+  $("#e1").textContent = sg(se); $("#e2").textContent = sg(ie); $("#e3").textContent = sg(net);
+  $("#ev").textContent = ie >= 0 ? "Normal good: both effects raise the quantity of X when its price falls. The demand curve slopes downward."
+    : net > 0 ? "Inferior good, not Giffen: the income effect works against the substitution effect but is smaller. Quantity still rises. Demand slopes downward."
+    : net < 0 ? "Giffen good: the negative income effect is larger than the substitution effect, so quantity falls when the price falls. Demand slopes upward."
+    : "Borderline: the effects cancel exactly.";
+  const bar = (y, v, cls, name) => SV.rect(Math.min(cx, cx + v * k), y, Math.abs(v) * k, 38, cls) + SV.text(cx + (v >= 0 ? -8 : 8), y + 24, name, "lbl bd", { "text-anchor": v >= 0 ? "end" : "start" }) + SV.text(cx + v * k + (v >= 0 ? 8 : -8), y + 24, sg(v), "lbl bd", { "text-anchor": v >= 0 ? "start" : "end" });
+  $("#labD").innerHTML = SV.line(cx, 20, cx, 250) + bar(40, se, "f3", "SE") + bar(105, ie, "f2", "IE") + bar(180, net, net < 0 ? "f2" : "f1", "Net") + SV.text(cx, 282, "Change in quantity of X (units) when the price falls", "sm", { "text-anchor": "middle" });
+}
+Lib.slider($("#g6"), { id: "se1", label: "Substitution effect (units of X): ", min: 0, max: 20, step: 1, value: 12, fmt: (v) => "+" + v, onInput: lab4 });
+Lib.slider($("#g7"), { id: "ie1", label: "Income effect (units of X): ", min: -30, max: 15, step: 1, value: 5, fmt: (v) => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v), onInput: lab4 });
+
+/* ---------- Practise ---------- */
+Lib.classify($("#cl2"), {
+  prompt: "Match each description to a type of good (price fall).",
+  buckets: [{ label: "Normal" }, { label: "Inferior (not Giffen)" }, { label: "Giffen" }],
+  items: [
+    { text: "SE +10, IE +4", b: 0 }, { text: "Both effects raise quantity", b: 0 }, { text: "Demand rises a lot when price falls", b: 0 },
+    { text: "SE +12, IE −4", b: 1 }, { text: "IE negative but smaller than the SE", b: 1 }, { text: "Quantity rises, but by less than for a normal good", b: 1 },
+    { text: "SE +6, IE −10", b: 2 }, { text: "IE negative and larger than the SE", b: 2 }, { text: "Demand curve slopes upward", b: 2 },
+  ], done: "The sign and size of the income effect decide the type.",
+});
+Lib.match($("#m1"), { prompt: "Match each word to its meaning.", pairs: [
+  ["Normal good", "Demand rises with income; both effects raise quantity when the price falls"],
+  ["Inferior good", "Demand falls as income rises; the income effect works against the substitution effect"],
+  ["Giffen good", "An inferior good whose negative income effect is larger than the substitution effect"],
+  ["Law of demand", "Quantity demanded falls as price rises, other things equal"],
+  ["Net effect", "The substitution effect plus the income effect"],
+  ["Staple food", "A basic food that takes a large part of a poor household's budget"],
+], done: "Six words for the kinds of good." });
+Lib.calc($("#c1"), { qs: [
+  { q: "A fall in the price of X has a substitution effect of +14 units and an income effect of −6 units. What is the net change in X?", a: 8, sol: "14 − 6 = <b>+8</b> units. Inferior, but not Giffen." },
+  { q: "SE is +5 and IE is −9. What is the net change in X?", a: -4, sol: "5 − 9 = <b>−4</b>. Quantity falls when the price falls: a Giffen good." },
+  { q: "A good has SE = +12 units and IE = −4 units after a price fall. What is the net change?", a: 8, sol: "12 − 4 = <b>+8</b>: inferior, not Giffen." },
+  { q: "A good has SE = +5.4 and IE = −1.7. By how much would the IE have to change in size before the good became Giffen (units, 1 decimal place)?", a: 3.7, tol: 0.1, hint: "The net change must fall below zero.", sol: "The IE would need to exceed 5.4 in size, so it must grow by more than 5.4 − 1.7 = <b>3.7</b> units." },
+  { q: "SE = +10 and IE = −10. What is the net change (units)?", a: 0, sol: "10 − 10 = <b>0</b>. The borderline case: any larger negative IE makes the good Giffen." },
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "For an inferior good (not Giffen), a price fall causes:", opts: ["quantity to fall", "quantity to rise by more than for a normal good", "quantity to rise by less than for a normal good", "no change"], a: 2, why: "The negative income effect offsets part of the positive substitution effect." },
+  { q: "Which condition makes a good a Giffen good?", opts: ["Positive income effect larger than the SE", "Negative income effect larger than the SE", "Zero income effect", "Negative substitution effect"], a: 1, why: "Only then does quantity fall when the price falls, giving an upward sloping demand curve." },
+  { q: "The demand curve for an inferior good (not Giffen) is:", opts: ["upward sloping", "downward sloping", "vertical", "horizontal"], a: 1, why: "The net effect of a price fall is still a rise in quantity." },
+  { q: "A Giffen good must be:", opts: ["a normal good", "an inferior good", "a luxury", "a public good"], a: 1, why: "The negative income effect that overrides the SE comes from the good being inferior." },
+  { q: "If the substitution effect of a price rise is −3 and the income effect is +5 (for a Giffen good), the net change in quantity is:", opts: ["−8", "−2", "+2", "+8"], a: 2, why: "−3 + 5 = +2: quantity rises when price rises." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Normal good", "Positive income effect: demand rises with income. Both effects raise quantity when price falls."],
+  ["Inferior good", "Negative income effect. Demand still usually slopes downward."],
+  ["Giffen good", "Inferior good whose negative income effect exceeds the SE; the demand curve slopes upward."],
+  ["Law of demand", "Quantity demanded falls as price rises, other things equal."],
+  ["Net effect", "The substitution effect plus the income effect."],
+] });
+Lib.quiz($("#qz2"), { qs: [
+  { q: "[Feb/March 2025 · 32 · Q5] Which statement about the downward sloping demand curve of an inferior good is correct?", opts: ["Negative income effect and substitution effect move in opposite directions, leading to a steeper demand curve.", "Negative income effect and substitution effect move in the same direction, leading to a flatter demand curve.", "Positive income effect and substitution effect move in opposite directions, leading to a steeper demand curve.", "Positive income effect and substitution effect move in the same direction, leading to a flatter demand curve."], a: 0, why: "The IE opposes the SE (so part of the SE is cancelled), making demand less responsive: a steeper curve." },
+  { q: "[May/June 2022 · 32 · Q6] When the price of a good falls, the overall effect on the quantity demanded can be separated into income and substitution effects. Which statement describes a Giffen good?", opts: ["The income effect is irrelevant for a Giffen good.", "The income effect works in the same direction as the substitution effect.", "The income effect works against the substitution effect and is of a greater magnitude.", "The income effect works against the substitution effect but is of a smaller magnitude."], a: 2, why: "D describes an ordinary inferior good. A Giffen good has the larger, opposing income effect." },
+  { q: "[May/June 2022 · 31 · Q6] Broken rice is an inferior good. What would be the resulting income and substitution effect on the quantity demanded of broken rice if its price falls? (quantity demanded due to income effect, quantity demanded due to substitution effect)", opts: ["falls, falls", "falls, rises", "rises, falls", "rises, rises"], a: 1, why: "For an inferior good a rise in real income lowers quantity, while the cheaper relative price raises it through the substitution effect." },
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

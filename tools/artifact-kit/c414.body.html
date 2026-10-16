@@ -1,0 +1,106 @@
+<style>
+.txin{font:600 1.05rem var(--mono);padding:9px 12px;border-radius:9px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,420px)}
+.lab{font:700 .7rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 4px}
+.out{font:600 1rem var(--mono);padding:10px 14px;border-radius:9px;background:var(--soft);border:1px solid var(--line);min-height:46px;white-space:pre-wrap;word-break:break-word}
+.out.bad{color:var(--bad)}.out.good{color:var(--good)}
+.ch{display:grid;gap:8px;margin:10px 0}
+.ch button{text-align:left;font:600 .95rem var(--sans);padding:10px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.ch button:hover{border-color:var(--accent)}
+.ch button.ok{border-color:var(--good);background:var(--good-soft)}.ch button.no{border-color:var(--bad);background:var(--bad-soft)}
+.code{font:500 .95rem/1.7 var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 0;overflow-x:auto}
+.code .ln{display:block;padding:0 14px;white-space:pre}
+.code .ln.on{background:var(--accent-soft);box-shadow:inset 4px 0 0 var(--accent)}
+.code .ln.err{background:var(--bad-soft);box-shadow:inset 4px 0 0 var(--bad)}
+.code .ln.done{opacity:.55}
+.cm{color:var(--muted)}.kwd{color:var(--n);font-weight:700}.str{color:var(--bad)}.num{color:var(--k)}
+.sqr{display:inline-block;min-width:34px;padding:6px 4px;border:1.5px solid var(--line);border-radius:6px;text-align:center;font:600 .8rem var(--mono);background:var(--surface);margin:2px}
+.blocks{display:flex;flex-wrap:wrap;gap:3px;margin:6px 0}
+.blk{width:38px;height:38px;border-radius:6px;display:grid;place-items:center;font:700 .74rem var(--mono);color:#fff;border:1.5px solid var(--line);background:var(--soft)}
+.blk.e{color:var(--muted)}
+.dg{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.log{font:500 .88rem/1.5 var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-height:80px;max-height:240px;overflow:auto}
+.log div{padding:1px 0}.log .hi{color:var(--accent);font-weight:700}.log .bd{color:var(--bad);font-weight:700}.log .gd{color:var(--good);font-weight:700}
+table.reg{border-collapse:collapse;font:600 .9rem var(--mono)}
+table.reg td,table.reg th{border:1px solid var(--line);padding:5px 12px;text-align:center}
+table.reg th{background:var(--soft);font:700 .7rem var(--sans);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.mem input{width:76px;font:600 .95rem var(--mono);padding:4px 6px;border-radius:6px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);text-align:center}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.pos{color:var(--good);font-weight:700}.neg{color:var(--bad);font-weight:700}
+</style>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">IGCSE Computer Science · 0478 · Chapter 4 · 4.1.4</div>
+  <h1>Interrupts</h1>
+  <p class="lead">Signals that make the processor pause, how they are serviced, and how buffers and interrupts keep printing and streaming smooth.</p>
+</header>
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+<section id="learn" role="tabpanel">
+  <div class="card big">
+    <h3>The big idea</h3>
+    <p>An <span class="kw">interrupt</span> is a <b>signal sent from a device or from software to the microprocessor</b>. It makes the processor <b>temporarily stop</b> what it is doing so it can deal with the interrupt. Interrupts let a computer do many tasks, or have several windows open, at the same time.</p>
+  </div>
+  <h2>4.1.4 Interrupts</h2>
+  <h3>What causes an interrupt?</h3>
+  <div class="grid2">
+    <div class="card"><h3>Timing signal</h3><p>A clock or timer signal, for example when a time slice ends.</p></div>
+    <div class="card"><h3>Input/output process</h3><p>A disk drive or printer needs more data.</p></div>
+    <div class="card"><h3>Hardware fault</h3><p>For example, a paper jam in the printer.</p></div>
+    <div class="card"><h3>User interaction</h3><p>The user presses a key or keys, such as Ctrl-Alt-Break.</p></div>
+    <div class="card"><h3>Software error</h3><p>An .exe file cannot be found, two processes try to use the same memory location, or a division by zero is attempted.</p></div>
+  </div>
+  <p>When the signal arrives, the computer must identify the <b>type</b> of interrupt and its <b>priority</b>. The processor either carries on with its current task, or stops to service the device or program that caused the interrupt.</p>
+
+  <h3>How an interrupt is serviced</h3>
+  <ol>
+    <li><b>Save</b> the status of the current task: the contents of the <b>program counter (PC)</b> and other registers.</li>
+    <li>Load the <b>start address of the interrupt service routine (ISR)</b> into the PC, and <b>run the ISR</b>.</li>
+    <li>When the interrupt has been fully serviced, <b>restore</b> the saved registers.</li>
+    <li>The interrupted task <b>carries on</b> from where it stopped.</li>
+  </ol>
+
+  <h3>Buffers</h3>
+  <p>A <span class="kw">buffer</span> is an area of memory that stores data <b>temporarily</b>. Buffers and interrupts are often used together.</p>
+  <div class="grid2">
+    <div class="card"><h3>Streaming a video</h3><p>Data arrives from the internet at a different speed from the one the media player needs. The buffer must be filled faster than the player empties it, otherwise the movie keeps <b>freezing</b>.</p></div>
+    <div class="card"><h3>Printing a document</h3><p>Printing takes far longer than sending the data. The data goes to the <b>printer buffer</b>, and the processor carries on with other tasks. When the buffer is <b>empty</b>, an interrupt asks for <b>more data</b>. The current task is suspended while it is serviced.</p><p>Without buffers and interrupts the processor would sit idle waiting for the printer.</p></div>
+  </div>
+
+  <h3>Extension: interrupts in the fetch-execute cycle (A Level)</h3>
+  <p class="note">Not needed for IGCSE.</p>
+  <p>The CPU has an <b>interrupt register</b>. If a bit in it changes (for example 0000 0000 becomes 0000 1000 after a disk fault), the register is checked at the next fetch-execute cycle. If the interrupt is enabled and has a high enough priority, the CPU stores its registers, passes control to the <b>interrupt handler (ISR)</b>, and when it has finished, resets the register and restores the registers.</p>
+
+</section>
+<section id="watch" role="tabpanel" hidden></section>
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Streaming and the buffer</h2>
+  <p>A video plays at a fixed rate. Data arrives from the internet at the download speed. The player waits until the buffer holds enough data to start, and freezes whenever it runs out.</p>
+  <div class="card"><div class="grid2"><div><div id="sbD"></div><div id="sbP"></div><div id="sbT"></div></div>
+    <div><svg id="sbC" viewBox="0 0 340 190" role="img" aria-label="Buffer level over time"></svg></div></div>
+    <div class="readout"><div><small>Freezes</small><strong id="sbF"></strong></div><div><small>Start-up wait</small><strong id="sbW"></strong></div></div><div class="verdict" id="sbV" aria-live="polite"></div></div>
+
+  <h2>Lab 2 · Servicing an interrupt</h2>
+  <p>The CPU is running a program. Step it, then fire an interrupt. Each type has a priority from 1 (low) to 4 (high). The current program has priority 2, so only an interrupt of priority 2 or more is serviced straight away.</p>
+  <div class="card"><div class="row"><button class="b pri" id="inS">Run next instruction</button><button class="b" id="inR">Reset</button></div>
+    <div class="grid2" style="margin-top:10px"><div><p class="lab">Program counter</p><div class="out" id="inPC"></div></div><div><p class="lab">Saved copy (to restore)</p><div class="out" id="inSV"></div></div></div>
+    <p class="lab">Fire an interrupt</p><div class="row" id="inB"></div>
+    <p class="lab">What the processor does</p><div class="log" id="inL" aria-live="polite"></div></div>
+
+  <h2>Lab 3 · Printer buffer and interrupts</h2>
+  <p>Mike prints a long document while watching a video. The printer's memory (buffer) holds a set number of pages. Each time it empties, it interrupts the processor for more data.</p>
+  <div class="card"><div id="prD"></div><div id="prB"></div>
+    <div class="readout"><div><small>Interrupts sent</small><strong id="prI"></strong></div><div><small>Time the CPU spends sending (units)</small><strong id="prS"></strong></div><div><small>Time CPU is free for other work</small><strong id="prF"></strong></div></div><div class="verdict" id="prV" aria-live="polite"></div></div>
+
+</section>
+<section id="practise" role="tabpanel" hidden></section>
+<section id="real" role="tabpanel" hidden></section>
+<section id="exam" role="tabpanel" hidden></section>
+<section id="tips" role="tabpanel" hidden></section>
+</div>

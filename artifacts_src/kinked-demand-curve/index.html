@@ -1,0 +1,893 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Kinked Demand Curve</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Economics · 9708 · Syllabus 7.6 · Oligopoly</div>
+  <h1>The Kinked Demand Curve</h1>
+  <p class="lead">Why an oligopolist's demand curve bends, why marginal revenue breaks into two pieces with a gap between them, and why a firm's marginal cost can move up and down inside that gap without the price changing. Animated diagrams, labs, drills, real markets and business costs, and exam practice.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real markets &amp; costs</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>The whole idea in five sentences</h3>
+  <p>In an oligopoly a firm's sales depend on how <b>rivals react</b>. The model assumes rivals <b>ignore a price rise</b> (so the firm loses many customers: demand is <b>elastic</b> above the current price) but <b>match a price cut</b> (so the firm gains few customers: demand is <b>inelastic</b> below it). That bends the demand curve at the current price, the <b>kink</b>. Because the two segments have different slopes, <b>marginal revenue</b> is different on each side, and at the kink output it drops vertically: a <b>gap in MR</b>. Marginal cost can rise or fall anywhere inside that gap and still cut MR at the kink output, so the profit-maximising <b>price stays put</b>.</p></div>
+
+  <div class="warn"><b class="h">It is MR that drops, not MC</b>Marginal cost does not drop at the kink. It is an ordinary upward-sloping curve that runs straight through. What drops, vertically, is <b>marginal revenue</b>. The MC curve matters because it is cut by MR somewhere in that vertical gap, which is why changes in MC inside the gap have no effect on price or output.</div>
+
+  <h2>1 · Why the demand curve bends</h2>
+  <p>Suppose a firm charges <b>$10</b> and sells <b>5 units</b>. That point is the kink. The firm asks what would happen if it changed price.</p>
+  <div id="pic1" class="card"></div>
+  <div class="grid2">
+    <div class="card"><h3>Price rise: rivals do not follow</h3><p>If the firm raises price and rivals keep theirs, its product is now relatively expensive. Customers switch to rivals, so quantity falls by a lot. Demand above the kink is <b>relatively elastic</b> (a flatter line) and the price rise <b>lowers revenue</b>.</p></div>
+    <div class="card"><h3>Price cut: rivals match</h3><p>If the firm cuts price, rivals fear losing their own customers and cut too. Nobody gains share, and the extra sales come only from the market growing a little. Demand below the kink is <b>relatively inelastic</b> (a steeper line) and the cut <b>lowers revenue</b> as well.</p></div>
+  </div>
+  <div class="tip"><b class="h">Result</b>Neither move pays, so the firm has no incentive to change price. The kink is at the price already being charged, and the model says that price will tend to be <b>sticky</b>.</div>
+
+  <h2>2 · Where the gap in MR comes from</h2>
+  <p>Marginal revenue is the extra revenue from selling one more unit. It is the price of that unit <b>minus</b> the revenue lost because the price had to fall on all the units already being sold. The steeper the demand curve, the more the price must fall per extra unit, so the bigger the loss and the lower the MR.</p>
+  <div class="formula">MR = price on the extra unit − (fall in price per unit × units already sold)</div>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Just left of the kink (upper segment)</th><th>Just right of the kink (lower segment)</th></tr>
+    <tr><td><b>Demand</b></td><td>P = 14 − 0.8Q (flatter)</td><td>P = 20 − 2Q (steeper)</td></tr>
+    <tr><td><b>Price on the extra unit</b></td><td>$10</td><td>$10</td></tr>
+    <tr><td><b>Price must fall by</b></td><td>$0.80 per extra unit</td><td>$2.00 per extra unit</td></tr>
+    <tr><td><b>Lost on the 5 units already sold</b></td><td>0.8 x 5 = $4</td><td>2 x 5 = $10</td></tr>
+    <tr><td><b>Marginal revenue</b></td><td>10 − 4 = <b>$6</b></td><td>10 − 10 = <b>$0</b></td></tr>
+  </table></div>
+  <p>The kink output is the one place where both segments apply, so MR jumps from <b>$6 down to $0</b>. The gap is the difference between the two slopes times the kink output:</p>
+  <div class="formula">gap = Q at the kink x (steeper slope − flatter slope) = 5 x (2 − 0.8) = $6</div>
+  <div class="tip"><b class="h">Drawing it</b>MR for the upper segment runs from the vertical axis down to a point directly below the kink. MR for the lower segment starts lower down, directly below the kink, and falls steeply. The two are joined by a <b>vertical dashed line</b>, which is the gap. Each MR line has twice the slope of its demand segment.</div>
+
+  <h2>3 · Why price stays put when MC changes</h2>
+  <p>A profit-maximising firm produces where <b>MC = MR</b>, with MC cutting MR from below. With a gap in MR, MC can cut MR at the kink output in a whole <b>range</b> of positions.</p>
+  <ul>
+    <li><b>MC passes through the gap:</b> it cuts the vertical part of MR at the kink output (5 units). Output stays at 5, and reading up to the demand curve, price stays at $10.</li>
+    <li><b>MC shifts up or down but still passes through the gap:</b> same answer. The firm's costs have changed but its price has not. Profit changes, price does not.</li>
+    <li><b>MC shifts above the gap:</b> now MC cuts the upper MR segment at a lower output, so the firm cuts output and raises price. A large enough cost increase breaks the stickiness.</li>
+    <li><b>MC falls below the gap:</b> MC cuts the lower MR segment, so output rises and price falls. This needs MC to fall a long way.</li>
+  </ul>
+
+  <h2>4 · What the model can and cannot do</h2>
+  <div class="grid2">
+    <div class="card"><h3>What it explains</h3><p>Why prices in some oligopolies change rarely, why firms prefer <b>non-price competition</b> (advertising, quality, loyalty schemes) to cutting price, and why a firm may leave price unchanged when its costs move a little.</p></div>
+    <div class="card"><h3>Limitations to evaluate with</h3><p>It does <b>not explain how the original price was set</b>. Rivals do not always behave as assumed: when costs rise for the whole industry they are likely to follow a rise. Price leadership and tacit collusion often fit real behaviour better, and studies have found oligopoly prices are not always more rigid than prices elsewhere.</p></div>
+  </div>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Building the kinked demand curve</h2><p>Follow the reasoning from one price to the kink, the broken MR curve and the profit-maximising point. Press Play, or click the steps.</p><div id="stA"></div>
+  <h2>2 · Why marginal revenue drops at the kink</h2><p>The same extra unit, valued on each side of the kink. The only thing that differs is how far the price has to fall.</p><div id="stB"></div>
+  <h2>3 · What happens when marginal cost changes</h2><p>Watch MC move through, then out of, the gap in MR.</p><div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Move marginal cost through the gap</h2>
+  <p>Slide MC up and down, then make rivals' reaction to a price cut weaker or stronger. Or press a scenario to set MC to a business cost change.</p>
+  <div class="card"><div class="grid2"><div><div id="g1"></div><div id="g2"></div>
+    <div id="scn" class="row" style="gap:8px;flex-wrap:wrap;margin:10px 0"></div>
+    <div class="readout"><div><small>Price</small><strong id="r1"></strong></div><div><small>Output</small><strong id="r2"></strong></div><div><small>MC at 5 units</small><strong id="r3"></strong></div><div><small>MR gap at 5 units</small><strong id="r4"></strong></div></div>
+    <div class="verdict" id="rv"></div></div>
+    <div><svg id="labA" viewBox="0 0 520 400" role="img" aria-label="Kinked demand curve with broken marginal revenue and an adjustable marginal cost curve"></svg></div></div></div>
+
+  <h2>Lab 2 · Test the kink: change the price</h2>
+  <p>Try a different price. Profit is worked out from the demand curve and a fixed cost curve (TC = 5 + 2Q + 0.3Q², so MC = 2 + 0.6Q). Then change how far rivals follow a price rise and see the kink fade.</p>
+  <div class="card"><div class="grid2"><div><div id="g3"></div><div id="g4"></div>
+    <div class="readout"><div><small>Quantity sold</small><strong id="t1"></strong></div><div><small>Revenue ($)</small><strong id="t2"></strong></div><div><small>Profit ($)</small><strong id="t3"></strong></div><div><small>Profit at $10 ($)</small><strong id="t4"></strong></div></div>
+    <div class="verdict" id="tv"></div></div>
+    <div><svg id="labB" viewBox="0 0 520 400" role="img" aria-label="Demand curve with a chosen price and quantity, showing how profit compares with the kink price"></svg></div></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which segment of the demand curve?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Does this cost change move MC?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Match the word to its meaning</h2><div id="m1" class="card"></div>
+  <h2>4 · Put the explanation in order</h2><div id="o1" class="card"></div>
+  <h2>5 · Calculations</h2>
+  <p>Use the model from the Learn tab: upper segment P = 14 − 0.8Q, lower segment P = 20 − 2Q, kink at $10 and 5 units, MC = 2 + 0.6Q.</p><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms to show how the model is applied. Check current details before quoting a specific figure or date in an exam answer.</p>
+
+  <div class="card big"><h3>Which business costs sit in MC?</h3>
+  <p>The kink protects price from changes in <b>marginal cost</b>: the cost of producing one more unit. <b>Fixed costs</b> do not change with output, so they never move the MC curve. A rise in a fixed cost therefore leaves the profit-maximising price and output unchanged, with or without a kink. It only squeezes profit.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Business cost</th><th>In MC?</th><th>Typical example</th></tr>
+    <tr><td>Raw materials and ingredients</td><td><b>Yes</b></td><td>Cocoa for a chocolate maker, flour for a bakery, steel for a car plant</td></tr>
+    <tr><td>Hourly wages of staff who work more when output rises</td><td><b>Yes</b></td><td>Checkout staff, delivery drivers, factory shift workers</td></tr>
+    <tr><td>Fuel, energy and packaging used per unit</td><td><b>Yes</b></td><td>Jet fuel per passenger flown, electricity for the production line, boxes per order</td></tr>
+    <tr><td>Rent and business rates</td><td>No (fixed)</td><td>A store lease, a factory site</td></tr>
+    <tr><td>Salaried head office staff, insurance, loan interest</td><td>No (fixed)</td><td>Head office, fleet insurance, interest on a loan for a new plant</td></tr>
+    <tr><td>A one-off advertising campaign or research budget</td><td>No (fixed)</td><td>A national TV campaign, a product development team</td></tr>
+  </table></div></div>
+
+  <div class="rw"><h3>UK supermarkets</h3><p>A handful of large chains dominate grocery sales, and each watches the others' prices closely. Several run schemes that match the prices of discounters such as Aldi on selected items: a rival's price cut is copied almost immediately. A chain that lifted prices on its own, with no cost increase to point to, could expect shoppers to move to a rival.</p>
+  <p><b>Cost angle:</b> the main MC is what the store pays suppliers for each extra item, plus a little handling. Wage rises that follow the annual minimum wage increase, and energy for chillers, are largely shared by every chain, so they tend to raise shelf prices together instead of sitting inside one firm's gap.</p>
+  <div class="use"><b>Exam use:</b> price matching shows rivals following a cut. Use it to justify the inelastic lower segment, then evaluate: when all chains face the same cost increase they are likely to raise prices together.</div></div>
+
+  <div class="rw"><h3>Airlines on the same route</h3><p>When one carrier discounts fares on a busy route, rivals often respond quickly with their own offers, because airline fares are visible and compared online. A single airline raising fares without a cost reason risks losing passengers to the others, especially where the products are close substitutes.</p>
+  <p><b>Cost angle:</b> with empty seats, the MC of one more passenger is very low (a meal, airport fees, a little extra fuel, a passenger tax). That puts MC near the bottom of the gap, so large swings in fuel prices still move the <i>average</i> cost of a flight a lot, but do not reach a seat that would otherwise fly empty. When jet fuel rises sharply for every airline, they tend to add surcharges or lift fares at about the same time.</p>
+  <div class="use"><b>Exam use:</b> a good example of why the lower side of the gap is bounded by MR near zero, and of how an industry-wide cost shock breaks the assumption that rivals ignore a rise.</div></div>
+
+  <div class="rw"><h3>Chocolate and confectionery</h3><p>A few multinational firms supply most of the branded chocolate bought in shops. Cocoa prices reached record highs in 2024, and the major brands raised prices and also reduced pack sizes. When the input cost rises for all of them at once, the model's assumption that rivals will not follow a rise no longer fits.</p>
+  <p><b>Cost angle:</b> cocoa is a direct cost per bar, so a large increase lifts MC well above the gap. Reducing pack size ("shrinkflation") lets a firm adjust its cost per unit sold without changing the headline price that consumers compare.</p>
+  <div class="use"><b>Exam use:</b> a large cost shock that lifts MC above the gap, for a whole industry. Contrast it with a small cost drift that would leave price unchanged.</div></div>
+
+  <div class="rw"><h3>Petrol retailing</h3><p>Neighbouring stations post their prices on large signs, so a price cut is spotted and copied within hours. Small changes in a station's running costs rarely change the pump price; changes in the wholesale price of fuel, which affect every station, do.</p>
+  <p><b>Cost angle:</b> the wholesale price paid for each litre is the dominant part of MC. Station rent and staff salaries are fixed costs and do not appear in MC at all.</p>
+  <div class="use"><b>Exam use:</b> an example of price visibility that helps price matching, and of why MC changes common to all firms spread through the market.</div></div>
+
+  <div class="rw"><h3>Mobile phone networks</h3><p>A small number of networks supply most UK mobile contracts. Several have applied annual price rises at similar times, which is closer to tacit collusion or following a price leader than to rivals ignoring a rise.</p>
+  <p><b>Cost angle:</b> the cost of carrying one more customer is small compared with the large fixed cost of building and maintaining the network. Network costs are fixed, so they should not explain price rises in the kinked demand model.</p>
+  <div class="use"><b>Exam use:</b> a limitation. If rivals follow rises, the upper segment is not elastic and there is no kink.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam practice</h2>
+  <p>The first three questions were written for this page. Open each one for reminders, a model answer and the common mistake. The multiple choice questions that follow include a real past paper question (Paper 3), with the paper code. Mark scheme points are summarised in our own words, not copied.</p>
+<div class="key" aria-label="Colour key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+
+  <details class="eq"><summary>Q1 <span class="cmd">Explain</span> <span class="mark">6 marks</span> Explain, with the help of a diagram, why a firm facing a kinked demand curve has a gap in its marginal revenue curve.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Draw D with a kink at P₀ and Q₀, the flatter segment above and steeper below. Draw MR for each segment starting from the vertical axis and mark the vertical gap below Q₀. Link the size of the gap to the change in slope.</div>
+    <div class="ans"><p><span class="mk k" data-t="K">A kinked demand curve shows demand for an oligopolist's product that is more elastic above the current price P₀ than below it.</span> <span class="mk n" data-t="N">Above P₀ rivals are assumed not to follow a price rise, so quantity falls sharply and the segment is relatively flat; below P₀ rivals are assumed to match a price cut, so quantity rises by little and the segment is steeper.</span></p>
+    <p><span class="mk n" data-t="N">Marginal revenue is the price of an extra unit less the revenue lost on units already sold, and this loss is greater the steeper the demand curve.</span> <span class="mk n" data-t="N">At output Q₀ the MR on the flatter upper segment is therefore higher than the MR on the steeper lower segment, so MR falls vertically at Q₀ and the curve is discontinuous.</span> <span class="mk n" data-t="N">The size of the gap could depend on how much the slopes differ: the more strongly rivals react to a cut, the bigger the gap.</span> <span class="mk a" data-t="A">For example, if demand above the kink is P = 14 − 0.8Q and below it is P = 20 − 2Q, MR at Q₀ = 5 is $6 on the upper segment and $0 on the lower one.</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying that "MC drops" or "the demand curve has a gap". The gap is in <b>MR</b>, not in D or MC. Also: drawing a single MR line instead of two separate segments.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q2 <span class="cmd">Analyse</span> <span class="mark">8 marks</span> An airline operates on a route served by three other carriers. Analyse, using a kinked demand curve diagram, why it might leave its fares unchanged when its costs rise slightly.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Draw the full diagram, then <b>shift MC up and show it still passes through the gap</b>. Say "slightly": the explanation fails if MC leaves the gap. Use the route as application.</div>
+    <div class="ans"><p><span class="mk k" data-t="K">The airline is an oligopolist, so its sales depend on how rivals react to its fares.</span> <span class="mk a" data-t="A">On a route with only a few carriers, rivals could be expected to match a fare cut to protect their passengers, but may leave their fares alone if the airline raises its own.</span> <span class="mk n" data-t="N">Demand above the current fare is therefore likely to be elastic and below it inelastic, giving a kink and a gap in marginal revenue.</span></p>
+    <p><span class="mk n" data-t="N">Profit is maximised where MC = MR, and a slight rise in costs shifts MC upward but it could still cut the vertical part of the MR curve at the same output.</span> <span class="mk n" data-t="N">Output and the fare are then unchanged, and the airline avoids a fare rise that could lose it passengers to rivals, even though its profit per passenger is lower.</span> <span class="mk a" data-t="A">With empty seats the extra cost of one more passenger is low, which may keep MC inside the gap even when fuel prices move.</span></p>
+    <p><span class="mk e" data-t="E">If the cost rise were large, such as a sharp rise in jet fuel affecting every carrier, MC could leave the gap and rivals face the same increase, so fares may rise across the route.</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Explaining the kink well but not applying it to a cost <b>change</b>. The marks are for MC moving within the gap and price not changing.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q3 <span class="cmd">Evaluate</span> <span class="mark">12 marks</span> Evaluate the usefulness of the kinked demand curve model in explaining how firms in oligopoly set prices.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Start by explaining what the model <b>does</b> explain (about 4 marks), then two or three limitations (about 8 marks including a judgement). A judgement that says "it depends on..." and states on what, scores better than "it is somewhat useful".</div>
+    <div class="ans"><p><span class="mk k" data-t="K">The model assumes rivals ignore a price rise but match a price cut, so demand is elastic above the current price and inelastic below it, which breaks the MR curve.</span> <span class="mk n" data-t="N">Because MC can move within the gap without changing output, price is likely to stay the same for long periods, and firms could prefer non-price competition such as advertising or loyalty schemes.</span> <span class="mk a" data-t="A">This fits markets where prices are visible and easy to compare, such as supermarkets or petrol stations, where price cuts tend to be copied quickly.</span></p>
+    <p><span class="mk e" data-t="E">However, the model only explains why price might stay the same, not how the original price was set, so it is an incomplete theory of pricing.</span> <span class="mk e" data-t="E">Its main assumption may not hold: when the whole industry faces a cost increase, rivals are likely to follow a price rise, so the upper segment is not elastic. Large cost shocks, such as a jump in raw material prices, can move MC out of the gap.</span> <span class="mk e" data-t="E">In some markets firms follow a price leader or collude tacitly, which can raise prices together; and studies have not always found oligopoly prices to be more rigid than elsewhere.</span></p>
+    <p><span class="mk e" data-t="E">Overall, the model is likely to be most useful for explaining short-run price stability when costs change a little and rivals are watching closely, but less useful where costs are shared across the industry or where firms co-ordinate prices.</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Listing the limitations without a judgement, or giving a long description of the model with no evaluation.</div>
+  </div></details>
+
+  <h2>Multiple choice</h2>
+  <p>Choose an answer, then read the reason. Source: paper code and question number, or "written for this page".</p>
+  <div id="qz2"></div>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Say whose reaction matters.</b> The kink exists because of how <i>rivals</i> react. Name both reactions: ignore a rise, match a cut.</li>
+    <li><b>Draw two MR segments and the gap.</b> Each MR line starts on the vertical axis and has twice the slope of its demand segment. The vertical gap sits directly below the kink.</li>
+    <li><b>The gap is in MR, not MC.</b> Never write that MC drops. Say that MC passes through the gap in MR.</li>
+    <li><b>Show a cost change.</b> Shift MC within the gap to prove price does not move, then shift it beyond the gap to show the limit.</li>
+    <li><b>Fixed costs do not shift MC.</b> A rise in rent or head office salaries leaves MC, output and price unchanged.</li>
+    <li><b>Hedge your analysis.</b> Say rivals are "likely to" match a cut and price "could" stay the same. The model is a prediction, not a certainty.</li>
+    <li><b>Evaluate with the original price, shared costs and price leadership.</b> These are the three standard limits.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Why the curve bends</td><td>"Rivals are likely to ignore a price rise but match a price cut, so demand is elastic above the current price and inelastic below it."</td></tr>
+    <tr><td>Why MR has a gap</td><td>"The two segments of demand have different slopes, so marginal revenue differs on either side of the kink output, producing a vertical gap in MR."</td></tr>
+    <tr><td>Why price is sticky</td><td>"A change in marginal cost that stays within the gap still cuts MR at the kink output, so the profit-maximising price and output are unchanged."</td></tr>
+    <tr><td>Limitation</td><td>"The model explains why price might stay at P₀ but not how P₀ was set, and it may not hold if all firms face the same cost increase."</td></tr>
+  </table></div>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Explain</td><td>Give reasons, with a chain of cause and effect.</td></tr>
+    <tr><td>Analyse</td><td>Break the effect down step by step, usually with a diagram.</td></tr>
+    <tr><td>Evaluate</td><td>Weigh the arguments and reach a supported conclusion about how useful or valid the model is.</td></tr>
+  </table></div>
+  <h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+/* ---------- model: kink at P = 10, Q = 5 ----------
+   upper demand  P = 14 - 0.8Q   (rivals ignore a rise)   MR = 14 - 1.6Q
+   lower demand  P = 10 - s2 (Q - 5), default s2 = 2 so P = 20 - 2Q (rivals match a cut)   MR = 10 + 5 s2 - 2 s2 Q
+   MC passes through (5, c), slope 0.6; c = 5 gives MC = 2 + 0.6Q */
+const S1 = 0.8, KQ = 5, KP = 10;
+const D1 = (q) => 14 - S1 * q, MR1 = (q) => 14 - 2 * S1 * q;
+const D2 = (q, s2) => KP - s2 * (q - KQ), MR2 = (q, s2) => KP + KQ * s2 - 2 * s2 * q;
+const MCf = (q, c) => c - 0.6 * KQ + 0.6 * q;
+const op = (v) => ({ style: `opacity:${Math.max(0, Math.min(1, v))}` });
+const opf = (v, k = 1) => ({ style: `opacity:${Math.max(0, Math.min(1, v)) * 0.28 * k}` });
+const halo = "paint-order:stroke;stroke:var(--surface);stroke-width:5px";
+const fr = (x0, xs, y0, ys) => ({ X: (q) => x0 + q * xs, Y: (p) => y0 - p * ys, x0, y0 });
+const BIG = fr(70, 66, 290, 16.5), SMALL = fr(52, 43, 262, 14);
+
+/* where does MC cut MR? returns {q, p, where} */
+function solve(c, s2) {
+  const hi = MR1(KQ), lo = MR2(KQ, s2);
+  if (c > hi) { const q = (14 - (c - 3)) / (1.6 + 0.6); return { q, p: D1(q), where: "above" }; }
+  if (c < lo) { const q = (KP + KQ * s2 - (c - 3)) / (2 * s2 + 0.6); return { q, p: D2(q, s2), where: "below" }; }
+  return { q: KQ, p: KP, where: "in" };
+}
+
+function axes(F, W, H) {
+  const { X, Y } = F;
+  return SV.line(F.x0, Y(16), F.x0, Y(-6)) + SV.line(F.x0, Y(0), W, Y(0)) + SV.text(F.x0 + 6, Y(16) - 2, "Price / cost ($)", "sm") + SV.text(W - 2, Y(0) - 8, "Quantity", "sm", { "text-anchor": "end" });
+}
+function seg(F, f, q0, q1, u, cls, o) {
+  const q = q0 + (q1 - q0) * u;
+  return u > 0.001 ? SV.line(F.X(q0), F.Y(f(q0)), F.X(q), F.Y(f(q)), cls, o) : "";
+}
+
+/* the kinked-demand picture; s controls what is shown */
+function kinkDraw(F, W, s) {
+  const { X, Y } = F, s2 = s.s2 ?? 2, c = s.c ?? 5;
+  const qd2 = Math.min(10, KQ + 10 / s2), qm2 = Math.min(10, (16 + KQ * s2) / (2 * s2));
+  let o = axes(F, W);
+  o += SV.text(X(KQ), Y(-6) + 16, "Q₀ = 5", "sm bd", { "text-anchor": "middle", ...op(s.pt) }) ;
+  o += SV.text(F.x0 - 6, Y(KP) + 4, "P₀ = 10", "sm bd", { "text-anchor": "end", ...op(s.pt) });
+  if (s.pt > 0) o += SV.line(F.x0, Y(KP), X(KQ), Y(KP), "gr", op(s.pt)) + SV.line(X(KQ), Y(KP), X(KQ), Y(-6), "gr", op(s.pt));
+  o += seg(F, D1, 0, KQ, s.d1 ?? 0, "c1") + seg(F, (q) => D2(q, s2), KQ, qd2, s.d2 ?? 0, "c1");
+  if ((s.dl ?? 0) > 0) o += SV.text(X(0.3), Y(D1(0.3)) - 9, "D, elastic above the kink", "lbl bd t1", op(s.dl)) + SV.text(X(5.5) + 12, Y(D2(5.5, s2)) - 6, "D, inelastic below", "lbl bd t1", op(s.dl));
+  o += seg(F, MR1, 0, KQ, s.m1 ?? 0, "c3 dash") + seg(F, (q) => MR2(q, s2), KQ, qm2, s.m2 ?? 0, "c3 dash");
+  if ((s.m1 ?? 0) > 0.6) o += SV.text(X(2.2) - 8, Y(MR1(2.2)) + 16, "MR (upper)", "lbl bd t3", { "text-anchor": "end", ...op(s.m1) });
+  if ((s.m2 ?? 0) > 0.6) o += SV.text(X(Math.min(qm2, 7.5)), Y(MR2(Math.min(qm2, 7.5), s2)) + (qm2 < 7.5 ? 14 : 14), "MR (lower)", "lbl bd t3", { "text-anchor": "start", ...op(s.m2) });
+  if ((s.gap ?? 0) > 0) {
+    const hi = MR1(KQ), lo = MR2(KQ, s2);
+    o += SV.rect(X(KQ) - 5, Y(hi), 10, Y(lo) - Y(hi), "f4", opf(s.gap, 1.3)) + SV.line(X(KQ), Y(hi), X(KQ), Y(lo), "c4", { "stroke-width": 3, ...op(s.gap) });
+    o += SV.text(X(KQ) + 12, (Y(hi) + Y(lo)) / 2 + 4, "gap in MR: $" + fmtN(lo, 1) + " to $" + fmtN(hi, 1), "lbl bd t4", { style: `${halo};opacity:${Math.max(0, Math.min(1, s.gap))}` });
+  }
+  if ((s.mc ?? 0) > 0) {
+    o += seg(F, (q) => MCf(q, c), 0, 10, s.mc, "c2");
+    if (s.mc > 0.6) o += SV.text(X(10) - 2, Y(MCf(10, c)) - 8, "MC", "lbl bd t2", { "text-anchor": "end", ...op(s.mc) });
+  }
+  if (s.ghost !== undefined && (s.mc ?? 0) > 0.5) o += seg(F, (q) => MCf(q, s.ghost), 0, 10, 1, "c2 dash", { style: "opacity:.35" });
+  if ((s.pm ?? 0) > 0) {
+    const r = solve(c, s2);
+    o += SV.line(F.x0, Y(r.p), X(r.q), Y(r.p), "gr", op(s.pm)) + SV.line(X(r.q), Y(r.p), X(r.q), Y(0), "gr", op(s.pm));
+    o += SV.circle(X(r.q), Y(r.p), 7, "dot1", op(s.pm)) + SV.text(X(r.q) + 12, Y(r.p) - 10, `profit-max: price $${fmtN(r.p, 2)}, output ${fmtN(r.q, 2)}`, "lbl bd t1", { style: `${halo};opacity:${Math.max(0, Math.min(1, s.pm))}` });
+  } else if ((s.pt ?? 0) > 0) o += SV.circle(X(KQ), Y(KP), 6, "dot1", op(s.pt));
+  return o;
+}
+const wrap = (F, W, H, s, label) => `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${label}">${kinkDraw(F, W, s)}</svg>`;
+const ALL = { pt: 1, d1: 1, d2: 1, dl: 1, m1: 1, m2: 1, gap: 1, mc: 1, pm: 1 };
+
+/* Learn picture */
+$("#pic1").innerHTML = wrap(BIG, 780, 425, ALL, "Kinked demand curve with two segments of marginal revenue, the gap between them and a marginal cost curve running through the gap");
+
+/* Watch 1: building the kink */
+Lib.stepper($("#stA"), { w: 780, h: 425, label: "Building a kinked demand curve step by step", base: { pt: 0, d1: 0, d2: 0, dl: 0, m1: 0, m2: 0, gap: 0, mc: 0, pm: 0 }, draw: (s) => kinkDraw(BIG, 780, s), tween: 900, dwell: 5600, steps: [
+  { cap: "<b>The starting point.</b> An oligopolist charges <b>$10</b> and sells <b>5 units</b>. It shares the market with a few rivals, so it must think about how they would respond to any price change.", s: { pt: 1 } },
+  { cap: "<b>Price rise: rivals do not follow.</b> If the firm charges more than $10, its rivals keep their prices and customers switch to them. Quantity falls a lot, so demand above $10 is <b>elastic</b> (a flatter line) and revenue falls.", s: { pt: 1, d1: 1 } },
+  { cap: "<b>Price cut: rivals match.</b> If the firm charges less than $10, rivals cut too to avoid losing customers. The firm gains little, so demand below $10 is <b>inelastic</b> (a steeper line) and revenue falls again.", s: { pt: 1, d1: 1, d2: 1, dl: 1 } },
+  { cap: "<b>MR above the kink.</b> Marginal revenue for the flatter segment starts on the vertical axis at $14 and falls at twice the slope. At 5 units it is <b>$6</b>.", s: { pt: 1, d1: 1, d2: 1, dl: 1, m1: 1 } },
+  { cap: "<b>MR below the kink.</b> The steeper segment has its own MR, which at 5 units is only <b>$0</b>. The price has to fall further for each extra unit sold, and the loss on the first 5 units is bigger.", s: { pt: 1, d1: 1, d2: 1, dl: 1, m1: 1, m2: 1 } },
+  { cap: "<b>The gap in MR.</b> At 5 units MR drops vertically from $6 to $0. This is the vertical break in the marginal revenue curve, and it is a gap in <b>MR</b>, not in MC.", s: { pt: 1, d1: 1, d2: 1, dl: 1, m1: 1, m2: 1, gap: 1 } },
+  { cap: "<b>Marginal cost.</b> The usual upward-sloping MC curve passes through the gap, cutting the vertical part of MR at 5 units. At 5 units MC is $5.", s: { pt: 1, d1: 1, d2: 1, dl: 1, m1: 1, m2: 1, gap: 1, mc: 1 } },
+  { cap: "<b>Profit maximisation.</b> MC = MR at 5 units, and the demand curve says buyers will pay <b>$10</b> for that output. The firm sits at the kink. Any MC curve through the gap would give the same answer.", s: { pt: 1, d1: 1, d2: 1, dl: 1, m1: 1, m2: 1, gap: 1, mc: 1, pm: 1 } },
+] });
+
+/* Watch 2: why MR drops (waterfall) */
+const U = 22, BASE = 330;
+function wfDraw(s) {
+  const cols = [{ x: 60, loss: S1 * KQ, title: "Just left of the kink", sub: "flatter segment: rivals ignore a rise" }, { x: 420, loss: 2 * KQ, title: "Just right of the kink", sub: "steeper segment: rivals match a cut" }];
+  let o = SV.line(40, BASE, 760, BASE);
+  cols.forEach((c, i) => {
+    const mr = KP - c.loss;
+    o += SV.text(c.x + 155, 34, c.title, "lbl bd", { "text-anchor": "middle" }) + SV.text(c.x + 155, 52, c.sub, "sm", { "text-anchor": "middle" });
+    o += SV.rect(c.x, BASE - KP * U, 90, KP * U, "f1", opf(s.a, 1.2)) + SV.text(c.x + 45, BASE - KP * U - 8, "$10", "lbl bd t1", { "text-anchor": "middle", ...op(s.a) }) + SV.text(c.x + 45, BASE + 18, "Price of the", "sm", { "text-anchor": "middle", ...op(s.a) }) + SV.text(c.x + 45, BASE + 32, "extra unit", "sm", { "text-anchor": "middle", ...op(s.a) });
+    const lossH = c.loss * U * Math.min(1, s.b);
+    o += SV.rect(c.x + 110, BASE - KP * U, 90, lossH, "f2", opf(s.b, 1.2)) + SV.text(c.x + 155, BASE - KP * U - 8, "− $" + fmtN(c.loss, 0), "lbl bd t2", { "text-anchor": "middle", ...op(s.b) }) + SV.text(c.x + 155, BASE + 18, "Lost on the 5 units", "sm", { "text-anchor": "middle", ...op(s.b) }) + SV.text(c.x + 155, BASE + 32, i ? "(2.00 x 5)" : "(0.80 x 5)", "sm", { "text-anchor": "middle", ...op(s.b) });
+    o += SV.rect(c.x + 220, BASE - mr * U * Math.min(1, s.c), 90, mr * U * Math.min(1, s.c), "f3", opf(s.c, 1.2)) + SV.text(c.x + 265, BASE - Math.max(mr, 0) * U - 8, "= $" + fmtN(mr, 0), "lbl bd t3", { "text-anchor": "middle", ...op(s.c) }) + SV.text(c.x + 265, BASE + 18, "Marginal", "sm", { "text-anchor": "middle", ...op(s.c) }) + SV.text(c.x + 265, BASE + 32, "revenue", "sm", { "text-anchor": "middle", ...op(s.c) });
+  });
+  if (s.d > 0) o += SV.text(390, 380, "MR falls from $6 to $0 at 5 units: a gap of $6", "lbl bd t4", { "text-anchor": "middle", ...op(s.d) });
+  return o;
+}
+Lib.stepper($("#stB"), { w: 780, h: 400, label: "Marginal revenue calculated just left and just right of the kink", base: { a: 0, b: 0, c: 0, d: 0 }, draw: wfDraw, tween: 800, dwell: 5600, steps: [
+  { cap: "<b>The question.</b> The firm is selling 5 units at $10 and asks: what extra revenue would a 6th unit bring? The answer depends on how far price must fall to sell it.", s: {} },
+  { cap: "<b>Price of the extra unit: $10</b> on both sides. At the kink the price is the same whichever demand segment you use.", s: { a: 1 } },
+  { cap: "<b>Cost of selling more.</b> To sell one more unit the price must fall on <b>every</b> unit. On the flatter segment it falls only $0.80 so the firm loses $4 on its first 5. On the steeper segment it falls $2, so the loss is $10.", s: { a: 1, b: 1 } },
+  { cap: "<b>Marginal revenue</b> is the price less this loss: <b>$6</b> on the left and <b>$0</b> on the right. Same price, same output, different slope, so different MR.", s: { a: 1, b: 1, c: 1 } },
+  { cap: "<b>That vertical drop is the gap.</b> A steeper demand curve means a bigger loss on existing sales, and the gap equals output times the difference in slopes: 5 x (2 − 0.8) = $6.", s: { a: 1, b: 1, c: 1, d: 1 } },
+] });
+
+/* Watch 3: MC shocks */
+const WS = { pt: 1, d1: 1, d2: 1, dl: 0, m1: 1, m2: 1, gap: 1, mc: 1, pm: 1 };
+Lib.stepper($("#stC"), { w: 780, h: 425, label: "Marginal cost moving up within the gap, above the gap and down inside the gap", base: { ...WS, c: 5 }, draw: (s) => kinkDraw(BIG, 780, { ...s, ghost: 5 }), tween: 1100, dwell: 5600, steps: [
+  { cap: "<b>The starting position.</b> MC passes through the gap at $5 when output is 5 units. The firm charges $10 and sells 5 units.", s: { c: 5 } },
+  { cap: "<b>A small cost rise.</b> Imagine ingredient prices drift up so that MC at 5 units is now $5.80. MC still cuts the vertical gap, so output stays at 5 and price stays at <b>$10</b>. Profit per unit falls but the firm does not change its price.", s: { c: 5.8 } },
+  { cap: "<b>A large cost rise.</b> A cost shock takes MC at 5 units to $8, above the gap. MC now cuts the upper MR curve at a lower output, so the firm cuts output to about 4.1 units and raises price to about <b>$10.73</b>. If rivals face the same shock they are likely to follow, which would shift the kink.", s: { c: 8 } },
+  { cap: "<b>A cost fall.</b> Efficiency savings reduce MC at 5 units to $2. This is still inside the gap, so price stays at <b>$10</b>: the firm keeps the extra margin instead of cutting price into a rival's reaction.", s: { c: 2 } },
+  { cap: "<b>Summary.</b> The vertical gap in MR gives MC a range of positions in which the profit-maximising price does not move. Only a shock big enough to leave the gap changes the price.", s: { c: 5 } },
+] });
+
+/* ---------- Lab 1 ---------- */
+const SC = [
+  { n: "Small cost drift", c: 5.8, t: "Ingredient or fuel prices drift up by a few percent: MC rises a little and stays inside the gap." },
+  { n: "Industry-wide cost shock", c: 8.5, t: "A sharp rise in a key input, such as cocoa or jet fuel: MC leaves the gap. Because rivals face the same cost they are likely to raise their prices too." },
+  { n: "Efficiency saving", c: 2.5, t: "A cheaper way to make each unit: MC falls but stays in the gap, so price is likely to stay at $10 and margin widens." },
+  { n: "Head office rent rises", c: 5, t: "A fixed cost: MC does not move at all, so neither price nor output changes (profit falls)." },
+];
+let lc, ls;
+function lab1() {
+  const c = lc.get(), s2 = ls.get(), r = solve(c, s2), hi = MR1(KQ), lo = MR2(KQ, s2);
+  $("#r1").textContent = "$" + fmtN(r.p, 2); $("#r2").textContent = fmtN(r.q, 2); $("#r3").textContent = "$" + fmtN(c, 2); $("#r4").textContent = "$" + fmtN(lo, 2) + " to $" + fmtN(hi, 2);
+  $("#rv").innerHTML = r.where === "in"
+    ? `<b>Price stays at $10.</b> MC at 5 units ($${fmtN(c, 2)}) is inside the gap in MR ($${fmtN(lo, 2)} to $${fmtN(hi, 2)}), so MC cuts MR at 5 units. Output stays at 5, whatever MC does inside the gap.`
+    : r.where === "above"
+      ? `<b>MC has left the gap from above.</b> MC now cuts the upper MR segment, so the firm cuts output to ${fmtN(r.q, 2)} and raises price to $${fmtN(r.p, 2)}. Rivals facing the same costs are likely to follow.`
+      : `<b>MC has left the gap from below.</b> MC now cuts the lower MR segment, so output rises to ${fmtN(r.q, 2)} and price falls to $${fmtN(r.p, 2)}. This needs MC to be very low, below the bottom of the gap.`;
+  $("#labA").innerHTML = kinkDraw(SMALL, 520, { ...ALL, dl: 0, c, s2, ghost: 5 });
+}
+ls = Lib.slider($("#g2"), { id: "s2", label: "Rivals' reaction to a price cut (steepness below the kink): ", min: 1, max: 2.4, step: 0.1, value: 2, fmt: (v) => fmtN(v, 1) + "x", onInput: () => lc && lab1() });
+lc = Lib.slider($("#g1"), { id: "c5", label: "Marginal cost at 5 units ($): ", min: 0.5, max: 10, step: 0.25, value: 5, fmt: (v) => "$" + fmtN(v, 2), onInput: () => lc && lab1() });
+SC.forEach((s) => { const b = document.createElement("button"); b.className = "b"; b.textContent = s.n; b.onclick = () => { lc.set(s.c); ls.set(2); $("#rv").innerHTML += `<br><i>${s.t}</i>`; }; $("#scn").appendChild(b); });
+lab1();
+
+/* ---------- Lab 2: test the kink ---------- */
+let tp, tf;
+const TC = (q) => 5 + 2 * q + 0.3 * q * q;
+function lab2() {
+  const p = tp.get(), f = tf.get(), up = S1 + (2 - S1) * f;
+  const qAt = (x) => (x >= KP ? KQ - (x - KP) / up : KQ + (KP - x) / 2);
+  const q = qAt(p), tr = p * q, pi = tr - TC(q), pi0 = KP * KQ - TC(KQ);
+  $("#t1").textContent = fmtN(q, 2); $("#t2").textContent = fmtN(tr, 2); $("#t3").textContent = fmtN(pi, 2); $("#t4").textContent = fmtN(pi0, 2);
+  const d = pi - pi0;
+  $("#tv").innerHTML = Math.abs(p - KP) < 0.01 ? `<b>At the kink.</b> Profit is $${fmtN(pi0, 2)}. Try a higher and a lower price.`
+    : d < -0.005 ? `<b>Worse than staying at $10</b> by $${fmtN(-d, 2)}. ${p > KP ? "Customers switch to rivals who did not follow the rise, so the extra price does not make up for the lost sales." : "Rivals match the cut, so few extra sales come in and revenue per unit falls."} The firm is better off at the kink.`
+      : `<b>Better than staying at $10</b> by $${fmtN(d, 2)}. ${p > KP ? "Because rivals follow the rise, demand above $10 is less elastic and few customers are lost. There is no real kink, so the firm would raise its price." : "This price beats $10, so the kink does not hold."}`;
+  const F = SMALL, { X, Y } = F, qd = Math.min(10, KQ + 10 / 2);
+  let o = axes(F, 520);
+  const upD = (x) => KP + KQ * up - up * x;   // upper demand with slope 'up'
+  o += SV.line(X(0), Y(upD(0)), X(KQ), Y(KP), "c1") + SV.line(X(KQ), Y(KP), X(qd), Y(D2(qd, 2)), "c1");
+  o += SV.circle(X(KQ), Y(KP), 6, "dot3") + SV.text(X(KQ) + 10, Y(KP) - 10, "kink", "sm bd t3");
+  o += SV.line(F.x0, Y(p), X(q), Y(p), "gr") + SV.line(X(q), Y(p), X(q), Y(0), "gr") + SV.circle(X(q), Y(p), 7, d > 0.005 ? "dot3" : "dot1");
+  o += SV.text(X(q) + 12, Y(p) - 10, `price $${fmtN(p, 2)}`, "lbl bd t1", { style: halo });
+  o += SV.text(X(0.2), Y(upD(0.2)) - 10, "D", "lbl bd t1", { style: halo });
+  $("#labB").innerHTML = o;
+}
+tf = Lib.slider($("#g4"), { id: "fo", label: "How far rivals follow a price rise: ", min: 0, max: 1, step: 0.05, value: 0, fmt: (v) => Math.round(v * 100) + "%", onInput: () => tp && lab2() });
+tp = Lib.slider($("#g3"), { id: "pr", label: "Price charged ($): ", min: 6, max: 13, step: 0.25, value: 11, fmt: (v) => "$" + fmtN(v, 2), onInput: () => tp && lab2() });
+lab2();
+
+/* ---------- Practise ---------- */
+Lib.classify($("#cl1"), {
+  prompt: "Place each description on the segment of the kinked demand curve it fits.",
+  buckets: [{ label: "Above the kink (price rise)" }, { label: "Below the kink (price cut)" }],
+  items: [
+    { text: "Rivals do not follow", b: 0 }, { text: "Relatively elastic demand", b: 0 }, { text: "Flatter slope", b: 0 }, { text: "Customers switch to rivals", b: 0 }, { text: "A rise lowers revenue", b: 0 },
+    { text: "Rivals match the change", b: 1 }, { text: "Relatively inelastic demand", b: 1 }, { text: "Steeper slope", b: 1 }, { text: "Few extra customers gained", b: 1 }, { text: "A cut lowers revenue", b: 1 },
+  ], done: "The same price, two different elasticities: that is the kink.",
+});
+Lib.classify($("#cl2"), {
+  prompt: "Does the change move the marginal cost curve, or is it a fixed cost?",
+  buckets: [{ label: "Moves MC" }, { label: "Fixed cost, MC unchanged" }],
+  items: [
+    { text: "Cocoa price rises for a chocolate maker", b: 0 }, { text: "Jet fuel used per passenger gets dearer", b: 0 }, { text: "Hourly wage rate rises for checkout staff", b: 0 }, { text: "Packaging cost per unit falls", b: 0 }, { text: "Electricity for a production line running longer", b: 0 },
+    { text: "Annual rent on a head office rises", b: 1 }, { text: "Insurance premium on the delivery fleet rises", b: 1 }, { text: "A national TV advertising campaign", b: 1 }, { text: "Interest on a loan for a new factory", b: 1 }, { text: "Salaried managers get a pay rise", b: 1 },
+  ], done: "Only per-unit (marginal) cost changes can move MC. Fixed costs change profit, never the profit-maximising price.",
+});
+Lib.match($("#m1"), { prompt: "Match each word to its meaning.", pairs: [
+  ["Kink", "The point on the demand curve at the current price where its slope changes"],
+  ["Interdependence", "Each firm's best decision depends on how its rivals react"],
+  ["Elastic demand", "Quantity changes by a bigger percentage than price, as above the kink"],
+  ["Inelastic demand", "Quantity changes by a smaller percentage than price, as below the kink"],
+  ["Gap in MR", "The vertical break in marginal revenue at the kink output"],
+  ["Price rigidity", "Price staying the same even when costs change by a little"],
+  ["Non-price competition", "Competing through advertising, quality or service instead of price"],
+], done: "Seven terms to use in every kinked demand answer." });
+Lib.order($("#o1"), { prompt: "Put the explanation of why price is sticky in order.", items: [
+  "Firms are interdependent, so each must anticipate how rivals will react",
+  "A price rise is not followed by rivals, so demand above P₀ is elastic",
+  "A price cut is matched by rivals, so demand below P₀ is inelastic",
+  "The slopes differ, so marginal revenue drops vertically at Q₀: a gap in MR",
+  "A change in MC that stays inside the gap still cuts MR at Q₀",
+  "Output and price stay the same; evaluate the limits of the model",
+], done: "This chain works for any question on the kinked demand curve." });
+
+Lib.calc($("#c1"), { qs: [
+  { q: "The upper segment is P = 14 − 0.8Q. What output is sold at the kink price of $10?", a: 5, hint: "Solve 10 = 14 − 0.8Q.", sol: "0.8Q = 4, so Q = <b>5</b>." },
+  { q: "MR for the upper segment is 14 − 1.6Q. What is MR at 5 units ($)?", a: 6, sol: "14 − 1.6 x 5 = 14 − 8 = <b>$6</b>." },
+  { q: "The lower segment is P = 20 − 2Q, so its MR is 20 − 4Q. What is MR at 5 units ($)?", a: 0, sol: "20 − 4 x 5 = <b>$0</b>." },
+  { q: "How big is the vertical gap in MR at 5 units ($)?", a: 6, hint: "Subtract the lower MR from the upper MR.", sol: "6 − 0 = <b>$6</b>. Or: 5 x (2 − 0.8) = 6." },
+  { q: "MC = 2 + 0.6Q. What is MC at 5 units ($)?", a: 5, sol: "2 + 0.6 x 5 = <b>$5</b>, between $0 and $6, so inside the gap." },
+  { q: "What is the highest MC at 5 units ($) that still leaves price at $10?", a: 6, hint: "It is the top of the gap.", sol: "The top of the gap, <b>$6</b>. Above that MC cuts the upper MR curve at a lower output." },
+  { q: "Revenue at the kink (price x quantity, $)?", a: 50, sol: "10 x 5 = <b>$50</b>." },
+  { q: "The firm raises price to $12 along the upper segment P = 14 − 0.8Q. What is its revenue ($)?", a: 30, hint: "Find Q first: 12 = 14 − 0.8Q.", sol: "Q = 2.5, revenue = 12 x 2.5 = <b>$30</b>, much less than $50." },
+  { q: "The firm cuts price to $8 along the lower segment P = 20 − 2Q. What is its revenue ($)?", a: 48, sol: "Q = 6, revenue = 8 x 6 = <b>$48</b>, also less than $50. Neither move pays." },
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "Why is demand relatively elastic above the kink?", opts: ["Rivals match a price rise", "Rivals do not follow a price rise, so customers switch", "The firm is a monopolist", "Demand is perfectly elastic"], a: 1, why: "If rivals keep their prices, a firm that raises its own loses many customers." },
+  { q: "The gap in marginal revenue arises because:", opts: ["MC falls at the kink", "total revenue is maximised at the kink", "the two demand segments have different slopes, so MR differs on each side at the kink output", "fixed costs change"], a: 2, why: "A steeper segment has a lower MR at the same output, so MR drops vertically." },
+  { q: "At the kink output MR is $6 on the upper segment and $0 on the lower. The MC curve cuts MR at the kink output when MC at that output is:", opts: ["$7", "$3", "−$1", "$6.50"], a: 1, why: "MC must lie between $0 and $6, inside the gap." },
+  { q: "A rent rise on the firm's premises is likely to:", opts: ["shift MC upward and raise price", "shift MC downward", "leave MC and the profit-maximising price unchanged", "remove the kink"], a: 2, why: "Rent is a fixed cost. It lowers profit but does not change marginal cost." },
+  { q: "Which is a limitation of the kinked demand curve model?", opts: ["It explains how the initial price was set", "It does not explain how the original price was set", "It assumes there are many firms", "It assumes firms are price takers"], a: 1, why: "The model takes P₀ as given and only explains why it might stick." },
+  { q: "All airlines on a route face a large jump in jet fuel costs. The model is most likely to:", opts: ["predict no price change", "fail, because rivals are likely to raise fares too", "predict that every airline cuts fares", "predict perfect competition"], a: 1, why: "A common cost shock makes rivals follow a rise, so the upper segment is not elastic." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Kinked demand curve", "An oligopoly model: rivals ignore a price rise but match a cut, so demand is elastic above the current price and inelastic below it."],
+  ["Kink", "The point on the demand curve at the current price where the slope changes."],
+  ["Interdependence", "Each firm's decisions depend on how rivals respond."],
+  ["Gap in MR", "A vertical break in marginal revenue at the kink output, because the two demand segments have different slopes."],
+  ["Price rigidity", "Price staying unchanged over long periods, even when costs change a little."],
+  ["Marginal cost (MC)", "The extra cost of producing one more unit. Only marginal cost changes move the MC curve."],
+  ["Fixed cost", "A cost that does not vary with output (rent, insurance). It does not move MC."],
+  ["MC = MR", "The profit-maximising rule. In the gap, MC cuts MR at the kink output."],
+  ["Price leadership", "One firm sets the price and the others follow. An alternative explanation of stable oligopoly prices."],
+  ["Non-price competition", "Competing on advertising, quality or service rather than price."],
+  ["Limit of the model", "It does not explain how the original price was set, and it fails when all firms face the same cost change."],
+] });
+Lib.quiz($("#qz2"), { qs: [
+  { q: "[May/June 2021 · 31 · Q6] A kinked demand curve is often used when economists analyse oligopolists. What does the kinked demand curve indicate?", opts: ["Oligopolists are unable to achieve profit maximisation.", "Satisficing is the best objective for firms that operate under conditions of oligopoly.", "There are always benefits available for oligopolists if they reduce price, but not if they increase it.", "There is a tendency towards price stability when firms operate under conditions of oligopoly."], a: 3, why: "Rivals match a price cut but ignore a rise, so firms have little incentive to change price." },
+  { q: "[Written for this page] On a kinked demand curve diagram, a firm's marginal cost curve shifts upward but still passes through the gap in marginal revenue. What happens to price and output?", opts: ["Price rises and output falls", "Price and output are unchanged", "Price falls and output rises", "Output rises and price is unchanged"], a: 1, why: "MC still cuts MR at the kink output, so the profit-maximising price and output do not change." },
+  { q: "[Written for this page] Which statement about marginal revenue on a kinked demand curve is correct?", opts: ["MR is continuous at the kink", "MR is discontinuous at the kink output", "MR is above demand at every output", "MR equals price at every output"], a: 1, why: "The two segments have different slopes, so MR drops vertically at the kink output." },
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

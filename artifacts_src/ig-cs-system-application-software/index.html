@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>System Software and Application Software</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<style>
+.txin{font:600 1.05rem var(--mono);padding:9px 12px;border-radius:9px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,420px)}
+.lab{font:700 .7rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 4px}
+.out{font:600 1rem var(--mono);padding:10px 14px;border-radius:9px;background:var(--soft);border:1px solid var(--line);min-height:46px;white-space:pre-wrap;word-break:break-word}
+.out.bad{color:var(--bad)}.out.good{color:var(--good)}
+.ch{display:grid;gap:8px;margin:10px 0}
+.ch button{text-align:left;font:600 .95rem var(--sans);padding:10px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.ch button:hover{border-color:var(--accent)}
+.ch button.ok{border-color:var(--good);background:var(--good-soft)}.ch button.no{border-color:var(--bad);background:var(--bad-soft)}
+.code{font:500 .95rem/1.7 var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 0;overflow-x:auto}
+.code .ln{display:block;padding:0 14px;white-space:pre}
+.code .ln.on{background:var(--accent-soft);box-shadow:inset 4px 0 0 var(--accent)}
+.code .ln.err{background:var(--bad-soft);box-shadow:inset 4px 0 0 var(--bad)}
+.code .ln.done{opacity:.55}
+.cm{color:var(--muted)}.kwd{color:var(--n);font-weight:700}.str{color:var(--bad)}.num{color:var(--k)}
+.sqr{display:inline-block;min-width:34px;padding:6px 4px;border:1.5px solid var(--line);border-radius:6px;text-align:center;font:600 .8rem var(--mono);background:var(--surface);margin:2px}
+.blocks{display:flex;flex-wrap:wrap;gap:3px;margin:6px 0}
+.blk{width:38px;height:38px;border-radius:6px;display:grid;place-items:center;font:700 .74rem var(--mono);color:#fff;border:1.5px solid var(--line);background:var(--soft)}
+.blk.e{color:var(--muted)}
+.dg{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.log{font:500 .88rem/1.5 var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-height:80px;max-height:240px;overflow:auto}
+.log div{padding:1px 0}.log .hi{color:var(--accent);font-weight:700}.log .bd{color:var(--bad);font-weight:700}.log .gd{color:var(--good);font-weight:700}
+table.reg{border-collapse:collapse;font:600 .9rem var(--mono)}
+table.reg td,table.reg th{border:1px solid var(--line);padding:5px 12px;text-align:center}
+table.reg th{background:var(--soft);font:700 .7rem var(--sans);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.mem input{width:76px;font:600 .95rem var(--mono);padding:4px 6px;border-radius:6px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);text-align:center}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.pos{color:var(--good);font-weight:700}.neg{color:var(--bad);font-weight:700}
+</style>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">IGCSE Computer Science · 0478 · Chapter 4 · 4.1.1</div>
+  <h1>System Software and Application Software</h1>
+  <p class="lead">Operating systems, utilities and drivers against the apps you use: what each does, and the utilities that keep a computer healthy.</p>
+</header>
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+<section id="learn" role="tabpanel">
+  <div class="card big">
+    <h3>The big idea</h3>
+    <p>Hardware alone does nothing. <span class="kw">System software</span> runs and manages the hardware and gives other programs a platform to run on. <span class="kw">Application software</span> lets the user do a specific job, such as writing an essay or editing a photo.</p>
+  </div>
+  <h2>4.1.1 System software and application software</h2>
+  <div class="grid2">
+    <div class="card"><h3>System software</h3>
+      <ul><li>A set of programs that control and manage the computer hardware</li><li>Provides a platform on which other software can run</li><li>Provides the human computer interface (HCI)</li><li>Controls the allocation and use of hardware resources</li></ul>
+      <p class="note">Examples: operating system, utility programs, device drivers, compilers and linkers.</p></div>
+    <div class="card"><h3>Application software</h3>
+      <ul><li>Lets the user do a specific task using the computer's resources</li><li>May be a single program (Notepad) or a suite (Microsoft Office)</li><li>The user runs it as and when they need it</li></ul>
+      <p class="note">Examples: word processor, spreadsheet, database, photo, video and graphics editing, control and measuring software, apps.</p></div>
+  </div>
+  <h3>Typical application software</h3>
+  <div class="tw"><table class="t">
+    <tr><th>Software</th><th>What it does</th></tr>
+    <tr><td>Word processor</td><td>Create, edit, format and save text; copy and paste; spell checker and thesaurus; import images; translation</td></tr>
+    <tr><td>Spreadsheet</td><td>Numbers in a grid of cells (such as B6); formulas, graphs, modelling and "what if" calculations</td></tr>
+    <tr><td>Database</td><td>Tables of records (rows) and fields (columns); queries, reports, add, delete and modify data</td></tr>
+    <tr><td>Control and measuring</td><td>Reads sensors to measure real-world quantities, compares them with stored values, then sends signals to change a process (for example opens a valve to change the pH)</td></tr>
+    <tr><td>Photo editing</td><td>Change brightness, contrast and colour saturation; remove red eye; combine or touch up photos</td></tr>
+    <tr><td>Video editing</td><td>Rearrange, add or remove clips; colour correction and filters; transitions between clips</td></tr>
+    <tr><td>Graphics manipulation</td><td>Edit bitmap images (pixels) or vector images (lines, curves and text)</td></tr>
+    <tr><td>Apps</td><td>Applications on phones and tablets, normally from an app store: streaming, GPS, camera</td></tr>
+  </table></div>
+
+  <h2>Utility programs</h2>
+  <p><span class="kw">Utility programs</span> are system software that help to manage, maintain and control computer resources. Most are started by the user, but some, such as the virus checker, run quietly in the background.</p>
+  <div class="grid2">
+    <div class="card"><h3>Anti-virus software</h3>
+      <ul><li>Checks software and files <b>before they are run or loaded</b></li><li>Compares them with a <b>database of known viruses</b></li><li><span class="kw">Heuristic checking</span>: looks for <b>behaviour</b> that could mean a virus, so it can catch one not yet in the database</li><li>Infected files go into <span class="kw">quarantine</span>, then are deleted automatically or the user decides</li><li>Needs <b>regular updates</b>, plus a weekly full scan to find dormant viruses</li></ul>
+      <p class="note">A <b>false positive</b> is a clean file flagged as a virus. It is a drawback of anti-virus software.</p></div>
+    <div class="card"><h3>Defragmentation</h3>
+      <p>On a <b>hard disk drive (HDD)</b>, deleting and extending files leaves each file's blocks scattered over the disk. The read-write head must make many movements, so access is slower.</p>
+      <p>A <span class="kw">defragmenter</span> rearranges the blocks so each file is stored in <span class="kw">contiguous</span> (next to each other) sectors. Access is faster because there are fewer head movements.</p>
+      <p class="note">Not a problem for an SSD, which has no moving head.</p></div>
+    <div class="card"><h3>Back-up software</h3>
+      <ul><li>Can follow a <b>schedule</b></li><li>Can back up only files that have <b>changed</b></li><li>Can <b>restore</b> data or the whole computer, or create a <b>restore point</b></li></ul>
+      <p>For total security keep <b>three versions</b>: the working copy on the internal drive, a local back-up (portable SSD) and a <b>remote</b> back-up stored away from the computer (cloud storage).</p></div>
+    <div class="card"><h3>Security software</h3>
+      <ul><li>Manages access control and user accounts (IDs and passwords)</li><li>Links to virus and spyware checkers</li><li>Protects network connections, for example with a <b>firewall</b></li><li>Uses encryption so intercepted data is meaningless</li><li>Checks that software updates come from a legitimate source</li></ul></div>
+    <div class="card"><h3>Screensavers</h3>
+      <p>Originally made to stop "phosphor burn" on old CRT monitors. Now mostly customisation, but they are also used for <b>security</b>: after a period of inactivity the screensaver loads and the user is logged out or the computer is locked.</p>
+      <p>They can also start background tasks that only run while the computer is idle, such as virus scans.</p></div>
+    <div class="card"><h3>Other utilities</h3><ul><li><b>Disk analysis and repair</b>: checks the contents of a disk and fixes errors</li><li><b>File compression and file management</b></li></ul></div>
+  </div>
+
+  <h2>Device drivers</h2>
+  <p>A <span class="kw">device driver</span> is software that communicates with the operating system and translates data into a format the hardware device understands. Every hardware device, such as a printer, mouse or memory stick, needs one. Without a driver, the screen shows a message such as "device not recognised".</p>
+  <p>When a USB device is plugged in, the operating system looks for its driver. USB drivers contain <span class="kw">descriptors</span> that tell the computer what the device is: a <b>vendor ID (VID)</b>, a <b>product ID (PID)</b> and a <b>unique serial number</b>. If a device has no serial number, the operating system treats it as a new device every time it is plugged in.</p>
+
+</section>
+<section id="watch" role="tabpanel" hidden></section>
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Defragmentation</h2>
+  <p>This disk has 24 blocks. Delete a file, extend a file, then defragment. <b>Head jumps</b> counts how many separate pieces the read-write head must find to read all three files.</p>
+  <div class="card"><div class="row" id="dfb"></div>
+    <div class="blocks" id="dfd" aria-label="Disk blocks"></div>
+    <div class="readout"><div><small>Fragments of file A</small><strong id="dfa"></strong></div><div><small>Fragments of file B</small><strong id="dfbn"></strong></div><div><small>Fragments of file C</small><strong id="dfc"></strong></div><div><small>Total head jumps</small><strong id="dft"></strong></div></div>
+    <div class="verdict" id="dfv" aria-live="polite"></div></div>
+
+  <h2>Lab 2 · Back-up: how many copies?</h2>
+  <p>Choose which copies of an important file exist, then press a disaster. Can you recover it?</p>
+  <div class="card"><div class="row"><label><input type="checkbox" id="bk1" checked> Local back-up (portable SSD at home)</label><label><input type="checkbox" id="bk2"> Remote back-up (cloud)</label></div>
+    <div class="row" id="bkb" style="margin-top:8px"></div><div class="verdict" id="bkv" aria-live="polite">Pick a disaster.</div></div>
+
+  <h2>Lab 3 · Anti-virus scan</h2>
+  <p>Five files sit on a computer. Change how the anti-virus is set up, then scan, and see what it catches, what it misses and what it wrongly flags.</p>
+  <div class="card"><div class="row"><label><input type="checkbox" id="avu"> Database up to date</label><label><input type="checkbox" id="avh"> Heuristic checking on</label><label><input type="checkbox" id="avf"> Full system scan (not just files being opened)</label><button class="b pri" id="avs">Scan</button></div>
+    <div class="tw"><table class="t" id="avt"></table></div><div class="verdict" id="avv" aria-live="polite"></div></div>
+
+</section>
+<section id="practise" role="tabpanel" hidden></section>
+<section id="real" role="tabpanel" hidden></section>
+<section id="exam" role="tabpanel" hidden></section>
+<section id="tips" role="tabpanel" hidden></section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+/* shared helpers for the IGCSE CS chapter 4 reviews */
+const MONO = "font-family:ui-monospace,Menlo,Consolas,monospace;";
+const mk = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+function section(id, parts) { const root = $("#" + id); parts.forEach((p) => { if (p.h) root.appendChild(mk("h2", "", p.h)); if (p.p) root.appendChild(mk("p", "", p.p)); const d = mk("div", p.card ? "card" : ""); root.appendChild(d); p.run && p.run(d); }); }
+
+/* node-and-arrow stepper. nodes: {id,x,y,w,h,t,s,c(colour var),from}; edges: [a,b]; steps: {cap,on,e,set,msg:[x,y,text,colourVar]} */
+function flow(el, o) {
+  const N = Object.fromEntries(o.nodes.map((n) => [n.id, n]));
+  const cx = (n, side) => side === "l" ? n.x : side === "r" ? n.x + n.w : n.x + n.w / 2;
+  const cy = (n, side) => side === "t" ? n.y : side === "b" ? n.y + n.h : n.y + n.h / 2;
+  o.steps.forEach((S) => { if (S.msg && typeof S.msg[0] !== "object") S.msg = [S.msg]; if (S.txt && typeof S.txt[0] !== "object") S.txt = [S.txt]; });
+  let ys = o.nodes.flatMap((n) => [n.y, n.y + n.h]); o.steps.forEach((S) => { (S.msg || []).forEach((m) => ys.push(m[1] - 16, m[1] + 14)); (S.txt || []).forEach((m) => ys.push(m[1] - 14, m[1] + 6)); });
+  const y0 = Math.min(...ys) - 18, hh = Math.max(...ys) - y0 + 18;
+  const draw = (st) => {
+    const k = Math.round(st.k), S = o.steps[k], on = S.on || [], eon = S.e || [];
+    let out = "";
+    o.edges.forEach((e, i) => {
+      const a = N[e[0]], b = N[e[1]]; if ((a.from || 0) > k || (b.from || 0) > k) return;
+      const horiz = Math.abs(cx(b) - cx(a)) >= Math.abs(cy(b) - cy(a)) && (b.x > a.x + a.w - 2 || b.x + b.w < a.x + 2);
+      let x1, y1, x2, y2, dir;
+      if (horiz) { const r = b.x > a.x; x1 = cx(a, r ? "r" : "l"); x2 = cx(b, r ? "l" : "r"); y1 = cy(a); y2 = cy(b); dir = r ? "r" : "l"; }
+      else { const d = b.y > a.y; y1 = cy(a, d ? "b" : "t"); y2 = cy(b, d ? "t" : "b"); x1 = cx(a); x2 = cx(b); dir = d ? "d" : "u"; }
+      const act = eon.includes(i), col = act ? "var(--accent)" : "var(--line)";
+      out += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:${col};stroke-width:${act ? 4 : 2.5}${e[2] === "dash" ? ";stroke-dasharray:6 5" : ""}"/>` + SV.arrowHead(x2, y2, dir, "").replace('class=""', `style="fill:${col}"`);
+    });
+    o.nodes.forEach((n) => {
+      if ((n.from || 0) > k) return;
+      const act = on.includes(n.id), col = n.c || "var(--accent)", ov = (S.set || {})[n.id] || {}, t = ov.t != null ? ov.t : n.t, s = ov.s != null ? ov.s : n.s;
+      out += `<rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="11" style="fill:${act ? "var(--accent-soft)" : "var(--surface)"};stroke:${act ? col : "var(--line)"};stroke-width:${act ? 3.5 : 2}"/>`;
+      const lines = s ? (Array.isArray(s) ? s : [s]) : [];
+      const y0 = n.y + (lines.length ? 22 : n.h / 2 + 5);
+      out += `<text x="${n.x + n.w / 2}" y="${y0}" text-anchor="middle" class="lbl bd" style="fill:${act ? col : "var(--ink)"}">${t}</text>`;
+      lines.forEach((l, i) => (out += `<text x="${n.x + n.w / 2}" y="${y0 + 19 + i * 17}" text-anchor="middle" class="sm" ${n.mono ? `style="${MONO}font-size:12px"` : ""}>${l}</text>`));
+    });
+    (S.msg || []).forEach((m) => { const w = 12 + m[2].length * 7.2; out += `<rect x="${m[0] - w / 2}" y="${m[1] - 14}" width="${w}" height="26" rx="13" style="fill:${m[3] || "var(--accent)"}"/><text x="${m[0]}" y="${m[1] + 4}" text-anchor="middle" class="lbl bd" style="fill:#fff;font-size:12px">${m[2]}</text>`; });
+    (S.txt || []).forEach((m) => (out += `<text x="${m[0]}" y="${m[1]}" text-anchor="${m[4] || "middle"}" class="lbl bd" style="fill:${m[3] || "var(--ink)"}">${m[2]}</text>`));
+    return `<g transform="translate(0,${-y0})">${out}</g>`;
+  };
+  Lib.stepper(el, { w: o.w || 760, h: hh, label: o.label, base: { k: 0 }, tween: 1, dwell: o.dwell || 4600, draw, steps: o.steps.map((s, i) => ({ cap: s.cap, s: { k: i } })) });
+}
+
+/* watch tab: [{h, spec}] */
+function watch(list) { section("watch", [{ p: "Press Play, or click the numbered steps." }].concat(list.map((w) => ({ h: w.h, run: (d) => flow(d, w.spec) })))); }
+
+/* practise tab: [{h, type, ...opts}] */
+function practise(list) {
+  section("practise", list.map((it) => ({ h: it.h, p: it.note, card: ["classify", "match", "order"].includes(it.type), run: (d) => {
+    const t = it.type; if (t === "classify") Lib.classify(d, it); else if (t === "match") Lib.match(d, it); else if (t === "order") Lib.order(d, it); else if (t === "calc") Lib.calc(d, it); else if (t === "quiz") Lib.quiz(d, it);
+  } })));
+}
+
+/* exam tab: items {cmd, m, q, tip, ans:[[cls,text],...], warn} */
+function exam(list) {
+  const root = $("#exam");
+  root.innerHTML = `<h2>Exam-style questions</h2><p>Open each question for reminders, a model answer and a common mistake. Each underlined phrase earns one mark; the number shows which mark point it is.</p>` + list.map((x, i) => `<details class="eq"><summary>Q${i + 1} <span class="cmd">${x.cmd}</span> <span class="mark">${x.m} mark${x.m > 1 ? "s" : ""}</span> ${x.q}</summary><div class="body"><div class="tip"><b class="h">Reminder</b>${x.tip}</div><div class="ans">${x.ans.map((a, k) => `<span class="mk ${a[0]}" data-t="${k + 1}">${a[1]}</span>`).join(" ")}</div><div class="warn"><b class="h">Common mistake</b>${x.warn}</div></div></details>`).join("");
+}
+
+function real(list, intro) { $("#real").innerHTML = `<p class="note">${intro || "Descriptions are kept general. Check current details before quoting specifics."}</p>` + list.map((r) => `<div class="rw"><h3>${r[0]}</h3><p>${r[1]}</p><div class="use"><b>Exam use:</b> ${r[2]}</div></div>`).join(""); }
+
+function tips(list, flash) {
+  $("#tips").innerHTML = `<h2>Top tips</h2><ul class="tips">${list.map((t) => `<li>${t}</li>`).join("")}</ul><h2>Command words</h2><div class="tw"><table class="t"><tr><th>Command word</th><th>What it asks for</th></tr><tr><td>State / Name / Give</td><td>A short fact. No explanation.</td></tr><tr><td>Describe</td><td>What happens, step by step, or the main features.</td></tr><tr><td>Explain</td><td>What happens and why. Use because or so.</td></tr><tr><td>Compare</td><td>Similarities and differences, side by side.</td></tr></table></div><h2>Keyword flashcards</h2><div id="fc1"></div>`;
+  Lib.cards($("#fc1"), { cards: flash });
+}
+
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const stateBtns = (el, items, cb) => { el.innerHTML = items.map((x, i) => `<button type="button" class="b" data-i="${i}">${x}</button>`).join(""); $$("button", el).forEach((b) => (b.onclick = () => { $$("button", el).forEach((x) => x.classList.remove("pri")); b.classList.add("pri"); cb(+b.dataset.i); })); };
+
+/* ---------- Watch ---------- */
+watch([
+  { h: "1 · Saving a file: who does what?", spec: { label: "Layers of software between the user and the hardware", h: 330, nodes: [
+    { id: "u", x: 20, y: 120, w: 110, h: 70, t: "User", s: "clicks Save" },
+    { id: "a", x: 175, y: 120, w: 140, h: 70, t: "Application", s: "word processor" },
+    { id: "o", x: 360, y: 120, w: 140, h: 70, t: "Operating system", s: "file management" },
+    { id: "d", x: 545, y: 120, w: 90, h: 70, t: "Driver", s: "SSD driver" },
+    { id: "h", x: 660, y: 120, w: 90, h: 70, t: "Hardware", s: "SSD", c: "var(--good)" },
+  ], edges: [["u", "a"], ["a", "o"], ["o", "d"], ["d", "h"]], steps: [
+    { cap: "The user is working in an <b>application</b>. Application software does a specific job: here, writing a document.", on: ["u", "a"] },
+    { cap: "The user clicks Save. The application does not write to the disk itself. It <b>asks the operating system</b>.", on: ["a", "o"], e: [1], msg: [250, 215, "save request", "var(--accent)"] },
+    { cap: "The <b>operating system</b> (system software) deals with <b>file management</b>: it chooses a file name, a location and free space.", on: ["o"] },
+    { cap: "The OS passes the data to the <b>device driver</b>, which translates it into a form the SSD understands.", on: ["o", "d"], e: [2] },
+    { cap: "The driver talks to the <b>hardware</b>, and the file is stored. Without the driver, the device would be \"not recognised\".", on: ["d", "h"], e: [3] },
+  ] } },
+  { h: "2 · Plugging in a USB memory stick", spec: { label: "The operating system looks for a driver", h: 300, nodes: [
+    { id: "s", x: 20, y: 90, w: 150, h: 80, t: "USB memory stick", s: ["VID, PID,", "serial number"], c: "var(--good)" },
+    { id: "o", x: 300, y: 90, w: 160, h: 80, t: "Operating system", s: "looks for a driver" },
+    { id: "d", x: 590, y: 20, w: 150, h: 70, t: "Driver found", s: "device works", c: "var(--good)", from: 3 },
+    { id: "x", x: 590, y: 130, w: 150, h: 70, t: "No driver", s: "\"device not recognised\"", c: "var(--bad)", from: 4 },
+  ], edges: [["s", "o"], ["o", "d"], ["o", "x"]], steps: [
+    { cap: "A memory stick is plugged into a USB port.", on: ["s"] },
+    { cap: "The OS asks the new device what it is. The device replies with its <b>descriptors</b>: vendor ID, product ID and a unique serial number.", on: ["s", "o"], e: [0], msg: [235, 75, "descriptors", "var(--accent)"] },
+    { cap: "The OS uses the descriptors to look for the right <b>device driver</b>.", on: ["o"] },
+    { cap: "Driver found: the OS loads it and the stick works. Because it has a serial number, the OS also recognises the <i>same</i> stick next time.", on: ["o", "d"], e: [1] },
+    { cap: "No driver found: the OS cannot translate data for the device, so an error message such as \"device not recognised\" appears.", on: ["o", "x"], e: [2] },
+  ] } },
+]);
+
+/* ---------- Lab 1: defragmentation ---------- */
+(() => {
+  const COL = { A: "#2b5d7c", B: "#a85d00", C: "#7a3fa0" };
+  let disk;
+  const start = () => { disk = [..."AA..BB.AAB.CC.AB..CCC.B."].map((c) => (c === "." ? null : c)); };
+  const frags = (f) => { let n = 0; disk.forEach((c, i) => { if (c === f && disk[i - 1] !== f) n++; }); return n; };
+  function paint(msg) {
+    $("#dfd").innerHTML = disk.map((c) => `<div class="blk ${c ? "" : "e"}" style="${c ? "background:" + COL[c] : ""}">${c || "·"}</div>`).join("");
+    const a = frags("A"), b = frags("B"), c = frags("C");
+    $("#dfa").textContent = a; $("#dfbn").textContent = b; $("#dfc").textContent = c; $("#dft").textContent = a + b + c;
+    $("#dfv").innerHTML = msg || (a + b + c <= 3 ? "Each file is in one piece (<b>contiguous</b>): the head moves once per file." : `The files are scattered, so the head needs <b>${a + b + c}</b> separate movements to read all three. That is slow on an HDD.`);
+  }
+  const extend = (f) => { let n = 2; disk = disk.map((c) => (c === null && n > 0 ? (n--, f) : c)); paint(); };
+  const del = (f) => { disk = disk.map((c) => (c === f ? null : c)); paint(`File ${f} deleted. Its blocks are now free gaps, and the other files stay where they were.`); };
+  const defrag = () => { const order = ["A", "B", "C"].flatMap((f) => disk.filter((c) => c === f)); disk = order.concat(Array(disk.length - order.length).fill(null)); paint("Defragmented: each file now sits in <b>contiguous</b> blocks and the free space is together. Fewer head movements means faster access."); };
+  const bs = $("#dfb");
+  [["Delete file B", () => del("B")], ["Extend file A (+2)", () => extend("A")], ["Extend file C (+2)", () => extend("C")], ["Defragment", defrag], ["Reset", () => { start(); paint(); }]].forEach(([t, f], i) => { const b = mk("button", "b" + (i === 3 ? " pri" : ""), t); b.onclick = f; bs.appendChild(b); });
+  start(); paint();
+})();
+
+/* ---------- Lab 2: back-up ---------- */
+(() => {
+  const local = $("#bk1"), remote = $("#bk2"), v = $("#bkv");
+  const D = [
+    ["Hard drive fails", (l, r) => ({ ok: l || r, t: `The working copy is gone. ${l || r ? "You can <b>restore</b> it from " + (l ? "the local back-up" : "the remote back-up") + "." : "With no back-up, the file is <b>lost</b>."}` })],
+    ["Burglary or fire at home", (l, r) => ({ ok: r, t: `The computer <b>and</b> the local back-up are both gone. ${r ? "The <b>remote</b> copy, stored well away from the computer, survives." : "Every copy was in the same place, so the file is <b>lost</b>."}` })],
+    ["File overwritten by mistake", (l, r) => ({ ok: l || r, t: l || r ? "Back-up software that keeps older versions or a <b>restore point</b> lets you go back to the earlier version." : "No earlier version exists, so the file cannot be recovered." })],
+  ];
+  const bs = $("#bkb");
+  D.forEach(([t, f]) => { const b = mk("button", "b", t); b.onclick = () => { const r = f(local.checked, remote.checked); v.innerHTML = (r.ok ? "✓ " : "✗ ") + r.t; v.style.background = r.ok ? "var(--good-soft)" : "var(--bad-soft)"; v.style.borderColor = r.ok ? "var(--good)" : "var(--bad)"; }; bs.appendChild(b); });
+})();
+
+/* ---------- Lab 3: anti-virus ---------- */
+(() => {
+  const F = [
+    ["invoice.exe", "A virus already in the database", { virus: 1, db: 1 }],
+    ["game_crack.exe", "A brand new virus: copies itself and edits system files", { virus: 1, behaviour: 1 }],
+    ["holiday.jpg", "A harmless photo", {}],
+    ["disk_tool.exe", "A harmless tool that edits lots of system files (looks suspicious)", { behaviour: 1, clean: 1 }],
+    ["old_report.dll", "A virus sleeping inside a file that is never opened. It is in the database only after an update", { virus: 1, dormant: 1, newdb: 1 }],
+  ];
+  $("#avt").innerHTML = `<tr><th>File</th><th>What it really is</th><th>Result</th></tr>` + F.map((f, i) => `<tr><td><code>${f[0]}</code></td><td>${f[1]}</td><td id="avr${i}">not scanned</td></tr>`).join("");
+  $("#avs").onclick = () => {
+    const upd = $("#avu").checked, heu = $("#avh").checked, full = $("#avf").checked; let miss = 0, fp = 0, caught = 0;
+    F.forEach((f, i) => {
+      const o = f[2], seen = !o.dormant || full, inDb = o.db || (o.newdb && upd), hit = seen && (inDb || (heu && o.behaviour));
+      let r;
+      if (hit && o.virus) { r = `<span class="pos">Quarantined</span> ${inDb ? "(matched the database)" : "(found by heuristic checking)"}`; caught++; }
+      else if (hit) { r = `<span class="neg">False positive</span>: a clean file was quarantined`; fp++; }
+      else if (o.virus) { r = `<span class="neg">Missed</span> ${!seen ? "(never scanned: dormant)" : "(not in database, no heuristics)"}`; miss++; }
+      else r = "Clean";
+      $("#avr" + i).innerHTML = r;
+    });
+    $("#avv").innerHTML = `Caught ${caught} of 3 viruses · missed ${miss} · false positives ${fp}. ` + (miss ? "Turn on updates, heuristics and a full scan to catch more." : fp ? "Heuristic checking can flag clean files. The user can check quarantined files before deleting them." : "Every virus caught, with no false alarms.");
+  };
+})();
+
+/* ---------- Practise ---------- */
+practise([
+  { h: "1 · System or application software?", type: "classify", prompt: "Drag each program to the correct type of software.", buckets: [{ label: "System software" }, { label: "Application software" }], items: [
+    { text: "Screensaver", b: 0 }, { text: "Anti-virus software", b: 0 }, { text: "Printer driver", b: 0 }, { text: "Compiler", b: 0 }, { text: "Operating system", b: 0 },
+    { text: "Control and measuring software", b: 1 }, { text: "Video editing software", b: 1 }, { text: "QR code reader", b: 1 }, { text: "On-screen calculator", b: 1 },
+  ], done: "Software that runs the computer is system software; software that does the user's job is application software." },
+  { h: "2 · Match the utility to its job", type: "match", prompt: "Match each utility to what it does.", pairs: [
+    ["Anti-virus", "Compares files with a database of known viruses and checks their behaviour"], ["Defragmenter", "Rearranges file blocks on an HDD so each file is contiguous"],
+    ["Back-up software", "Makes copies of files so they can be restored later"], ["Security software", "Manages user accounts, firewalls and encryption"],
+    ["Screensaver", "Shows an image after inactivity and can lock the computer"], ["Device driver", "Translates data into a format a hardware device understands"],
+  ] },
+  { h: "3 · How anti-virus deals with a file", type: "order", prompt: "Put these steps in the right order.", items: [
+    "The file is checked before it is run or loaded", "It is compared with the database of known viruses", "Heuristic checking looks at what the file would do", "A suspect file is put into quarantine", "The file is deleted, or the user decides what to do with it",
+  ], done: "Check, compare, heuristics, quarantine, delete." },
+  { h: "4 · Quick checks", type: "calc", qs: [
+    { q: "Three versions of a file are recommended for total security: the working copy, a local back-up and a remote back-up. How many copies is that in total?", a: 3, sol: "Working copy + local back-up + remote back-up = 3." },
+    { q: "File X is stored in 5 separate pieces and file Y in 3 separate pieces. How many head jumps are needed to read both?", a: 8, sol: "5 + 3 = 8 separate pieces to find.", hint: "One jump for each separate piece." },
+    { q: "After defragmentation, each of those two files is contiguous. How many head jumps are needed now?", a: 2, sol: "One jump for each file: 2." },
+  ] },
+  { h: "5 · Multiple choice", type: "quiz", qs: [
+    { q: "Which is an example of system software?", opts: ["Spreadsheet", "Device driver", "Photo editor", "Web game"], a: 1, why: "A device driver helps the OS communicate with hardware." },
+    { q: "Why does defragmentation speed up an HDD?", opts: ["It deletes old files", "It puts each file's blocks next to each other, so the head moves less", "It increases the RAM", "It compresses the files"], a: 1, why: "Contiguous blocks mean fewer read-write head movements." },
+    { q: "What is a false positive in anti-virus software?", opts: ["A virus that is missed", "A clean file flagged as a virus", "A virus that is deleted", "A backed-up file"], a: 1, why: "The software wrongly identifies a harmless file as infected." },
+    { q: "Why is heuristic checking useful?", opts: ["It can spot a new virus that is not yet in the database", "It makes the database smaller", "It stops all false positives", "It defragments the disk"], a: 0, why: "It looks at behaviour rather than matching a known virus." },
+    { q: "Which of these is a USB descriptor?", opts: ["Vendor ID", "Cursor position", "Window title", "File extension"], a: 0, why: "Descriptors are the vendor ID, product ID and serial number." },
+    { q: "How can a screensaver help security?", opts: ["It encrypts the hard drive", "It locks the computer after inactivity", "It scans emails", "It speeds up the CPU"], a: 1, why: "After a period of inactivity the user can be logged out and the screen locked." },
+  ] },
+]);
+
+/* ---------- Real world ---------- */
+real([
+  ["Windows File History and Mac Time Machine", "Both are back-up utilities. Windows File History takes snapshots of files to an external drive, by default every hour. Mac Time Machine backs up every hour, keeps daily back-ups for the past month and weekly back-ups after that, and deletes the oldest when the drive fills.", "Examples of a scheduled back-up utility that can restore earlier versions."],
+  ["Anti-virus on a phone", "Phones and tablets can catch malware too. Many security apps scan downloads before they open and keep their virus lists up to date in the background.", "Shows that anti-virus checks files before they run and needs regular updates."],
+  ["Why your printer \"just works\"", "When you plug in a common printer, the operating system often finds and installs the driver on its own. If it cannot, you see an error and have to download the driver yourself.", "A concrete example of a device driver translating data for a peripheral."],
+  ["The school computer that locks itself", "Computers in an office or school lock after a few minutes idle. This is the screensaver doubling as a security feature, so a passer-by cannot use a logged-in machine.", "A standard example for how a screensaver adds security."],
+  ["Garden and factory control systems", "A greenhouse can use control and measuring software: a sensor reads the temperature, the software compares it with the stored target, and a signal switches the heater or opens a vent.", "Control and measuring software is an application that uses sensors, stored data and output signals."],
+]);
+
+/* ---------- Exam ---------- */
+exam([
+  { cmd: "State", m: 2, q: "Give <b>two</b> differences between system software and application software.", tip: "Say what each is <b>for</b>.", ans: [["k", "System software manages and controls the hardware and provides a platform for other software to run on,"], ["k", "whereas application software allows the user to carry out a specific task (such as writing a document)."]], warn: "Listing examples only. A difference needs a statement about purpose." },
+  { cmd: "State", m: 4, q: "Name <b>two</b> examples of system software and <b>two</b> examples of application software.", tip: "Name the program type, not a product brand.", ans: [["k", "System: operating system"], ["k", "System: utility program / device driver / compiler"], ["k", "Application: word processor / spreadsheet"], ["k", "Application: photo editing / database / video editing"]], warn: "Putting a screensaver or anti-virus under application software. Both are system (utility) software." },
+  { cmd: "Describe", m: 4, q: "Describe how anti-virus software protects a computer.", tip: "Checking, comparing, behaviour, quarantine.", ans: [["k", "It checks software and files before they are run or loaded."], ["k", "It compares them with a database of known viruses."], ["k", "Heuristic checking looks for behaviour that could indicate a virus, so a new virus can be found."], ["k", "Infected files are quarantined, and then deleted automatically or the user decides."]], warn: "Saying it \"stops all viruses\". It needs regular updates, and it can still miss new ones." },
+  { cmd: "Explain", m: 3, q: "Explain why a hard disk drive may become slow to use, and how defragmentation helps.", tip: "Scattered blocks, more head movement, then the fix.", ans: [["k", "Files get deleted and extended over time, so their blocks become scattered over the disk."], ["k", "The read-write head may then need many movements to find all the blocks of one file, which slows access."], ["k", "Defragmentation rearranges the blocks so each file is stored in contiguous sectors, reducing head movement."]], warn: "Saying defragmentation \"frees up memory\" or \"deletes files\"." },
+  { cmd: "Explain", m: 2, q: "Explain why defragmentation is not normally needed on a solid state drive.", tip: "What does an SSD not have?", ans: [["k", "An SSD has no moving read-write head,"], ["k", "so scattered blocks do not slow access in the same way."]], warn: "Confusing an SSD with RAM." },
+  { cmd: "Describe", m: 3, q: "Describe how back-up software helps to keep data safe.", tip: "Schedule, changes only, restore, and where to keep the copies.", ans: [["k", "It can back up files automatically on a schedule."], ["k", "It can copy only files that have changed."], ["e", "Files can be restored after loss or corruption; storing a copy remotely (for example in the cloud) may protect against a fire or theft at the original site."]], warn: "Only saying \"it makes a copy\". Add how it is used or where the copy is kept." },
+  { cmd: "Explain", m: 4, q: "Explain the purpose of a device driver, and the role of descriptors when a new USB device is plugged in.", tip: "Driver = translator. Descriptors = the device's ID.", ans: [["k", "A device driver communicates with the operating system and translates data into a format the device can understand."], ["k", "Without it the device may not work."], ["k", "Descriptors (vendor ID, product ID and serial number) let the computer identify what the device is,"], ["k", "so the operating system can find the correct driver."]], warn: "Saying a driver is \"hardware\". It is software." },
+  { cmd: "Explain", m: 2, q: "Explain what is meant by a false positive in anti-virus software.", tip: "Clean file, wrongly flagged.", ans: [["k", "A file or program that is not infected"], ["k", "is wrongly identified as a virus (and may be quarantined)."]], warn: "Describing a missed virus. That is a false <b>negative</b>." },
+]);
+
+/* ---------- Tips and flashcards ---------- */
+tips([
+  "<b>System software runs the computer. Application software does the user's job.</b> Use those two ideas to answer almost any classification question.",
+  "<b>Utilities are system software.</b> Anti-virus, defragmenter, back-up and screensavers are not applications.",
+  "<b>Anti-virus has three habits:</b> check before running, compare with a database, check behaviour (heuristics). Add quarantine.",
+  "<b>Defragmentation:</b> scattered blocks, many head movements, slow. Defragment, contiguous blocks, fewer movements, faster. HDD only.",
+  "<b>Three copies:</b> working, local back-up, remote back-up. Say why remote matters: it survives a fire or theft at the original site.",
+  "<b>A driver is a translator.</b> It turns the OS's data into something the device understands.",
+  "<b>False positive means a clean file flagged.</b> Do not mix it up with a missed virus.",
+  "<b>Screensavers can be security:</b> after inactivity they lock the screen or log the user out.",
+], [
+  ["System software", "Programs that control and manage the hardware and provide a platform for other software to run on."], ["Application software", "Programs that let a user do a specific task, such as writing a document."],
+  ["Utility program", "System software that manages, maintains and controls computer resources, such as a virus checker or a defragmenter."], ["Malware", "Programs such as viruses, worms and Trojan horses installed with the aim of deleting, corrupting or manipulating data illegally."],
+  ["Anti-virus software", "Software that quarantines and deletes files or programs infected by a virus."], ["Heuristic checking", "Checking software for behaviour that could indicate a possible virus."],
+  ["Quarantine", "Isolating a file identified by anti-virus software as infected, in order to delete it later."], ["False positive", "A clean file that anti-virus software wrongly identifies as a virus."],
+  ["Defragmentation", "Reorganising the sectors on an HDD so that each file's blocks are contiguous."], ["Contiguous", "Next to each other."],
+  ["Back-up", "A copy of files made on another storage medium in case the original is corrupted or deleted."], ["Screensaver", "Software that shows a still or moving image when the computer has been inactive for a period of time."],
+  ["Device driver", "Software that communicates with the operating system and translates data into a format a hardware device understands."], ["Descriptor", "Information (such as vendor ID, product ID and serial number) that a USB device gives the computer to identify itself."],
+]);
+
+Lib.initTabs();
+</script>
+</body></html>

@@ -1,0 +1,840 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Taxation</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">IGCSE Economics · 0455 · 4.2.3 Taxation</div>
+  <h1>Taxation</h1>
+  <p class="lead">Why governments tax, direct and indirect, progressive, proportional and regressive taxes, what makes a good tax, and who bears the impact. Syllabus 4.2.3.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>The big idea</h3>
+  <p>A <span class="kw">tax</span> is a compulsory payment to the government. Governments tax to <b>raise revenue</b> and to achieve other aims such as reducing the consumption of demerit goods or redistributing income. Taxes are classified as <b>direct or indirect</b> and as <b>progressive, proportional or regressive</b>, and each tax affects consumers, workers, firms, the government and the economy differently.</p></div>
+  <h2>Reasons for taxation</h2>
+  <div class="grid2">
+    <div class="card"><h3>Aims of taxes</h3><ul><li><b>Raise revenue</b> to pay for spending (the main one).</li><li><b>Redistribute income</b> from rich to poor.</li><li><b>Discourage demerit goods</b> such as cigarettes and alcohol.</li><li><b>Raise firms' costs</b> where they cause pollution or other external costs.</li><li><b>Discourage imports</b> with tariffs to protect domestic industries.</li><li><b>Influence AD</b>: cut taxes in a slump, raise them to cool a boom.</li></ul></div>
+    <div class="card"><h3>Link to market failure</h3><p>A tax on a demerit good or a polluter pushes the price towards the full social cost, so it can correct a market failure while also raising money. A tariff does the same for protection.</p><p class="note">Exam link: one policy often has more than one aim. Say which one the question is about.</p></div>
+  </div>
+
+  <h2>Categories of tax</h2>
+  <p><span class="kw">Direct taxes</span> are on income and wealth; the person or firm that pays bears the burden. <span class="kw">Indirect taxes</span> are on spending; the seller pays the government but can pass some of the burden on to buyers.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Direct</th><th>What it taxes</th><th>Indirect</th><th>What it taxes</th></tr>
+    <tr><td><b>Income tax</b></td><td>Earnings and investment income above an allowance</td><td><b>Sales tax (VAT, GST)</b></td><td>Products when sold</td></tr>
+    <tr><td><b>Corporation tax</b></td><td>Firms' profits</td><td><b>Excise duties</b></td><td>Alcohol, petrol, tobacco (on top of VAT)</td></tr>
+    <tr><td><b>Capital gains tax</b></td><td>Profit on selling an asset for more than it cost</td><td><b>Customs duties</b></td><td>Imports (tariffs)</td></tr>
+    <tr><td><b>Inheritance tax</b></td><td>Wealth passed on after death, above a limit</td><td><b>Licences</b></td><td>Right to own a TV or car</td></tr>
+  </table></div>
+  <p><b>Local taxes</b> pay for local services such as roads, schools and fire services: <b>business rates</b> (on firms' property) and <b>council tax</b> (on household property value), and sometimes a local sales tax.</p>
+
+  <h3>Progressive, proportional, regressive</h3>
+  <div class="tw"><table class="t">
+    <tr><th>Type</th><th>As income rises, the % taken…</th><th>Example</th><th>Effect</th></tr>
+    <tr><td><b>Progressive</b></td><td>rises</td><td>Income tax with higher bands</td><td>Redistributes towards the poor</td></tr>
+    <tr><td><b>Proportional</b></td><td>stays the same</td><td>A flat 25% on everyone</td><td>Neutral</td></tr>
+    <tr><td><b>Regressive</b></td><td>falls</td><td>Excise duty per litre of petrol</td><td>Hits low incomes harder</td></tr>
+  </table></div>
+  <p class="note">In all three, the <b>total</b> paid usually rises with income. The difference is the <b>percentage</b>. Direct taxes tend to be progressive and indirect taxes tend to be regressive.</p>
+
+  <h2>Principles of taxation: a "good tax"</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Quality</th><th>Meaning</th></tr>
+    <tr><td><b>Equity</b></td><td>Fair: based on ability to pay</td></tr>
+    <tr><td><b>Certainty</b></td><td>Easy to understand and calculate</td></tr>
+    <tr><td><b>Convenience</b></td><td>Easy to pay</td></tr>
+    <tr><td><b>Economy</b></td><td>Costs of collecting are well below the revenue raised</td></tr>
+    <tr><td><b>Flexibility</b></td><td>Can be changed, or changes itself, with the economy (income tax and sales tax revenue rise in a boom)</td></tr>
+    <tr><td><b>Efficiency</b></td><td>Improves markets or at least does not damage them (a pollution tax, a windfall tax; rates not so high that they discourage effort)</td></tr>
+  </table></div>
+  <p>No tax is perfect. Income tax scores well on equity and flexibility, but its certainty falls if there are many allowances.</p>
+
+  <h2>The impact of taxes</h2>
+  <div class="grid2">
+    <div class="card"><h3>Tax base and burden</h3><p>The <span class="kw">tax base</span> is what is taxed. A wide base can allow low rates; very high rates, especially on firms, can shrink the base if firms leave. The <span class="kw">tax burden</span> is the tax paid, often as a % of GDP.</p></div>
+    <div class="card"><h3>Incidence of an indirect tax</h3><p>If demand is <b>inelastic</b> consumers bear most of it (firms can pass it on). If demand is <b>elastic</b> producers bear most. Supply works the opposite way: the more inelastic supply is, the more suppliers bear.</p></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><h3>Direct taxes: for and against</h3><ul><li><b>For:</b> redistribute income and wealth, act as automatic stabilisers, raise a lot where jobs are formal and incomes are high.</li><li><b>Against:</b> may discourage effort, enterprise and saving; high rates may push workers and firms away.</li></ul><p class="note">Higher tax is not always a disincentive: workers with fixed commitments such as mortgages may work harder.</p></div>
+    <div class="card"><h3>Indirect taxes: for and against</h3><ul><li><b>For:</b> cheap and easy to collect, harder to evade, less of a disincentive to effort, can target a good, people can choose not to buy, useful with a large informal economy.</li><li><b>Against:</b> tend to be regressive, raise prices and may feed inflation.</li></ul></div>
+  </div>
+  <p><span class="kw">Automatic stabilisers</span> are spending and taxes that reduce swings in activity with no change in policy: in a boom tax revenue rises and benefit spending falls, in a slump the reverse. <span class="kw">Flat taxes</span> (a single rate) are simple and reduce the incentive to evade, but critics worry they are regressive; in practice flat taxes usually have a tax-free allowance.</p>
+
+
+  <h2>Putting the effects together</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Who</th><th>Possible impact of higher taxes</th></tr>
+    <tr><td><b>Consumers</b></td><td>Lower disposable income (direct taxes) or higher prices (indirect taxes), so spending may fall</td></tr>
+    <tr><td><b>Workers</b></td><td>Lower take-home pay, which may reduce the incentive to work longer hours or seek promotion (but not always)</td></tr>
+    <tr><td><b>Producers and firms</b></td><td>Higher costs and lower profits; may cut output, investment or jobs, or move abroad</td></tr>
+    <tr><td><b>Government</b></td><td>More revenue to spend or repay debt, if the tax base does not shrink</td></tr>
+    <tr><td><b>The economy</b></td><td>Lower AD, which can ease inflation but may slow growth; can redistribute income and correct market failures</td></tr>
+  </table></div>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+<p>Press Play, or click the numbered steps.</p>
+  <h2>1 · Progressive, proportional and regressive taxes</h2><div id="stR"></div>
+  <h2>2 · Who pays an indirect tax?</h2><div id="stT"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Three tax systems</h2>
+  <p>Slide income up and down. Only one of the three takes a rising percentage.</p>
+  <div class="card"><div class="grid2"><div><div id="g6"></div></div>
+    <div><div class="readout"><div><small>Progressive income tax</small><strong id="r1"></strong></div><div><small>Proportional (25%)</small><strong id="r2"></strong></div><div><small>Regressive fuel duty</small><strong id="r3"></strong></div></div><div class="verdict" id="rv"></div></div></div>
+    <svg id="labR" viewBox="0 0 760 380" role="img" aria-label="Average tax rate against income for three tax systems"></svg>
+    <p class="note">Progressive here: 10% on the first $200, 30% on $200 to $600, 50% above $600. Regressive: fuel duty of $2 a litre, with higher earners buying a few more litres but not in proportion to income.</p>
+  </div>
+
+
+  <h2>Lab 2 · Who pays an indirect tax?</h2>
+  <p>A tax of 20 is put on a good. Change how responsive demand and supply are and see who bears the burden.</p>
+  <div class="card"><div class="grid2"><div><div id="g11"></div><div id="g12"></div></div>
+    <div><div class="readout"><div><small>Price rises by</small><strong id="ta1"></strong></div><div><small>Consumers bear</small><strong id="ta2"></strong></div><div><small>Producers bear</small><strong id="ta3"></strong></div><div><small>Tax revenue</small><strong id="ta4"></strong></div></div><div class="verdict" id="tav"></div></div></div>
+    <svg id="labT" viewBox="0 0 760 400" role="img" aria-label="Incidence of an indirect tax"></svg>
+  </div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Direct or indirect?</h2>
+  <div id="cl1" class="card"></div>
+
+  <h2>2 · Progressive, proportional or regressive?</h2>
+  <div id="cl2" class="card"></div>
+
+  <h2>3 · Reasons for taxation</h2>
+  <div id="cl3" class="card"></div>
+
+  <h2>4 · Principles of a good tax</h2>
+  <div id="m1" class="card"></div>
+
+  <h2>5 · Calculations</h2>
+  <div id="c1"></div>
+
+  <h2>6 · Multiple choice</h2>
+  <div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are described in general terms so they stay accurate. Check current details before quoting figures.</p>
+  <div class="rw"><h3>Taxes on plastic bags</h3><p>Ireland, the UK and several other countries tax plastic carrier bags, while others have banned them. The main aim is to cut litter, with revenue as a by-product.</p><div class="use"><b>Exam use:</b> an indirect tax used to correct an externality. Draw supply shifting left, and note a second reason: it can raise revenue.</div></div>
+  <div class="rw"><h3>Tax on sugary drinks and tobacco</h3><p>Many governments add excise duties to tobacco and alcohol, and some to sugary drinks, to discourage demerit goods. Demand for addictive goods is often inelastic, so consumers bear most of the tax and the fall in consumption may be small, but revenue is high.</p><div class="use"><b>Exam use:</b> link inelastic demand to incidence, and evaluate: the tax is regressive because poorer households spend a larger share of income on it.</div></div>
+  <div class="rw"><h3>Moving from income tax towards VAT</h3><p>Some governments, such as France in the 2010s according to coursebook figures, collect more revenue from VAT than from income tax. VAT is easier to collect and harder to evade, but makes the tax system less progressive.</p><div class="use"><b>Exam use:</b> a "more or less progressive" question. Shifting towards indirect taxes tends to make the system less progressive.</div></div>
+  <div class="rw"><h3>Flat taxes in Eastern Europe</h3><p>A number of East European countries replaced several income and corporate tax rates with one lower rate to simplify the system and cut evasion. Critics noted the regressive risk, though in practice a tax-free allowance softens it.</p><div class="use"><b>Exam use:</b> arguments for and against a flat tax in a discuss question; mention the allowance as a point of evaluation.</div></div>
+  <div class="rw"><h3>Windfall taxes</h3><p>Governments have sometimes imposed one-off taxes on very high profits, for example in banking or energy during price spikes. The aim is revenue and fairness, and it may lead firms to cut charges.</p><div class="use"><b>Exam use:</b> an example for the "efficiency" and "equity" qualities, with the risk that it discourages investment if firms fear more of them.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+<h2>Exam-style questions</h2>
+  <p>Open each question for the reminders, a model answer and common mistakes. Answers are colour-coded to the mark scheme. Past-paper questions show the session.</p>
+  <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+
+  <details class="eq"><summary>Q1 <span class="cmd">Define</span> <span class="mark">2 marks</span> What is meant by a progressive tax?</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two marks, two ideas. Say what is taken, and that the percentage <b>rises</b> with income. Do not just say "the rich pay more": that is also true of a flat tax.</div>
+    <div class="ans"><span class="mk k" data-t="K">A progressive tax is one that takes a larger percentage of the income (or wealth) of the rich</span> <span class="mk k" data-t="K">than of the poor, so the rate rises as income or wealth rises.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing "the rich pay more tax". In every type of tax the rich usually pay more dollars; progressive is about the <b>percentage</b>.</div>
+  </div></details>
+  <details class="eq"><summary>Q2 <span class="cmd">Explain</span> <span class="mark">4 marks</span> Explain the difference between a direct tax and an indirect tax, giving an example of each.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>"Difference" means a comparison: use words such as "whereas". Two marks for the difference, one for each example, and name the base (income or spending).</div>
+    <div class="ans"><span class="mk k" data-t="K">A direct tax is a tax on income or wealth, such as income tax, paid directly to the government by the person or firm that bears the burden.</span> <span class="mk n" data-t="N">Whereas an indirect tax is a tax on expenditure, such as VAT, which firms collect and pay to the government but can pass on, at least partly, to consumers through higher prices.</span> <span class="mk a" data-t="A">For example, a worker pays income tax out of pay, but the same worker pays VAT in the price of goods in a shop.</span></div>
+  </div></details>
+
+  <details class="eq"><summary>Q3 <span class="cmd">Analyse</span> <span class="mark">6 marks</span> Analyse the reasons why governments impose taxes.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Pick two or three reasons and develop each with a chain: reason → how the tax achieves it → effect. A list of six undeveloped reasons scores far less than three developed ones.</div>
+    <div class="key"><span class="k"><i></i>Knowledge</span><span class="a"><i></i>Application</span><span class="n"><i></i>Analysis</span><span class="e"><i></i>Evaluation</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">Governments impose taxes to raise revenue to pay for spending.</span> <span class="mk n" data-t="N">Tax revenue is the main source of government income in many countries, and it can fund public goods and merit goods such as defence, schools and healthcare that the private sector may not supply sufficiently.</span> <span class="mk n" data-t="N">Without it, the government could need to borrow more, which increases the national debt and interest payments.</span></p>
+    <p><span class="mk k" data-t="K">Governments also tax to discourage the consumption of demerit goods.</span> <span class="mk a" data-t="A">An excise duty on cigarettes raises their price,</span> <span class="mk n" data-t="N">which may reduce quantity demanded and so cut the harm to health that consumers may not fully recognise.</span></p>
+    <p><span class="mk k" data-t="K">A third reason is to redistribute income.</span> <span class="mk n" data-t="N">A progressive income tax takes a larger share from higher earners and the revenue may pay benefits to lower income groups, which could reduce inequality.</span></p></div>
+  </div></details>
+
+  <details class="eq"><summary>Q4 <span class="cmd">Explain</span> <span class="mark">4 marks</span> Using a demand and supply diagram, explain why consumers may bear most of the burden of a tax on cigarettes.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The diagram earns marks: S₁ shifting <b>left</b> by the amount of the tax to S₂, a steep (inelastic) D, the new price P₁ above the old P, and the tax per unit marked. Then say <b>why</b>: inelastic demand.</div>
+    <div class="ans"><span class="mk k" data-t="K">A tax on cigarettes raises the costs of sellers, so supply shifts to the left by the amount of the tax.</span> <span class="mk a" data-t="A">Cigarette demand is likely to be price inelastic because many smokers are addicted and have few substitutes.</span> <span class="mk n" data-t="N">Because quantity demanded would fall by relatively little, sellers could pass most of the tax on to buyers by raising the price,</span> <span class="mk n" data-t="N">so the price paid by consumers may rise by most of the tax and consumers could bear the greater share of the burden.</span></div>
+  </div></details>
+
+  <details class="eq"><summary>Q5 <span class="cmd">Discuss</span> <span class="mark">8 marks</span> Discuss whether or not an increase in income tax rates will improve economic performance.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>"Whether or not" means two sides and a judgement. Define economic performance in your own words (growth, employment, inflation, equity, the budget) so the answer is about the right thing. Finish with "it depends on…".</div>
+    <div class="key"><span class="k"><i></i>Knowledge</span><span class="a"><i></i>Application</span><span class="n"><i></i>Analysis</span><span class="e"><i></i>Evaluation</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">Economic performance is judged by how well the government meets aims such as economic growth, low unemployment, stable prices and a fair distribution of income, and income tax is a direct tax on earnings.</span></p>
+    <p><span class="mk n" data-t="N">An increase in income tax rates could improve economic performance if the extra revenue is spent well.</span> <span class="mk n" data-t="N">The revenue could fund education, healthcare or infrastructure that may raise productivity and long-run growth, and a progressive income tax may reduce inequality.</span> <span class="mk n" data-t="N">If the economy is overheating, higher taxes could also cut disposable income and consumption, which may ease inflationary pressure.</span> <span class="mk e" data-t="E">However, these gains depend on how the money is used and on how long the benefits take to arrive.</span></p>
+    <p><span class="mk n" data-t="N">On the other hand, higher rates could reduce performance.</span> <span class="mk n" data-t="N">Lower disposable income is likely to reduce consumption and aggregate demand, which may slow growth and raise unemployment.</span> <span class="mk n" data-t="N">Workers may be discouraged from overtime or promotion and entrepreneurs from expanding, and some highly skilled people might move abroad or work in the informal economy, which could shrink the tax base.</span> <span class="mk e" data-t="E">This effect may be weaker for workers who cannot choose their hours, or who have fixed commitments such as a mortgage and may work more.</span></p>
+    <p><span class="mk e" data-t="E">Overall, the effect is likely to depend on the size of the increase, the state of the economy (a boom or a recession), and how the revenue is spent. A modest rise on higher earners during a boom, used to fund productive spending, is more likely to improve performance than a large rise during a recession.</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Progressive is about the percentage.</b> The rich pay more dollars under every tax. Compare the % of income.</li>
+    <li><b>Direct = income and wealth. Indirect = spending.</b> Give an example of each whenever asked.</li>
+    <li><b>Tax shifts supply left by the tax amount.</b> Draw S₁ to S₂, label the new price and quantity, and mark who bears what.</li>
+    <li><b>Incidence follows elasticity.</b> Inelastic demand: consumers bear most. Elastic demand: producers bear most.</li>
+    <li><b>Say who is affected.</b> Consumers, workers, firms, the government and the economy: the syllabus asks for all five.</li>
+    <li><b>Use specific context.</b> Cigarettes, petrol, income tax bands, VAT, recession and boom.</li>
+  </ul>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Define</td><td>A precise meaning, in a sentence.</td></tr>
+    <tr><td>Explain</td><td>Reasons with a developed link.</td></tr>
+    <tr><td>Analyse</td><td>A chain of cause and effect, applied to the context.</td></tr>
+    <tr><td>Discuss</td><td>Both sides, then a justified judgement.</td></tr>
+  </table></div>
+  <h2>Keyword flashcards</h2>
+  <div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const QX = (q) => 80 + 6 * q, PY = (p) => 360 - 2.7 * p;
+function seg(m, c) { // clip P = mQ + c to 0<=Q<=100, 0<=P<=120
+  let lo = 0, hi = 100;
+  if (m !== 0) { const a = (0 - c) / m, z = (120 - c) / m; lo = Math.max(lo, Math.min(a, z)); hi = Math.min(hi, Math.max(a, z)); }
+  return [lo, m * lo + c, hi, m * hi + c];
+}
+function curve(m, c, cls, label, o = {}) {
+  const [q1, p1, q2, p2] = seg(m, c);
+  if (q2 <= q1) return "";
+  let s = SV.line(QX(q1), PY(p1), QX(q2), PY(p2), cls, o.attrs);
+  if (label) { const a = { "text-anchor": "start" }; if (o.attrs && o.attrs.opacity !== undefined) a.opacity = o.attrs.opacity; s += SV.text(QX(q2) + (o.dx ?? 6), PY(p2) + (o.dy ?? 4), label, "lbl bd " + (o.t || "t1"), a); }
+  return s;
+}
+function axes(yl = "Price", xl = "Quantity") {
+  return SV.line(QX(0), PY(120), QX(0), PY(0)) + SV.line(QX(0), PY(0), QX(104), PY(0)) +
+    SV.text(QX(0) + 6, PY(120) + 6, yl, "sm") + SV.text(QX(104), PY(0) + 22, xl, "sm", { "text-anchor": "end" });
+}
+const hline = (p, c = "gr", x2 = 100) => SV.line(QX(0), PY(p), QX(x2), PY(p), c);
+const vline = (q, p, c = "gr") => SV.line(QX(q), PY(p), QX(q), PY(0), c);
+const ylab = (p, t, c = "sm") => SV.text(QX(0) - 8, PY(p) + 4, t, c, { "text-anchor": "end" });
+const xlab = (q, t, c = "sm") => SV.text(QX(q), PY(0) + 18, t, c, { "text-anchor": "middle" });
+const D = (b) => [-b, 50 + 50 * b], S = (d, shift = 0) => [d, 50 - 50 * d + shift];
+const fmtSteep = (v) => (v < 0.8 ? "flat (elastic)" : v > 1.4 ? "steep (inelastic)" : "medium");
+const money = (v, d = 1) => Lib.fmtN(v, d);
+/* ---------- 3. progressive, proportional, regressive ---------- */
+const RX = (inc) => 70 + inc * 0.55, RY = (r) => 330 - r * 5.4;
+const SERIES = {
+  pr: { name: "Progressive", c: "c1", t: "t1", pts: [[100, 10, 10], [500, 20, 100], [1000, 40, 400]] },
+  pp: { name: "Proportional", c: "c3", t: "t3", pts: [[100, 25, 25], [500, 25, 125], [1000, 25, 250]] },
+  rg: { name: "Regressive", c: "c2", t: "t2", pts: [[100, 40, 40], [500, 30, 150], [1000, 20, 200]] },
+};
+function ratesChart(s) {
+  let o = SV.line(RX(0), RY(55), RX(0), RY(0)) + SV.line(RX(0), RY(0), RX(1060), RY(0));
+  [10, 20, 30, 40, 50].forEach((r) => (o += SV.line(RX(0), RY(r), RX(1000), RY(r), "gr") + SV.text(RX(0) - 8, RY(r) + 4, r + "%", "sm", { "text-anchor": "end" })));
+  [100, 500, 1000].forEach((i) => (o += SV.text(RX(i), RY(0) + 18, "$" + i, "sm", { "text-anchor": "middle" })));
+  o += SV.text(RX(0) + 6, RY(55) + 4, "Tax paid as % of income", "sm") + SV.text(RX(1060), RY(0) + 38, "Income", "sm", { "text-anchor": "end" });
+  Object.keys(SERIES).forEach((key) => {
+    const sr = SERIES[key], v = s[key];
+    if (v <= 0.02) return;
+    let g = SV.path(ptsPath(sr.pts.map((p) => [RX(p[0]), RY(p[1])])), sr.c);
+    sr.pts.forEach((p) => (g += SV.circle(RX(p[0]), RY(p[1]), 5, "dot" + sr.c.slice(1)) + SV.text(RX(p[0]) + 9, RY(p[1]) + (key === "pr" ? 20 : -9), "$" + p[2] + " tax", "sm bd", { "text-anchor": "start", style: "paint-order:stroke;stroke:var(--surface);stroke-width:4px" })));
+    g += SV.text(RX(1000) + 16, RY(sr.pts[2][1]) + 4, sr.name, "lbl bd " + sr.t);
+    o += `<g opacity="${v}">${g}</g>`;
+  });
+  return o;
+}
+Lib.stepper($("#stR"), { w: 760, h: 380, label: "Progressive, proportional and regressive taxes", base: { pr: 0, pp: 0, rg: 0 }, draw: ratesChart, steps: [
+  { cap: "<b>Progressive:</b> as income rises from $100 to $500 to $1,000 the <b>percentage</b> paid rises from 10% to 20% to 40%. Income tax usually works like this. The rich pay more dollars and a bigger share.", s: { pr: 1, pp: 0, rg: 0 } },
+  { cap: "<b>Proportional:</b> the percentage stays at <b>25%</b> whatever the income. The dollar amount still rises ($25, $125, $250) but the share does not.", s: { pr: 1, pp: 1, rg: 0 } },
+  { cap: "<b>Regressive:</b> the percentage <b>falls</b> as income rises, from 40% to 30% to 20%. The poor pay a bigger share of their income. A fixed charge per litre of petrol is an example: the rich buy more litres but not in proportion to their income.", s: { pr: 1, pp: 1, rg: 1 } },
+  { cap: "In all three the <b>total tax paid</b> usually rises with income. What differs is the <b>percentage</b>. Only a progressive tax redistributes from rich to poor.", s: { pr: 1, pp: 1, rg: 1 } },
+] });
+
+/* ---------- 4. incidence ---------- */
+function taxChart(s) {
+  const b = s.b, d = s.d, t = s.t, q1 = 50 - t / (b + d), pc = 50 + (b * t) / (b + d), pp = pc - t;
+  let o = axes();
+  if (t > 0.01) {
+    o += SV.rect(QX(0), PY(pc), QX(q1) - QX(0), PY(50) - PY(pc), "f2");
+    o += SV.rect(QX(0), PY(50), QX(q1) - QX(0), PY(pp) - PY(50), "f4");
+    if (s.inc > 0.5) {
+      o += SV.text(QX(q1 / 2), (PY(pc) + PY(50)) / 2 + 4, "Consumers' share: " + money(pc - 50), "lbl bd t2", { "text-anchor": "middle", style: "paint-order:stroke;stroke:var(--surface);stroke-width:4px" });
+      o += SV.text(QX(q1 / 2), (PY(50) + PY(pp)) / 2 + 4, "Producers' share: " + money(50 - pp), "lbl bd t4", { "text-anchor": "middle", style: "paint-order:stroke;stroke:var(--surface);stroke-width:4px" });
+      o += SV.text(QX(q1 / 2), PY(pp) + 22, "Tax revenue = " + money(t * q1, 0), "lbl bd", { "text-anchor": "middle", style: "paint-order:stroke;stroke:var(--surface);stroke-width:4px" });
+    }
+  }
+  const [dm, dc] = D(b), [sm, sc] = S(d), [tm, tc] = S(d, t);
+  o += curve(dm, dc, "c1", "D", { t: "t1" }) + curve(sm, sc, "c3", "S₁", { t: "t3", attrs: { opacity: t > 0.01 ? 0.55 : 1 } });
+  if (t > 0.01) o += curve(tm, tc, "c2", "S₂", { t: "t2" });
+  o += hline(50) + vline(50, 50) + ylab(50, "P = 50") + xlab(50, "Q = 50");
+  o += SV.circle(QX(50), PY(50), 6, "dot1", { opacity: t > 0.01 ? 0.5 : 1 });
+  if (t > 0.01) { o += hline(pc, "gr", q1) + vline(q1, pc) + SV.circle(QX(q1), PY(pc), 6, "dot2") + ylab(pc, "P₁ = " + money(pc)) + ylab(pp, "Pp = " + money(pp)) + hline(pp, "gr", q1) + SV.text(QX(q1), PY(0) + (Math.abs(q1 - 50) < 9 ? 34 : 18), "Q₁ = " + money(q1), "sm", { "text-anchor": "middle" }); }
+  return o;
+}
+Lib.stepper($("#stT"), { w: 760, h: 400, label: "Incidence of an indirect tax", base: { b: 1, d: 1, t: 0, inc: 0 }, draw: taxChart, steps: [
+  { cap: "A market for a good in equilibrium at <b>price 50, quantity 50</b>. Demand D and supply S₁.", s: { b: 1, d: 1, t: 0, inc: 0 } },
+  { cap: "The government puts an <b>indirect tax of 20 per unit</b> on the good. Firms' costs rise by 20 at every quantity, so supply shifts <b>to the left</b> (up) by the amount of the tax, to S₂.", s: { t: 20, inc: 0 } },
+  { cap: "The new equilibrium: consumers pay a <b>higher price (60)</b> and buy <b>less (40)</b>. Producers hand 20 to the government, so they keep 60 − 20 = <b>40</b>.", s: { t: 20, inc: 0 } },
+  { cap: "<b>Incidence</b> is who bears the burden. Consumers bear the rise in price (10), producers bear the rest (10). <b>Tax revenue</b> = 20 × 40 = 800.", s: { t: 20, inc: 1 } },
+  { cap: "Make demand <b>steeper (inelastic)</b>. Buyers have few alternatives, so producers can pass on most of the tax: <b>consumers bear most of it</b>. Cigarettes and petrol are examples.", s: { t: 20, inc: 1, b: 3 } },
+  { cap: "Make demand <b>flatter (elastic)</b>. Buyers would switch away, so firms cannot raise the price much and <b>producers bear most of the tax</b>.", s: { t: 20, inc: 1, b: 0.3 } },
+] });
+
+/* Lab 3: tax systems. Progressive: 10% to 200, 30% 200-600, 50% above. Regressive: fuel duty 16 + 0.02 * income. */
+const taxProg = (y) => 0.1 * Math.min(y, 200) + 0.3 * clamp(y - 200, 0, 400) + 0.5 * Math.max(0, y - 600);
+const taxProp = (y) => 0.25 * y;
+const taxReg = (y) => 16 + 0.02 * y;
+const LX = (i) => 70 + i * 0.28, LY = (r) => 330 - r * 6;
+function labR() {
+  if (!$("#ra")) return;
+  const y = +$("#ra").value, rows = [["Progressive", taxProg, "t1", "c1"], ["Proportional", taxProp, "t3", "c3"], ["Regressive", taxReg, "t2", "c2"]];
+  rows.forEach((r, i) => { $("#r" + (i + 1)).textContent = "$" + money(r[1](y), 0) + " (" + money((r[1](y) / y) * 100, 1) + "%)"; });
+  $("#rv").textContent = `At an income of $${y} the progressive tax takes ${money((taxProg(y) / y) * 100, 1)}%, the proportional tax 25% and the regressive tax ${money((taxReg(y) / y) * 100, 1)}%. Slide the income up: the progressive rate climbs, the proportional rate stays put and the regressive rate falls. (The regressive example is fuel duty at $2 a litre; at this income a household buys about ${money(8 + 0.01 * y, 0)} litres.)`;
+  let o = SV.line(LX(0), LY(60), LX(0), LY(0)) + SV.line(LX(0), LY(0), LX(2050), LY(0));
+  [10, 20, 30, 40, 50].forEach((r) => (o += SV.line(LX(0), LY(r), LX(2000), LY(r), "gr") + SV.text(LX(0) - 8, LY(r) + 4, r + "%", "sm", { "text-anchor": "end" })));
+  [500, 1000, 1500, 2000].forEach((i) => (o += SV.text(LX(i), LY(0) + 18, "$" + i, "sm", { "text-anchor": "middle" })));
+  o += SV.text(LX(0) + 6, LY(60) + 4, "Tax paid as % of income", "sm") + SV.text(LX(2050), LY(0) + 38, "Income", "sm", { "text-anchor": "end" });
+  rows.forEach((r) => {
+    const pts = []; for (let i = 60; i <= 2000; i += 20) pts.push([LX(i), LY(Math.min(55, (r[1](i) / i) * 100))]);
+    o += SV.path(ptsPath(pts), r[3]) + SV.text(LX(2000) + 6, LY((r[1](2000) / 2000) * 100) + 4, r[0], "lbl bd " + r[2]);
+  });
+  o += SV.line(LX(y), LY(0), LX(y), LY(55), "dash", { style: "stroke:var(--muted);stroke-width:1.5" });
+  rows.forEach((r) => (o += SV.circle(LX(y), LY(Math.min(55, (r[1](y) / y) * 100)), 6, "dot" + r[3].slice(1))));
+  $("#labR").innerHTML = o;
+}
+Lib.slider($("#g6"), { id: "ra", label: "Income", min: 60, max: 2000, step: 20, value: 500, fmt: (v) => "$" + v, onInput: labR });
+
+
+function labT() {
+  if (!$("#ta") || !$("#tb")) return;
+  const b = +$("#ta").value, d = +$("#tb").value, t = 20, q1 = 50 - t / (b + d), pc = 50 + (b * t) / (b + d), cs = pc - 50, ps = 50 - (pc - t);
+  $("#ta1").textContent = money(cs); $("#ta2").textContent = money((cs / t) * 100, 0) + "% (" + money(cs) + ")"; $("#ta3").textContent = money((ps / t) * 100, 0) + "% (" + money(ps) + ")"; $("#ta4").textContent = money(t * q1, 0);
+  $("#tav").textContent = cs > ps + 1 ? "Demand is steep relative to supply (inelastic): buyers keep buying, so firms pass on most of the tax. Consumers bear the greater share." : ps > cs + 1 ? "Demand is flat relative to supply (elastic): buyers would switch away, so firms absorb most of the tax. Producers bear the greater share." : "Demand and supply are similarly responsive, so the burden is shared about equally.";
+  $("#labT").innerHTML = taxChart({ b, d, t, inc: 1 });
+}
+Lib.slider($("#g11"), { id: "ta", label: "Demand steepness (higher = more inelastic)", min: 0.3, max: 3, step: 0.1, value: 1, fmt: (v) => v.toFixed(1) + " " + fmtSteep(v), onInput: labT });
+Lib.slider($("#g12"), { id: "tb", label: "Supply steepness (higher = more inelastic)", min: 0.3, max: 3, step: 0.1, value: 1, fmt: (v) => v.toFixed(1) + " " + fmtSteep(v), onInput: labT });
+
+/* ================= PRACTISE ================= */
+Lib.classify($("#cl1"), { prompt: "Is each tax <b>direct</b> (on income or wealth) or <b>indirect</b> (on spending)?", buckets: [{ label: "Direct tax" }, { label: "Indirect tax" }], items: [
+  { text: "Income tax", b: 0 }, { text: "Corporation tax", b: 0 }, { text: "Capital gains tax", b: 0 }, { text: "Inheritance tax", b: 0 },
+  { text: "VAT / GST (sales tax)", b: 1 }, { text: "Excise duty on petrol", b: 1 }, { text: "Customs duty (tariff)", b: 1 }, { text: "Licence to own a car", b: 1 },
+], done: "Direct taxes hit income and wealth; indirect taxes hit what you buy." });
+Lib.classify($("#cl2"), { prompt: "Progressive, proportional or regressive?", buckets: [{ label: "Progressive" }, { label: "Proportional" }, { label: "Regressive" }], items: [
+  { text: "Tax rate rises from 10% to 20% to 40% as income rises", b: 0 }, { text: "Inheritance tax on large estates, higher rates on larger sums", b: 0 },
+  { text: "Everyone pays 25% of their income", b: 1 }, { text: "A flat 15% corporation tax on all firms' profits", b: 1 },
+  { text: "A $20 annual licence fee that everyone pays", b: 2 }, { text: "Excise duty per litre of petrol: richer people pay a smaller share of income", b: 2 },
+  { text: "Tax takes 40% of a $100 income but 20% of a $1,000 income", b: 2 }, { text: "Egypt's income tax rate rising from 10% to 15% to 20% to 22.5%", b: 0 },
+], done: "Compare the percentage taken, not the dollars." });
+Lib.match($("#m1"), { prompt: "Match each principle of a good tax to what it means.", pairs: [
+  ["Equity", "Tax is based on ability to pay: fair"],
+  ["Certainty", "Taxpayers can understand and calculate what they owe"],
+  ["Convenience", "The tax is easy to pay"],
+  ["Economy", "Costs of collecting are much less than the revenue raised"],
+  ["Flexibility", "Can be changed, or changes automatically, as the economy changes"],
+  ["Efficiency", "Improves, or does not damage, the way markets work"],
+], done: "Six qualities, six marks of vocabulary." });
+Lib.classify($("#cl3"), { prompt: "Which <b>reason for taxation</b> fits each tax?", buckets: [{ label: "Raise revenue" }, { label: "Discourage demerit goods" }, { label: "Redistribute income" }, { label: "Protect environment or reduce imports" }], items: [
+  { text: "Income tax paid by almost every worker", b: 0 }, { text: "VAT on most goods", b: 0 },
+  { text: "Excise duty on cigarettes", b: 1 }, { text: "A high tax on alcohol", b: 1 },
+  { text: "Higher rates of income tax on high earners", b: 2 }, { text: "Inheritance tax on large estates", b: 2 },
+  { text: "A tax on plastic bags", b: 3 }, { text: "A tariff on imported steel", b: 3 },
+], done: "Taxes often have more than one aim: say which one the question asks about." });
+Lib.calc($("#c1"), { qs: [
+  { q: "Income tax was NZ$32.5bn out of total revenue of NZ$78.5bn. What percentage of revenue came from income tax? (1 d.p.)", a: 41.4, tol: 0.1, sol: "32.5 ÷ 78.5 × 100 = <b>41.4%</b>." },
+  { q: "A worker earns $30,000. The tax allowance is $10,000 and the income tax rate on taxable income is 20%. How much tax does she pay ($)?", a: 4000, hint: "Only income above the allowance is taxed.", sol: "Taxable income = 30,000 − 10,000 = 20,000. Tax = 20% × 20,000 = <b>$4,000</b>." },
+  { q: "A tax of $4 per unit raises the price consumers pay from $10 to $13. What percentage of the tax do consumers bear?", a: 75, sol: "Consumers pay $3 of the $4: 3 ÷ 4 × 100 = <b>75%</b> (so producers bear 25%)." },
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "What is meant by a regressive tax?", opts: ["A tax that falls in line with inflation", "A tax that takes a larger percentage of income from the poor than the rich", "A tax that reduces government revenue over time", "A tax that is replaced by a bigger one"], a: 1, why: "Regressive: the percentage taken falls as income rises." },
+  { q: "A government wants to redistribute income from the rich to the poor. Which tax changes would help?", opts: ["Cut corporation tax, raise sales tax", "Cut VAT, raise income tax", "Cut capital gains tax and inheritance tax", "Raise customs duties and excise duties"], a: 1, why: "Cutting an indirect (regressive) tax and raising a progressive direct tax moves the burden to the rich." },
+  { q: "In which situation will consumers bear the greatest share of an indirect tax?", opts: ["Elastic demand, inelastic supply", "Inelastic demand, inelastic supply", "Inelastic demand, elastic supply", "Elastic demand, elastic supply"], a: 2, why: "When demand is inelastic buyers keep buying, and when supply is elastic firms cut output rather than absorb the tax." },
+  { q: "Which is an example of a direct tax?", opts: ["VAT", "Excise duty on alcohol", "Customs duty", "Capital gains tax"], a: 3, why: "Capital gains tax is a tax on profit from selling an asset." },
+  { q: "Tax revenue from income tax rises in a boom with no change in tax rates. This is an example of:", opts: ["An automatic stabiliser", "A flat tax", "A windfall tax", "A regressive tax"], a: 0, why: "Revenue rising automatically in a boom cushions swings in demand." },
+  { q: "Which is an advantage of indirect taxes?", opts: ["They are always progressive", "They are relatively cheap and easy to collect", "They cannot raise prices", "They redistribute income to the poor"], a: 1, why: "Firms do much of the collecting, and they are harder to evade, but they tend to be regressive." },
+] });
+
+Lib.cards($("#fc1"), { cards: [
+  ["Direct tax", "A tax on income and wealth, such as income tax and corporation tax."],
+  ["Indirect tax", "A tax on expenditure, such as VAT, excise duties and customs duties."],
+  ["Progressive tax", "Takes a larger percentage of the income or wealth of the rich."],
+  ["Proportional tax", "Takes the same percentage of income or wealth from all taxpayers."],
+  ["Regressive tax", "Takes a larger percentage of the income or wealth of the poor."],
+  ["Income tax", "A tax on income from employment and investments, above a tax allowance."],
+  ["Corporation tax", "A tax on the profits of firms."],
+  ["Capital gains tax", "A tax on profit made when an asset is sold for more than it cost."],
+  ["Inheritance tax", "A tax on wealth above a certain amount passed on when someone dies."],
+  ["Excise duty", "An indirect tax on certain goods such as alcohol, petrol and tobacco."],
+  ["Customs duty", "A tax on imports, also called a tariff."],
+  ["Tax allowance", "An amount of income that can be earned free of tax."],
+  ["Tax base", "The source of tax revenue: what is taxed."],
+  ["Tax burden", "The amount of tax paid, often shown as a percentage of GDP."],
+  ["Incidence of tax", "How the burden of an indirect tax is shared between consumers and producers."],
+  ["Flat tax", "A tax system with a single rate."],
+  ["Windfall tax", "An extra one-off tax on very high profits."],
+  ["Informal economy", "The part of the economy not regulated, protected or taxed by the government."],
+] });
+labR(); labT();
+
+Lib.initTabs();
+</script>
+</body></html>

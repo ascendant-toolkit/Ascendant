@@ -1,0 +1,880 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>8.2 Arrays</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<style>
+.txin{font:600 1.05rem var(--mono);padding:9px 12px;border-radius:9px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,420px)}
+.drill select,.sel{font:600 .95rem var(--sans);padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.drill .qline{font-size:1.1rem;font-weight:600;margin:8px 0}
+.drill input{font:700 1.1rem var(--mono);padding:8px 12px;border-radius:8px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,220px);text-transform:uppercase}
+.drill .fb{font-weight:700;margin-left:8px}.drill .fb.ok{color:var(--good)}.drill .fb.no{color:var(--bad)}
+.flag{display:inline-block;font:700 .7rem var(--sans);padding:1px 7px;border-radius:99px;background:var(--bad-soft);color:var(--bad)}
+.okf{display:inline-block;font:700 .7rem var(--sans);padding:1px 7px;border-radius:99px;background:var(--good-soft);color:var(--good)}
+.lab{font:700 .7rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 4px}
+.out{font:700 1.15rem var(--mono);letter-spacing:.12em;padding:10px 14px;border-radius:9px;background:var(--soft);border:1px solid var(--line);word-break:break-all;min-height:46px}
+.out.bad{color:var(--bad)}.out.good{color:var(--good)}
+.cip{font-family:var(--mono);font-size:.82rem;text-align:center}
+.cip td,.cip th{padding:4px 6px;text-align:center}
+.ch{display:grid;gap:8px;margin:10px 0}
+.ch button{text-align:left;font:600 .95rem var(--sans);padding:10px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.ch button:hover{border-color:var(--accent)}
+.ch button.ok{border-color:var(--good);background:var(--good-soft)}.ch button.no{border-color:var(--bad);background:var(--bad-soft)}
+.kpub{color:var(--good);font-weight:700}.kpri{color:var(--bad);font-weight:700}
+</style>
+<style>
+.ipin{font:600 1.05rem var(--mono);padding:9px 12px;border-radius:9px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,420px)}
+.mac{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.mac span{font:700 1.1rem var(--mono);padding:8px 10px;border-radius:8px;border:2px solid var(--line);background:var(--surface)}
+.mac .m1{border-color:var(--accent);color:var(--accent)}.mac .m2{border-color:var(--good);color:var(--good)}
+.scn{display:grid;gap:8px;margin:10px 0}.scn .r{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface)}
+.scn .r.ok{border-color:var(--good);background:var(--good-soft)}.scn .r.no{border-color:var(--bad);background:var(--bad-soft)}.scn .r span.q{flex:1 1 240px;font-weight:600}
+.mem{display:flex;gap:4px;margin:6px 0}.mem i{flex:1;height:26px;border-radius:5px;background:var(--soft);border:1px solid var(--line)}.mem i.u{background:var(--accent);border-color:var(--accent)}.mem i.v{background:var(--bad);border-color:var(--bad)}
+</style>
+<style>
+.mono td,.mono th{font-family:var(--mono)}
+.ln2{font-family:var(--mono);font-size:.9rem}
+.fcw{overflow-x:auto}
+.chk{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.chk label{display:flex;align-items:center;gap:6px;padding:7px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;font-weight:600}
+.chk label.ok{border-color:var(--good);background:var(--good-soft)}.chk label.no{border-color:var(--bad);background:var(--bad-soft)}
+</style>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">IGCSE Computer Science · 0478 · Chapter 8 · 8.2</div>
+  <h1>Arrays</h1>
+  <p class="lead">One-dimensional and two-dimensional arrays, using variables as indexes, and writing to and reading from arrays with iteration.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<!-- LEARN -->
+<section id="learn" role="tabpanel">
+  <div class="card big">
+    <h3>The big idea</h3>
+    <p>An <span class="kw">array</span> stores many values of one data type under a single name, and a <b>loop with an index</b> can process them all. A <span class="kw">2D array</span> is a table that needs <b>two indexes</b> and <b>nested loops</b>.</p>
+  </div>
+
+  <h2>8.2 Arrays</h2>
+  <p>An <span class="kw">array</span> is a <b>fixed-length structure that holds several values of the same data type</b> under one name. Each value is called an <b>element</b> and is reached by its <span class="kw">index</span>, a consecutive whole number. Arrays let a program store 30 marks without 30 separate variables, and process them with a loop.</p>
+
+  <h3>One-dimensional (1D) arrays</h3>
+  <p>A 1D array is a list. It is <b>declared</b> with a name, a lower and upper bound, and a data type. The index goes in square brackets.</p>
+  <div id="cdDecl" class="code"></div>
+  <div class="tw"><table class="t mono">
+    <tr><th>Index</th><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr>
+    <tr><th>Marks</th><td>62</td><td>45</td><td>78</td><td>50</td><td>91</td></tr>
+  </table></div>
+  <p>Here <b>Marks[3]</b> is 78. The index can be a <b>number or a variable</b>, so <b>Marks[Index]</b> uses the current value of Index. This is what makes loops over arrays work.</p>
+  <div class="warn"><b class="h">First index</b>In pseudocode the lower bound is usually <b>1</b>, but in Python (and many languages) the first index is <b>0</b>. The exam says which to use; the lower bound is stated in the declaration. Using an index outside the bounds is an <b>error</b>.</div>
+
+  <h3>Writing to and reading from an array with iteration</h3>
+  <p>A <b>FOR loop</b> is ideal, because the index counts through the elements. The first loop writes values into the array; the second reads them out.</p>
+  <div id="cdFill" class="code"></div>
+  <p>The same pattern gives a total, a count or a maximum (see 7.3): replace the INPUT or OUTPUT with the calculation you need.</p>
+  <div id="cdTot" class="code"></div>
+
+  <h3>Two-dimensional (2D) arrays</h3>
+  <p>A <b>2D array</b> is a <b>table</b> with rows and columns. It needs <b>two indexes</b>: <b>Array[Row, Column]</b>. It is declared with two ranges.</p>
+  <div id="cdD2" class="code"></div>
+  <div class="tw"><table class="t mono">
+    <tr><th></th><th>Col 1</th><th>Col 2</th><th>Col 3</th><th>Col 4</th></tr>
+    <tr><th>Row 1</th><td>4</td><td>7</td><td>2</td><td>9</td></tr>
+    <tr><th>Row 2</th><td>5</td><td>1</td><td>8</td><td>3</td></tr>
+    <tr><th>Row 3</th><td>6</td><td>2</td><td>4</td><td>7</td></tr>
+  </table></div>
+  <p>Here <b>Amount[2,3]</b> is 8 (row 2, column 3). To visit every cell you use <b>nested iteration</b>: an outer loop for the rows and an inner loop for the columns.</p>
+  <div id="cdNest" class="code"></div>
+  <h3>Why use arrays?</h3>
+  <ul>
+    <li>Many related values share <b>one name</b>, which keeps programs shorter and easier to read.</li>
+    <li>A <b>loop with an index variable</b> can process all of them, however many there are.</li>
+    <li>Data can be stored, searched and sorted (see 7.3).</li>
+  </ul>
+  <h3>Common mistakes</h3>
+  <ul>
+    <li><b>Index out of range</b>: for example Marks[6] in a 5-element array.</li>
+    <li><b>Off by one</b>: the loop runs 0 to 5 when the array is indexed 1 to 5 (or the reverse).</li>
+    <li>Using the <b>index</b> where the <b>element</b> is needed: Total ← Total + Index instead of Marks[Index].</li>
+    <li>Forgetting that the array's <b>size is fixed</b> when it is declared.</li>
+  </ul>
+</section>
+
+<!-- WATCH -->
+<section id="watch" role="tabpanel" hidden>
+  <p>Press Play, or click the numbered steps.</p>
+  <h2>1 · Filling and reading a 1D array</h2><div id="aF"></div>
+  <h2>2 · Nested loops on a 2D array</h2><div id="aT"></div>
+</section>
+
+<!-- EXPLORE -->
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Array explorer</h2>
+  <p>Edit the array, choose the first index, and pick an index. Try an index outside the array.</p>
+  <div class="card"><input class="ipin" id="ae" type="text" value="62 45 78 50 91 38" maxlength="40" aria-label="Array values" spellcheck="false"><div class="row" style="margin:8px 0"><label><input type="radio" name="ab" value="1" checked> First index is 1</label><label><input type="radio" name="ab" value="0"> First index is 0</label></div><div id="a1"></div><svg id="as" viewBox="0 0 640 110" role="img" aria-label="Array"></svg><div class="verdict" id="av" aria-live="polite"></div></div>
+
+  <h2>Lab 2 · 2D array calculator</h2>
+  <p>Change any number in the table. See the row totals, column totals and a single element.</p>
+  <div class="card"><div class="tw"><table class="t mono" id="gt"></table></div><div class="grid2"><div><div id="g1"></div><div id="g2"></div></div><div class="verdict" id="gv" aria-live="polite"></div></div></div>
+
+  <h2>Lab 3 · What does this loop do?</h2>
+  <p>Choose the job each loop does to the array Marks[1:5].</p>
+  <div class="card"><div class="scn" id="sn"></div><div class="verdict" id="sv" aria-live="polite"></div></div>
+</section>
+
+<!-- PRACTISE -->
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · 1D or 2D?</h2>
+  <div id="cl1" class="card"></div>
+
+  <h2>2 · Array and loop in order</h2>
+  <div id="o1" class="card"></div>
+
+  <h2>3 · Nested loop to total a 2D array, in order</h2>
+  <div id="o2" class="card"></div>
+
+  <h2>4 · Reading an array</h2>
+  <div id="m1" class="card"></div>
+
+  <h2>5 · Calculations</h2>
+  <p class="note">Marks is a 1D array of 5 elements, indexed from 1: <span class="ln2">62, 45, 78, 50, 91</span>. Amount is a 2D array (3 rows, 4 columns): row 1 is 4, 7, 2, 9; row 2 is 5, 1, 8, 3; row 3 is 6, 2, 4, 7.</p>
+  <div id="c1"></div>
+
+  <h2>6 · Multiple choice</h2>
+  <div id="qz1"></div>
+</section>
+
+<!-- REAL WORLD -->
+<section id="real" role="tabpanel" hidden>
+  <p class="note">Descriptions are kept general. Check current details before quoting specifics.</p>
+  <div class="rw"><h3>A class register</h3><p>An array of names and an array of marks, linked by index, store a whole class. A loop goes through everyone.</p><div class="use"><b>Exam use:</b> 1D arrays with a loop and an index variable.</div></div>
+  <div class="rw"><h3>Spreadsheet-like data</h3><p>Sales for each product (rows) in each month (columns) fit a 2D array, with row and column totals found by nested loops.</p><div class="use"><b>Exam use:</b> 2D arrays and nested iteration.</div></div>
+  <div class="rw"><h3>Noughts and crosses</h3><p>A 3 by 3 array stores 'X', 'O' or a space in each square. The program checks rows, columns and diagonals.</p><div class="use"><b>Exam use:</b> a 2D array of CHAR: Board[Row, Column].</div></div>
+  <div class="rw"><h3>A music playlist</h3><p>Track names are stored in an array; the track number is the index. Shuffle picks a random index.</p><div class="use"><b>Exam use:</b> an array element reached by an index variable.</div></div>
+  <div class="rw"><h3>Game high scores</h3><p>The top ten scores are kept in an array, sorted, and a new score is inserted if it beats one.</p><div class="use"><b>Exam use:</b> arrays hold data that can be searched and sorted.</div></div>
+</section>
+
+<!-- EXAM -->
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam-style questions</h2>
+  <p>Open each question for reminders, a model answer and common mistakes. Each underlined phrase earns one mark; the number shows which mark point it is.</p>
+
+  <details class="eq"><summary>Q1 <span class="cmd">State</span> <span class="mark">2 marks</span> State what is meant by an array.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Fixed size, same type, index.</div>
+    <div class="ans"><span class="mk k" data-t="1">A data structure that stores multiple values (elements) of the same data type under one name,</span> <span class="mk k" data-t="2">with each element accessed using an index.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Describing it only as "a list".</div>
+  </div></details>
+
+  <details class="eq"><summary>Q2 <span class="cmd">Write</span> <span class="mark">2 marks</span> Write pseudocode to declare a 1D array to store the names of 30 students.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>DECLARE name : ARRAY[l:u] OF type.</div>
+    <div class="ans"><span class="mk k" data-t="1">DECLARE StudentNames : ARRAY[1:30] OF STRING</span> <span class="mk k" data-t="2">(the lower and upper bound, and the data type, are correct)</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Using INTEGER for names, or writing the size without the index range.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q3 <span class="cmd">Write</span> <span class="mark">4 marks</span> Write pseudocode to input 10 numbers into the array Numbers[1:10], then output them all.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two FOR loops with an index variable.</div>
+    <div class="ans"><span class="mk k" data-t="1">FOR Index ← 1 TO 10</span> <span class="mk k" data-t="2">INPUT Numbers[Index]</span> <span class="mk k" data-t="3">NEXT Index</span> <span class="mk k" data-t="4">A second loop (or the same loop correctly) outputting Numbers[Index] for each index</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Using a different array name inside the loop.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q4 <span class="cmd">Write</span> <span class="mark">4 marks</span> The array Marks[1:30] holds test marks. Write pseudocode to output the total and the average of the marks.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Total ← 0, loop adding Marks[Index].</div>
+    <div class="ans"><span class="mk k" data-t="1">Total ← 0 before the loop</span> <span class="mk k" data-t="2">FOR Index ← 1 TO 30 with Total ← Total + Marks[Index]</span> <span class="mk k" data-t="3">Average ← Total / 30</span> <span class="mk k" data-t="4">OUTPUT Total and OUTPUT Average (after the loop)</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Adding Index instead of Marks[Index].</div>
+  </div></details>
+
+  <details class="eq"><summary>Q5 <span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why a 2D array needs nested loops to read every element.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two indexes.</div>
+    <div class="ans"><span class="mk k" data-t="1">A 2D array has two indexes (a row and a column).</span> <span class="mk k" data-t="2">One loop steps through the rows and a loop inside it steps through the columns for each row.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying "because it is bigger".</div>
+  </div></details>
+
+  <details class="eq"><summary>Q6 <span class="cmd">Write</span> <span class="mark">5 marks</span> Seats[1:5, 1:8] is a 2D array of BOOLEAN (TRUE if a seat is taken). Write pseudocode to count and output the number of seats that are taken.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Nested FOR loops and a count.</div>
+    <div class="ans"><span class="mk k" data-t="1">Count ← 0</span> <span class="mk k" data-t="2">FOR Row ← 1 TO 5</span> <span class="mk k" data-t="3">FOR Column ← 1 TO 8</span> <span class="mk k" data-t="4">IF Seats[Row, Column] = TRUE THEN Count ← Count + 1</span> <span class="mk k" data-t="5">OUTPUT Count after both loops</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Putting Count ← 0 inside the loops.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q7 <span class="cmd">State</span> <span class="mark">2 marks</span> The array Colours[1:4] holds "red", "blue", "green", "pink". State the value of (a) Colours[2] and (b) Colours[Index + 1] when Index is 3.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Index starts at 1.</div>
+    <div class="ans"><span class="mk k" data-t="1">(a) "blue"</span> <span class="mk k" data-t="2">(b) "pink" (Colours[4])</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Counting from 0 when the array starts at 1.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q8 <span class="cmd">Explain</span> <span class="mark">2 marks</span> A program has the statement Marks[11] ← 50 but Marks is declared ARRAY[1:10]. Explain the error.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Outside the bounds.</div>
+    <div class="ans"><span class="mk k" data-t="1">The index 11 is outside the range of the array (1 to 10),</span> <span class="mk k" data-t="2">so there is no element to store the value in (an out-of-range error).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying the array is "full".</div>
+  </div></details>
+</section>
+
+<!-- TIPS -->
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>An array holds many values of one type under one name,</b> reached by an index.</li>
+    <li><b>DECLARE Name : ARRAY[1:30] OF STRING</b> gives the bounds and type.</li>
+    <li><b>Use a FOR loop with an index variable</b>: Marks[Index].</li>
+    <li><b>2D arrays: two indexes, [Row, Column], and nested loops.</b></li>
+    <li><b>Do not mix up the index and the element.</b> Add Marks[Index], not Index.</li>
+    <li><b>Check the first index</b> (0 or 1) and the upper bound.</li>
+  </ul>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Name / Identify</td><td>A short fact. No explanation.</td></tr>
+    <tr><td>Describe</td><td>What happens, step by step, or the main features.</td></tr>
+    <tr><td>Explain</td><td>What happens and why. Use because or so.</td></tr>
+    <tr><td>Complete</td><td>Fill in the gaps, trace table or code you are given.</td></tr>
+    <tr><td>Write / Give</td><td>Produce an algorithm, code or an example. Be precise.</td></tr>
+  </table></div>
+  <h2>Keyword flashcards</h2>
+  <div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const GOOD = "var(--good)", BAD = "var(--bad)", ACC = "var(--accent)", MUT = "var(--muted)", WARN = "var(--warn)";
+const note = (x, y, t, cls = "", anchor = "middle") => SV.text(x, y, t, "lbl bd " + cls, { "text-anchor": anchor });
+const sm = (x, y, t, anchor = "middle") => SV.text(x, y, t, "sm", { "text-anchor": anchor });
+const panel = (x, y, w, h, title, col, o = 1) => SV.rect(x, y, w, h, "", { rx: 12, style: `fill:var(--surface);stroke:${col};stroke-width:3`, opacity: o }) + (title ? SV.text(x + w / 2, y + 22, title, "lbl bd", { "text-anchor": "middle", style: `fill:${col}` }) : "");
+const arr = (x1, y1, x2, y2, col, dash) => SV.line(x1, y1, x2, y2, "", { style: `stroke:${col};stroke-width:3;${dash ? "stroke-dasharray:7 6" : ""}` });
+const chip = (x, y, w, t, col) => SV.rect(x, y, w, 26, "", { rx: 13, style: `fill:${col}` }) + SV.text(x + w / 2, y + 18, t, "lbl bd", { "text-anchor": "middle", style: "fill:#fff;font-size:12px" });
+const range = (a, b) => { const r = []; for (let i = a; i <= b; i++) r.push(i); return r; };
+/* select-one-per-row chooser. items: [text, correctOption] */
+function chooser(el, v, opts, items, ph) {
+  el.innerHTML = items.map((s) => `<div class="r" data-a="${esc(s[1])}"><span class="q">${s[0]}</span><select class="sel" aria-label="${esc(s[0].replace(/<[^>]+>/g, ""))}"><option value="">${ph || "Choose…"}</option>${opts.map((x) => `<option>${esc(x)}</option>`).join("")}</select></div>`).join("");
+  v.textContent = "Choose an answer for each row.";
+  $$(".r", el).forEach((r) => $("select", r).addEventListener("change", (e) => { r.classList.remove("ok", "no"); if (e.target.value) r.classList.add(e.target.value === r.dataset.a ? "ok" : "no"); v.textContent = `${$$(".r.ok", el).length} of ${$$(".r", el).length} correct. Red means a different answer fits better.`; }));
+}
+const FPS = ["DECLARE Marks : ARRAY[1:5] OF INTEGER", "FOR Index ← 1 TO 5", "    INPUT Marks[Index]", "NEXT Index", "FOR Index ← 1 TO 5", "    OUTPUT Marks[Index]", "NEXT Index"];
+const FPY = ["marks = [0] * 5", "for index in range(5):", "    marks[index] = int(input())", "for index in range(5):", "    print(marks[index])"];
+const TPS = ["FOR Row ← 1 TO 3", "    RowTotal ← 0", "    FOR Column ← 1 TO 4", "        RowTotal ← RowTotal + Amount[Row, Column]", "    NEXT Column", "    OUTPUT \"Row \", Row, \" total \", RowTotal", "NEXT Row"];
+const TPY = ["for row in range(3):", "    row_total = 0", "    for column in range(4):", "        row_total = row_total + amount[row][column]", "    print(\"Row\", row + 1, \"total\", row_total)"];
+
+/* ---------- 1. array view ---------- */
+function av(arrv, o) {
+  const n = arrv.length, W = 640, gap = 6, w = Math.min(64, Math.floor((W - 40 - (n - 1) * gap) / n)), x0 = (W - (n * w + (n - 1) * gap)) / 2;
+  let s = SV.text(14, 26, o.title || "", "lbl bd", { "text-anchor": "start" });
+  s += Lib.cells(arrv.map((v) => (v === null ? "" : v)), { x0, y: 70, w, h: 46, gap, cls: o.cls, ptr: o.ptr, idx: false });
+  arrv.forEach((_, i) => (s += SV.text(x0 + i * (w + gap) + w / 2, 70 + 46 + 17, i + 1, "sm", { "text-anchor": "middle" })));
+  if (o.vars) s += SV.text(W / 2, 214, o.vars, "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono)" });
+  if (o.note) s += SV.text(W / 2, 242, o.note, "lbl bd " + (o.nc || ""), { "text-anchor": "middle" });
+  return s;
+}
+const INV = [62, 45, 78, 50, 91];
+function fillFrames() {
+  const F = [], D = [null, null, null, null, null], f = (cap, ps, py, o) => F.push({ cap, ps, py, svg: av([...D], { title: "Marks[1:5]", ...o }) });
+  f("The array <b>Marks</b> is declared with 5 elements, indexed 1 to 5. They are empty.", [0], [0], {});
+  for (let i = 0; i < 5; i++) { f(`<b>Index = ${i + 1}</b>. INPUT Marks[${i + 1}]: the user types <b>${INV[i]}</b>.`, [1, 2], [1, 2], { cls: { [i]: "cur" }, ptr: { [i]: "Index" }, vars: "Index = " + (i + 1) }); D[i] = INV[i]; f(`Marks[${i + 1}] now holds <b>${INV[i]}</b>.`, [2], [2], { cls: { [i]: "ok" }, ptr: { [i]: "Index" }, vars: "Index = " + (i + 1) }); }
+  for (let i = 0; i < 5; i++) f(`Second loop, <b>Index = ${i + 1}</b>. OUTPUT Marks[${i + 1}] shows <b>${INV[i]}</b>.`, [4, 5], [3, 4], { cls: { [i]: "cur" }, ptr: { [i]: "Index" }, vars: "Index = " + (i + 1), note: "Output: " + INV.slice(0, i + 1).join("  "), nc: "t3" });
+  return F;
+}
+Lib.algo($("#aF"), { w: 640, h: 260, label: "Filling and reading a 1D array", pseudo: FPS, py: FPY, dwell: 1500, frames: fillFrames() });
+
+/* ---------- 2. 2D traversal ---------- */
+const AM = [[4, 7, 2, 9], [5, 1, 8, 3], [6, 2, 4, 7]];
+function gv2(o) {
+  const cw = 64, ch = 44, x0 = 90, y0 = 50; let s = SV.text(14, 26, "Amount[1:3, 1:4]", "lbl bd", { "text-anchor": "start" });
+  for (let c = 0; c < 4; c++) s += SV.text(x0 + c * cw + cw / 2, y0 - 8, "Col " + (c + 1), "sm", { "text-anchor": "middle" });
+  for (let r = 0; r < 3; r++) { s += SV.text(x0 - 10, y0 + r * ch + ch / 2 + 5, "Row " + (r + 1), "sm", { "text-anchor": "end" });
+    for (let c = 0; c < 4; c++) { const cl = o.cls[r + "," + c] || ""; s += SV.rect(x0 + c * cw, y0 + r * ch, cw - 4, ch - 4, "cell" + (cl ? " cell-" + cl : ""), { rx: 6 }) + SV.text(x0 + c * cw + cw / 2 - 2, y0 + r * ch + ch / 2 + 6, AM[r][c], "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:17px" }); }
+    s += SV.text(x0 + 4 * cw + 30, y0 + r * ch + ch / 2 + 6, o.rt[r] === undefined ? "" : o.rt[r], "lbl bd t3", { "text-anchor": "middle", style: "font-family:var(--mono)" }); }
+  s += SV.text(x0 + 4 * cw + 30, y0 - 8, "RowTotal", "sm", { "text-anchor": "middle" });
+  if (o.vars) s += SV.text(320, 215, o.vars, "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono)" }); if (o.note) s += SV.text(320, 243, o.note, "lbl bd t3", { "text-anchor": "middle" });
+  return s;
+}
+function t2Frames() {
+  const F = [], rt = [], done = {}, f = (cap, ps, py, o) => F.push({ cap, ps, py, svg: gv2({ cls: { ...done }, rt: [...rt], ...o }) });
+  f("A 2D array of amounts: <b>3 rows</b>, <b>4 columns</b>. The outer loop goes through the rows; the inner loop through the columns.", [0], [0], {});
+  for (let r = 0; r < 3; r++) { let tot = 0; f(`<b>Row ← ${r + 1}</b>. <b>RowTotal ← 0</b>.`, [0, 1], [0, 1], { vars: `Row = ${r + 1}   RowTotal = 0` });
+    for (let c = 0; c < 4; c++) { const o = tot; tot += AM[r][c]; done[r + "," + c] = "cur"; f(`<b>Column ← ${c + 1}</b>. RowTotal ← ${o} + Amount[${r + 1},${c + 1}] = ${o} + ${AM[r][c]} = <b>${tot}</b>.`, [2, 3], [2, 3], { vars: `Row = ${r + 1}  Column = ${c + 1}  RowTotal = ${tot}` }); done[r + "," + c] = "ok"; }
+    rt[r] = tot; f(`The inner loop ends. <b>OUTPUT</b> "Row ${r + 1} total ${tot}".`, [4, 5], [4], { vars: `Row = ${r + 1}   RowTotal = ${tot}` }); }
+  f("The outer loop ends. Every cell has been visited once: 3 × 4 = <b>12</b> times through the inner body.", [6], [], { note: "12 cells visited" });
+  return F;
+}
+Lib.algo($("#aT"), { w: 640, h: 260, label: "Nested loops on a 2D array", pseudo: TPS, py: TPY, dwell: 1300, frames: t2Frames() });
+
+/* ---------- Learn code ---------- */
+Lib.codePanel($("#cdDecl"), { pseudo: ["DECLARE Marks : ARRAY[1:5] OF INTEGER", "Marks[3] ← 78", "OUTPUT Marks[3]", "Index ← 2", "OUTPUT Marks[Index]"], py: ["marks = [0] * 5", "marks[2] = 78        # the 3rd element", "print(marks[2])", "index = 1", "print(marks[index])"] });
+Lib.codePanel($("#cdFill"), { pseudo: FPS, py: FPY });
+Lib.codePanel($("#cdTot"), { pseudo: ["Total ← 0", "FOR Index ← 1 TO 5", "    Total ← Total + Marks[Index]", "NEXT Index", "OUTPUT Total"], py: ["total = 0", "for index in range(5):", "    total = total + marks[index]", "print(total)"] });
+Lib.codePanel($("#cdD2"), { pseudo: ["DECLARE Amount : ARRAY[1:3, 1:4] OF INTEGER", "Amount[2,3] ← 8", "OUTPUT Amount[2,3]"], py: ["amount = [[0] * 4 for _ in range(3)]", "amount[1][2] = 8      # row 2, column 3", "print(amount[1][2])"] });
+Lib.codePanel($("#cdNest"), { pseudo: TPS, py: TPY });
+
+/* ---------- Lab 1 ---------- */
+(() => {
+  let sl; const inp = $("#ae");
+  function upd() {
+    if (!sl) return; const A = inp.value.trim().split(/[\s,]+/).filter(Boolean).slice(0, 10), base = +$("[name=ab]:checked").value, n = A.length, i = sl.get(), a = i - base, ok = a >= 0 && a < n;
+    let s = ""; const w = Math.min(56, 600 / Math.max(n, 1)), x0 = (640 - (n * (w + 6) - 6)) / 2;
+    A.forEach((v, k) => { const on = k === a; s += SV.rect(x0 + k * (w + 6), 24, w, 46, "", { rx: 8, style: `fill:${on ? "var(--accent-soft)" : "var(--soft)"};stroke:${on ? "var(--accent)" : "var(--line)"};stroke-width:${on ? 4 : 2}` }) + SV.text(x0 + k * (w + 6) + w / 2, 54, esc(v), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:16px" }) + SV.text(x0 + k * (w + 6) + w / 2, 90, k + base, "sm", { "text-anchor": "middle" }); });
+    $("#as").innerHTML = s;
+    $("#av").innerHTML = ok ? `<span class="okf">Valid</span> <b>Marks[${i}]</b> = <b>${esc(A[a])}</b>. The array has ${n} elements, indexed ${base} to ${n - 1 + base}.` : `<span class="flag">Index out of range</span> Marks[${i}] does not exist: the valid indexes are ${base} to ${n - 1 + base}.`;
+  }
+  sl = Lib.slider($("#a1"), { id: "ai", label: "Index", min: 0, max: 11, value: 3, onInput: upd }); inp.addEventListener("input", upd); $$("[name=ab]").forEach((r) => r.addEventListener("change", upd)); upd();
+})();
+
+/* ---------- Lab 2 ---------- */
+(() => {
+  const G = [[4, 7, 2, 9], [5, 1, 8, 3], [6, 2, 4, 7]]; let sr, sc; const t = $("#gt");
+  function draw() {
+    const rt = G.map((r) => r.reduce((a, b) => a + b, 0)), ct = [0, 1, 2, 3].map((c) => G.reduce((a, r) => a + r[c], 0)), gt = rt.reduce((a, b) => a + b, 0);
+    t.innerHTML = `<tr><th></th>${[1, 2, 3, 4].map((c) => `<th>Col ${c}</th>`).join("")}<th>Row total</th></tr>` + G.map((r, i) => `<tr><th>Row ${i + 1}</th>${r.map((v, j) => `<td><input class="ipin" style="width:60px;padding:4px 6px" type="text" inputmode="numeric" data-r="${i}" data-c="${j}" value="${v}" aria-label="Row ${i + 1} column ${j + 1}"></td>`).join("")}<td><b>${rt[i]}</b></td></tr>`).join("") + `<tr><th>Col total</th>${ct.map((v) => `<td><b>${v}</b></td>`).join("")}<td><b>${gt}</b></td></tr>`;
+    $$("input", t).forEach((i) => i.addEventListener("change", () => { G[+i.dataset.r][+i.dataset.c] = parseFloat(i.value) || 0; draw(); upd(); }));
+  }
+  function upd() { if (!sr || !sc) return; const r = sr.get(), c = sc.get(); $("#gv").innerHTML = `<b>Amount[${r},${c}]</b> = <b>${G[r - 1][c - 1]}</b> (row ${r}, column ${c}). Row totals use an inner loop over the columns; column totals swap the loops.`; }
+  sr = Lib.slider($("#g1"), { id: "gr", label: "Row", min: 1, max: 3, value: 2, onInput: upd }); sc = Lib.slider($("#g2"), { id: "gc", label: "Column", min: 1, max: 4, value: 3, onInput: upd }); draw(); upd();
+})();
+
+/* ---------- Lab 3 ---------- */
+chooser($("#sn"), $("#sv"), ["Total of all elements", "Largest element", "Count of marks of 50 or more", "Output in reverse order", "Set every element to zero"], [
+  ['<span class="ln2">Total ← 0<br>FOR Index ← 1 TO 5<br>&nbsp;&nbsp;&nbsp;Total ← Total + Marks[Index]<br>NEXT Index</span>', "Total of all elements"],
+  ['<span class="ln2">Max ← Marks[1]<br>FOR Index ← 2 TO 5<br>&nbsp;&nbsp;&nbsp;IF Marks[Index] &gt; Max THEN Max ← Marks[Index]<br>NEXT Index</span>', "Largest element"],
+  ['<span class="ln2">Count ← 0<br>FOR Index ← 1 TO 5<br>&nbsp;&nbsp;&nbsp;IF Marks[Index] &gt;= 50 THEN Count ← Count + 1<br>NEXT Index</span>', "Count of marks of 50 or more"],
+  ['<span class="ln2">FOR Index ← 5 TO 1 STEP -1<br>&nbsp;&nbsp;&nbsp;OUTPUT Marks[Index]<br>NEXT Index</span>', "Output in reverse order"],
+  ['<span class="ln2">FOR Index ← 1 TO 5<br>&nbsp;&nbsp;&nbsp;Marks[Index] ← 0<br>NEXT Index</span>', "Set every element to zero"],
+]);
+
+/* ---------- Practise ---------- */
+Lib.classify($("#cl1"), { prompt: "Does each need a 1D array or a 2D array?", buckets: [{ label: "1D array" }, { label: "2D array" }], items: [
+  { text: "A list of 30 student names", b: 0 },
+  { text: "The marks of one class in a test", b: 0 },
+  { text: "Prices of 10 products", b: 0 },
+  { text: "Marks[Index]", b: 0 },
+  { text: "A noughts and crosses board", b: 1 },
+  { text: "Seats in a cinema in rows and columns", b: 1 },
+  { text: "Sales per product for each month", b: 1 },
+  { text: "Amount[Row, Column]", b: 1 },
+], done: "One index or two." });
+
+Lib.order($("#o1"), { prompt: "Put the lines in order to input 10 numbers into an array and output the largest.", items: [
+  "DECLARE Numbers : ARRAY[1:10] OF INTEGER",
+  "FOR Index ← 1 TO 10",
+  "    INPUT Numbers[Index]",
+  "NEXT Index",
+  "Max ← Numbers[1]",
+  "FOR Index ← 2 TO 10",
+  "    IF Numbers[Index] > Max THEN Max ← Numbers[Index]",
+  "NEXT Index",
+  "OUTPUT Max"
+], done: "Declare, fill, start Max, search, output." });
+
+Lib.order($("#o2"), { prompt: "Put these lines in order to total every cell of the 2D array Amount[1:3, 1:4].", items: [
+  "Total ← 0",
+  "FOR Row ← 1 TO 3",
+  "    FOR Column ← 1 TO 4",
+  "        Total ← Total + Amount[Row, Column]",
+  "    NEXT Column",
+  "NEXT Row",
+  "OUTPUT Total"
+], done: "Zero the total, outer loop, inner loop, add, close both loops, output." });
+
+Lib.match($("#m1"), { prompt: "Names[1:4] holds \"Ali\", \"Bea\", \"Cy\", \"Dee\" (first index 1). Match each expression to its value.", pairs: [
+  ["Names[1]", "\"Ali\""],
+  ["Names[3]", "\"Cy\""],
+  ["Names[4]", "\"Dee\""],
+  ["Names[Index] when Index = 2", "\"Bea\""],
+  ["Names[Index + 1] when Index = 2", "\"Cy\""],
+  ["LENGTH(Names[3])", "2"]
+] });
+
+Lib.calc($("#c1"), { qs: [
+  { q: "What is Marks[3]?", a: 78, sol: "The third element is 78." },
+  { q: "What is Marks[1] + Marks[5]?", a: 153, sol: "62 + 91 = 153." },
+  { q: "What is the total of all five marks?", a: 326, sol: "62 + 45 + 78 + 50 + 91 = 326." },
+  { q: "How many marks are 50 or more?", a: 4, sol: "62, 78, 50 and 91." },
+  { q: "What is the first loop index if the array is indexed from 0?", a: 0, sol: "0." },
+  { q: "What is Amount[2,3]?", a: 8, sol: "Row 2, column 3 is 8." },
+  { q: "How many elements are in a 2D array with 3 rows and 4 columns?", a: 12, sol: "3 × 4 = 12." },
+  { q: "What is the total of row 3 of Amount (6, 2, 4, 7)?", a: 19, sol: "6 + 2 + 4 + 7 = 19." },
+  { q: "How many times does the inner loop body run for FOR Row ← 1 TO 3 containing FOR Column ← 1 TO 4?", a: 12, sol: "3 × 4 = 12." }
+] });
+
+Lib.quiz($("#qz1"), { qs: [
+  { q: "What does an array store?", opts: ["Many values of the same data type", "Only one value", "Values of different types", "Only text"], a: 0, why: "Elements of the same data type, under one name." },
+  { q: "What is an index?", opts: ["The position of an element", "The array's data type", "A loop", "The array's name"], a: 0, why: "It identifies the element's position." },
+  { q: "Which declares an array of 30 strings?", opts: ["DECLARE Names : ARRAY[1:30] OF STRING", "DECLARE Names : STRING", "Names ← 30", "ARRAY Names"], a: 0, why: "The range and data type are stated." },
+  { q: "How many indexes does a 2D array element need?", opts: ["Two", "One", "Three", "None"], a: 0, why: "A row and a column." },
+  { q: "Which loops read every cell of a 2D array?", opts: ["Nested loops", "Only one FOR loop", "A CASE statement", "A procedure"], a: 0, why: "Rows in the outer loop, columns in the inner." },
+  { q: "What error occurs if you use Marks[6] in an array indexed 1 to 5?", opts: ["Index out of range", "Syntax error", "None", "Overflow"], a: 0, why: "The element does not exist." },
+  { q: "What is Marks[Index]?", opts: ["The element at the position stored in Index", "The number Index", "The array size", "A constant"], a: 0, why: "A variable can be used as the index." },
+  { q: "In Python, the first element of a list has index…", opts: ["0", "1", "−1", "10"], a: 0, why: "Python indexes start at 0." }
+] });
+
+Lib.cards($("#fc1"), { cards: [
+  ["Array", "A fixed-length structure that holds several values of the same data type under one name."],
+  ["Element", "A single value in an array."],
+  ["Index", "The position number used to access an element."],
+  ["1D array", "An array with one index: a list."],
+  ["2D array", "An array with two indexes: a table of rows and columns."],
+  ["Lower bound", "The first index of an array (often 0 or 1)."],
+  ["Upper bound", "The last index of an array."],
+  ["Nested iteration", "A loop inside a loop, used to visit every cell of a 2D array."],
+  ["DECLARE", "Pseudocode keyword used to declare a variable or array and its data type."],
+  ["Index out of range", "An error caused by using an index outside the bounds of the array."]
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

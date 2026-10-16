@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Indirect Taxes, Subsidies and Tradable Permits</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Economics · 9708 · Syllabus 8.1 · Part 2 of 4</div>
+  <h1>Indirect Taxes, Subsidies and Tradable Permits</h1>
+  <p class="lead">The price-based tools for market failure: how a tax shifts supply and who bears it, how a subsidy works, and how permits cap pollution at the lowest cost. Animated diagrams built from numbers, labs, drills and the past paper questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This part in four sentences</h3>
+  <p>An <b>indirect tax</b> raises the cost of supply, so price rises and quantity falls, and an <b>external cost</b> can be corrected if the tax equals it. A <b>subsidy</b> lowers the cost of supply, so price falls and quantity rises, which suits goods with <b>external benefits</b>. <b>Tradable permits</b> fix the total amount of pollution and let firms trade the right to emit, so the cap is met at the lowest cost. All three use the price mechanism rather than orders, but each depends on the government getting the size or the cap right.</p></div>
+  <h2>1 · Indirect taxes and who pays</h2>
+  <p>A per-unit tax shifts the supply curve <b>up</b> by the amount of the tax. The price consumers pay rises, the price producers receive falls, and the quantity falls. The <b>incidence</b> (who bears the burden) depends on elasticities.</p>
+  <ul>
+    <li>If <b>demand is inelastic</b> (steep), consumers bear most of the tax and quantity falls little.</li>
+    <li>If <b>supply is inelastic</b>, producers bear most of it.</li>
+    <li>A tax on a demerit good with inelastic demand raises revenue but cuts consumption little. It is also often <b>regressive</b> (takes a bigger share of low incomes).</li>
+  </ul>
+  <p>A <b>subsidy</b> works the other way: supply shifts down, the price falls and the quantity rises. The cost to the government is the subsidy per unit times the quantity.</p>
+
+  <h2>2 · Who really pays? Elasticity and incidence</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Situation</th><th>Who bears more of the tax</th><th>Effect on quantity</th></tr>
+    <tr><td>Demand inelastic (steep), supply elastic</td><td>Consumers</td><td>Falls only a little</td></tr>
+    <tr><td>Demand elastic, supply inelastic (steep)</td><td>Producers</td><td>Falls a little</td></tr>
+    <tr><td>Both elastic</td><td>Shared</td><td>Falls a lot</td></tr>
+  </table></div>
+  <p>This is why a tax on cigarettes raises plenty of revenue but may not cut smoking much, and why a tax is better at reducing consumption when demand is elastic. Use the Explore tab to see it.</p>
+
+  <h2>3 · Subsidies</h2>
+  <p>A per-unit subsidy shifts the supply curve <b>down</b> by the subsidy. In the market with demand P = 100 − Q and supply P = 20 + Q, a $20 subsidy moves the equilibrium from 40 units at $60 to <b>50 units</b>: consumers pay <b>$50</b>, producers receive <b>$70</b>, and the cost to the government is $20 x 50 = <b>$1000</b>. The gain is shared, here equally, and again the split depends on elasticities.</p>
+  <ul>
+    <li><b>Why:</b> positive externalities and merit goods are under-consumed, so a subsidy moves output towards the social optimum.</li>
+    <li><b>Costs:</b> paid by taxpayers (an opportunity cost), may go to people who would have bought anyway, and is hard to set at the right level.</li>
+  </ul>
+  <h2>4 · Tradable pollution permits (cap and trade)</h2>
+  <p>The government sets a <b>cap</b> on total emissions and issues permits. Firms that can cut pollution cheaply sell permits to firms for which cutting is costly. The total cap is met, but at <b>lower total cost</b> than forcing every firm to cut by the same amount. Over time the cap can be lowered.</p>
+
+  <ul>
+    <li>With no trading, each of two firms must cut by 5 units. A cuts a unit for $2 and B for $8, so the total cost is 5 x 2 + 5 x 8 = $50.</li>
+    <li>With trading, A cuts all 10 units for $20 and sells its spare permits to B, which avoids the dearer cuts. The cap is the same, but the total cost is $20.</li>
+  </ul>
+  <h2>5 · Choosing between them</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Tool</th><th>Strength</th><th>Weakness</th></tr>
+    <tr><td>Tax</td><td>Raises revenue; firms choose how to cut</td><td>Hard to set equal to the external cost; regressive; little effect if demand is inelastic</td></tr>
+    <tr><td>Subsidy</td><td>Encourages good outputs; popular</td><td>Costs taxpayers; may be wasted</td></tr>
+    <tr><td>Permits</td><td>Fixes the amount of pollution; lowest cost cut</td><td>Cap may be too high; needs monitoring; prices can swing</td></tr>
+  </table></div>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · An indirect tax and who pays it</h2><p>A $20 per unit tax on the market with demand P = 100 − Q and supply P = 20 + Q.</p><div id="stC"></div>
+  <h2>2 · A subsidy</h2><p>The same market with a $20 per unit subsidy.</p><div id="stS"></div>
+  <h2>3 · Tradable pollution permits</h2><p>Two firms, each emitting 10 units, with a cap of 10 in total. A cuts a unit for $2 and B for $8. Permits trade at $5.</p><div id="stP"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Who pays the tax?</h2>
+  <p>Set the tax and how responsive supply is. A flat supply curve (elastic) puts more of the burden on consumers; a steep one puts more on producers. Demand is P = 100 − Q.</p>
+  <div class="card"><div class="grid2"><div><div id="g2"></div><div id="g3"></div>
+    <div class="readout"><div><small>Consumers pay</small><strong id="s1"></strong></div><div><small>Producers receive</small><strong id="s2"></strong></div><div><small>Consumer share of tax</small><strong id="s3"></strong></div><div><small>Tax revenue</small><strong id="s4"></strong></div></div>
+    <div class="verdict" id="sv"></div></div>
+    <div><svg id="labB" viewBox="0 0 420 300" role="img" aria-label="Supply and demand with a per unit tax showing consumer and producer burden"></svg></div></div></div>
+
+  <h2>Lab 2 · Trading pollution permits</h2>
+  <p>Firm A can cut a unit of pollution for $2. Firm B needs $8. Each emits 10 units and the cap allows 10 in total (5 permits each). Set a permit price and see whether trading cuts the total cost.</p>
+  <div class="card"><div class="grid2"><div><div id="g4"></div>
+    <div class="readout"><div><small>Firm A net cost</small><strong id="t1"></strong></div><div><small>Firm B net cost</small><strong id="t2"></strong></div><div><small>Total cost</small><strong id="t3"></strong></div></div>
+    <div class="verdict" id="tv"></div></div>
+    <div><svg id="labC" viewBox="0 0 420 260" role="img" aria-label="Bars showing each firm's net cost and the total with and without permit trading"></svg></div></div></div>
+
+  <h2>Lab 3 · Who gains from the subsidy?</h2>
+  <p>Demand is P = 100 − Q and supply is P = 20 + Q. Set the subsidy and read off what consumers pay, what producers receive and what it costs.</p>
+  <div class="card"><div class="grid2"><div><div id="g7"></div>
+    <div class="readout"><div><small>Consumers pay</small><strong id="b1"></strong></div><div><small>Producers receive</small><strong id="b2"></strong></div><div><small>Quantity</small><strong id="b3"></strong></div><div><small>Cost to government</small><strong id="b4"></strong></div></div>
+    <div class="verdict" id="bv"></div></div>
+    <div><svg id="labF" viewBox="0 0 420 300" role="img" aria-label="Supply and demand with a per unit subsidy showing what consumers pay and producers receive"></svg></div></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Tax, subsidy or permits?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Match the word to its meaning</h2><div id="m1" class="card"></div>
+  <h2>3 · Put the tax explanation in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Calculations</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Taxes on tobacco and sugary drinks</h3><p>Governments tax cigarettes heavily and several countries tax sugary drinks. Demand for cigarettes is inelastic, so the tax raises large revenue but may cut smoking only modestly. Much of the burden falls on lower-income smokers.</p><div class="use"><b>Exam use:</b> a tax on a demerit good. Link the effect to elasticity, mention regressivity, and compare with information campaigns.</div></div>
+  <div class="rw"><h3>Emissions trading</h3><p>The European Union runs a cap and trade scheme covering power stations and heavy industry. Firms that cut emissions cheaply can sell spare permits. The cap is tightened over time.</p><div class="use"><b>Exam use:</b> tradable permits. Say the total is capped and the cost of cutting is minimised. Evaluate: the cap may be set too high, and permit prices may swing.</div></div>
+  <div class="rw"><h3>Subsidies for electric vehicles and solar panels</h3><p>Many governments have paid part of the cost of electric cars or solar panels to speed up a switch away from fossil fuels. Prices to buyers are lower and demand is higher, but taxpayers pay, and some buyers would have bought anyway.</p><div class="use"><b>Exam use:</b> a subsidy for a good with positive externalities. Evaluate: cost, who benefits, and whether the subsidy equals the external benefit.</div></div>
+  <div class="rw"><h3>Congestion and parking permits</h3><p>Some cities have tried tradable parking permits or congestion charges to cut road use. The idea is to put a price on a cost drivers otherwise ignore.</p><div class="use"><b>Exam use:</b> a Paper 3 question asked why tradable parking permits might fail: if too few households own extra cars, the permit market is very small.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Past paper questions on taxes, subsidies and permits</h2>
+  <p>We searched the A Level Economics papers in the folder (2020 to 2025). The long written questions on taxes and subsidies for externalities sit in syllabus 7.4, part 3 (policies for externalities). Here are the Paper 3 multiple choice questions on the tools themselves, and a practice question with a model answer. Mark scheme points are summarised in our own words, not copied.</p>
+  <h2>A · Practice question with a model answer</h2>
+  <details class="eq"><summary>Practice (not a past paper question) <span class="mark">12 marks</span> Using a diagram, explain who is likely to bear most of an indirect tax on cigarettes.</summary><div class="body">
+    <div class="tip"><b class="h">Plan</b>Define an indirect tax and show S shifting up. Mark the price consumers pay, the price producers receive and the tax revenue. Link the split to elasticity. Evaluate.</div>
+<div class="key"><span class="k"><i></i>K</span><span class="a"><i></i>A</span><span class="n"><i></i>N</span><span class="e"><i></i>E</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">An indirect tax is a tax on spending, charged per unit on producers, which raises their cost of supply, so the supply curve shifts up by the amount of the tax.</span></p>
+    <p><span class="mk n" data-t="N">Demand for cigarettes is likely to be price inelastic because they are addictive and have few substitutes, so the demand curve is steep. When supply shifts up, the price rises by a large part of the tax, and the quantity falls by only a small amount.</span> <span class="mk a" data-t="A">Smokers are therefore likely to bear most of the tax, and producers keep a larger share of the price, while the government collects large revenue because so many units are still sold.</span></p>
+    <p><span class="mk e" data-t="E">The split could differ in the long run, because demand may become more elastic as people quit or switch to alternatives, and because tax is often a larger share of low incomes. Overall, consumers are likely to bear most of the burden, which suits raising revenue more than cutting consumption.</span></p></div>
+  </div></details>
+  <h2>B · Multiple choice questions (Paper 3)</h2>
+  <p>Choose an answer, then read the reason. Source: paper code and question number.</p>
+  <div id="qz2"></div>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Draw the tax as a shift of supply up by the tax</b>, then label the price consumers pay, the price producers receive, the new quantity and the revenue box.</li>
+    <li><b>Talk about elasticity and incidence.</b> Inelastic demand means little change in quantity and more of the burden on consumers.</li>
+    <li><b>A tax equal to the external cost internalises it.</b> Say so, and then say that the government may not know the right figure.</li>
+    <li><b>For a subsidy, shift supply down</b> and show the cost as subsidy times quantity. Link it to positive externalities and merit goods.</li>
+    <li><b>For permits, say the total is capped and the cost of cutting is minimised.</b> Evaluate the level of the cap and permit price swings.</li>
+    <li><b>Compare the tools</b> in evaluation: cost, revenue, certainty about the outcome and who is affected.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Tax incidence</td><td>"Because demand is inelastic, consumers bear most of the tax and the quantity falls only slightly."</td></tr>
+    <tr><td>Internalise</td><td>"A tax equal to the external cost could internalise the externality and move output towards the social optimum."</td></tr>
+    <tr><td>Subsidy</td><td>"A subsidy lowers the cost of supply, so price falls and quantity rises, but it is paid for by taxpayers."</td></tr>
+    <tr><td>Permits</td><td>"Tradable permits cap total pollution while allowing firms with low abatement costs to cut more and sell their permits."</td></tr>
+  </table></div>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Explain</td><td>Give reasons, with a chain of cause and effect.</td></tr>
+    <tr><td>Assess</td><td>Judge how important or effective something is, with reasons.</td></tr>
+    <tr><td>Evaluate</td><td>Weigh the arguments and reach a supported conclusion.</td></tr>
+  </table></div>
+  <h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+/* ---------- model: demand P = 100 - Q, supply P = 20 + Q (equilibrium Q = 40, P = 60) ---------- */
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const X = (q) => 70 + q * 7.5, Y = (p) => 330 - p * 3;
+const axes = () => SV.line(70, 330, 750, 330) + SV.line(70, 330, 70, 20) + SV.text(750, 358, "Quantity", "sm", { "text-anchor": "end" }) + SV.text(76, 24, "Price ($)", "sm");
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const marketLines = (s) => (s.d > 0 ? SV.line(X(0), Y(100), X(90), Y(10), "c1", op(s.d)) + SV.text(X(90) - 4, Y(10) - 8, "D", "lbl bd t1", { "text-anchor": "end", ...op(s.d) }) : "") +
+  (s.s > 0 ? SV.line(X(0), Y(20), X(80), Y(100), "c2", op(s.s)) + SV.text(X(80) - 4, Y(100) + 16, "S", "lbl bd t2", { "text-anchor": "end", ...op(s.s) }) : "");
+const eqMark = (s) => s.eq > 0 ? SV.line(X(40), Y(60), X(40), 330, "gr", op(s.eq)) + SV.line(70, Y(60), X(40), Y(60), "gr", op(s.eq)) + SV.circle(X(40), Y(60), 6, "dot3", op(s.eq)) + SV.text(66, Y(60) + 4, "60", "sm bd", { "text-anchor": "end", ...op(s.eq) }) + SV.text(X(40), 350, "40", "lbl bd", { "text-anchor": "middle", ...op(s.eq) }) : "";
+
+/* indirect tax (Watch 3) */
+function taxDraw(s) {
+  let o = axes() + marketLines(s) + eqMark(s);
+  if (s.tax > 0) o += SV.line(X(0), Y(40), X(80), Y(120), "c4", { "stroke-dasharray": "6 5", ...op(s.tax) }) + SV.text(X(60), Y(100) - 0, "S + tax $20", "lbl bd t4", { ...halo, ...op(s.tax) });
+  if (s.res > 0) o += SV.rect(70, Y(70), X(30) - 70, Y(60) - Y(70), "f1", op(s.res)) + SV.rect(70, Y(60), X(30) - 70, Y(50) - Y(60), "f4", op(s.res)) +
+    SV.poly([[X(30), Y(70)], [X(30), Y(50)], [X(40), Y(60)]], "f2", op(s.res)) + SV.line(X(30), Y(70), X(30), 330, "gr", op(s.res)) + SV.circle(X(30), Y(70), 6, "dot4", op(s.res)) + SV.circle(X(30), Y(50), 6, "dot4", op(s.res)) +
+    SV.text(66, Y(70) + 4, "70", "sm bd", { "text-anchor": "end", ...op(s.res) }) + SV.text(66, Y(50) + 4, "50", "sm bd", { "text-anchor": "end", ...op(s.res) }) + SV.text(X(30), 350, "30", "lbl bd", { "text-anchor": "middle", ...op(s.res) }) +
+    SV.text(X(15), Y(65) + 4, "paid by consumers $10", "lbl bd t1", { "text-anchor": "middle", ...halo, ...op(s.res) }) + SV.text(X(15), Y(55) + 4, "paid by producers $10", "lbl bd t4", { "text-anchor": "middle", ...halo, ...op(s.res) }) + SV.text(X(30) + 12, Y(60) - 14, "welfare loss", "sm bd t2", { ...halo, ...op(s.res) });
+  return o;
+}
+Lib.stepper($("#stC"), { w: 780, h: 370, label: "A per unit tax shifting supply up and the burden shared between consumers and producers", base: { d: 0, s: 0, eq: 0, tax: 0, res: 0 }, draw: taxDraw, tween: 800, dwell: 5600, steps: [
+  { cap: "<b>The free market.</b> Equilibrium at $60 and 40 units.", s: { d: 1, s: 1, eq: 1 } },
+  { cap: "<b>The tax.</b> A tax of $20 on each unit sold raises every supplier's cost by $20, so the supply curve shifts <b>up by $20</b> (a vertical distance equal to the tax).", s: { d: 1, s: 1, eq: 0.6, tax: 1 } },
+  { cap: "<b>The new equilibrium.</b> Consumers now pay <b>$70</b> and quantity falls to <b>30</b>. Producers receive $70 − $20 = <b>$50</b> after paying the tax. Each side bears $10 of the $20: the burden is shared equally here because demand and supply have equal slopes.", s: { d: 1, s: 1, eq: 0.6, tax: 1, res: 1 } },
+  { cap: "<b>Tax revenue</b> is $20 × 30 = <b>$600</b>. The red triangle is the <b>welfare loss</b> from the fall in output, the units between 30 and 40 that were worth more than they cost. If the tax is set equal to an external cost, this loss is more than offset by correcting the externality.", s: { d: 1, s: 1, eq: 0.6, tax: 1, res: 1 } },
+] });
+
+/* subsidy (Watch 2) */
+function subDraw(s) {
+  let o = axes() + marketLines(s) + eqMark(s);
+  if (s.sub > 0) o += SV.line(X(0), Y(0), X(80), Y(80), "c3", { "stroke-dasharray": "6 5", ...op(s.sub) }) + SV.text(X(68), Y(68) + 22, "S − subsidy $20", "lbl bd t3", { ...halo, ...op(s.sub) });
+  if (s.res > 0) o += SV.rect(70, Y(60), X(50) - 70, Y(50) - Y(60), "f1", op(s.res)) + SV.rect(70, Y(70), X(50) - 70, Y(60) - Y(70), "f4", op(s.res)) + SV.line(X(50), Y(70), X(50), 330, "gr", op(s.res)) +
+    SV.circle(X(50), Y(50), 6, "dot1", op(s.res)) + SV.circle(X(50), Y(70), 6, "dot4", op(s.res)) + SV.text(66, Y(70) + 4, "70", "sm bd", { "text-anchor": "end", ...op(s.res) }) + SV.text(66, Y(50) + 4, "50", "sm bd", { "text-anchor": "end", ...op(s.res) }) + SV.text(X(50), 350, "50", "lbl bd", { "text-anchor": "middle", ...op(s.res) }) +
+    SV.text(X(25), Y(55) + 4, "consumers gain $10 a unit", "lbl bd t1", { "text-anchor": "middle", ...halo, ...op(s.res) }) + SV.text(X(25), Y(65) + 4, "producers gain $10 a unit", "lbl bd t4", { "text-anchor": "middle", ...halo, ...op(s.res) });
+  return o;
+}
+Lib.stepper($("#stS"), { w: 780, h: 370, label: "A per unit subsidy shifting supply down and the gain shared between consumers and producers", base: { d: 0, s: 0, eq: 0, sub: 0, res: 0 }, draw: subDraw, tween: 800, dwell: 5600, steps: [
+  { cap: "<b>The free market.</b> Equilibrium at $60 and 40 units.", s: { d: 1, s: 1, eq: 1 } },
+  { cap: "<b>The subsidy.</b> A payment of $20 on each unit lowers every supplier's cost by $20, so the supply curve shifts <b>down by $20</b>.", s: { d: 1, s: 1, eq: 0.6, sub: 1 } },
+  { cap: "<b>The new equilibrium.</b> Quantity rises to <b>50</b>. Consumers pay <b>$50</b>, a fall of $10. Producers receive $50 + $20 = <b>$70</b>, a rise of $10. Each side gains half of the subsidy here because demand and supply have equal slopes.", s: { d: 1, s: 1, eq: 0.6, sub: 1, res: 1 } },
+  { cap: "<b>The cost to the government</b> is $20 × 50 = <b>$1000</b>, paid by taxpayers. For a good with a positive externality, the extra output moves the market towards the social optimum.", s: { d: 1, s: 1, eq: 0.6, sub: 1, res: 1 } },
+] });
+
+/* permits (Watch 3) */
+function permDraw(s) {
+  const base = 250, H = (v) => v * 4;
+  let o = SV.line(60, base, 740, base) + SV.text(62, 24, "Cost ($)", "sm");
+  [["Firm A", 110, 10, -5], ["Firm B", 330, 40, 25], ["Total", 550, 50, 20]].forEach(([l, x, n, t]) => {
+    if (s.n > 0) { const h = H(n) * s.n; o += SV.rect(x, base - h, 70, h, "f2", op(s.n)) + SV.text(x + 35, base - h - 6, "$" + n, "lbl bd", { "text-anchor": "middle", ...op(s.n) }) + SV.text(x + 35, 304, "No trading", "sm", { "text-anchor": "middle", ...op(s.n) }); }
+    if (s.t > 0) { const h = H(Math.abs(t)) * s.t, up = t >= 0; o += SV.rect(x + 80, up ? base - h : base, 70, h, "f3", op(s.t)) + SV.text(x + 115, up ? base - h - 6 : base + h + 16, (t < 0 ? "−" : "") + "$" + Math.abs(t), "lbl bd", { "text-anchor": "middle", ...op(s.t) }) + SV.text(x + 115, 304, "Trading at $5", "sm", { "text-anchor": "middle", ...op(s.t) }); }
+    o += SV.text(x + 75, 332, l, "lbl bd", { "text-anchor": "middle" });
+  });
+  return o;
+}
+Lib.stepper($("#stP"), { w: 780, h: 345, label: "Costs of cutting pollution for two firms with and without permit trading", base: { n: 0, t: 0 }, draw: permDraw, tween: 800, dwell: 5600, steps: [
+  { cap: "<b>The cap.</b> Each firm emits 10 units. The government wants no more than 10 in total, so it issues <b>5 permits to each firm</b>.", s: { n: 0, t: 0 } },
+  { cap: "<b>No trading.</b> Each firm must cut 5 units. A pays 5 × $2 = $10, B pays 5 × $8 = $40: a total cost of <b>$50</b>.", s: { n: 1, t: 0 } },
+  { cap: "<b>Trading at $5.</b> A cuts all 10 units for $20 and sells 5 spare permits for $25, so its net cost is <b>−$5</b>. B buys 5 permits for $25 instead of cutting its own pollution at $8 a unit.", s: { n: 1, t: 1 } },
+  { cap: "<b>The same cap, a lower cost.</b> The real cost of cutting falls from $50 to <b>$20</b>, a saving of $30, because cuts are made where they are cheapest. Both firms are better off than with no trading.", s: { n: 1, t: 1 } },
+] });
+/* ---------- Lab 2: tax incidence ---------- */
+function lab2() {
+  if (!$("#tx") || !$("#kk")) return;
+  const t = +$("#tx").value, k = +$("#kk").value, q0 = 80 / (1 + k), p0 = 100 - q0, q1 = (80 - t) / (1 + k), pc = 100 - q1, pp = pc - t;
+  $("#s1").textContent = "$" + Lib.fmtN(pc, 1); $("#s2").textContent = "$" + Lib.fmtN(pp, 1); $("#s3").textContent = t === 0 ? "–" : Math.round(((pc - p0) / t) * 100) + "%"; $("#s4").textContent = "$" + Lib.fmtN(t * q1, 0);
+  $("#sv").textContent = t === 0 ? "No tax: the market is at its equilibrium."
+    : k < 0.9 ? `Supply is flat (elastic). Producers can cut output easily, so most of the tax is passed on: consumers pay $${Lib.fmtN(pc - p0, 1)} of the $${t}. Quantity falls from ${Lib.fmtN(q0, 1)} to ${Lib.fmtN(q1, 1)}.`
+    : k > 1.1 ? `Supply is steep (inelastic). Producers cannot adjust output easily, so they bear most of the tax: consumers pay $${Lib.fmtN(pc - p0, 1)} of the $${t}.`
+    : `Supply and demand have equal slopes, so the tax is shared equally: consumers pay $${Lib.fmtN(pc - p0, 1)} and producers $${Lib.fmtN(p0 - pp, 1)}.`;
+  const x = (v) => 40 + v * 3.6, y = (v) => 270 - v * 2.4;
+  let o = SV.line(40, 270, 400, 270) + SV.line(40, 270, 40, 20) + SV.text(396, 292, "Quantity", "sm", { "text-anchor": "end" }) + SV.text(46, 24, "Price ($)", "sm");
+  o += SV.rect(40, y(pc), x(q1) - 40, y(p0) - y(pc), "f1") + SV.rect(40, y(p0), x(q1) - 40, y(pp) - y(p0), "f4");
+  const sy = (q, add) => 20 + add + k * q;
+  o += SV.line(x(0), y(100), x(100), y(0), "c1") + SV.line(x(0), y(20), x(Math.min(100, 80 / k)), y(sy(Math.min(100, 80 / k), 0)), "c2") + (t > 0 ? SV.line(x(0), y(20 + t), x(Math.min(100, (100 - 20 - t) / k)), y(sy(Math.min(100, (100 - 20 - t) / k), t)), "c4", { "stroke-dasharray": "6 5" }) : "");
+  o += SV.circle(x(q1), y(pc), 6, "dot1") + SV.circle(x(q1), y(pp), 6, "dot4") + SV.text(x(q1) + 10, y(pc) - 6, "consumers pay", "sm bd t1") + SV.text(x(q1) + 10, y(pp) + 16, "producers receive", "sm bd t4");
+  $("#labB").innerHTML = o;
+}
+Lib.slider($("#g2"), { id: "tx", label: "Tax per unit ($): ", min: 0, max: 40, step: 5, value: 20, fmt: (v) => v, onInput: lab2 });
+Lib.slider($("#g3"), { id: "kk", label: "Supply steepness (1 = same as demand): ", min: 0.25, max: 4, step: 0.25, value: 1, fmt: (v) => Lib.fmtN(v, 2), onInput: lab2 });
+
+/* ---------- Lab 3: permits ---------- */
+function lab3() {
+  if (!$("#pp")) return;
+  const p = +$("#pp").value, trade = p > 2 && p < 8, a = trade ? 20 - 5 * p : 10, b = trade ? 5 * p : 40, tot = trade ? 20 : 50;
+  $("#t1").textContent = "$" + Lib.fmtN(a, 1); $("#t2").textContent = "$" + Lib.fmtN(b, 1); $("#t3").textContent = "$" + tot;
+  $("#tv").textContent = trade ? `At $${p} a permit, A abates all 10 units (cost $20) and sells 5 permits for $${Lib.fmtN(5 * p, 1)}. B buys them instead of cutting its own pollution. The cap of 10 is still met, but the real cost falls from $50 to $20 and both firms gain: a saving of $30 shared out by the permit price.`
+    : p <= 2 ? "At $2 or less, A will not sell permits (it costs A $2 to cut a unit, so the permit must fetch more than that). No trade: each firm cuts 5 units, costing $50 in all."
+    : "At $8 or more, B will not buy (it is cheaper for B to cut a unit at $8). No trade: each firm cuts 5 units, costing $50 in all.";
+  const H = (v) => 150 * (v / 50), bw = 70;
+  let o = SV.line(30, 190, 400, 190) + SV.text(32, 22, "Cost ($)", "sm");
+  [[40, a, "f1", "Firm A net"], [140, b, "f4", "Firm B net"], [240, tot, trade ? "f3" : "f2", "Total real cost"]].forEach(([x, v, c, l]) => { const up = v >= 0, h = Math.abs(H(v)); o += SV.rect(x, up ? 190 - h : 190, bw, h, c) + SV.text(x + bw / 2, up ? 190 - h - 6 : 190 + h + 14, (up ? "" : "−") + "$" + Lib.fmtN(Math.abs(v), 1), "lbl bd", { "text-anchor": "middle" }) + SV.text(x + bw / 2, 236, l, "sm", { "text-anchor": "middle" }); });
+  o += SV.line(240, 190 - H(50), 240 + bw, 190 - H(50), "gr", { "stroke-dasharray": "4 3" }) + SV.text(240 + bw + 6, 190 - H(50) + 4, "no trade: 50", "sm");
+  $("#labC").innerHTML = o;
+}
+Lib.slider($("#g4"), { id: "pp", label: "Permit price ($): ", min: 0, max: 10, step: 0.5, value: 5, fmt: (v) => v, onInput: lab3 });
+
+/* ---------- Lab 3: subsidy ---------- */
+function lab6() {
+  if (!$("#sb")) return;
+  const s = +$("#sb").value, q = (80 + s) / 2, pc = 100 - q, pp = pc + s, cost = s * q;
+  $("#b1").textContent = "$" + Lib.fmtN(pc, 1); $("#b2").textContent = "$" + Lib.fmtN(pp, 1); $("#b3").textContent = Lib.fmtN(q, 1); $("#b4").textContent = "$" + Lib.fmtN(cost, 0);
+  $("#bv").textContent = s === 0 ? "No subsidy: the market is at its equilibrium of $60 and 40 units."
+    : `Consumers pay $${Lib.fmtN(pc, 1)}, $${Lib.fmtN(60 - pc, 1)} less than before, and producers receive $${Lib.fmtN(pp, 1)}, $${Lib.fmtN(pp - 60, 1)} more. Output rises from 40 to ${Lib.fmtN(q, 1)}. The government pays ${s} on each of ${Lib.fmtN(q, 1)} units: $${Lib.fmtN(cost, 0)}.`;
+  const x = (v) => 40 + v * 3.6, y = (v) => 270 - v * 2.4;
+  let o = SV.line(40, 270, 400, 270) + SV.line(40, 270, 40, 20) + SV.text(396, 292, "Quantity", "sm", { "text-anchor": "end" }) + SV.text(46, 24, "Price ($)", "sm");
+  o += SV.rect(40, y(60), x(q) - 40, y(pc) - y(60), "f1") + SV.rect(40, y(pp), x(q) - 40, y(60) - y(pp), "f4");
+  o += SV.line(x(0), y(100), x(100), y(0), "c1") + SV.line(x(0), y(20), x(80), y(100), "c2") + (s > 0 ? SV.line(x(0), y(20 - s), x(80), y(100 - s), "c3", { "stroke-dasharray": "6 5" }) : "");
+  o += SV.circle(x(q), y(pc), 6, "dot1") + SV.circle(x(q), y(pp), 6, "dot4") + SV.text(x(q) + 10, y(pc) + 16, "consumers pay", "sm bd t1") + SV.text(x(q) + 10, y(pp) - 6, "producers receive", "sm bd t4");
+  $("#labF").innerHTML = o;
+}
+Lib.slider($("#g7"), { id: "sb", label: "Subsidy per unit ($): ", min: 0, max: 40, step: 5, value: 20, fmt: (v) => v, onInput: lab6 });
+
+/* ---------- Practise ---------- */
+Lib.classify($("#cl1"), {
+  prompt: "Which tool fits each problem best?",
+  buckets: [{ label: "Indirect tax" }, { label: "Subsidy" }, { label: "Tradable permits" }],
+  items: [
+    { text: "Cigarettes (a demerit good)", b: 0 }, { text: "Plastic bags", b: 0 }, { text: "Fuel with a carbon cost", b: 0 },
+    { text: "Vaccinations (positive externality)", b: 1 }, { text: "Rooftop solar panels", b: 1 }, { text: "Public transport use", b: 1 },
+    { text: "Power stations with a fixed national limit on emissions", b: 2 }, { text: "Factories that can cut pollution at very different costs", b: 2 },
+  ], done: "Tax and permits for negative externalities, subsidy for positive ones.",
+});
+Lib.match($("#m1"), { prompt: "Match each word to its meaning.", pairs: [
+  ["Indirect tax", "A tax on spending that raises the cost of supply"],
+  ["Specific tax", "A fixed amount per unit"],
+  ["Ad valorem tax", "A percentage of the price"],
+  ["Tax incidence", "How the burden of a tax is shared between buyers and sellers"],
+  ["Subsidy", "A payment that lowers the cost of supply or consumption"],
+  ["Tradable permits", "A cap on pollution with permits that firms can buy and sell"],
+  ["Internalise an externality", "Make the decision maker pay the external cost"],
+], done: "Seven words that cover the price tools." });
+Lib.order($("#o1"), { prompt: "Put the explanation of a per-unit tax in order.", items: [
+  "The government imposes a tax per unit on producers",
+  "Costs of supply rise by the amount of the tax, so the supply curve shifts up",
+  "The market price rises and the equilibrium quantity falls",
+  "The burden is shared between consumers and producers, depending on elasticities",
+  "The government collects revenue equal to the tax times the new quantity",
+  "Evaluate: elasticity, whether the tax equals the external cost, and who is hit hardest",
+], done: "This chain works for any indirect tax question." });
+Lib.calc($("#c1"), { qs: [
+  { q: "Demand is P = 100 − Q and supply is P = 20 + Q. A $20 tax shifts supply to P = 40 + Q. What is the new quantity?", a: 30, sol: "100 − Q = 40 + Q gives Q = <b>30</b>." },
+  { q: "What is the government's tax revenue ($)?", a: 600, sol: "20 x 30 = <b>$600</b>." },
+  { q: "The price consumers pay rises from $60 to $70. What share of the $20 tax do consumers bear (%)?", a: 50, sol: "10 ÷ 20 x 100 = <b>50%</b>." },
+  { q: "A $20 subsidy shifts supply to P = Q. What is the new quantity?", a: 50, sol: "100 − Q = Q gives Q = <b>50</b>." },
+  { q: "What is the cost of the subsidy to the government ($)?", a: 1000, sol: "20 x 50 = <b>$1000</b>." },
+  { q: "What price do producers receive after the subsidy ($)?", a: 70, hint: "Consumers pay 50. Add the subsidy.", sol: "50 + 20 = <b>$70</b>." },
+  { q: "Without trading each firm cuts 5 units: A at $2 and B at $8 a unit. With trading A cuts all 10 units. By how much does the total cost fall ($)?", a: 30, sol: "Before: 5 x 2 + 5 x 8 = 50. After: 10 x 2 = 20. Fall = <b>$30</b>." },
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "An indirect tax shifts the supply curve:", opts: ["up by the amount of the tax", "down by the amount of the tax", "to the right", "not at all"], a: 0, why: "The tax is a cost to producers, so supply moves up (to the left)." },
+  { q: "A per-unit tax on a good with inelastic demand will mostly:", opts: ["cut quantity sharply", "raise the price paid by consumers and cut quantity little", "reduce the price paid by consumers", "have no effect on government revenue"], a: 1, why: "Consumers bear most of the burden and quantity changes little." },
+  { q: "A subsidy to producers:", opts: ["raises price and lowers quantity", "lowers price and raises quantity", "lowers price and quantity", "has no effect on price"], a: 1, why: "Supply shifts down, so price falls and quantity rises." },
+  { q: "Tradable pollution permits are most likely to:", opts: ["remove the cap on emissions", "meet a pollution cap at lower total cost", "raise emissions", "make permits free for ever"], a: 1, why: "Firms with low abatement costs cut more and sell permits." },
+  { q: "The best reason for a tax set equal to the external cost is that it:", opts: ["raises more revenue than any other", "makes the decision maker pay the full cost", "stops all pollution", "has no effect on prices"], a: 1, why: "It internalises the externality." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Indirect tax", "A tax on spending, which shifts supply up by the amount of the tax."],
+  ["Specific tax", "A fixed amount per unit sold."],
+  ["Ad valorem tax", "A percentage of the price."],
+  ["Subsidy", "A payment that lowers firms' costs, shifting supply down."],
+  ["Tax incidence", "Who actually bears the burden of a tax, decided by elasticities."],
+  ["Tax revenue", "Tax per unit times quantity sold after the tax."],
+  ["Internalise", "Make the producer or consumer pay the external cost."],
+  ["Tradable permits", "A cap on total pollution with permits that can be traded."],
+  ["Abatement cost", "The cost of reducing a unit of pollution."],
+  ["Regressive tax", "Takes a larger share of income from low earners."],
+] });
+Lib.quiz($("#qz2"), { qs: [
+  { q: "[Feb/March 2024 · 32 · Q11] A government wishes to use market forces to remove a negative externality in the consumption of a good. Which policy is likely to be the most effective?", opts: ["It should provide information about the undesirable side-effects of the good.", "It should give producers a subsidy, to allow consumers to purchase the product more cheaply.", "It should impose an indirect tax on consumers, to reduce consumption to the socially efficient level.", "It should not interfere at all, to allow the free market to generate maximum efficiency."], a: 2, why: "A tax uses the price mechanism (market forces) to cut consumption to the efficient level. A subsidy would raise it." },
+  { q: "[Feb/March 2025 · 32 · Q10] What is not a reason for imposing a tax on producers based on the amount of pollution caused in the production process?", opts: ["Firms have a financial incentive to reduce pollution.", "It is relatively hard to administer and monitor this tax scheme.", "Some firms cause less pollution than others.", "Taxes on pollution reduce negative production externalities."], a: 1, why: "Difficulty of administration is a drawback, not a reason for the tax. A, C and D are arguments in its favour." },
+  { q: "[Feb/March 2025 · 32 · Q11] A government introduced a tax on soft drinks containing sugar. It was forecast that the tax would raise £520m per year, but the tax received was £240m. What is the most likely reason why the tax collected was lower than forecast?", opts: ["a specific tax instead of an ad valorem tax was introduced", "fewer drinks than originally forecast contained sugar", "most retailers did not increase the price of soft drinks", "the demand for soft drinks was price inelastic"], a: 1, why: "If firms reduced the sugar in their drinks, fewer products were taxed. Inelastic demand would have kept revenue high." },
+  { q: "[Feb/March 2022 · 32 · Q13] A government wishes to reduce the negative externalities caused by the use of coal. Which policy should the government use?", opts: ["Impose an indirect tax on the production of hydroelectric power.", "Increase income tax.", "Remove any restrictions on coal production.", "Subsidise wind-powered electricity production."], a: 3, why: "Subsidising a cleaner substitute reduces the use of coal. A and C would increase or not change the use of coal." },
+  { q: "[May/June 2022 · 31 · Q14] A government issues free non-tradeable pollution permits to firms. In a change in legislation, the permits can be traded with other firms. What will be the impact on the profits of the firms that are now buyers or sellers of the permits?", opts: ["buyers decrease, sellers decrease", "buyers decrease, sellers increase", "buyers increase, sellers decrease", "buyers increase, sellers increase"], a: 1, why: "Buyers now pay for permits they used to receive free, so their profit falls; sellers earn revenue from permits they no longer need." },
+  { q: "[May/June 2022 · 32 · Q13] To reduce road congestion caused by parked cars, a local government introduced a system of tradable parking permits. Households were given a permit allowing them to park one car. Households with more than one car could buy extra permits from households with no cars. What is the most likely reason for this policy to fail?", opts: ["Fines for drivers parking without a permit will internalise the externality.", "The local government has a monopoly over the issue of parking permits.", "Those suffering from too many parked cars are compensated by the households owning extra cars.", "Too many households own cars so the market in permits is very small."], a: 3, why: "A permit market needs buyers and sellers. If few households have spare permits to sell, trading cannot work well." },
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

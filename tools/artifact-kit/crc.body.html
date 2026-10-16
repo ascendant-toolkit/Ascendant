@@ -1,0 +1,238 @@
+<style>
+.txin{font:600 1.05rem var(--mono);padding:9px 12px;border-radius:9px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,320px)}
+.sel{font:600 .95rem var(--sans);padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.drill .qline{font-size:1.05rem;font-weight:600;margin:8px 0;font-family:var(--mono);line-height:1.7}
+.drill input.txin{width:min(100%,200px)}
+.drill .fb{font-weight:700;margin-left:8px}.drill .fb.ok{color:var(--good)}.drill .fb.no{color:var(--bad)}
+.bytes{display:flex;gap:14px;flex-wrap:wrap;margin:6px 0}
+.byte{display:flex;flex-direction:column;align-items:center;gap:4px}
+.byte .row8{display:flex;gap:3px}
+.byte small{font:700 .7rem var(--sans);color:var(--muted)}
+.bitb{width:32px;height:38px;border-radius:7px;border:2px solid var(--line);background:var(--surface);color:var(--ink);font:700 1rem var(--mono);cursor:pointer;padding:0}
+.bitb.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.bitb.fl{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.lab{font:700 .7rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 0}
+.pkt{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;margin:8px 0}
+.pkt>div{border:2px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface)}
+.pkt .tr{border-color:var(--warn);background:var(--warn-soft)}
+.pkt small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pkt strong{font:700 1.2rem var(--mono)}
+pre.work{font:600 .95rem/1.6 var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px 14px;overflow-x:auto;margin:10px 0;color:var(--ink)}
+</style>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">IGCSE Computer Science · Chapter 2 · Error detection</div>
+  <h1>Cyclic Redundancy Checks</h1>
+  <p class="lead">How a packet's trailer lets the receiving computer check the payload: count the 1-bits, store the total as a hex value, recount on arrival, and compare.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<!-- LEARN -->
+<section id="learn" role="tabpanel">
+  <div class="card big">
+    <h3>The big idea</h3>
+    <p>A <span class="kw">cyclic redundancy check (CRC)</span> is an error checking method used to check <b>data packets</b>. The sending computer works out a number from the <b>payload</b> and stores it in the <b>trailer</b>. The receiving computer works out the same number from the payload it received and compares the two. <b>Same</b>: no transmission error. <b>Different</b>: the packet is sent again.</p>
+  </div>
+
+  <h2>Where it sits in a packet</h2>
+  <p>A packet has three parts. The <b>header</b> holds things like the destination and the packet number. The <b>payload</b> is the actual data being sent. The <b>trailer</b> marks the end of the packet and holds the error check value.</p>
+  <div class="pkt"><div><small>Header</small><strong style="font-size:.95rem">addresses, packet no.</strong></div><div><small>Payload</small><strong style="font-size:.95rem">the data (bits)</strong></div><div class="tr"><small>Trailer</small><strong style="font-size:.95rem">CRC value (hex)</strong></div></div>
+
+  <h2>The method, step by step</h2>
+  <h3>Sending computer</h3>
+  <ol>
+    <li><b>Add up all the 1-bits</b> in the payload.</li>
+    <li>Write that total as a <b>hex value</b>.</li>
+    <li>Store the hex value in the <b>trailer</b> and send the packet.</li>
+  </ol>
+  <h3>Receiving computer</h3>
+  <ol>
+    <li>When the packet arrives, <b>recalculate the number of 1-bits</b> in the payload.</li>
+    <li><b>Check</b> this value against the one sent in the trailer.</li>
+    <li>If the two values <b>match</b>, no transmission errors have occurred. <b>Otherwise</b> the packet needs to be <b>re-sent</b>.</li>
+  </ol>
+
+  <div class="card"><h3>Worked example</h3>
+    <p>The payload is 4 bytes: <span style="font-family:var(--mono)">11110110 01111011 10111101 11111111</span></p>
+    <div class="tw"><table class="t"><tr><th>Byte</th><th>1-bits</th></tr>
+    <tr><td style="font-family:var(--mono)">11110110</td><td>6</td></tr><tr><td style="font-family:var(--mono)">01111011</td><td>6</td></tr><tr><td style="font-family:var(--mono)">10111101</td><td>6</td></tr><tr><td style="font-family:var(--mono)">11111111</td><td>8</td></tr>
+    <tr><td><b>Total</b></td><td><b>26</b></td></tr></table></div>
+    <p>26 in hex is <b>1A</b> (26 = 1 × 16 + 10, and 10 is A). The trailer stores <b>1A</b>.</p>
+    <p>On arrival the receiver counts again. If it gets 26, it writes 1A, which matches the trailer, so no error. If a bit was damaged and it counts 25 (hex 19), then 19 ≠ 1A, so the packet is re-sent.</p></div>
+
+  <h2>Counting to hex</h2>
+  <p>Hex (base 16) uses the digits 0 to 9 then A to F, where A = 10, B = 11, C = 12, D = 13, E = 14, F = 15. To convert a decimal total to hex, divide by 16. The whole number is the left digit and the remainder is the right digit.</p>
+  <div class="tw"><table class="t"><tr><th>Total of 1-bits</th><th>Working</th><th>Hex</th></tr>
+  <tr><td>9</td><td>0 × 16 + 9</td><td>9 (or 09)</td></tr><tr><td>13</td><td>0 × 16 + 13 (D)</td><td>D (or 0D)</td></tr><tr><td>26</td><td>1 × 16 + 10 (A)</td><td>1A</td></tr><tr><td>40</td><td>2 × 16 + 8</td><td>28</td></tr></table></div>
+
+  <h2>Why bother with hex?</h2>
+  <p>A total like 26 would need 5 bits. Hex is a compact way of writing the number, and it is easy to convert to and from binary. It keeps the trailer short, whatever the size of the payload.</p>
+
+  <h2>What the check can and cannot show</h2>
+  <div class="grid2">
+    <div class="card"><h3>It can</h3><ul><li>Spot a packet where the <b>number of 1-bits has changed</b>, such as a single 1 turning into a 0.</li><li>Trigger a <b>re-send</b>, because a mismatch tells the receiving computer something went wrong (this works with the ARQ process).</li></ul></div>
+    <div class="card"><h3>It cannot</h3><ul><li>Say <b>which bit</b> is wrong. It only says the packet is wrong.</li><li>Spot every error. If one 1 becomes a 0 and one 0 becomes a 1, the count is <b>unchanged</b>, so the values match and the error is missed. Try it in the Explore tab.</li></ul></div>
+  </div>
+</section>
+
+<!-- WATCH -->
+<section id="watch" role="tabpanel" hidden>
+  <p>Press Play, or click the numbered steps. The code on the right is highlighted in step with the diagram.</p>
+  <h2>1 · The sending computer builds the trailer</h2><div id="stA"></div>
+  <h2>2 · A packet's journey, with an error</h2><div id="stB"></div>
+</section>
+
+<!-- EXPLORE -->
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Build the trailer</h2>
+  <p>Click bits to change the payload. The sending computer adds up the 1-bits and stores the total as hex in the trailer.</p>
+  <div class="card">
+    <div class="lab">Payload · click a bit to change it</div><div class="bytes" id="l1b"></div>
+    <div class="readout"><div><small>Total 1-bits</small><strong id="l1n"></strong></div><div><small>As hex</small><strong id="l1h"></strong></div></div>
+    <div class="pkt" id="l1p"></div>
+    <div class="row"><button class="b" id="l1r">Random payload</button><button class="b" id="l1z">Clear</button></div></div>
+
+  <h2>Lab 2 · Send it, damage it, check it</h2>
+  <p>The packet from Lab 1 is sent. Click bits in the payload <b>in transit</b> to damage them, or use the buttons. The receiving computer recounts and compares.</p>
+  <div class="card">
+    <div class="lab">Sent</div><div class="pkt" id="l2s"></div>
+    <div class="lab">In transit · click a bit to flip it (interference)</div><div class="bytes" id="l2r"></div>
+    <div class="row"><button class="b" id="l2a">Flip 1 random bit</button><button class="b" id="l2b">Flip 2 random bits</button><button class="b" id="l2c">Swap a 1 and a 0</button><button class="b" id="l2e">Reset</button></div>
+    <div class="readout"><div><small>Receiver counts</small><strong id="l2n"></strong></div><div><small>As hex</small><strong id="l2h"></strong></div><div><small>Trailer says</small><strong id="l2t"></strong></div></div>
+    <div class="verdict" id="l2v" aria-live="polite"></div></div>
+
+  <h2>Lab 3 · Decimal to hex</h2>
+  <p>Move the slider to a total of 1-bits and see the hex value that would go in the trailer.</p>
+  <div class="card"><div id="l3s"></div>
+    <div class="readout"><div><small>Working</small><strong id="l3w" style="font-size:1.05rem"></strong></div><div><small>Hex</small><strong id="l3h"></strong></div></div></div>
+
+  <h2>Lab 4 · The same steps in code</h2>
+  <p>The sending and receiving steps in exam-style pseudocode and in Python.</p>
+  <div class="card" id="l4"></div>
+</section>
+
+<!-- PRACTISE -->
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Sender or receiver?</h2>
+  <div id="cl1" class="card"></div>
+
+  <h2>2 · Match the term</h2>
+  <div id="m1" class="card"></div>
+
+  <h2>3 · A CRC check in order</h2>
+  <div id="o1" class="card"></div>
+
+  <h2>4 · Calculations</h2>
+  <p class="note">Give hex answers with letters in capitals, for example 1A.</p>
+  <div id="c1"></div>
+
+  <h2>5 · CRC drill (endless)</h2>
+  <div class="card drill" id="drill"></div>
+
+  <h2>6 · Multiple choice</h2>
+  <div id="qz1"></div>
+</section>
+
+<!-- REAL WORLD -->
+<section id="real" role="tabpanel" hidden>
+  <p class="note">Descriptions are kept general. Real systems use more advanced calculations, but the idea is the same as the textbook method: work out a value from the payload, send it in the trailer, recalculate on arrival and compare.</p>
+  <div class="rw"><h3>Loading a web page</h3><p>The page reaches you as many packets. Each packet carries a check value in its trailer. A packet that fails the check is thrown away and requested again, so you rarely see a broken page.</p><div class="use"><b>Exam use:</b> a real example of packets, trailers and re-sending.</div></div>
+  <div class="rw"><h3>Downloading a file</h3><p>A large download is split into packets. If one packet is damaged on the way, only that packet is re-sent, not the whole file.</p><div class="use"><b>Exam use:</b> explains why the check is done per packet.</div></div>
+  <div class="rw"><h3>Mobile networks</h3><p>Radio signals suffer interference, so some packets arrive damaged. The receiving device finds this with the check and asks for the packet again.</p><div class="use"><b>Exam use:</b> links the check to the acknowledgement and re-send process (ARQ).</div></div>
+  <div class="rw"><h3>Video calls</h3><p>Packets carrying sound and picture are checked on arrival. A damaged packet is dropped or re-sent, which is why a poor connection makes a call glitch.</p><div class="use"><b>Exam use:</b> a modern example showing what happens when packets fail the check.</div></div>
+</section>
+
+<!-- EXAM -->
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam-style questions</h2>
+  <p>Open each question for reminders, a model answer and common mistakes. Each underlined phrase earns one mark; the number shows which mark point it is.</p>
+
+  <details class="eq"><summary>Q1 <span class="cmd">State</span> <span class="mark">2 marks</span> State what a cyclic redundancy check (CRC) is used for, and which part of a packet stores the check value.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Purpose, then location.</div>
+    <div class="ans"><span class="mk k" data-t="1">It is used to check data packets for transmission errors.</span> <span class="mk k" data-t="2">The check value is stored in the trailer.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying the header. The header holds addresses and packet numbers.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q2 <span class="cmd">Describe</span> <span class="mark">4 marks</span> Describe how a CRC is used to check for errors in a data packet.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Sender adds up and stores; receiver recalculates and compares; say what happens in each case.</div>
+    <div class="ans"><span class="mk k" data-t="1">The sending computer adds up all the 1-bits in the payload and stores the total as a hex value in the trailer before the packet is sent.</span> <span class="mk k" data-t="2">When the packet arrives, the receiving computer recalculates the number of 1-bits in the payload.</span> <span class="mk k" data-t="3">It checks this value against the one sent in the trailer.</span> <span class="mk k" data-t="4">If the two values match, no transmission errors have occurred; otherwise the packet needs to be re-sent.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Counting the 1-bits in the whole packet. It is the <b>payload</b> only.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q3 <span class="cmd">Calculate</span> <span class="mark">3 marks</span> A payload contains three bytes: 10110010 01101110 11010001. Work out the value stored in the trailer.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Count the 1-bits in each byte, add them, then convert to hex.</div>
+    <pre class="work">10110010  →  4
+01101110  →  5
+11010001  →  4
+total        13   → hex D (or 0D)</pre>
+    <div class="ans"><span class="mk k" data-t="1">Counts the 1-bits in each byte: 4, 5 and 4.</span> <span class="mk k" data-t="2">Total = 13.</span> <span class="mk k" data-t="3">Hex value = D (accept 0D).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing 13 in the trailer. The value is stored as hex, so 13 becomes D.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q4 <span class="cmd">Explain</span> <span class="mark">3 marks</span> A packet arrives with the payload 11110110 01111011 10111101 11111011 and the trailer value 1A. Explain what the receiving computer does and what the result will be.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Recount, convert, compare, then say what the result means.</div>
+    <div class="ans"><span class="mk k" data-t="1">It counts the 1-bits in the payload: 6 + 6 + 6 + 7 = 25.</span> <span class="mk k" data-t="2">25 in hex is 19, which it compares with the trailer value 1A.</span> <span class="mk k" data-t="3">The values do not match, so the packet has an error and needs to be re-sent.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Comparing 25 with 1A. Convert to hex first, or convert 1A to 26.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q5 <span class="cmd">Explain</span> <span class="mark">2 marks</span> A packet is corrupted, but the receiving computer finds that the values match. Explain how this could happen.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Think about what is being counted.</div>
+    <div class="ans"><span class="mk k" data-t="1">Two (or more) bits may have changed, for example one 1 became 0 and one 0 became 1.</span> <span class="mk k" data-t="2">The number of 1-bits is therefore the same, so the recalculated value matches the trailer and the error is not found.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>"The check is always right". It only compares the count of 1-bits.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q6 <span class="cmd">Describe</span> <span class="mark">2 marks</span> State what happens when the receiving computer finds that the two values do not match.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two things: the packet is not accepted, and the sender is involved.</div>
+    <div class="ans"><span class="mk k" data-t="1">The receiving computer knows an error occurred in transmission.</span> <span class="mk k" data-t="2">The packet needs to be re-sent (the sender is asked to send it again).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying the receiver corrects the packet. It cannot tell which bit is wrong.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q7 <span class="cmd">Calculate</span> <span class="mark">2 marks</span> (a) Convert 27 to hex. (b) Convert hex 2C to decimal.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Hex digits are worth 16 and 1.</div>
+    <div class="ans"><span class="mk k" data-t="1">(a) 27 = 1 × 16 + 11, so 1B.</span> <span class="mk k" data-t="2">(b) 2C = 2 × 16 + 12 = 44.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting that B = 11 and C = 12.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q8 <span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why the CRC value is stored in the trailer as a hex value.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>It is about size and convenience.</div>
+    <div class="ans"><span class="mk k" data-t="1">Hex is a compact way to write a number, so the trailer stays short.</span> <span class="mk k" data-t="2">It is also easy to convert to and from binary.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying hex is "more secure". It is only a different way to write the number.</div>
+  </div></details>
+</section>
+
+<!-- TIPS -->
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Count 1-bits in the payload only</b>, not the header or trailer.</li>
+    <li><b>Count the 1s, never the 0s.</b></li>
+    <li><b>Store it as hex.</b> Convert the total before you write it in the trailer.</li>
+    <li><b>Two calculations.</b> Sender counts and stores; receiver counts again and compares.</li>
+    <li><b>Match means no error found. No match means re-send.</b></li>
+    <li><b>Know the weakness.</b> Two changes that cancel out (a 1 to 0 and a 0 to 1) keep the count the same, so the error is missed.</li>
+    <li><b>Show your counting</b> byte by byte. Method marks are available.</li>
+    <li><b>Link it up:</b> a mismatch leads to a negative acknowledgement and a re-send (ARQ).</li>
+  </ul>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State</td><td>A short fact. No explanation.</td></tr>
+    <tr><td>Calculate</td><td>Working and a final answer.</td></tr>
+    <tr><td>Describe</td><td>What happens, step by step.</td></tr>
+    <tr><td>Explain</td><td>What happens and why. Use because or so.</td></tr>
+  </table></div>
+  <h2>Hex quick reference</h2>
+  <div class="tw"><table class="t xor"><tr><th>Decimal</th><td>10</td><td>11</td><td>12</td><td>13</td><td>14</td><td>15</td></tr><tr><th>Hex</th><td>A</td><td>B</td><td>C</td><td>D</td><td>E</td><td>F</td></tr></table></div>
+  <h2>Keyword flashcards</h2>
+  <div id="fc1"></div>
+</section>
+</div>

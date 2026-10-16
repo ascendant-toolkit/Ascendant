@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3.1 Computer Architecture</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<style>
+.txin{font:600 1.05rem var(--mono);padding:9px 12px;border-radius:9px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,420px)}
+.drill select,.sel{font:600 .95rem var(--sans);padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.drill .qline{font-size:1.1rem;font-weight:600;margin:8px 0}
+.drill input{font:700 1.1rem var(--mono);padding:8px 12px;border-radius:8px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,220px);text-transform:uppercase}
+.drill .fb{font-weight:700;margin-left:8px}.drill .fb.ok{color:var(--good)}.drill .fb.no{color:var(--bad)}
+.flag{display:inline-block;font:700 .7rem var(--sans);padding:1px 7px;border-radius:99px;background:var(--bad-soft);color:var(--bad)}
+.okf{display:inline-block;font:700 .7rem var(--sans);padding:1px 7px;border-radius:99px;background:var(--good-soft);color:var(--good)}
+.lab{font:700 .7rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 4px}
+.out{font:700 1.15rem var(--mono);letter-spacing:.12em;padding:10px 14px;border-radius:9px;background:var(--soft);border:1px solid var(--line);word-break:break-all;min-height:46px}
+.out.bad{color:var(--bad)}.out.good{color:var(--good)}
+.cip{font-family:var(--mono);font-size:.82rem;text-align:center}
+.cip td,.cip th{padding:4px 6px;text-align:center}
+.ch{display:grid;gap:8px;margin:10px 0}
+.ch button{text-align:left;font:600 .95rem var(--sans);padding:10px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.ch button:hover{border-color:var(--accent)}
+.ch button.ok{border-color:var(--good);background:var(--good-soft)}.ch button.no{border-color:var(--bad);background:var(--bad-soft)}
+.kpub{color:var(--good);font-weight:700}.kpri{color:var(--bad);font-weight:700}
+</style>
+<style>
+.ipin{font:600 1.05rem var(--mono);padding:9px 12px;border-radius:9px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,420px)}
+.mac{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.mac span{font:700 1.1rem var(--mono);padding:8px 10px;border-radius:8px;border:2px solid var(--line);background:var(--surface)}
+.mac .m1{border-color:var(--accent);color:var(--accent)}.mac .m2{border-color:var(--good);color:var(--good)}
+.scn{display:grid;gap:8px;margin:10px 0}.scn .r{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface)}
+.scn .r.ok{border-color:var(--good);background:var(--good-soft)}.scn .r.no{border-color:var(--bad);background:var(--bad-soft)}.scn .r span.q{flex:1 1 240px;font-weight:600}
+.mem{display:flex;gap:4px;margin:6px 0}.mem i{flex:1;height:26px;border-radius:5px;background:var(--soft);border:1px solid var(--line)}.mem i.u{background:var(--accent);border-color:var(--accent)}.mem i.v{background:var(--bad);border-color:var(--bad)}
+</style>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">IGCSE Computer Science · 0478 · Chapter 3 · 3.1</div>
+  <h1>3.1 Computer Architecture</h1>
+  <p class="lead">The CPU, the components inside a Von Neumann CPU, the fetch–decode–execute cycle, cores, cache and clock, the instruction set and embedded systems.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<!-- LEARN -->
+<section id="learn" role="tabpanel">
+  <div class="card big">
+    <h3>The big idea</h3>
+    <p>The <span class="kw">CPU</span> <b>processes</b> every instruction and piece of data a computer uses. It does this with a set of <b>registers, units and buses</b> in a repeating <b>fetch–decode–execute</b> cycle, and its speed depends on its <b>cores, cache and clock</b>.</p>
+  </div>
+
+  <h2>3.1 Computer architecture</h2>
+  <h3>The CPU and the microprocessor</h3>
+  <p>The <span class="kw">central processing unit (CPU)</span> <b>processes the instructions and data</b> that are input into the computer, so that the result can be output. A <span class="kw">microprocessor</span> is a type of <b>integrated circuit on a single chip</b>: a CPU built on one chip.</p>
+
+  <h3>Inside the CPU: Von Neumann architecture</h3>
+  <p>In a <span class="kw">Von Neumann</span> computer, <b>instructions and data are stored together</b> in the same memory (RAM), as binary, and the CPU fetches both from there.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Component</th><th>Type</th><th>Purpose</th></tr>
+    <tr><td>Arithmetic logic unit (ALU)</td><td>Unit</td><td>Carries out <b>arithmetic</b> (add, subtract) and <b>logic</b> (AND, OR, NOT, comparisons) operations</td></tr>
+    <tr><td>Control unit (CU)</td><td>Unit</td><td><b>Controls and coordinates</b> the CPU: fetches and <b>decodes</b> instructions and sends <b>control signals</b> to the other parts</td></tr>
+    <tr><td>Program counter (PC)</td><td>Register</td><td>Holds the <b>address of the next instruction</b> to be fetched</td></tr>
+    <tr><td>Memory address register (MAR)</td><td>Register</td><td>Holds the <b>address</b> in memory that is about to be read from or written to</td></tr>
+    <tr><td>Memory data register (MDR)</td><td>Register</td><td>Holds the <b>data or instruction</b> that has just been fetched from memory, or is about to be written to it</td></tr>
+    <tr><td>Current instruction register (CIR)</td><td>Register</td><td>Holds the <b>instruction that is being decoded and executed</b></td></tr>
+    <tr><td>Accumulator (ACC)</td><td>Register</td><td>Holds the <b>results of calculations</b> made by the ALU</td></tr>
+    <tr><td>Address bus</td><td>Bus</td><td>Carries <b>addresses</b> from the CPU to memory (one direction)</td></tr>
+    <tr><td>Data bus</td><td>Bus</td><td>Carries <b>data and instructions</b> between the CPU and memory (both directions)</td></tr>
+    <tr><td>Control bus</td><td>Bus</td><td>Carries <b>control signals</b> such as read and write (both directions)</td></tr>
+  </table></div>
+  <p class="note">A <b>register</b> is a tiny, very fast storage location inside the CPU. A <b>bus</b> is a set of wires that carries bits between parts of the computer.</p>
+
+  <h3>The fetch–decode–execute (FDE) cycle</h3>
+  <p>The CPU repeats this cycle for every instruction in a program.</p>
+  <div class="grid2">
+    <div class="card"><h3>Fetch</h3><ol>
+      <li>The address in the <b>PC</b> is copied to the <b>MAR</b>.</li>
+      <li>The <b>PC is incremented</b> so it points at the next instruction.</li>
+      <li>The address goes along the <b>address bus</b>; the control bus sends a <b>read</b> signal; the instruction comes back along the <b>data bus</b> into the <b>MDR</b>.</li>
+      <li>The instruction is copied from the MDR to the <b>CIR</b>.</li></ol></div>
+    <div class="card"><h3>Decode</h3><p>The <b>control unit</b> decodes the instruction in the CIR, working out what it means using the CPU's <b>instruction set</b>.</p>
+      <h3>Execute</h3><p>The instruction is carried out. Arithmetic or logic goes to the <b>ALU</b> and the result is stored in the <b>ACC</b>; or data is fetched from or stored to memory using the buses. Then the cycle starts again.</p></div>
+  </div>
+
+  <h3>Core, cache and clock</h3>
+  <div class="grid2">
+    <div class="card"><h3>Cores</h3><p>A <span class="kw">core</span> is a processing unit that can run its own FDE cycle. <b>More cores</b> means more instructions can be processed <b>at the same time</b>, but only if the software can share its work between cores.</p></div>
+    <div class="card"><h3>Cache</h3><p><span class="kw">Cache</span> is a small amount of very <b>fast memory</b> close to the CPU that keeps recently or frequently used instructions and data. A <b>larger cache</b> means fewer slower trips to RAM.</p></div>
+    <div class="card"><h3>Clock</h3><p>The <span class="kw">clock</span> sets the pace of the CPU. <b>Clock speed</b> is the number of cycles per second, measured in hertz. A 3 GHz clock gives 3 billion cycles per second, so a <b>higher clock speed</b> usually means more instructions per second.</p></div>
+    <div class="card"><h3>Performance</h3><p>Performance depends on <b>all three</b>: the number of cores, the size of the cache and the speed of the clock. One on its own does not decide it.</p></div>
+  </div>
+
+  <h3>Instruction set</h3>
+  <p>An <span class="kw">instruction set</span> is the <b>list of all the commands that a CPU can process</b>. Each command is <b>machine code</b>, binary the CPU understands directly. A program must be translated into the instruction set of the CPU that will run it.</p>
+
+  <h3>Embedded systems</h3>
+  <p>An <span class="kw">embedded system</span> is a computer system built into a larger device to perform <b>one dedicated function</b>, for example in domestic appliances (washing machines, microwaves), cars, security systems, lighting systems and vending machines. A <span class="kw">general-purpose computer</span>, such as a PC or laptop, performs <b>many different functions</b>.</p>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Embedded system</th><th>General-purpose computer</th></tr>
+    <tr><td>Purpose</td><td>One dedicated function</td><td>Many different functions</td></tr>
+    <tr><td>Software</td><td>Fixed program, usually stored in ROM, rarely changed</td><td>Users install and change software</td></tr>
+    <tr><td>Typical features</td><td>Small, low power, low cost, often limited controls</td><td>Keyboard, screen, large storage, powerful processor</td></tr>
+    <tr><td>Examples</td><td>Washing machine, car engine control, vending machine</td><td>PC, laptop</td></tr>
+  </table></div>
+
+  
+</section>
+
+<!-- WATCH -->
+<section id="watch" role="tabpanel" hidden>
+  <p>Press Play, or click the numbered steps.</p>
+  <h2>1 · The fetch–decode–execute cycle</h2><div id="stA"></div>
+</section>
+
+<!-- EXPLORE -->
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · CPU performance</h2>
+  <p>Change the cores, clock speed and cache, and say how much of the program can run on several cores at once. This is a <b>simplified model</b> to show the ideas, not a real benchmark. Try 8 cores with a program that can only use 20% of them.</p>
+  <div class="card"><div class="grid2"><div><div id="p1"></div><div id="p2"></div><div id="p3"></div><div id="p4"></div></div>
+    <div><div class="readout"><div><small>Relative performance</small><strong id="pa"></strong></div><div><small>Cycles per second</small><strong id="pb"></strong></div></div><div class="verdict" id="pv" aria-live="polite"></div></div></div></div>
+
+  <h2>Lab 2 · Run the cycle yourself</h2>
+  <p>ACC starts at 5. Press Step to move through one micro-step at a time. Watch which register changes. Each instruction takes five steps.</p>
+  <div class="card"><div id="tr"></div><div class="row" style="margin-top:8px"><button class="b pri" type="button" id="trs">Step</button><button class="b" type="button" id="trr">Reset</button></div><div class="verdict" id="trv" aria-live="polite"></div></div>
+</section>
+
+<!-- PRACTISE -->
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Match the CPU part to its job</h2>
+  <div id="m1" class="card"></div>
+
+  <h2>2 · The fetch–decode–execute cycle in order</h2>
+  <div id="o1" class="card"></div>
+
+  <h2>3 · Core, cache or clock?</h2>
+  <div id="cl1" class="card"></div>
+
+  <h2>4 · Embedded system or general-purpose computer?</h2>
+  <div id="cl2" class="card"></div>
+
+  <h2>5 · Calculations</h2>
+  <p class="note">For numbers, plain digits. Letters in any case.</p>
+  <div id="c1"></div>
+
+  <h2>6 · Multiple choice</h2>
+  <div id="qz1"></div>
+</section>
+
+<!-- REAL WORLD -->
+<section id="real" role="tabpanel" hidden>
+  <p class="note">Descriptions are kept general. Check current details before quoting specifics.</p>
+  <div class="rw"><h3>A washing machine</h3><p>A small embedded system runs one program: it reads a water level sensor and a temperature sensor, then switches the motor, heater and valves on and off. Its instructions are fixed in ROM and nobody installs apps on it.</p><div class="use"><b>Exam use:</b> the classic embedded system. Say "dedicated function" and contrast with a laptop.</div></div>
+  <div class="rw"><h3>A smartphone processor</h3><p>A modern phone has a multi-core processor, cache and a high clock speed in one microprocessor. Games can use several cores at once; a simple alarm clock app cannot.</p><div class="use"><b>Exam use:</b> a link between cores, cache and clock and performance, and why more cores do not always mean faster.</div></div>
+  <div class="rw"><h3>Car engine control</h3><p>An embedded system inside the engine reads sensors many times a second and adjusts fuel and timing. It runs a fixed program in ROM.</p><div class="use"><b>Exam use:</b> embedded systems are found in vehicles; they perform one dedicated function.</div></div>
+  <div class="rw"><h3>Why a faster clock gets hot</h3><p>Raising the clock speed makes the CPU do more work each second, and it gives off more heat, so fast CPUs need heat sinks and fans.</p><div class="use"><b>Exam use:</b> a reason why clock speed is not the only way to improve performance.</div></div>
+</section>
+
+<!-- EXAM -->
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam-style questions</h2>
+  <p>Open each question for reminders, a model answer and common mistakes. Each underlined phrase earns one mark; the number shows which mark point it is.</p>
+
+  <details class="eq"><summary>Q1 <span class="cmd">State</span> <span class="mark">2 marks</span> State the purpose of the CPU and what a microprocessor is.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Process, then say what is processed. A microprocessor is on one chip.</div>
+    <div class="ans"><span class="mk k" data-t="1">The CPU processes instructions and data that are input so that the result can be output.</span> <span class="mk k" data-t="2">A microprocessor is an integrated circuit on a single chip (a CPU on one chip).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Calling the CPU "the brain" without saying what it does. Say it <b>processes instructions and data</b>.</div>
+  </div></details>
+  <details class="eq"><summary>Q2 <span class="cmd">Describe</span> <span class="mark">4 marks</span> Describe the purpose of the MAR, the MDR, the PC and the ACC in a Von Neumann CPU.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One mark per register. Say what each <b>holds</b>.</div>
+    <div class="ans"><span class="mk k" data-t="1">PC: holds the address of the next instruction to be fetched.</span> <span class="mk k" data-t="2">MAR: holds the address in memory being read from or written to.</span> <span class="mk k" data-t="3">MDR: holds the data or instruction just fetched from (or about to be written to) memory.</span> <span class="mk k" data-t="4">ACC: holds the results of calculations from the ALU.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Mixing up MAR and MDR. MAR = <b>address</b>; MDR = <b>data</b>.</div>
+  </div></details>
+  <details class="eq"><summary>Q3 <span class="cmd">Describe</span> <span class="mark">5 marks</span> Describe the fetch stage of the fetch–decode–execute cycle.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Follow the instruction's journey: PC, MAR, buses, MDR, CIR.</div>
+    <div class="ans"><span class="mk k" data-t="1">The address in the PC is copied to the MAR.</span> <span class="mk k" data-t="2">The PC is incremented (to point to the next instruction).</span> <span class="mk k" data-t="3">The address is sent along the address bus to RAM (with a read signal on the control bus).</span> <span class="mk k" data-t="4">The instruction at that address is sent along the data bus to the MDR.</span> <span class="mk k" data-t="5">The instruction is copied from the MDR to the CIR.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing that the PC "goes to the CIR". The PC holds an <b>address</b>, never the instruction.</div>
+  </div></details>
+  <details class="eq"><summary>Q4 <span class="cmd">Describe</span> <span class="mark">3 marks</span> Describe the decode and execute stages.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Who decodes? Where does the instruction come from? What happens in execute?</div>
+    <div class="ans"><span class="mk k" data-t="1">The control unit decodes the instruction held in the CIR (using the instruction set).</span> <span class="mk k" data-t="2">In execute, the instruction is carried out, for example the ALU performs a calculation.</span> <span class="mk k" data-t="3">The result is stored, for example in the ACC (or data is fetched from or stored in memory using the buses).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying the ALU decodes. The <b>control unit</b> decodes.</div>
+  </div></details>
+  <details class="eq"><summary>Q5 <span class="cmd">Explain</span> <span class="mark">4 marks</span> A user replaces their dual-core 2.4 GHz CPU with a quad-core 3.6 GHz CPU with more cache. Explain why the computer may now perform better.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Explain each of the three factors: core, clock, cache. The word "may": it depends on the software.</div>
+    <div class="ans"><span class="mk k" data-t="1">More cores means more instructions can be processed at the same time (if the software can use them).</span> <span class="mk k" data-t="2">A higher clock speed means more FDE cycles per second, so more instructions are processed each second.</span> <span class="mk k" data-t="3">A larger cache stores more frequently used instructions and data close to the CPU.</span> <span class="mk e" data-t="4">So the CPU has to fetch from the slower RAM less often.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing "it is faster" without linking it to cycles, simultaneous instructions or fewer RAM accesses.</div>
+  </div></details>
+  <details class="eq"><summary>Q6 <span class="cmd">Describe</span> <span class="mark">3 marks</span> Describe what is meant by an embedded system and give two examples.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Dedicated function, inside a larger device, and a contrast with a general-purpose computer.</div>
+    <div class="ans"><span class="mk k" data-t="1">A computer system built into a device to perform a dedicated (single) function,</span> <span class="mk k" data-t="2">unlike a general-purpose computer that performs many functions.</span> <span class="mk k" data-t="3">Examples: washing machine, car engine management, vending machine, security system (any two).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Listing a laptop or a phone. Those are general-purpose.</div>
+  </div></details>
+</section>
+
+<!-- TIPS -->
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Registers hold things.</b> PC: next address. MAR: address. MDR: data. CIR: current instruction. ACC: result.</li>
+    <li><b>Name the bus.</b> Address bus for addresses, data bus for data and instructions, control bus for signals.</li>
+    <li><b>For FDE, follow the instruction's journey</b> in order, naming each register.</li>
+    <li><b>The PC holds an address</b>, never the instruction.</li>
+    <li><b>Performance: cores, cache, clock.</b> Say what each does, not just "faster".</li>
+    <li><b>Embedded = one dedicated function.</b> A phone or laptop is not an embedded system.</li>
+  </ul>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Name / Identify</td><td>A short fact. No explanation.</td></tr>
+    <tr><td>Describe</td><td>What happens, step by step, or the main features.</td></tr>
+    <tr><td>Explain</td><td>What happens and why. Use because or so.</td></tr>
+    <tr><td>Compare</td><td>Similarities and differences, both sides in each point.</td></tr>
+    <tr><td>Discuss</td><td>Advantages and disadvantages, then a balanced view.</td></tr>
+  </table></div>
+  <h2>Keyword flashcards</h2>
+  <div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const GOOD = "var(--good)", BAD = "var(--bad)", ACC = "var(--accent)", MUT = "var(--muted)";
+const note = (x, y, t, cls = "", anchor = "middle") => SV.text(x, y, t, "lbl bd " + cls, { "text-anchor": anchor });
+const sm = (x, y, t, anchor = "middle") => SV.text(x, y, t, "sm", { "text-anchor": anchor });
+const panel = (x, y, w, h, title, col, o = 1) => SV.rect(x, y, w, h, "", { rx: 12, style: `fill:var(--surface);stroke:${col};stroke-width:3`, opacity: o }) + (title ? SV.text(x + w / 2, y + 22, title, "lbl bd", { "text-anchor": "middle", style: `fill:${col}` }) : "");
+const rg = (x, y, w, h, name, val, hi, col = ACC) => SV.rect(x, y, w, h, "", { rx: 8, style: `fill:${hi ? "var(--soft)" : "var(--surface)"};stroke:${hi ? col : MUT};stroke-width:${hi ? 4 : 2}` }) + sm(x + w / 2, y + 17, name) + SV.text(x + w / 2, y + h - 12, val, "lbl bd", { "text-anchor": "middle", style: `fill:${hi ? col : "var(--ink)"}` });
+const arr = (x1, y1, x2, y2, col, dash) => SV.line(x1, y1, x2, y2, "", { style: `stroke:${col};stroke-width:4;${dash ? "stroke-dasharray:7 6" : ""}` }) + SV.arrowHead(x2, y2, x2 >= x1 ? "r" : "l", "").replace('class=""', `style="fill:${col}"`);
+const chip = (x, y, w, t, col) => SV.rect(x, y, w, 26, "", { rx: 13, style: `fill:${col}` }) + SV.text(x + w / 2, y + 18, t, "lbl bd", { "text-anchor": "middle", style: "fill:#fff;font-size:12px" });
+
+/* ---------- 1. FDE cycle ---------- */
+function fdeChart(s) {
+  const k = Math.round(s.k);
+  const pc = k >= 3 ? "101" : "100", mar = k >= 1 ? "100" : "–", mdr = k >= 3 ? "ADD 7" : "–", cir = k >= 4 ? "ADD 7" : "–", accv = k >= 6 ? "12" : "5";
+  let o = panel(10, 10, 490, 320, "", MUT) + note(255, 32, "CPU", "t1");
+  o += rg(25, 45, 100, 56, "PC", pc, k === 0 || k === 1 || k === 3 || k === 7) + rg(135, 45, 100, 56, "MAR", mar, k === 1 || k === 2) + rg(245, 45, 100, 56, "MDR", mdr, k === 3 || k === 4) + rg(355, 45, 120, 56, "CIR", cir, k === 4 || k === 5);
+  o += panel(25, 135, 140, 80, "Control unit", k === 5 ? ACC : MUT) + sm(95, 178, k === 5 ? "decodes ADD 7" : "decodes, controls") + (k === 5 ? sm(95, 196, "add 7 to the ACC") : "");
+  o += panel(180, 135, 140, 80, "ALU", k === 6 ? ACC : MUT) + sm(250, 180, k === 6 ? "5 + 7 = 12" : "arithmetic + logic");
+  o += rg(335, 145, 140, 56, "ACC (accumulator)", accv, k === 6, GOOD);
+  o += sm(255, 250, k === 7 ? "The PC now holds 101, so the next cycle fetches the next instruction." : "Registers are tiny, very fast stores inside the CPU.");
+  o += chip(150, 275, 210, k <= 4 ? "FETCH" : k === 5 ? "DECODE" : k === 6 ? "EXECUTE" : "REPEAT", k <= 4 ? ACC : k === 5 ? "var(--warn)" : GOOD);
+  const ab = k === 2 || k === 1 && false, db = k === 3, cb = k === 2;
+  o += panel(570, 10, 180, 320, "RAM", MUT);
+  [["100", "ADD 7"], ["101", "SUB 2"], ["102", "STORE"], ["103", "HALT"]].forEach((r, i) => { const hi = (k === 2 || k === 3) && i === 0; o += SV.rect(582, 45 + i * 62, 156, 50, "", { rx: 8, style: `fill:${hi ? "var(--soft)" : "var(--surface)"};stroke:${hi ? ACC : MUT};stroke-width:${hi ? 4 : 1.5}` }) + sm(612, 75 + i * 62, r[0]) + SV.text(690, 76 + i * 62, r[1], "lbl bd", { "text-anchor": "middle" }); });
+  o += (ab ? arr(500, 80, 570, 80, ACC) : SV.line(500, 80, 570, 80, "", { style: `stroke:${MUT};stroke-width:2` })) + sm(535, 70, "address");
+  o += (db ? arr(570, 170, 500, 170, ACC) : SV.line(500, 170, 570, 170, "", { style: `stroke:${MUT};stroke-width:2` })) + sm(535, 160, "data");
+  o += (cb ? arr(500, 260, 570, 260, "var(--warn)") : SV.line(500, 260, 570, 260, "", { style: `stroke:${MUT};stroke-width:2` })) + sm(535, 250, cb ? "READ" : "control");
+  return o;
+}
+Lib.stepper($("#stA"), { w: 760, h: 340, label: "The fetch decode execute cycle", base: { k: 0 }, tween: 1, dwell: 4400, draw: fdeChart, steps: [
+  { cap: "RAM holds the instructions. The <b>PC</b> holds <b>100</b>, the address of the next instruction. The <b>ACC</b> holds 5.", s: { k: 0 } },
+  { cap: "<b>Fetch:</b> the address in the PC is copied to the <b>MAR</b>.", s: { k: 1 } },
+  { cap: "The address goes along the <b>address bus</b>, and the <b>control bus</b> sends a read signal to RAM.", s: { k: 2 } },
+  { cap: "The instruction <b>ADD 7</b> comes back along the <b>data bus</b> into the <b>MDR</b>. The <b>PC is incremented</b> to 101.", s: { k: 3 } },
+  { cap: "The instruction is copied from the MDR into the <b>CIR</b>. Fetch is finished.", s: { k: 4 } },
+  { cap: "<b>Decode:</b> the <b>control unit</b> works out what ADD 7 means, using the instruction set.", s: { k: 5 } },
+  { cap: "<b>Execute:</b> the <b>ALU</b> adds 7 to the 5 in the <b>ACC</b>. The result, 12, is stored in the ACC.", s: { k: 6 } },
+  { cap: "The cycle <b>repeats</b>. The PC holds 101, so the next instruction is fetched.", s: { k: 7 } },
+] });
+
+/* ---------- Lab 1: CPU performance ---------- */
+(() => {
+  const CORES = [1, 2, 4, 8, 16], CACHE = [1, 2, 4, 8, 16];
+  let sc, sk, sa, sp;
+  function upd() {
+    if (!sc || !sk || !sa || !sp) return;
+    const c = CORES[sc.get()], g = sk.get() / 10, ca = CACHE[sa.get()], p = sp.get() / 100;
+    const speedup = 1 / ((1 - p) + p / c), cf = 1 + 0.08 * Math.log2(ca), perf = g * cf * speedup;
+    $("#pa").textContent = fmtN(perf, 1); $("#pb").textContent = fmtN(g, 1) + " billion each";
+    const bits = [];
+    if (c > 1 && p < 0.3) bits.push(`Only ${Math.round(p * 100)}% of this program can be shared between cores, so the extra cores help very little.`);
+    else if (c > 1) bits.push(`${c} cores let ${Math.round(p * 100)}% of the work run at the same time.`);
+    else bits.push("With one core, instructions are processed one after another.");
+    bits.push(`The clock runs ${fmtN(g, 1)} billion cycles per second on each core.`);
+    bits.push(ca >= 8 ? "A large cache means fewer slow trips to RAM." : ca <= 2 ? "A small cache means more slow trips to RAM." : "A medium cache.");
+    $("#pv").innerHTML = bits.join(" ");
+  }
+  sc = Lib.slider($("#p1"), { id: "pc1", label: "Cores", min: 0, max: 4, value: 1, fmt: (i) => CORES[i], onInput: upd });
+  sk = Lib.slider($("#p2"), { id: "pc2", label: "Clock speed", min: 10, max: 50, value: 30, fmt: (v) => fmtN(v / 10, 1) + " GHz", onInput: upd });
+  sa = Lib.slider($("#p3"), { id: "pc3", label: "Cache size", min: 0, max: 4, value: 1, fmt: (i) => CACHE[i] + " MB", onInput: upd });
+  sp = Lib.slider($("#p4"), { id: "pc4", label: "Program that can use several cores", min: 0, max: 100, step: 10, value: 50, fmt: (v) => v + "%", onInput: upd });
+  upd();
+})();
+
+
+/* ---------- Lab 2: FDE trace ---------- */
+(() => {
+  const PROG = [["100", "ADD 7"], ["101", "SUB 2"], ["102", "ADD 10"], ["103", "HALT"]];
+  const MICRO = ["Copy the address in the PC to the MAR", "Fetch: the instruction goes along the data bus into the MDR, and the PC is incremented", "Copy the instruction from the MDR to the CIR", "Decode: the control unit works out what the instruction means", "Execute: the ALU does the calculation and the result goes in the ACC"];
+  let pc, mar, mdr, cir, acc, m, hi, halted;
+  const el = $("#tr"), out = $("#trv");
+  function reset() { pc = 100; mar = mdr = cir = "–"; acc = 5; m = 0; hi = ""; halted = false; draw(); out.textContent = "Press Step to run the first micro-step."; }
+  function draw() {
+    el.innerHTML = `<div class="grid2"><div class="readout">${[["PC", pc], ["MAR", mar], ["MDR", mdr], ["CIR", cir], ["ACC", acc]].map(([n, v]) => `<div style="${hi === n ? "outline:3px solid var(--accent);border-radius:8px" : ""}"><small>${n}</small><strong>${v}</strong></div>`).join("")}</div>
+    <div><p class="lab">RAM</p><div class="tw"><table class="t">${PROG.map((r) => `<tr style="${+r[0] === +mar ? "background:var(--soft)" : ""}"><td>${r[0]}</td><td><b>${r[1]}</b></td></tr>`).join("")}</table></div></div></div>`;
+  }
+  function step() {
+    if (halted) return;
+    if (m === 0) { mar = pc; hi = "MAR"; }
+    else if (m === 1) { mdr = PROG[pc - 100][1]; pc++; hi = "MDR"; }
+    else if (m === 2) { cir = mdr; hi = "CIR"; }
+    else if (m === 3) { hi = "CIR"; }
+    else { const [op, n] = cir.split(" "); if (op === "ADD") acc += +n; else if (op === "SUB") acc -= +n; else halted = true; hi = "ACC"; }
+    out.innerHTML = `<b>${MICRO[m]}.</b>` + (m === 4 ? (halted ? " HALT stops the program." : " Next cycle starts.") : "");
+    m = (m + 1) % 5; draw();
+  }
+  $("#trs").onclick = step; $("#trr").onclick = reset; reset();
+})();
+
+/* ---------- Practise ---------- */
+Lib.match($("#m1"), { prompt: "Match each CPU part to its job.", pairs: [
+  ["ALU", "Carries out arithmetic and logic operations"], ["Control unit", "Decodes instructions and sends control signals"], ["PC", "Holds the address of the next instruction"], ["MAR", "Holds the address being read from or written to"],
+  ["MDR", "Holds data or an instruction just fetched from memory"], ["CIR", "Holds the instruction being decoded and executed"], ["ACC", "Holds the result of a calculation"], ["Address bus", "Carries addresses from the CPU to memory"],
+] });
+
+Lib.order($("#o1"), { prompt: "Put these steps of one fetch–decode–execute cycle in order.", items: [
+  "The address in the PC is copied to the MAR", "The PC is incremented", "The instruction is fetched from RAM into the MDR", "The instruction is copied from the MDR to the CIR", "The control unit decodes the instruction in the CIR", "The instruction is executed, for example the ALU result is stored in the ACC",
+], done: "Fetch (PC, MAR, increment, MDR, CIR), decode, execute." });
+
+Lib.classify($("#cl1"), { prompt: "Which part of the CPU does each effect describe?", buckets: [{ label: "Cores" }, { label: "Cache" }, { label: "Clock speed" }], items: [
+  { text: "Several instructions processed at the same time", b: 0 }, { text: "Only helps if the software can share its work", b: 0 }, { text: "Each one runs its own fetch–decode–execute cycle", b: 0 },
+  { text: "Keeps frequently used data close to the CPU", b: 1 }, { text: "Fewer slow trips to RAM", b: 1 }, { text: "Small, very fast memory", b: 1 },
+  { text: "Measured in GHz", b: 2 }, { text: "Number of cycles each second", b: 2 }, { text: "Higher means more instructions per second", b: 2 },
+], done: "Cores: at once. Cache: close by. Clock: how fast." });
+
+Lib.classify($("#cl2"), { prompt: "Drag each item to embedded system or general-purpose computer.", buckets: [{ label: "Embedded system" }, { label: "General-purpose computer" }], items: [
+  { text: "Washing machine controller", b: 0 }, { text: "Car engine management", b: 0 }, { text: "Vending machine", b: 0 }, { text: "Central heating thermostat", b: 0 }, { text: "Security alarm system", b: 0 },
+  { text: "Laptop", b: 1 }, { text: "Desktop PC", b: 1 }, { text: "Many different programs can be installed", b: 1 }, { text: "Performs one dedicated function", b: 0 },
+], done: "One job, built in, against many jobs." });
+
+Lib.calc($("#c1"), { qs: [
+  { q: "A CPU has a clock speed of 3 GHz. How many clock cycles does it run each second?", a: 3000000000, tol: 0.5, sol: "3 GHz = 3 × 10⁹ = 3,000,000,000 cycles per second.", hint: "1 GHz is a billion cycles per second." },
+  { q: "Name the register that holds the address of the next instruction to be fetched (the abbreviation).", t: ["PC"], ph: "abbreviation", sol: "The program counter (PC)." },
+  { q: "Name the register that holds the result of a calculation (the abbreviation).", t: ["ACC"], ph: "abbreviation", sol: "The accumulator (ACC)." },
+  { q: "The PC holds 250. After one fetch, what does it hold?", a: 251, sol: "The PC is incremented after the fetch: 250 + 1 = 251." },
+  { q: "The ACC holds 9. The instruction ADD 6 is executed. What does the ACC hold?", a: 15, sol: "9 + 6 = 15, stored back in the ACC." },
+  { q: "A quad-core CPU runs at 2.5 GHz. How many cycles per second does each core run? (give the number)", a: 2500000000, tol: 0.5, sol: "2.5 GHz = 2,500,000,000 cycles per second per core." }
+] });
+
+Lib.quiz($("#qz1"), { qs: [
+  { q: "Which register holds the instruction that is being decoded?", opts: ["PC", "MAR", "MDR", "CIR"], a: 3, why: "The current instruction register (CIR)." },
+  { q: "Which bus carries addresses from the CPU to memory?", opts: ["Data bus", "Address bus", "Control bus", "Power bus"], a: 1, why: "The address bus carries addresses." },
+  { q: "What is stored in the ACC?", opts: ["The next address", "The instruction", "The result of a calculation", "A memory address"], a: 2, why: "The accumulator holds results from the ALU." },
+  { q: "Which of these is an embedded system?", opts: ["A laptop", "A washing machine controller", "A desktop PC", "A games console that installs apps"], a: 1, why: "A washing machine controller has one dedicated function." },
+  { q: "What does a larger cache do?", opts: ["Raises the clock speed", "Stores more frequently used data near the CPU", "Adds another core", "Makes ROM writable"], a: 1, why: "Fewer slower trips to RAM are needed." },
+  { q: "Which unit decodes an instruction?", opts: ["ALU", "Control unit", "ACC", "RAM"], a: 1, why: "The control unit decodes; the ALU calculates." }
+] });
+
+Lib.cards($("#fc1"), { cards: [
+  ["CPU", "The central processing unit: processes instructions and data that are input so the result can be output."],
+  ["Microprocessor", "An integrated circuit on a single chip; a CPU on one chip."],
+  ["ALU", "Arithmetic logic unit: carries out arithmetic and logic operations."],
+  ["Control unit", "Decodes instructions and sends control signals to coordinate the CPU."],
+  ["PC", "Program counter: holds the address of the next instruction to be fetched."],
+  ["MAR", "Memory address register: holds the address being read from or written to."],
+  ["MDR", "Memory data register: holds data or an instruction fetched from, or to be written to, memory."],
+  ["CIR", "Current instruction register: holds the instruction being decoded and executed."],
+  ["ACC", "Accumulator: holds the results of ALU calculations."],
+  ["Bus", "A set of wires that carries data, addresses or signals (address, data and control buses)."],
+  ["Von Neumann architecture", "Instructions and data are stored together in the same memory."],
+  ["Core", "A processing unit in a CPU that can run its own fetch–decode–execute cycle."],
+  ["Cache", "Small, very fast memory close to the CPU that holds frequently used instructions and data."],
+  ["Clock speed", "The number of cycles the CPU runs each second, in hertz."],
+  ["Instruction set", "The list of all the machine code commands a CPU can process."],
+  ["Embedded system", "A computer system in a device with one dedicated function."]
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

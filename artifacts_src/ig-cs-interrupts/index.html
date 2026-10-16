@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Interrupts</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<style>
+.txin{font:600 1.05rem var(--mono);padding:9px 12px;border-radius:9px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,420px)}
+.lab{font:700 .7rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 4px}
+.out{font:600 1rem var(--mono);padding:10px 14px;border-radius:9px;background:var(--soft);border:1px solid var(--line);min-height:46px;white-space:pre-wrap;word-break:break-word}
+.out.bad{color:var(--bad)}.out.good{color:var(--good)}
+.ch{display:grid;gap:8px;margin:10px 0}
+.ch button{text-align:left;font:600 .95rem var(--sans);padding:10px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.ch button:hover{border-color:var(--accent)}
+.ch button.ok{border-color:var(--good);background:var(--good-soft)}.ch button.no{border-color:var(--bad);background:var(--bad-soft)}
+.code{font:500 .95rem/1.7 var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 0;overflow-x:auto}
+.code .ln{display:block;padding:0 14px;white-space:pre}
+.code .ln.on{background:var(--accent-soft);box-shadow:inset 4px 0 0 var(--accent)}
+.code .ln.err{background:var(--bad-soft);box-shadow:inset 4px 0 0 var(--bad)}
+.code .ln.done{opacity:.55}
+.cm{color:var(--muted)}.kwd{color:var(--n);font-weight:700}.str{color:var(--bad)}.num{color:var(--k)}
+.sqr{display:inline-block;min-width:34px;padding:6px 4px;border:1.5px solid var(--line);border-radius:6px;text-align:center;font:600 .8rem var(--mono);background:var(--surface);margin:2px}
+.blocks{display:flex;flex-wrap:wrap;gap:3px;margin:6px 0}
+.blk{width:38px;height:38px;border-radius:6px;display:grid;place-items:center;font:700 .74rem var(--mono);color:#fff;border:1.5px solid var(--line);background:var(--soft)}
+.blk.e{color:var(--muted)}
+.dg{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.log{font:500 .88rem/1.5 var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-height:80px;max-height:240px;overflow:auto}
+.log div{padding:1px 0}.log .hi{color:var(--accent);font-weight:700}.log .bd{color:var(--bad);font-weight:700}.log .gd{color:var(--good);font-weight:700}
+table.reg{border-collapse:collapse;font:600 .9rem var(--mono)}
+table.reg td,table.reg th{border:1px solid var(--line);padding:5px 12px;text-align:center}
+table.reg th{background:var(--soft);font:700 .7rem var(--sans);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.mem input{width:76px;font:600 .95rem var(--mono);padding:4px 6px;border-radius:6px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);text-align:center}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.pos{color:var(--good);font-weight:700}.neg{color:var(--bad);font-weight:700}
+</style>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">IGCSE Computer Science · 0478 · Chapter 4 · 4.1.4</div>
+  <h1>Interrupts</h1>
+  <p class="lead">Signals that make the processor pause, how they are serviced, and how buffers and interrupts keep printing and streaming smooth.</p>
+</header>
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+<section id="learn" role="tabpanel">
+  <div class="card big">
+    <h3>The big idea</h3>
+    <p>An <span class="kw">interrupt</span> is a <b>signal sent from a device or from software to the microprocessor</b>. It makes the processor <b>temporarily stop</b> what it is doing so it can deal with the interrupt. Interrupts let a computer do many tasks, or have several windows open, at the same time.</p>
+  </div>
+  <h2>4.1.4 Interrupts</h2>
+  <h3>What causes an interrupt?</h3>
+  <div class="grid2">
+    <div class="card"><h3>Timing signal</h3><p>A clock or timer signal, for example when a time slice ends.</p></div>
+    <div class="card"><h3>Input/output process</h3><p>A disk drive or printer needs more data.</p></div>
+    <div class="card"><h3>Hardware fault</h3><p>For example, a paper jam in the printer.</p></div>
+    <div class="card"><h3>User interaction</h3><p>The user presses a key or keys, such as Ctrl-Alt-Break.</p></div>
+    <div class="card"><h3>Software error</h3><p>An .exe file cannot be found, two processes try to use the same memory location, or a division by zero is attempted.</p></div>
+  </div>
+  <p>When the signal arrives, the computer must identify the <b>type</b> of interrupt and its <b>priority</b>. The processor either carries on with its current task, or stops to service the device or program that caused the interrupt.</p>
+
+  <h3>How an interrupt is serviced</h3>
+  <ol>
+    <li><b>Save</b> the status of the current task: the contents of the <b>program counter (PC)</b> and other registers.</li>
+    <li>Load the <b>start address of the interrupt service routine (ISR)</b> into the PC, and <b>run the ISR</b>.</li>
+    <li>When the interrupt has been fully serviced, <b>restore</b> the saved registers.</li>
+    <li>The interrupted task <b>carries on</b> from where it stopped.</li>
+  </ol>
+
+  <h3>Buffers</h3>
+  <p>A <span class="kw">buffer</span> is an area of memory that stores data <b>temporarily</b>. Buffers and interrupts are often used together.</p>
+  <div class="grid2">
+    <div class="card"><h3>Streaming a video</h3><p>Data arrives from the internet at a different speed from the one the media player needs. The buffer must be filled faster than the player empties it, otherwise the movie keeps <b>freezing</b>.</p></div>
+    <div class="card"><h3>Printing a document</h3><p>Printing takes far longer than sending the data. The data goes to the <b>printer buffer</b>, and the processor carries on with other tasks. When the buffer is <b>empty</b>, an interrupt asks for <b>more data</b>. The current task is suspended while it is serviced.</p><p>Without buffers and interrupts the processor would sit idle waiting for the printer.</p></div>
+  </div>
+
+  <h3>Extension: interrupts in the fetch-execute cycle (A Level)</h3>
+  <p class="note">Not needed for IGCSE.</p>
+  <p>The CPU has an <b>interrupt register</b>. If a bit in it changes (for example 0000 0000 becomes 0000 1000 after a disk fault), the register is checked at the next fetch-execute cycle. If the interrupt is enabled and has a high enough priority, the CPU stores its registers, passes control to the <b>interrupt handler (ISR)</b>, and when it has finished, resets the register and restores the registers.</p>
+
+</section>
+<section id="watch" role="tabpanel" hidden></section>
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Streaming and the buffer</h2>
+  <p>A video plays at a fixed rate. Data arrives from the internet at the download speed. The player waits until the buffer holds enough data to start, and freezes whenever it runs out.</p>
+  <div class="card"><div class="grid2"><div><div id="sbD"></div><div id="sbP"></div><div id="sbT"></div></div>
+    <div><svg id="sbC" viewBox="0 0 340 190" role="img" aria-label="Buffer level over time"></svg></div></div>
+    <div class="readout"><div><small>Freezes</small><strong id="sbF"></strong></div><div><small>Start-up wait</small><strong id="sbW"></strong></div></div><div class="verdict" id="sbV" aria-live="polite"></div></div>
+
+  <h2>Lab 2 · Servicing an interrupt</h2>
+  <p>The CPU is running a program. Step it, then fire an interrupt. Each type has a priority from 1 (low) to 4 (high). The current program has priority 2, so only an interrupt of priority 2 or more is serviced straight away.</p>
+  <div class="card"><div class="row"><button class="b pri" id="inS">Run next instruction</button><button class="b" id="inR">Reset</button></div>
+    <div class="grid2" style="margin-top:10px"><div><p class="lab">Program counter</p><div class="out" id="inPC"></div></div><div><p class="lab">Saved copy (to restore)</p><div class="out" id="inSV"></div></div></div>
+    <p class="lab">Fire an interrupt</p><div class="row" id="inB"></div>
+    <p class="lab">What the processor does</p><div class="log" id="inL" aria-live="polite"></div></div>
+
+  <h2>Lab 3 · Printer buffer and interrupts</h2>
+  <p>Mike prints a long document while watching a video. The printer's memory (buffer) holds a set number of pages. Each time it empties, it interrupts the processor for more data.</p>
+  <div class="card"><div id="prD"></div><div id="prB"></div>
+    <div class="readout"><div><small>Interrupts sent</small><strong id="prI"></strong></div><div><small>Time the CPU spends sending (units)</small><strong id="prS"></strong></div><div><small>Time CPU is free for other work</small><strong id="prF"></strong></div></div><div class="verdict" id="prV" aria-live="polite"></div></div>
+
+</section>
+<section id="practise" role="tabpanel" hidden></section>
+<section id="real" role="tabpanel" hidden></section>
+<section id="exam" role="tabpanel" hidden></section>
+<section id="tips" role="tabpanel" hidden></section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+/* shared helpers for the IGCSE CS chapter 4 reviews */
+const MONO = "font-family:ui-monospace,Menlo,Consolas,monospace;";
+const mk = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+function section(id, parts) { const root = $("#" + id); parts.forEach((p) => { if (p.h) root.appendChild(mk("h2", "", p.h)); if (p.p) root.appendChild(mk("p", "", p.p)); const d = mk("div", p.card ? "card" : ""); root.appendChild(d); p.run && p.run(d); }); }
+
+/* node-and-arrow stepper. nodes: {id,x,y,w,h,t,s,c(colour var),from}; edges: [a,b]; steps: {cap,on,e,set,msg:[x,y,text,colourVar]} */
+function flow(el, o) {
+  const N = Object.fromEntries(o.nodes.map((n) => [n.id, n]));
+  const cx = (n, side) => side === "l" ? n.x : side === "r" ? n.x + n.w : n.x + n.w / 2;
+  const cy = (n, side) => side === "t" ? n.y : side === "b" ? n.y + n.h : n.y + n.h / 2;
+  o.steps.forEach((S) => { if (S.msg && typeof S.msg[0] !== "object") S.msg = [S.msg]; if (S.txt && typeof S.txt[0] !== "object") S.txt = [S.txt]; });
+  let ys = o.nodes.flatMap((n) => [n.y, n.y + n.h]); o.steps.forEach((S) => { (S.msg || []).forEach((m) => ys.push(m[1] - 16, m[1] + 14)); (S.txt || []).forEach((m) => ys.push(m[1] - 14, m[1] + 6)); });
+  const y0 = Math.min(...ys) - 18, hh = Math.max(...ys) - y0 + 18;
+  const draw = (st) => {
+    const k = Math.round(st.k), S = o.steps[k], on = S.on || [], eon = S.e || [];
+    let out = "";
+    o.edges.forEach((e, i) => {
+      const a = N[e[0]], b = N[e[1]]; if ((a.from || 0) > k || (b.from || 0) > k) return;
+      const horiz = Math.abs(cx(b) - cx(a)) >= Math.abs(cy(b) - cy(a)) && (b.x > a.x + a.w - 2 || b.x + b.w < a.x + 2);
+      let x1, y1, x2, y2, dir;
+      if (horiz) { const r = b.x > a.x; x1 = cx(a, r ? "r" : "l"); x2 = cx(b, r ? "l" : "r"); y1 = cy(a); y2 = cy(b); dir = r ? "r" : "l"; }
+      else { const d = b.y > a.y; y1 = cy(a, d ? "b" : "t"); y2 = cy(b, d ? "t" : "b"); x1 = cx(a); x2 = cx(b); dir = d ? "d" : "u"; }
+      const act = eon.includes(i), col = act ? "var(--accent)" : "var(--line)";
+      out += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:${col};stroke-width:${act ? 4 : 2.5}${e[2] === "dash" ? ";stroke-dasharray:6 5" : ""}"/>` + SV.arrowHead(x2, y2, dir, "").replace('class=""', `style="fill:${col}"`);
+    });
+    o.nodes.forEach((n) => {
+      if ((n.from || 0) > k) return;
+      const act = on.includes(n.id), col = n.c || "var(--accent)", ov = (S.set || {})[n.id] || {}, t = ov.t != null ? ov.t : n.t, s = ov.s != null ? ov.s : n.s;
+      out += `<rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="11" style="fill:${act ? "var(--accent-soft)" : "var(--surface)"};stroke:${act ? col : "var(--line)"};stroke-width:${act ? 3.5 : 2}"/>`;
+      const lines = s ? (Array.isArray(s) ? s : [s]) : [];
+      const y0 = n.y + (lines.length ? 22 : n.h / 2 + 5);
+      out += `<text x="${n.x + n.w / 2}" y="${y0}" text-anchor="middle" class="lbl bd" style="fill:${act ? col : "var(--ink)"}">${t}</text>`;
+      lines.forEach((l, i) => (out += `<text x="${n.x + n.w / 2}" y="${y0 + 19 + i * 17}" text-anchor="middle" class="sm" ${n.mono ? `style="${MONO}font-size:12px"` : ""}>${l}</text>`));
+    });
+    (S.msg || []).forEach((m) => { const w = 12 + m[2].length * 7.2; out += `<rect x="${m[0] - w / 2}" y="${m[1] - 14}" width="${w}" height="26" rx="13" style="fill:${m[3] || "var(--accent)"}"/><text x="${m[0]}" y="${m[1] + 4}" text-anchor="middle" class="lbl bd" style="fill:#fff;font-size:12px">${m[2]}</text>`; });
+    (S.txt || []).forEach((m) => (out += `<text x="${m[0]}" y="${m[1]}" text-anchor="${m[4] || "middle"}" class="lbl bd" style="fill:${m[3] || "var(--ink)"}">${m[2]}</text>`));
+    return `<g transform="translate(0,${-y0})">${out}</g>`;
+  };
+  Lib.stepper(el, { w: o.w || 760, h: hh, label: o.label, base: { k: 0 }, tween: 1, dwell: o.dwell || 4600, draw, steps: o.steps.map((s, i) => ({ cap: s.cap, s: { k: i } })) });
+}
+
+/* watch tab: [{h, spec}] */
+function watch(list) { section("watch", [{ p: "Press Play, or click the numbered steps." }].concat(list.map((w) => ({ h: w.h, run: (d) => flow(d, w.spec) })))); }
+
+/* practise tab: [{h, type, ...opts}] */
+function practise(list) {
+  section("practise", list.map((it) => ({ h: it.h, p: it.note, card: ["classify", "match", "order"].includes(it.type), run: (d) => {
+    const t = it.type; if (t === "classify") Lib.classify(d, it); else if (t === "match") Lib.match(d, it); else if (t === "order") Lib.order(d, it); else if (t === "calc") Lib.calc(d, it); else if (t === "quiz") Lib.quiz(d, it);
+  } })));
+}
+
+/* exam tab: items {cmd, m, q, tip, ans:[[cls,text],...], warn} */
+function exam(list) {
+  const root = $("#exam");
+  root.innerHTML = `<h2>Exam-style questions</h2><p>Open each question for reminders, a model answer and a common mistake. Each underlined phrase earns one mark; the number shows which mark point it is.</p>` + list.map((x, i) => `<details class="eq"><summary>Q${i + 1} <span class="cmd">${x.cmd}</span> <span class="mark">${x.m} mark${x.m > 1 ? "s" : ""}</span> ${x.q}</summary><div class="body"><div class="tip"><b class="h">Reminder</b>${x.tip}</div><div class="ans">${x.ans.map((a, k) => `<span class="mk ${a[0]}" data-t="${k + 1}">${a[1]}</span>`).join(" ")}</div><div class="warn"><b class="h">Common mistake</b>${x.warn}</div></div></details>`).join("");
+}
+
+function real(list, intro) { $("#real").innerHTML = `<p class="note">${intro || "Descriptions are kept general. Check current details before quoting specifics."}</p>` + list.map((r) => `<div class="rw"><h3>${r[0]}</h3><p>${r[1]}</p><div class="use"><b>Exam use:</b> ${r[2]}</div></div>`).join(""); }
+
+function tips(list, flash) {
+  $("#tips").innerHTML = `<h2>Top tips</h2><ul class="tips">${list.map((t) => `<li>${t}</li>`).join("")}</ul><h2>Command words</h2><div class="tw"><table class="t"><tr><th>Command word</th><th>What it asks for</th></tr><tr><td>State / Name / Give</td><td>A short fact. No explanation.</td></tr><tr><td>Describe</td><td>What happens, step by step, or the main features.</td></tr><tr><td>Explain</td><td>What happens and why. Use because or so.</td></tr><tr><td>Compare</td><td>Similarities and differences, side by side.</td></tr></table></div><h2>Keyword flashcards</h2><div id="fc1"></div>`;
+  Lib.cards($("#fc1"), { cards: flash });
+}
+
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const stateBtns = (el, items, cb) => { el.innerHTML = items.map((x, i) => `<button type="button" class="b" data-i="${i}">${x}</button>`).join(""); $$("button", el).forEach((b) => (b.onclick = () => { $$("button", el).forEach((x) => x.classList.remove("pri")); b.classList.add("pri"); cb(+b.dataset.i); })); };
+
+/* ---------- Watch ---------- */
+watch([
+  { h: "1 · Servicing an interrupt", spec: { label: "Save, run the ISR, restore, carry on", nodes: [
+    { id: "t", x: 20, y: 110, w: 150, h: 70, t: "Current task", s: "PC = 105" },
+    { id: "i", x: 230, y: 10, w: 150, h: 56, t: "Interrupt", s: "e.g. printer is empty", c: "var(--bad)" },
+    { id: "s", x: 230, y: 110, w: 150, h: 70, t: "Save status", s: ["PC = 105", "registers"], c: "var(--warn)", from: 2 },
+    { id: "r", x: 440, y: 110, w: 150, h: 70, t: "Run the ISR", s: "PC = ISR start address", from: 3 },
+    { id: "b", x: 440, y: 230, w: 150, h: 60, t: "Restore status", s: "PC back to 105", c: "var(--good)", from: 4 },
+  ], edges: [["i", "s"], ["t", "s"], ["s", "r"], ["r", "b"], ["b", "t"]], steps: [
+    { cap: "The processor is running a task. The program counter shows the next instruction to fetch.", on: ["t"] },
+    { cap: "A device sends an <b>interrupt signal</b>. The processor works out its <b>type</b> and <b>priority</b>.", on: ["t", "i"], e: [] },
+    { cap: "The priority is high enough, so the processor <b>saves</b> the contents of the program counter and the other registers.", on: ["s"], e: [0, 1] },
+    { cap: "The <b>start address of the ISR</b> (interrupt service routine) is loaded into the program counter, and the ISR runs.", on: ["s", "r"], e: [2] },
+    { cap: "The interrupt is fully serviced. The saved registers are <b>restored</b>.", on: ["r", "b"], e: [3] },
+    { cap: "The interrupted task carries on exactly where it left off.", on: ["b", "t"], e: [4] },
+  ] } },
+  { h: "2 · Printing with a buffer and interrupts", spec: { label: "The processor does other work while the printer prints", nodes: [
+    { id: "m", x: 20, y: 90, w: 140, h: 70, t: "Memory", s: "document" },
+    { id: "b", x: 250, y: 90, w: 140, h: 70, t: "Printer buffer", s: "temporary store" },
+    { id: "p", x: 480, y: 90, w: 140, h: 70, t: "Printer", s: "slow", c: "var(--good)" },
+    { id: "c", x: 250, y: 230, w: 140, h: 60, t: "Processor", s: "other tasks", c: "var(--warn)" },
+  ], edges: [["m", "b"], ["b", "p"], ["p", "c", "dash"]], steps: [
+    { cap: "The document is sent from memory to the <b>printer buffer</b>.", on: ["m", "b"], e: [0], msg: [205, 70, "data", "var(--accent)"] },
+    { cap: "The buffer feeds the printer. Printing takes far longer than sending the data.", on: ["b", "p"], e: [1] },
+    { cap: "Meanwhile the processor is <b>free to carry out other tasks</b>.", on: ["c"] },
+    { cap: "When all the data in the buffer has been printed, the buffer is empty and an <b>interrupt</b> is sent to the processor.", on: ["p", "c"], e: [2], msg: [430, 215, "interrupt: more data!", "var(--bad)"] },
+    { cap: "The current task is suspended while the interrupt is serviced, and more data is sent to the buffer.", on: ["m", "b", "c"], e: [0] },
+  ] } },
+]);
+
+/* ---------- Lab 1: streaming ---------- */
+(() => {
+  let sd, sp, st;
+  const upd = () => {
+    if (!sd || !sp || !st) return;
+    const dl = sd.get(), pl = sp.get(), th = st.get(); let buf = 0, playing = false, wait = null, freezes = 0, was = false; const pts = [];
+    for (let t = 0; t <= 60; t++) {
+      buf += dl;
+      if (!playing && buf >= th) { playing = true; if (wait === null) wait = t; if (was) {} }
+      if (playing) { if (buf >= pl) buf -= pl; else { playing = false; freezes++; } }
+      pts.push(buf);
+    }
+    const mx = Math.max(10, ...pts), X = (t) => 30 + (t * 300) / 60, Y = (v) => 165 - (v * 140) / mx;
+    $("#sbC").innerHTML = `<line x1="30" y1="165" x2="335" y2="165" class="ax" style="stroke:var(--line)"/><line x1="30" y1="15" x2="30" y2="165" style="stroke:var(--line)"/>` + `<polyline fill="none" stroke="var(--accent)" stroke-width="3" points="${pts.map((v, t) => X(t).toFixed(1) + "," + Y(v).toFixed(1)).join(" ")}"/><text x="34" y="26" class="sm">buffer level</text><text x="335" y="182" text-anchor="end" class="sm">time (60 seconds)</text>`;
+    $("#sbF").textContent = freezes; $("#sbW").textContent = wait === null ? "never starts" : wait + " s";
+    $("#sbV").innerHTML = dl >= pl ? `Data arrives <b>at least as fast</b> as it is played, so once the buffer has started to fill the video plays smoothly.` : `Data arrives <b>slower</b> than the player uses it, so the buffer keeps running empty and the video <b>freezes</b> ${freezes} time${freezes === 1 ? "" : "s"}. A bigger start-up buffer only delays the first freeze.`;
+  };
+  sd = Lib.slider($("#sbD"), { id: "sbd", label: "Download speed (units per second)", min: 1, max: 12, value: 6, onInput: upd });
+  sp = Lib.slider($("#sbP"), { id: "sbp", label: "Playback rate (units per second)", min: 1, max: 10, value: 5, onInput: upd });
+  st = Lib.slider($("#sbT"), { id: "sbt", label: "Buffer needed before play starts", min: 1, max: 60, value: 10, onInput: upd });
+  upd();
+})();
+
+/* ---------- Lab 2: interrupts ---------- */
+(() => {
+  const PRI = 2; let pc;
+  const ev = [["Key pressed", 2], ["Printer needs more data", 2], ["Timer signal", 1], ["Printer paper jam", 4], ["Division by zero", 3]];
+  const L = $("#inL"), log = (t, c) => { L.insertAdjacentHTML("beforeend", `<div class="${c || ""}">${t}</div>`); L.scrollTop = L.scrollHeight; };
+  const show = () => { $("#inPC").textContent = pc; $("#inSV").textContent = "-"; };
+  const reset = () => { pc = 100; show(); L.innerHTML = ""; log("Program running at priority 2. PC = 100."); };
+  $("#inS").onclick = () => { pc++; show(); log("Executed an instruction. PC = " + pc); };
+  $("#inR").onclick = reset;
+  ev.forEach(([t, p]) => { const b = mk("button", "b", `${t} (priority ${p})`); b.onclick = () => {
+    log(`Interrupt: ${t}, priority ${p}.`, "hi");
+    if (p < PRI) { log("Priority is lower than the running program, so it is <b>ignored for now</b> and handled later."); return; }
+    $("#inSV").textContent = "PC = " + pc + ", registers";
+    log("1. Save the PC (" + pc + ") and the other registers.");
+    log("2. Load the ISR start address into the PC.");
+    $("#inPC").textContent = "ISR";
+    log("3. Run the interrupt service routine for: " + t + ".");
+    log("4. Restore the saved registers. PC = " + pc + ".");
+    $("#inPC").textContent = pc; log("The program carries on from where it stopped.", "gd");
+  }; $("#inB").appendChild(b); });
+  reset();
+})();
+
+/* ---------- Lab 3: printer ---------- */
+(() => {
+  let pd, pb;
+  const upd = () => {
+    if (!pd || !pb) return;
+    const pages = pd.get(), buf = pb.get(), ints = Math.ceil(pages / buf), send = ints * 2, total = pages * 3, free = total - send;
+    $("#prI").textContent = ints; $("#prS").textContent = send; $("#prF").textContent = free;
+    $("#prV").innerHTML = `The printer buffer holds ${buf} page${buf > 1 ? "s" : ""}, so ${pages} pages need <b>${ints}</b> interrupt${ints > 1 ? "s" : ""}. In this simple model, each load of data takes the CPU 2 units to send, and printing takes 3 units a page. The CPU is free for other work for about <b>${free}</b> of the ${total} units. Without a buffer and interrupts it would have to wait for the whole print job.`;
+  };
+  pd = Lib.slider($("#prD"), { id: "prd", label: "Pages in the document", min: 1, max: 160, value: 160, onInput: upd });
+  pb = Lib.slider($("#prB"), { id: "prb", label: "Pages the printer memory holds", min: 1, max: 40, value: 20, onInput: upd });
+  upd();
+})();
+
+/* ---------- Practise ---------- */
+practise([
+  { h: "1 · What caused the interrupt?", type: "classify", prompt: "Drag each event to its type of cause.", buckets: [{ label: "Hardware" }, { label: "Software" }, { label: "User" }], items: [
+    { text: "Paper jam in the printer", b: 0 }, { text: "Printer buffer is empty", b: 0 }, { text: "Disk drive needs more data", b: 0 },
+    { text: "Divide by zero", b: 1 }, { text: ".exe file cannot be found", b: 1 }, { text: "Two processes use the same memory location", b: 1 },
+    { text: "Ctrl-Alt-Break pressed", b: 2 }, { text: "A key pressed", b: 2 },
+  ], done: "Hardware, software or user." },
+  { h: "2 · Servicing an interrupt: the order", type: "order", prompt: "Put the steps in order.", items: [
+    "An interrupt signal arrives and its type and priority are identified", "The program counter and registers of the current task are saved", "The start address of the ISR is loaded into the program counter", "The ISR runs", "The saved registers are restored and the task carries on",
+  ], done: "Identify, save, load ISR address, run, restore." },
+  { h: "3 · Match the term", type: "match", prompt: "Match each term to its description.", pairs: [
+    ["Interrupt", "A signal to the processor to temporarily stop its current task"], ["ISR", "The routine run to deal with an interrupt"],
+    ["Buffer", "A memory area that stores data temporarily"], ["Program counter", "Holds the address of the next instruction; saved when interrupted"],
+    ["Priority", "Decides whether an interrupt is serviced straight away"],
+  ] },
+  { h: "4 · Calculations", type: "calc", qs: [
+    { q: "A printer's memory holds 20 pages. How many times must it be refilled to print a 160-page document (so, how many interrupts)?", a: 8, sol: "160 ÷ 20 = 8.", hint: "Divide the pages by the pages held." },
+    { q: "A printer holds 25 pages. How many interrupts are needed for 110 pages? (Round up.)", a: 5, sol: "110 ÷ 25 = 4.4, so 5 loads.", hint: "Any part load still needs an interrupt." },
+  ] },
+  { h: "5 · Multiple choice", type: "quiz", qs: [
+    { q: "What does the processor save before it runs an ISR?", opts: ["The program counter and registers", "The whole hard drive", "The user's files", "The printer buffer"], a: 0, why: "So the interrupted task can carry on after the interrupt." },
+    { q: "Why is a buffer used when streaming a video?", opts: ["To stop the video freezing when download speed and playback speed differ", "To make the video larger", "To encrypt it", "To delete old data"], a: 0, why: "The buffer stores data temporarily so playback can carry on smoothly." },
+    { q: "Which could cause an interrupt?", opts: ["A hardware fault", "A fast processor", "Using a pen", "A new colour theme"], a: 0, why: "Faults, I/O, timers, user actions and software errors cause interrupts." },
+    { q: "Why does a printer use a buffer and interrupts?", opts: ["So the processor can carry on with other tasks while printing", "So printing is faster than the processor", "So no data is needed", "So the printer needs no driver"], a: 0, why: "Printing is slow compared with the processor." },
+  ] },
+]);
+
+real([
+  ["Watching a film while a file downloads", "Your device shows the film, plays sound and downloads a file at once. Interrupts and buffers let each task have the processor in turn, so the user feels that they happen simultaneously.", "The textbook example of interrupts letting several functions co-exist."],
+  ["The film that freezes", "When the connection is slow, the buffer runs empty, the film pauses and the screen shows a spinning circle until the buffer has refilled.", "Streaming needs the data rate into the buffer to exceed the playback rate."],
+  ["Pressing Ctrl-Alt-Delete", "A key combination is an interrupt from the user. The system stops what it is doing so it can respond immediately.", "User interaction as a cause of an interrupt."],
+  ["A printer reporting \"out of ink\"", "The printer sends an interrupt, the OS suspends the print job, and an error message is shown. When the ink is replaced the job carries on.", "A hardware-fault interrupt, and the OS handling it."],
+  ["Typing while the computer is busy", "Each key press interrupts the processor. The key is held briefly in a buffer, so your letters appear even when the computer is busy.", "Interrupts and buffers working together."],
+]);
+
+exam([
+  { cmd: "State", m: 2, q: "What is meant by an interrupt?", tip: "Signal, to the processor, stops.", ans: [["k", "A signal sent from a device or software to the microprocessor"], ["k", "which causes it to temporarily stop what it is doing so the interrupt can be serviced."]], warn: "Saying the computer \"crashes\"." },
+  { cmd: "State", m: 3, q: "Give three causes of an interrupt.", tip: "Use the five types.", ans: [["k", "A timing signal / a hardware fault such as a paper jam"], ["k", "An input/output process (such as a disk drive needing data) / a user pressing a key"], ["k", "A software error (such as division by zero)"]], warn: "Giving three examples of the same type." },
+  { cmd: "Describe", m: 4, q: "Describe how the processor deals with an interrupt.", tip: "Identify, save, ISR, restore.", ans: [["k", "The type and priority of the interrupt are identified."], ["k", "The contents of the program counter and the registers are saved."], ["k", "The start address of the interrupt service routine is loaded into the program counter and the ISR is run."], ["k", "The saved registers are restored and the interrupted task carries on."]], warn: "Forgetting to say the status is saved." },
+  { cmd: "Explain", m: 2, q: "Mike is streaming a video. The data arrives from the internet more slowly than the media player needs it. What could stop the video freezing?", tip: "A memory area.", ans: [["k", "A buffer"], ["k", "that stores data temporarily so the media player has data while more arrives."]], warn: "Saying \"a faster processor\"." },
+  { cmd: "Describe", m: 4, q: "While watching, Mike prints a 160-page document. The printer holds 20 pages at a time. Describe how interrupts allow both at once.", tip: "Buffer, other tasks, empty, interrupt.", ans: [["k", "20 pages are sent to the printer buffer."], ["k", "The processor can carry on with other tasks (such as the video) while the printer prints."], ["k", "When the buffer is empty, the printer sends an interrupt to request more data."], ["k", "The current task is paused while the interrupt is serviced (this happens 8 times)."]], warn: "Saying the processor prints the pages itself." },
+  { cmd: "Describe", m: 2, q: "Describe what happens if the printer runs out of ink during the job.", tip: "Interrupt, error message.", ans: [["k", "The printer sends an interrupt (an error signal) to the processor/OS."], ["k", "The job is paused and an error message is displayed until the ink is replaced."]], warn: "Saying the document is deleted." },
+  { cmd: "Explain", m: 3, q: "Explain why the use of buffers and interrupts helps the processor to be used efficiently.", tip: "Slow device, idle, other tasks.", ans: [["k", "A printer is much slower than the processor."], ["k", "Without buffers and interrupts the processor would be idle, waiting for the printer."], ["k", "With them the processor can carry out other tasks, increasing its processing power and speed."]], warn: "Mentioning only that \"it is faster\"." },
+]);
+
+tips([
+  "<b>Interrupt = a signal that makes the processor pause.</b> Always say signal, processor, temporarily.",
+  "<b>Know the five causes:</b> timer, input/output, hardware fault, user action, software error.",
+  "<b>Servicing order:</b> identify type and priority, save PC and registers, run the ISR, restore, carry on.",
+  "<b>Buffer = temporary store.</b> It evens out the speed difference between two devices.",
+  "<b>Printing:</b> buffer empties, interrupt asks for more data, the processor suspends its task, then resumes.",
+  "<b>Streaming:</b> data must come in faster than it is played, otherwise the video freezes.",
+  "<b>Use numbers where you can:</b> 160 pages ÷ 20 pages = 8 interrupts.",
+  "<b>Link to efficiency:</b> the processor is not left idle waiting for a slow device.",
+], [
+  ["Interrupt", "A signal from a device or software to the microprocessor, causing it to temporarily stop its current task."], ["Interrupt priority", "How urgent an interrupt is, which decides whether it is serviced straight away."],
+  ["Interrupt service routine (ISR)", "The routine that is run to deal with an interrupt."], ["Program counter (PC)", "A register holding the address of the next instruction to be fetched."],
+  ["Buffer", "A memory area that stores data temporarily."], ["Printer buffer", "Memory in or for the printer that holds data waiting to be printed."],
+  ["Register", "A small fast store inside the processor."], ["Streaming", "Playing data (such as a movie) while it is still being downloaded."],
+]);
+
+Lib.initTabs();
+</script>
+</body></html>
