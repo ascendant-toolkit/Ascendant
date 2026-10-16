@@ -1,6 +1,6 @@
 #!/bin/bash
 # usage: smoke.sh <slug>  -- loads the page headless, clicks every button, reports JS errors and empty SVG/NaN
-S=$1; SRC=~/Documents/GitHub/econ-cs-artifacts/artifacts_src/$S/index.html; T=/tmp/smoke_$S.html
+S=$1; SRC=~/Documents/GitHub/Ascendant/artifacts_src/$S/index.html; T=/tmp/smoke_$S.html
 python3 - "$SRC" "$T" <<'PY'
 import sys
 h=open(sys.argv[1]).read()
