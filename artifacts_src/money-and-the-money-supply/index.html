@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Money and the Money Supply</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Economics · 9708 · Syllabus 9.4.1 to 9.4.2</div>
+  <h1>Money and the Money Supply</h1>
+  <p class="lead">9.4.1 to 9.4.2: the functions and characteristics of money, and how the money supply is defined and measured. Animated diagrams, labs, drills and exam practice.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This part in four sentences</h3>
+  <p><b class="kw">Money</b> is anything generally accepted in payment for goods and services and in settlement of debts. It has four <b>functions</b>: a <b>medium of exchange</b>, a <b>unit of account</b>, a <b>store of value</b> and a <b>standard of deferred payment</b>. To work, it needs certain <b>characteristics</b>: acceptability, durability, portability, divisibility, uniformity and limited supply. The <b class="kw">money supply</b> is the total amount of money in the economy, measured as <b>narrow money</b> (the most liquid forms) or <b>broad money</b> (which adds less liquid deposits), and which measure is used affects how monetary policy is judged.</p></div>
+
+  <h2>1 · Why money exists (9.4.1)</h2>
+  <p>Under <b>barter</b> a trade needs a <b>double coincidence of wants</b>: each person must have what the other wants, in the right amounts. Money removes this problem, and allows specialisation and trade at lower cost.</p>
+  <div id="pic1" class="card"></div>
+  <h3>Functions of money</h3>
+  <div class="tw"><table class="t">
+    <tr><th>Function</th><th>Meaning</th><th>Example</th></tr>
+    <tr><td><b>Medium of exchange</b></td><td>Accepted in payment, so goods can be bought and sold without barter</td><td>Paying for a coffee with a card</td></tr>
+    <tr><td><b>Unit of account</b></td><td>A common measure of value, so prices can be compared</td><td>A website comparing grocery prices</td></tr>
+    <tr><td><b>Store of value</b></td><td>Keeps purchasing power over time (inflation weakens this)</td><td>Savings in a bank account</td></tr>
+    <tr><td><b>Standard of deferred payment</b></td><td>Allows debts and contracts to be settled in the future</td><td>Paying half a car's price now and half in six months, a mortgage</td></tr>
+  </table></div>
+  <h3>Characteristics of good money</h3>
+  <ul>
+    <li><b>Acceptable:</b> trusted and widely accepted, which is what makes money work.</li>
+    <li><b>Durable:</b> does not wear out quickly.</li>
+    <li><b>Portable:</b> easy to carry and transfer (bank transfers and cards are very portable).</li>
+    <li><b>Divisible:</b> can be broken into small units to pay for items of different values.</li>
+    <li><b>Uniform:</b> every unit of the same value is identical, so they can be exchanged without checking.</li>
+    <li><b>Limited in supply (scarce):</b> if supply were unlimited its value would fall.</li>
+    <li><b>Stable in value:</b> a store of value needs low inflation.</li>
+  </ul>
+  <p>Modern money is mostly <b>fiat money</b>: it has value because the government says it is legal tender and people trust it, not because it is made of something valuable. Most money is held as <b>bank deposits</b>, not as notes and coins.</p>
+
+  <h2>2 · The money supply (9.4.2)</h2>
+  <p>The <b>money supply</b> is the total stock of money in an economy at a point in time. Definitions differ by how liquid the assets are. <b>Liquidity</b> is the ease with which an asset can be converted into cash without losing value.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Measure</th><th>What it includes</th><th>Liquidity</th></tr>
+    <tr><td><b>Narrow money</b></td><td>Notes and coins in circulation, banks' deposits at the central bank, and (in wider definitions) current (checking) account deposits</td><td>Most liquid: used for everyday spending</td></tr>
+    <tr><td><b>Broad money</b></td><td>Narrow money <b>plus</b> savings deposits, time deposits and other less liquid bank deposits</td><td>Less liquid: needs notice or may carry a penalty</td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Money or near money?</b>Assets such as savings accounts, bonds and shares are <b>near money</b> or <b>other assets</b>. They can be turned into money but they are not generally accepted as a means of payment. Broad money counts the more liquid of these.</div>
+  <ul>
+    <li>Money is <b>more than cash</b>: most of the money supply is created by commercial banks when they lend (see 9.4.4 to 9.4.5).</li>
+    <li>Why the measure matters: monetarists argue that the growth of the money supply drives inflation (9.4.3), so central banks need a reliable measure; but new payment technologies make the boundaries harder to draw.</li>
+    <li>The <b>demand for money</b> is the desire to hold liquid assets (9.4.7). The money supply is how much of it exists.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · From barter to money</h2>
+  <p>Press Play, or click the numbered steps.</p>
+  <div id="stB"></div>
+  <h2>2 · Narrow money inside broad money</h2>
+  <div id="stM"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Measuring the money supply</h2>
+  <p>Set the amounts in each form ($bn). The lab adds them up as narrow and broad money and shows the share held as notes and coins.</p>
+  <div class="card"><div class="grid2"><div><div id="g1"></div><div id="g2"></div><div id="g3"></div><div id="g4"></div>
+    <div class="readout"><div><small>Narrow money</small><strong id="r1"></strong></div><div><small>Broad money</small><strong id="r2"></strong></div><div><small>Cash as % of broad</small><strong id="r3"></strong></div></div>
+    <div class="verdict" id="rv"></div></div>
+    <div><svg id="labA" viewBox="0 0 420 300" role="img" aria-label="Stacked bar of notes and coins, current accounts, savings deposits and time deposits"></svg></div></div></div>
+
+  <h2>Lab 2 · Which function of money?</h2>
+  <p>Pick an everyday situation to see which function of money it shows.</p>
+  <div class="card"><div class="row" id="lbBtns"></div><div id="lbOut"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Is it part of the narrow money supply, the broad money supply or neither?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Match the word to its meaning</h2><div id="m1" class="card"></div>
+  <h2>3 · Put the problems of barter in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Calculations</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Cigarettes as money in prison camps</h3><p>In some prisoner-of-war camps cigarettes became a medium of exchange and a unit of account: goods were priced in cigarettes, and cigarettes were durable, divisible and uniform. When supplies of cigarettes ran short, their value as a store of value was disrupted.</p><div class="use"><b>Exam use:</b> a vivid example of the functions and characteristics of money, and why acceptability matters.</div></div>
+  <div class="rw"><h3>Mobile money in Kenya</h3><p>M-Pesa lets people hold and send money using a mobile phone. Balances are stored by a mobile operator and backed by bank deposits. It acts as a medium of exchange for people without bank accounts.</p><div class="use"><b>Exam use:</b> money is more than notes and coins, and new payment forms blur the boundary between narrow and broad money.</div></div>
+  <div class="rw"><h3>Hyperinflation in Zimbabwe</h3><p>Prices doubled every day at the peak in 2008. People stopped holding Zimbabwean dollars as a store of value and began using the US dollar and barter. The currency lost its functions as a unit of account and store of value.</p><div class="use"><b>Exam use:</b> what happens when money loses its characteristic of stable value.</div></div>
+  <div class="rw"><h3>Cryptocurrencies</h3><p>Bitcoin is accepted by some firms as a medium of exchange, but its value changes sharply from day to day. It scores poorly as a store of value and unit of account, and is not legal tender in most countries.</p><div class="use"><b>Exam use:</b> evaluating whether something is money: test it against the functions and characteristics.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Past paper questions on money and the money supply</h2>
+  <p>We searched the A Level Economics papers in the folder (2020 to 2025). The nature and functions of money are tested mainly in Paper 3 multiple choice, and money supply is the starting point of many Paper 4 monetary essays. Below are two practice questions with model answers, and seven Paper 3 multiple choice questions.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Type</th><th>Examples found</th><th>Where</th></tr>
+    <tr><td>Practice questions</td><td>2</td><td>Functions of money; narrow and broad money</td></tr>
+    <tr><td>Multiple choice (Paper 3)</td><td>7 shown below</td><td>2020 to 2024</td></tr>
+  </table></div>
+  <h2>A · Written questions (reworded)</h2>
+  <p>The wording, context and figures are our own, so they are safe to set as practice. The source paper is named for reference. Mark scheme points are in our own words.</p>
+  <details class="eq"><summary>Practice (not a past paper question) <span class="mark">8 marks</span> Explain the functions of money and why money is better than barter.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Barter needs a double coincidence of wants; money solves this as a medium of exchange.</li>
+        <li>Four functions explained: medium of exchange, unit of account, store of value and standard of deferred payment, each with a short example.</li>
+        <li>Link to benefits: lower transaction costs, specialisation, trade, saving and borrowing.</li>
+        <li>Evaluation: inflation weakens the store of value and the standard of deferred payment.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Barter problem. Four functions with an example each. A limit linked to inflation.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">Money is anything that is generally accepted in payment for goods and services. Under barter a trade needs a double coincidence of wants, so that each person has what the other wants, which makes trade slow and costly. Money works as a medium of exchange, which removes this problem.</span> <span class="mk a" data-t="A">It is also a unit of account, so that a shop can price a coffee and a laptop in the same units and customers can compare them.</span></p>
+    <p><span class="mk n" data-t="N">As a store of value it lets people save purchasing power to spend later, and as a standard of deferred payment it allows loans and contracts to be agreed in money terms, for example a mortgage. By making exchange easy, money lets people specialise in what they do best, which raises output.</span> <span class="mk e" data-t="E">However, if inflation is high money loses value quickly, which weakens its role as a store of value and a standard of deferred payment, and in hyperinflation people may return to barter or use a foreign currency.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Practice (not a past paper question) <span class="mark">4 marks</span> Distinguish between narrow money and broad money.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Narrow money: the most liquid forms, such as notes and coins and balances that can be spent immediately (current accounts) (2 marks).</li>
+        <li>Broad money: narrow money plus less liquid deposits such as savings and time deposits (2 marks).</li>
+        <li>Credit the idea of liquidity as the basis for the distinction.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>One sentence each, with an example and the word 'liquid'.</div>
+  </div></details>
+  <h2>B · Multiple choice questions (Paper 3)</h2>
+  <p>Choose an answer, then read the reason. Reworded from the paper and question number shown.</p>
+  <div id="qz2"></div>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Learn the four functions with examples.</b> Medium of exchange, unit of account, store of value, standard of deferred payment.</li>
+    <li><b>Do not confuse functions and characteristics.</b> Divisible, portable and durable are characteristics. The four functions are what money does.</li>
+    <li><b>Say 'double coincidence of wants'.</b> It is the key problem of barter and the reason money exists.</li>
+    <li><b>Narrow versus broad is about liquidity.</b> Narrow is the most liquid. Broad adds less liquid deposits.</li>
+    <li><b>Most money is bank deposits.</b> Notes and coins are a small part of the money supply.</li>
+    <li><b>Say what inflation does.</b> It weakens money as a store of value and standard of deferred payment.</li>
+    <li><b>Test new forms of money.</b> Check acceptance, stability and functions before calling something money.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Define</td><td>"Money is anything that is generally acceptable as a means of payment and in settlement of debts."</td></tr>
+    <tr><td>Function</td><td>"Money is a medium of exchange, which removes the need for a double coincidence of wants."</td></tr>
+    <tr><td>Measure</td><td>"Narrow money consists of the most liquid assets, while broad money adds less liquid deposits such as savings accounts."</td></tr>
+    <tr><td>Limit</td><td>"Inflation could reduce the value of money, which weakens its function as a store of value."</td></tr>
+    <tr><td>Link</td><td>"Because banks create deposits when they lend, the money supply is not controlled by the central bank alone."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Define / State</td><td>Give the exact meaning, briefly. No explanation needed.</td></tr>
+    <tr><td>Explain</td><td>Give reasons, with a clear chain of cause and effect.</td></tr>
+    <tr><td>Analyse</td><td>Break the issue into steps of cause and effect, using a diagram where it helps.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+/* ---------- Learn picture and Watch 1: barter ---------- */
+function barterDraw(s) {
+  let o = ""; const box = (x, y, w, l, c, v = 1) => SV.rect(x, y, w, 48, c, op(v)) + SV.text(x + w / 2, y + 29, l, "lbl bd", { "text-anchor": "middle", ...op(v) });
+  o += box(40, 40, 140, "Farmer: has wheat", "f4") + box(580, 40, 140, "Tailor: has cloth", "f1") + box(310, 250, 140, "Cobbler: has shoes", "f3");
+  if (s.a > 0) o += arrow(185, 64, 575, 64, "r", "c4", s.a) + arrow(575, 90, 185, 90, "l", "c1", s.a) + tag(380, 56, "wheat for cloth?", "t4", s.a, "middle");
+  if (s.b > 0) o += tag(380, 118, "Tailor wants shoes, not wheat: no deal", "t2", s.b, "middle") + SV.line(300, 110, 460, 136, "c2", op(s.b));
+  if (s.c > 0) o += box(310, 140, 140, "MONEY", "f3", s.c) + arrow(185, 76, 305, 160, "r", "c3", s.c) + arrow(455, 160, 575, 76, "r", "c3", s.c) + arrow(380, 190, 380, 245, "d", "c3", s.c);
+  if (s.d > 0) o += tag(380, 330, "Money is accepted by everyone, so each trade is separate and simple", "t3", s.d, "middle");
+  return o;
+}
+$("#pic1").innerHTML = `<svg viewBox="0 0 760 350" role="img" aria-label="Three traders and a double coincidence of wants problem solved by money">${barterDraw({ a: 1, b: 1, c: 0, d: 0 })}</svg>`;
+Lib.stepper($("#stB"), { w: 760, h: 350, label: "Barter between a farmer, tailor and cobbler, and money solving the problem", base: { a: 0, b: 0, c: 0, d: 0 }, draw: barterDraw, tween: 1000, dwell: 5800, steps: [
+  { cap: "<b>Three traders.</b> A farmer has wheat, a tailor has cloth and a cobbler has shoes. Each wants something the others have.", s: {} },
+  { cap: "<b>Barter.</b> The farmer offers wheat for cloth.", s: { a: 1 } },
+  { cap: "<b>No double coincidence of wants.</b> The tailor wants shoes, not wheat, so the trade fails. Barter needs each side to want what the other has.", s: { a: 1, b: 1 } },
+  { cap: "<b>Money.</b> The farmer sells wheat to anyone for money, then buys cloth with it; the tailor buys shoes with the same money. Money is a <b>medium of exchange</b>.", s: { a: 0.3, b: 0, c: 1 } },
+  { cap: "<b>The result.</b> Trade needs no coincidence of wants. Money is also a unit of account, a store of value and a standard of deferred payment, and it lets people specialise.", s: { a: 0.3, c: 1, d: 1 } },
+] });
+
+/* ---------- Watch 2: nested money measures ---------- */
+function nestDraw(s) {
+  const lay = [[360, 150, 150, "Time and wholesale deposits", "f4", s.c], [270, 150, 130, "Savings deposits", "f1", s.b], [190, 150, 100, "Current account deposits", "f3", s.a]]; let o = "";
+  lay.forEach(([w, cx, cy, l, c, v]) => { if (v > 0) o += `<ellipse cx="380" cy="${185}" rx="${w * 1.0}" ry="${w * 0.5}" class="${c}" style="opacity:${0.45 * v};stroke:var(--ink);stroke-width:1.5"/>`; });
+  o += `<ellipse cx="380" cy="185" rx="70" ry="38" class="f2" style="opacity:0.7;stroke:var(--ink);stroke-width:1.5"/>` + SV.text(380, 189, "Notes and coins", "lbl bd", { "text-anchor": "middle" });
+  if (s.a > 0) o += tag(380, 140, "Current accounts", "t3", s.a, "middle");
+  if (s.b > 0) o += tag(380, 100, "Savings deposits", "t1", s.b, "middle");
+  if (s.c > 0) o += tag(380, 52, "Time and wholesale deposits", "t4", s.c, "middle");
+  if (s.n > 0) o += tag(380, 330, "NARROW MONEY (inner circles)   BROAD MONEY (everything)", "t1", s.n, "middle");
+  return o;
+}
+Lib.stepper($("#stM"), { w: 760, h: 350, label: "Nested ellipses of notes and coins, current accounts, savings deposits and time deposits showing narrow and broad money", base: { a: 0, b: 0, c: 0, n: 0 }, draw: nestDraw, tween: 1000, dwell: 5600, steps: [
+  { cap: "<b>The most liquid.</b> Notes and coins can be spent immediately anywhere.", s: {} },
+  { cap: "<b>Current accounts.</b> Money in current (checking) accounts can be spent by card or transfer at once, so it is added to notes and coins in a wider narrow money measure.", s: { a: 1 } },
+  { cap: "<b>Savings deposits.</b> These earn interest but may need notice or lose some interest if withdrawn early. They are less liquid and belong in <b>broad</b> money.", s: { a: 1, b: 1, n: 1 } },
+  { cap: "<b>Time and wholesale deposits.</b> Fixed-term deposits and large deposits are the least liquid part of broad money. The wider the measure, the larger the total.", s: { a: 1, b: 1, c: 1, n: 1 } },
+] });
+
+/* ---------- Lab 1: money supply ---------- */
+function labMS() {
+  if (!$("#nc") || !$("#ca") || !$("#sv") || !$("#tm")) return;
+  const nc = +$("#nc").value, ca = +$("#ca").value, sv = +$("#sv").value, tm = +$("#tm").value, narrow = nc + ca, broad = narrow + sv + tm;
+  $("#r1").textContent = "$" + narrow + "bn"; $("#r2").textContent = "$" + broad + "bn"; $("#r3").textContent = Lib.fmtN(nc / broad * 100, 1) + "%";
+  $("#rv").textContent = `Narrow money is $${narrow}bn and broad money is $${broad}bn. Notes and coins are only ${Lib.fmtN(nc / broad * 100, 1)}% of the total, which shows that most of the money supply is bank deposits created by lending.`;
+  const mx = broad * 1.05, Y = (v) => 270 - v / mx * 230; let y = 270, o = SV.line(40, 270, 400, 270);
+  [[nc, "f2", "Notes and coins"], [ca, "f3", "Current accounts"], [sv, "f1", "Savings"], [tm, "f4", "Time deposits"]].forEach(([v, c, l]) => { const h = v / mx * 230; y -= h; o += SV.rect(150, y, 120, h, c) + SV.text(210, y + h / 2 + 4, l + " " + v, "sm bd", { "text-anchor": "middle" }); });
+  o += tag(280, Y(narrow) + 4, "◀ narrow " + narrow, "t3") + tag(280, Y(broad) + 4, "◀ broad " + broad, "t1");
+  $("#labA").innerHTML = o;
+}
+Lib.slider($("#g1"), { id: "nc", label: "Notes and coins ($bn) ", min: 20, max: 150, step: 10, value: 80, fmt: (v) => v, onInput: labMS });
+Lib.slider($("#g2"), { id: "ca", label: "Current account deposits ($bn) ", min: 100, max: 800, step: 50, value: 400, fmt: (v) => v, onInput: labMS });
+Lib.slider($("#g3"), { id: "sv", label: "Savings deposits ($bn) ", min: 100, max: 1000, step: 50, value: 500, fmt: (v) => v, onInput: labMS });
+Lib.slider($("#g4"), { id: "tm", label: "Time and wholesale deposits ($bn) ", min: 0, max: 800, step: 50, value: 300, fmt: (v) => v, onInput: labMS });
+labMS();
+btnTable("lbBtns", "lbOut", [
+  ["Paying for lunch with a card", "Medium of exchange", "Money is accepted in payment for goods"],
+  ["Comparing the price of two phones in dollars", "Unit of account", "Prices in a common unit make goods easy to compare"],
+  ["Putting $200 a month in a savings account", "Store of value", "Money keeps purchasing power for later"],
+  ["Taking out a 25-year mortgage", "Standard of deferred payment", "Money allows payment over time in agreed units"],
+  ["Prices rising 40% a year and people holding dollars instead", "Money failing as a store of value", "High inflation destroys the value of money held"],
+  ["A shop that accepts only gold coins", "Failing acceptability", "Money must be widely accepted to work"]
+], ["Situation", "Function shown", "Why"]);
+
+/* ---------- Practise ---------- */
+Lib.classify($("#cl1"), { prompt: "Where does the asset belong?", buckets: [{"label": "Narrow money"}, {"label": "Broad money only"}, {"label": "Not money (near money or other asset)"}], items: [{"text": "Notes and coins in circulation", "b": 0}, {"text": "Money in a current account", "b": 0}, {"text": "A notice savings account", "b": 1}, {"text": "A fixed-term deposit", "b": 1}, {"text": "Government bonds", "b": 2}, {"text": "Shares in a company", "b": 2}, {"text": "Banks' balances at the central bank", "b": 0}, {"text": "A house", "b": 2}], done: "Narrow money is the most liquid. Broad money adds less liquid deposits." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Medium of exchange", "Accepted in payment for goods and services"], ["Unit of account", "A common measure of value and prices"], ["Store of value", "Keeps purchasing power over time"], ["Standard of deferred payment", "Allows debts to be settled in the future"], ["Liquidity", "How easily an asset can be turned into cash"], ["Fiat money", "Money that has value because the government declares it legal tender"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the problems of barter in order.", items: ["A person needs something that someone else has", "They must find someone who wants what they have to offer", "The two must agree the amounts and the exchange rate for each good", "Many trades fail or take a long time", "Specialisation and trade stay limited"], done: "Barter raises the cost of trade; money lowers it." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "Notes and coins are $60bn, current accounts $340bn, savings $450bn and time deposits $250bn. Calculate broad money ($bn).", "a": 1100, "unit": "$bn", "tol": 0.5, "hint": "Add all four.", "sol": "60 + 340 + 450 + 250 = <b>$1,100bn</b>."},
+  {"q": "Using the same data, calculate narrow money (notes and coins plus current accounts) ($bn).", "a": 400, "unit": "$bn", "tol": 0.5, "hint": "60 + 340.", "sol": "<b>$400bn</b>."},
+  {"q": "Prices rise 5% a year. How much does a $100 note buy, in terms of today's prices, after one year (to the nearest cent)?", "a": 95.24, "unit": "$", "tol": 0.02, "hint": "100 ÷ 1.05.", "sol": "100 ÷ 1.05 = <b>$95.24</b> of today's goods."},
+  {"q": "Notes and coins are $60bn and broad money is $1,100bn. What percentage of broad money is notes and coins (to one decimal place)?", "a": 5.5, "unit": "%", "tol": 0.1, "hint": "60 ÷ 1100.", "sol": "60 ÷ 1100 × 100 = <b>5.5%</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "What problem does money solve?", opts: ["The double coincidence of wants", "Inflation", "Unemployment", "Scarcity"], a: 0, why: "Money lets people trade without needing someone who wants exactly what they have." },
+  { q: "Which is a function of money rather than a characteristic?", opts: ["Divisibility", "Portability", "Store of value", "Durability"], a: 2, why: "Store of value is one of the four functions." },
+  { q: "Which is the most liquid?", opts: ["A house", "A fixed-term deposit", "Notes and coins", "A government bond"], a: 2, why: "Cash can be used at once without loss." },
+  { q: "Which would fall as a result of high inflation?", opts: ["Money's role as a store of value", "Money's divisibility", "Money's durability", "Money's portability"], a: 0, why: "Inflation reduces what money can buy in the future." },
+  { q: "Most of the money supply in a modern economy is:", opts: ["Notes and coins", "Gold", "Bank deposits", "Government bonds"], a: 2, why: "Banks create deposits when they lend." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Money", "Anything generally accepted as payment and in settlement of debts."],
+  ["Medium of exchange", "Accepted in payment for goods and services."],
+  ["Unit of account", "Common measure of value."],
+  ["Store of value", "Keeps purchasing power over time."],
+  ["Standard of deferred payment", "Settles debts in the future."],
+  ["Narrow money", "Most liquid forms: notes and coins, current accounts."],
+  ["Broad money", "Narrow money plus savings and time deposits."],
+  ["Liquidity", "Ease of converting an asset into cash."],
+] });
+Lib.quiz($("#qz2"), { qs: [
+  { q: "Which statement about money is correct? (Oct/Nov 2024 · 31 · Q16, reworded)", opts: ["It consists only of deposits held by commercial banks", "It functions as a medium of exchange", "Its monetary value equals its production cost", "It works only where there is a double coincidence of wants"], a: 1, why: "Money's main function is as a medium of exchange, which removes the need for a double coincidence of wants." },
+  { q: "Salma agrees to pay half of a car's cost now and the other half in six months. Which function of money does this show? (Oct/Nov 2024 · 32 · Q16, reworded)", opts: ["Divisibility", "Durability", "Standard of deferred payment", "Store of value"], a: 2, why: "Money allows payment to be made at a later date." },
+  { q: "A website compares the prices of groceries. Which function of money does this illustrate? (Oct/Nov 2024 · 33 · Q16, reworded)", opts: ["Medium of exchange", "Standard of deferred payment", "Store of value", "Unit of account"], a: 3, why: "Prices expressed in money allow goods to be compared." },
+  { q: "What is a function of money? (Oct/Nov 2023 · 33 · Q17, reworded)", opts: ["It can be divided into small units", "It can be easily carried", "It is a standard of deferred payment", "It is widely accepted"], a: 2, why: "The other three are characteristics of money, not functions." },
+  { q: "What is the definition of liquidity? (Oct/Nov 2022 · 31 · Q23, reworded)", opts: ["The ability of the foreign exchange market to buy foreign currency", "The support a central bank gives to commercial banks", "The ease with which an asset can be converted into cash", "The reaction of governments to a financial crisis"], a: 2, why: "Liquidity measures how quickly an asset can be turned into cash without loss of value." },
+  { q: "A country's money in circulation can be measured in several ways. Which is the most liquid measure?", opts: ["Time deposits", "Savings deposits", "Notes and coins", "Government bonds"], a: 2, why: "Notes and coins can be used immediately in payment." },
+  { q: "In a year, national income in money terms rose by 3%, prices rose by 4% and the population by 1%. What was the approximate change in real income per head? (May/June 2020 · 31 · Q23, reworded)", opts: ["A fall of 1%", "A fall of 2%", "A rise of 2%", "A rise of 3%"], a: 1, why: "Real income fell about 1% and with 1% more people real income per head fell about 2%." },
+] });
+
+Lib.initTabs();
+</script>
+</body></html>
