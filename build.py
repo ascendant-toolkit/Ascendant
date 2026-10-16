@@ -566,13 +566,32 @@ TOP_RESET = ("<script>(function(){try{history.scrollRestoration='manual'}catch(e
              "up();addEventListener('load',up);setTimeout(up,150);setTimeout(up,500)})();</script>")
 
 
-def inject_pill(text, back_href, back_label, home_href, slug, courses, review=True):
+CRUMB_CSS = ("<style id=site-crumbs>.lesson-crumbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 16px;"
+             "font:500 13px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f1eee7;color:#5a6772;border-bottom:1px solid rgba(0,0,0,.08)}"
+             ".lesson-crumbs a{color:#0b6b66;text-decoration:none}.lesson-crumbs a:hover{text-decoration:underline}.lesson-crumbs i{font-style:normal;opacity:.5}"
+             ".lesson-crumbs span{color:#2b3640;font-weight:600}"
+             "@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .lesson-crumbs{background:#1a2128;color:#9aa8b2;border-color:rgba(255,255,255,.1)}"
+             ":root:not([data-theme=light]) .lesson-crumbs a{color:#5fd1c9}:root:not([data-theme=light]) .lesson-crumbs span{color:#e6edf2}}"
+             ":root[data-theme=dark] .lesson-crumbs{background:#1a2128;color:#9aa8b2;border-color:rgba(255,255,255,.1)}:root[data-theme=dark] .lesson-crumbs a{color:#5fd1c9}:root[data-theme=dark] .lesson-crumbs span{color:#e6edf2}"
+             "@media print{.lesson-crumbs{display:none}}</style>")
+
+
+def crumb_bar(crumbs, root):
+    parts = [f'<a href="{root}{h}">{esc(l)}</a>' if h is not None else f"<span>{esc(l)}</span>" for l, h in crumbs]
+    return f'{CRUMB_CSS}<nav class="lesson-crumbs" aria-label="Breadcrumb">{"<i>/</i>".join(parts)}</nav>'
+
+
+def inject_pill(text, back_href, back_label, home_href, slug, courses, review=True, crumbs=None):
     done_btn = f'<button data-done-slug="{slug}" hidden></button><button data-role-toggle="{slug}" hidden></button><button data-role-delete="{slug}" hidden></button><button data-role-restore="{slug}" hidden></button>'
     pill = (f'{PILL_CSS}<div class="site-pill"><button type="button" class="pill-more" aria-label="Menu" onclick="this.parentNode.classList.toggle(&#39;open&#39;)">☰</button><a href="{back_href}">← {esc(back_label)}</a>'
             f'<a href="{home_href}">Home</a><button type="button" title="Light / dark" onclick="{THEME_CLICK}">◐</button>{done_btn}</div>'
             f'{auth_scripts(home_href, courses)}{TAB_SCROLL}{PILL_JS}{TOP_RESET}')
     head = favicon_links(home_href) + THEME_HEAD + GATE_HEAD
     text = text.replace("<head>", "<head>" + head, 1) if "<head>" in text else head + text
+    if crumbs:
+        m = re.search(r"<body[^>]*>", text)
+        bar = crumb_bar(crumbs, home_href)
+        text = text[:m.end()] + bar + text[m.end():] if m else bar + text
     if "</body>" in text:
         i = text.rfind("</body>")
         return text[:i] + pill + text[i:]
@@ -632,6 +651,11 @@ def build_artifacts():
         depth_root = "../../"
         back = depth_root + info["path"] + ("" if is_review(a) else "#res")
         label = chapter_label(ch, ch["title"])
+        ckey0 = first[0]
+        crumbs = [("Home", "")]
+        if ckey0 in COURSES:
+            crumbs.append((COURSES[ckey0]["title"], f"{ckey0}/"))
+        crumbs += list(info["parents"]) + [(label, info["path"]), (a["title"], None)]
         courses = [] if a.get("public") else sorted({c for c, _ in a["places"] if c in COURSES})
         locked = bool(master and courses)
         bundle = {}
@@ -640,7 +664,7 @@ def build_artifacts():
                 continue
             rel = f.relative_to(src)
             if f.suffix == ".html":
-                content = bust(inject_pill(f.read_text(encoding="utf-8"), back, label, depth_root, a["slug"], courses, is_review(a)))
+                content = bust(inject_pill(f.read_text(encoding="utf-8"), back, label, depth_root, a["slug"], courses, is_review(a), crumbs))
             elif f.suffix in TEXT_EXT:
                 content = f.read_text(encoding="utf-8")
             else:
