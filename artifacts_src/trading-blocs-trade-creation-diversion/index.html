@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trading Blocs, Trade Creation and Trade Diversion</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Economics · 9708 · Syllabus 11.6.2 to 11.6.3</div>
+  <h1>Trading Blocs, Trade Creation and Trade Diversion</h1>
+  <p class="lead">11.6.2 to 11.6.3: free trade areas, customs unions, monetary and full economic union, and the gains and losses from trade creation and trade diversion. Animated diagrams, labs, drills and the past paper questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This part in four sentences</h3>
+  <p>Countries link their economies in stages. In a <b class="kw">free trade area</b> members remove tariffs and quotas on trade between themselves but each sets its own tariffs on outsiders; a <b class="kw">customs union</b> adds a <b>common external tariff</b>; a <b class="kw">monetary union</b> adds a <b>single currency and central bank</b>; and a <b class="kw">full economic union</b> adds <b>common economic policies, free movement of labour and capital and a unified market</b>. Joining a customs union causes <b class="kw">trade creation</b> (higher-cost domestic output is replaced by cheaper imports from partners, a gain) and <b class="kw">trade diversion</b> (cheaper imports from the rest of the world are replaced by dearer imports from partners, a loss), so the net effect may be a gain or a loss.</p></div>
+
+  <h2>1 · The stages of economic integration</h2>
+  <div id="pic1" class="card"></div>
+  <div class="tw"><table class="t">
+    <tr><th>Stage</th><th>What members do</th><th>Examples</th><th>Main benefits</th><th>Main costs</th></tr>
+    <tr><td><b>Free trade area</b></td><td>Abolish tariffs and quotas on trade among members. Each sets its own tariffs on non-members</td><td>USMCA (US, Mexico, Canada); ASEAN free trade area</td><td>Cheaper imports from partners, larger markets, specialisation, more competition</td><td>Trade deflection (outside goods enter through the lowest-tariff member); rules of origin needed; job losses in uncompetitive sectors</td></tr>
+    <tr><td><b>Customs union</b></td><td>FTA plus a <b>common external tariff</b> on non-members</td><td>The EU customs union; Mercosur</td><td>Everything in an FTA, no need for rules of origin, bargaining power in trade talks, shared protection</td><td>Trade diversion; loss of the freedom to set own tariffs and make own trade deals</td></tr>
+    <tr><td><b>Monetary union</b></td><td>Customs union (often a common market) plus a <b>single currency</b> and a common central bank</td><td>The euro area</td><td>No exchange rate risk or conversion costs, price transparency, more trade and investment</td><td>No independent monetary or exchange rate policy; one interest rate for all members; weaker members cannot devalue and may have to cut wages and spending</td></tr>
+    <tr><td><b>Full economic union</b></td><td>Monetary union plus <b>common fiscal and other economic policies</b>, free movement of labour and capital, common regulations and a single market</td><td>An aim of the EU; no complete example</td><td>Most efficient single market; policy coordination, transfers between regions</td><td>Largest loss of national sovereignty; needs political agreement; adjustments for member countries can be painful</td></tr>
+  </table></div>
+
+  <h2>2 · Trade creation and trade diversion</h2>
+  <div id="pic2" class="card"></div>
+  <ul>
+    <li><b>Starting point:</b> a country imposes a tariff on all imports. The domestic price is the world price plus the tariff. It buys some goods from the cheapest world supplier and pays the tariff.</li>
+    <li><b>After joining a customs union</b> the country removes tariffs on a partner's goods. The partner is cheaper than the tariff-inclusive price but may be <b>dearer than the cheapest world supplier</b>. The domestic price falls to the partner's price.</li>
+    <li><b>Trade creation</b> (gain): the lower price means (1) <b>domestic producers who are less efficient than the partner are replaced</b> by imports (a production effect: resources are used more efficiently), and (2) <b>consumers buy more</b> at the lower price (a consumption effect: more consumer surplus). Both are the two triangles on the diagram.</li>
+    <li><b>Trade diversion</b> (loss): goods that used to be imported from the cheapest world producer are now bought from the partner at a <b>higher price (partner price minus world price)</b>. This rectangle is a loss, because resources are used less efficiently and the government also loses the tariff revenue. A common external tariff makes this likely.</li>
+    <li><b>Net welfare effect = trade creation − trade diversion.</b> It is more likely to be positive if the partners are efficient, the external tariff is low, the partners have similar prices to the world price, and demand and supply are elastic.</li>
+  </ul>
+
+  <h2>3 · Evaluating membership</h2>
+  <ul>
+    <li><b>Gains:</b> lower prices and greater variety, economies of scale from a larger market, more competition and efficiency, more investment, stronger bargaining power in world trade talks, and dynamic gains.</li>
+    <li><b>Costs:</b> trade diversion, structural unemployment where industries cannot compete, loss of sovereignty and policy independence (for a customs or monetary union), and adjustment costs. Weaker members may lose from monetary union because they cannot devalue.</li>
+    <li><b>The effect depends on</b> the elasticities of demand and supply, the size of the efficiency gap between partners and non-members, the initial tariff, and macroeconomic conditions.</li>
+    <li><b>Compared with global free trade,</b> blocs are a second-best: they can liberalise trade among members while raising barriers to outsiders.</li>
+  </ul>
+  <div class="tip"><b class="h">Evaluation point</b>An FTA does not give "all the benefits and none of the costs" of a customs union: it avoids the common external tariff (and some trade diversion) and keeps freedom to make other trade deals, but it must police rules of origin, and it lacks the shared bargaining power and simpler customs of a union.</div>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · The ladder of integration</h2>
+  <p>Press Play, or click the numbered steps.</p>
+  <div id="stL"></div>
+  <h2>2 · Trade creation and trade diversion</h2>
+  <div id="stT"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab · Is the customs union a net gain?</h2>
+  <p>A country imports a good at the world price of $3 and has a tariff. Set the tariff and the partner's price. If the partner's price is below the tariff-inclusive price, the country buys from the partner. Compare trade creation with trade diversion.</p>
+  <div class="card"><div class="grid2"><div><div id="g1"></div><div id="g2"></div>
+    <div class="readout"><div><small>Trade creation (gain)</small><strong id="r1"></strong></div><div><small>Trade diversion (loss)</small><strong id="r2"></strong></div><div><small>Net effect</small><strong id="r3"></strong></div></div>
+    <div class="verdict" id="rv"></div></div>
+    <div><svg id="labA" viewBox="0 0 420 330" role="img" aria-label="Domestic supply and demand with the world price, the tariff-inclusive price and the partner price, showing trade creation triangles and the trade diversion rectangle"></svg></div></div></div>
+
+  <h2>Lab 2 · Why a monetary union can hurt weaker members</h2>
+  <p>Two members of a monetary union face the same interest rate. A weaker member has costs that rise 3% a year faster than a stronger member's. With no exchange rate to adjust, see how its competitiveness changes over the years.</p>
+  <div class="card"><div class="grid2"><div><div id="g3"></div>
+    <div class="readout"><div><small>Cost gap after the period</small><strong id="t1"></strong></div><div><small>Competitiveness</small><strong id="t2"></strong></div><div><small>Needed wage change</small><strong id="t3"></strong></div></div>
+    <div class="verdict" id="tv"></div></div>
+    <div><svg id="labB" viewBox="0 0 420 300" role="img" aria-label="The cost level of a weaker member compared with a stronger member over time"></svg></div></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which type of trading bloc?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Match the word to its meaning</h2><div id="m1" class="card"></div>
+  <h2>3 · Put the integration stages in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Calculations</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>The European Union</h3><p>The EU started as a customs union and developed into a single market where goods, services, capital and labour move freely, with a subset of members using the euro. It shows several stages of integration within one project.</p><div class="use"><b>Exam use:</b> the ladder from a free trade area to monetary union, and the gains and costs of each stage.</div></div>
+  <div class="rw"><h3>The euro area and weaker members</h3><p>After 2010, countries such as Greece and Spain with high unemployment and falling competitiveness could not devalue because they shared the euro. Adjustment came through wage cuts, lower government spending and higher unemployment, while a strong economy such as Germany gained from a currency that was weaker than its own would have been.</p><div class="use"><b>Exam use:</b> the cost of a monetary union to weaker members, as in a past Paper 4 data set.</div></div>
+  <div class="rw"><h3>USMCA and trade within a free trade area</h3><p>The United States, Mexico and Canada trade with few tariffs among themselves but each has its own tariffs on outsiders. Rules of origin decide how much of a vehicle must be made in the region to qualify for tariff-free trade.</p><div class="use"><b>Exam use:</b> a free trade area and the need for rules of origin.</div></div>
+  <div class="rw"><h3>Brexit and trade</h3><p>When the UK left the EU's single market and customs union, new customs checks and rules appeared on trade with the EU, raising costs for many firms. The UK gained the freedom to set its own tariffs and trade deals.</p><div class="use"><b>Exam use:</b> the benefits of membership of a union that are lost on leaving, and the trade-off with sovereignty.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Past paper questions on trading blocs, trade creation and trade diversion</h2>
+  <p>We searched the A Level Economics papers in the folder (2020 to 2025). Free trade areas and customs unions appear in 20 mark essays, with a diagram usually required, and monetary union appears in data response. Reworded past questions are below, with a practice question and five Paper 3 multiple choice questions (the Paper 3 questions on trade creation and customs unions use diagrams that are not reproduced here).</p>
+  <div class="tw"><table class="t">
+    <tr><th>Type</th><th>Examples found</th><th>Where</th></tr>
+    <tr><td>Essays, 20 marks</td><td>3</td><td>May/June 2025 (41 and 43) Q5; Oct/Nov 2024 (41) Q5; Oct/Nov 2024 (43) Q5</td></tr>
+    <tr><td>Data response, 8 marks</td><td>1</td><td>Oct/Nov 2020 (41) Q1(c)</td></tr>
+    <tr><td>Multiple choice (Paper 3)</td><td>5 shown below</td><td>2021 to 2025</td></tr>
+  </table></div>
+  <h2>A · Written questions (reworded)</h2>
+  <p>The wording, context and figures are our own, so they are safe to set as practice. The source paper is named for reference. Mark scheme points are in our own words.</p>
+  <details class="eq"><summary>Based on May/June 2025 · 9708/41 and 43 · Q5 <span class="mark">20 marks</span> A free trade area gains all the benefits of being a member of a customs union while avoiding all the costs of membership. Evaluate this statement.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Define a free trade area (removal of tariffs and quotas between members) and a customs union (no tariffs between members plus a common external tariff).</li>
+        <li>A country in an FTA can gain faster growth through specialisation and a global market; lower tariffs reduce firms' costs, raise incomes, increase competition and may raise productivity.</li>
+        <li>A customs union shares protection from outsiders while giving access to a large single market, and members may gain from trade creation.</li>
+        <li>Evaluation: a customs union may cost sovereignty; trade diversion can occur because members must adopt the common external tariff, causing a misallocation of resources.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Define both. Benefits shared by FTA and customs union. What a union adds: common external tariff and bargaining power. Costs: sovereignty, trade diversion. Judge: statement is only partly true.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">In a free trade area members remove tariffs and quotas on trade among themselves but keep their own tariffs on outsiders. A customs union does the same but also adopts a common external tariff.</span> <span class="mk n" data-t="N">Both could give lower prices, more competition and economies of scale from specialisation, so many of the gains are the same. In a customs union, members also share protection against outside competitors, have more bargaining power in trade talks, and do not need rules of origin to stop goods entering through the lowest-tariff member.</span></p>
+    <p><span class="mk e" data-t="E">On the other hand, a customs union has costs that an FTA avoids: a member must accept the common external tariff and gives up some sovereignty. When a member has to raise its tariff on a cheaper non-member, trade diversion may occur, which could reduce allocative efficiency. So the statement is partly true, since an FTA avoids those costs, but it does not gain all the benefits, such as the shared bargaining power. The net result may depend on the pattern of trade.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2024 · 9708/41 · Q5 <span class="mark">20 marks</span> In recent years many countries have joined or set up a free trade area. Evaluate, with the help of a diagram, whether membership of an FTA is always beneficial to a country.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Define an FTA, give examples, define a tariff and non-tariff barriers and show the effect of removing them: lower prices, more consumer surplus, greater allocative efficiency, economies of scale. A diagram is required (maximum Level 2 without).</li>
+        <li>Diagram of the domestic market with a tariff, the fall in price when the tariff is removed, the change in domestic output and the gain in consumer surplus.</li>
+        <li>Evaluation: the effect depends on elasticities; structural unemployment where demand shifts to imports; polluting production may move to members; cheaper inputs may raise competitiveness; at the macro level, the effect depends on the marginal propensities to export and import and the effect on net exports, employment and the multiplier.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Define. Diagram: tariff removal lowers price, increases imports. Micro gains: consumer surplus, scale. Evaluation: elasticities, jobs, pollution, macro effect (X − M).</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">A free trade area removes tariffs and other barriers between members. A diagram of the domestic market shows that with a tariff the price is the world price plus the tariff. When the tariff is removed, the price falls, domestic output falls and consumption rises, so imports increase and consumer surplus increases.</span> <span class="mk n" data-t="N">The lower prices raise allocative efficiency, and a larger market allows firms to benefit from economies of scale, which raises productive efficiency. Cheaper inputs may also lower firms' costs and make exports more competitive.</span></p>
+    <p><span class="mk e" data-t="E">However, membership is not always beneficial. If demand and supply are inelastic the gains may be small. Domestic producers that cannot compete may close, causing structural unemployment, and polluting industries may relocate. At the macro level, the effect on aggregate demand depends on whether exports rise by more than imports. So membership is probably beneficial overall, but the effect depends on the country's industries and policies.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2020 · 9708/41 · Q1(c) <span class="mark">8 marks</span> Spain and Greece use the euro and so cannot devalue. They have had to adjust their domestic policies, reducing wages and government spending. Discuss the possible effects on the Spanish and Greek economies of these policy changes.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Identify the likely policy outcome (2 marks): wages and government spending were cut.</li>
+        <li>Consider the effect of wage decreases (3 marks) and of reduced government spending (3 marks).</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Link cuts to wages: lower costs but lower consumption. Link cuts in government spending: lower AD, higher unemployment, but lower deficit. Judge.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">Because they share the euro and cannot devalue, Spain and Greece have to improve competitiveness by cutting labour costs and reducing government spending.</span> <span class="mk n" data-t="N">Lower wages reduce firms' costs and could make exports cheaper, raising net exports over time. However, they also lower workers' incomes and consumption, which reduces aggregate demand and may raise unemployment in the short run. Cuts in government spending could narrow the budget deficit but also reduce aggregate demand, output and public services.</span></p>
+    <p><span class="mk e" data-t="E">The result could be a slow adjustment with high unemployment, as in these countries, while a stronger economy such as Germany had no need to adjust. The gains in competitiveness may take years, so the policies could reduce living standards in the short run.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Practice question · modelled on the 8 mark style (no past paper) <span class="mark">8 marks</span> Explain what is meant by trade creation and trade diversion when a country joins a customs union.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Trade creation: higher-cost domestic output replaced by lower-cost imports from a partner; gains from more efficient production and more consumption.</li>
+        <li>Trade diversion: imports switched from a lower-cost non-member to a higher-cost member because of the common external tariff; a loss of efficiency.</li>
+        <li>A short development, possibly with the net effect depending on the size of each.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Define trade creation with the gain. Define trade diversion with the loss. Net effect.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">Trade creation occurs when the removal of tariffs on a partner's goods causes domestic output that is more expensive than the partner's to be replaced by imports from the partner. Resources are used more efficiently, and consumers pay a lower price and buy more.</span></p>
+    <p><span class="mk k" data-t="K">Trade diversion occurs when a country that joins a customs union switches from importing from a low-cost world supplier outside the union to a higher-cost partner inside, because the common external tariff makes outsiders' goods dearer.</span> <span class="mk n" data-t="N">This is a loss because resources are used less efficiently and the government loses tariff revenue.</span> <span class="mk e" data-t="E">The net welfare effect of joining depends on whether the gains from trade creation outweigh the loss from trade diversion.</span></p>
+    </div>
+  </div></details>
+  <h2>B · Multiple choice questions (Paper 3)</h2>
+  <p>Choose an answer, then read the reason. Reworded from the paper and question number shown.</p>
+  <div id="qz2"></div>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Know the ladder.</b> Free trade area, customs union, monetary union, full economic union: each adds something.</li>
+    <li><b>Say what a customs union adds.</b> A common external tariff.</li>
+    <li><b>Draw the tariff diagram.</b> Domestic supply and demand, the world price and the price with the tariff, with shaded areas.</li>
+    <li><b>Define trade creation and diversion with the effect.</b> Creation: cheaper partner replaces dearer domestic output. Diversion: dearer partner replaces cheaper world supplier.</li>
+    <li><b>Say the net effect depends.</b> Gains from creation against losses from diversion.</li>
+    <li><b>For monetary union, mention the lost tools.</b> No exchange rate or independent interest rate for weaker members.</li>
+    <li><b>Evaluate FTA versus customs union.</b> FTA keeps freedom; the union shares protection and bargaining power.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>FTA</td><td>"In a free trade area members remove barriers among themselves but keep their own tariffs on outsiders."</td></tr>
+    <tr><td>Customs union</td><td>"A customs union adds a common external tariff, which could cause trade diversion."</td></tr>
+    <tr><td>Creation</td><td>"Trade creation may occur when domestic output is replaced by cheaper imports from a partner."</td></tr>
+    <tr><td>Diversion</td><td>"Trade diversion may occur when imports switch from a cheaper outsider to a dearer partner."</td></tr>
+    <tr><td>Monetary union</td><td>"Members of a monetary union could lose the ability to use exchange rate or interest rate policy to deal with their own problems."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Define / State</td><td>Give the exact meaning, briefly. No explanation needed.</td></tr>
+    <tr><td>Explain</td><td>Give reasons, with a clear chain of cause and effect.</td></tr>
+    <tr><td>Discuss</td><td>Arguments on both sides, then a judgement.</td></tr>
+    <tr><td>Evaluate</td><td>Weigh the arguments and reach a supported conclusion.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+/* ---------- Ladder of integration ---------- */
+function ladDraw(s) {
+  const step = (i, t, sub, k) => { if (k <= 0) return ""; const x = 60 + i * 165, y = 230 - i * 50; return SV.rect(x, y, 150, 280 - y, "f1", op(0.25 + 0.15 * i)) + SV.text(x + 75, y + 24, t, "lbl bd", { "text-anchor": "middle", ...op(k) }) + sub.split("|").map((l, j) => SV.text(x + 75, y + 46 + j * 16, l, "sm", { "text-anchor": "middle", ...op(k) })).join(""); };
+  let o = SV.line(40, 280, 730, 280); o += step(0, "Free trade area", "No internal tariffs|Own external tariffs", s.a) + step(1, "Customs union", "+ common external|tariff", s.b) + step(2, "Monetary union", "+ single currency|+ central bank", s.c) + step(3, "Full economic union", "+ common policies|+ free factor movement", s.d);
+  return o;
+}
+$("#pic1").innerHTML = `<svg viewBox="0 0 760 300" role="img" aria-label="Four steps of economic integration from a free trade area to a full economic union">${ladDraw({ a: 1, b: 1, c: 1, d: 1 })}</svg>`;
+Lib.stepper($("#stL"), { w: 760, h: 300, label: "Ladder of economic integration", base: { a: 0, b: 0, c: 0, d: 0 }, draw: ladDraw, tween: 900, dwell: 5400, steps: [
+  { cap: "<b>Free trade area.</b> Members abolish tariffs and quotas on trade between themselves. Each keeps its own tariffs on non-members.", s: { a: 1 } },
+  { cap: "<b>Customs union.</b> Members also agree one common external tariff on outsiders, so goods can enter any member on the same terms.", s: { a: 1, b: 1 } },
+  { cap: "<b>Monetary union.</b> Members share a currency and a central bank, so there is no exchange rate risk but no independent monetary policy.", s: { a: 1, b: 1, c: 1 } },
+  { cap: "<b>Full economic union.</b> Members coordinate fiscal and other economic policies, with free movement of labour and capital and common regulations.", s: { a: 1, b: 1, c: 1, d: 1 } },
+] });
+
+/* ---------- Trade creation and diversion diagram ---------- */
+const dP = (q) => (120 - q) / 8, sP = (q) => (q + 10) / 10, qD = (p) => 120 - 8 * p, qS = (p) => Math.max(0, 10 * p - 10);
+function tcModel(t, pp) { const pw = 3, p0 = pw + t, p1 = Math.min(pp, p0), qd0 = qD(p0), qs0 = qS(p0), qd1 = qD(p1), qs1 = qS(p1), prod = 0.5 * (p0 - p1) * (qs0 - qs1), cons = 0.5 * (p0 - p1) * (qd1 - qd0), tc = prod + cons, td = pp > pw && p1 === pp ? (pp - pw) * (qd0 - qs0) : 0; return { pw, p0, p1, qd0, qs0, qd1, qs1, prod, cons, tc, td, net: tc - td, same: p1 >= p0 }; }
+function tcSvg(t, pp, st, X, Y, w) {
+  const m = tcModel(t, pp); let o = SV.line(X(0), Y(0), X(135), Y(0)) + SV.line(X(0), Y(0), X(0), Y(9.2)) + SV.text(X(135), Y(0) + 24, "Quantity", "sm", { "text-anchor": "end" }) + SV.text(X(0) + 6, Y(9.2) - 4, "Price ($)", "sm");
+  o += SV.line(X(0), Y(15), X(120), Y(0), "c1") + tag(X(54), Y(8.1), "D", "t1", 1, "start") + SV.line(X(0), Y(1), X(135), Y(14.5), "c3") + tag(X(78), Y(8.8) - 6, "S", "t3", 1, "end");
+  o += SV.line(X(0), Y(m.pw), X(135), Y(m.pw), "c2 dash") + tag(X(133), Y(m.pw) + 16, "world price " + m.pw, "t2", 1, "end") + SV.line(X(0), Y(m.p0), X(135), Y(m.p0), "c4 dash") + tag(X(133), Y(m.p0) - 6, "with tariff " + Lib.fmtN(m.p0, 1), "t4", 1, "end");
+  if (st >= 1) o += SV.line(X(0), Y(pp), X(135), Y(pp), "c1 dash") + tag(X(2), Y(pp) - 6, "partner price " + Lib.fmtN(pp, 1), "t1", st >= 1 ? 1 : 0);
+  if (st >= 2 && !m.same) o += SV.poly([[X(m.qs1), Y(m.p1)], [X(m.qs0), Y(m.p0)], [X(m.qs0), Y(m.p1)]], "f3", { opacity: 0.55 }) + SV.poly([[X(m.qd0), Y(m.p0)], [X(m.qd1), Y(m.p1)], [X(m.qd0), Y(m.p1)]], "f3", { opacity: 0.55 }) + tag(X((m.qs0 + m.qs1) / 2), Y(m.p1) + 20, "production gain", "t3", 1, "end") + tag(X(m.qd0 + 4), Y(m.p1) + 20, "consumption gain", "t3", 1, "start");
+  if (st >= 3 && !m.same && m.td > 0) o += SV.rect(X(m.qs0), Y(m.p1), X(m.qd0) - X(m.qs0), Y(m.pw) - Y(m.p1), "f2", { opacity: 0.6 }) + tag(X((m.qs0 + m.qd0) / 2), (Y(m.p1) + Y(m.pw)) / 2 + 4, "trade diversion", "t2", 1, "middle");
+  return o;
+}
+const TX = (q) => 70 + q * 5, TYY = (p) => 300 - p * 29;
+$("#pic2").innerHTML = `<svg viewBox="0 0 760 345" role="img" aria-label="Domestic market with a tariff, a partner price below the tariff-inclusive price, trade creation triangles and the trade diversion rectangle">${tcSvg(3, 4.2, 3, TX, TYY)}</svg>`;
+Lib.stepper($("#stT"), { w: 760, h: 345, label: "A customs union: trade creation triangles and the trade diversion rectangle", base: { st: 0 }, draw: (s) => tcSvg(3, 4.2, Math.round(s.st), TX, TYY), tween: 600, dwell: 6200, steps: [
+  { cap: "<b>Before.</b> The country imports at the world price of $3 plus a tariff of $3, so the domestic price is $6. Domestic firms supply 50 units, consumers buy 72, and 22 units are imported from the cheapest world supplier.", s: { st: 0 } },
+  { cap: "<b>Joining the union.</b> A partner can supply tariff-free at $4.20, which is cheaper than $6 but dearer than the world price of $3. The domestic price falls to $4.20.", s: { st: 1 } },
+  { cap: "<b>Trade creation.</b> Dear domestic output (50 down to 32) is replaced by cheaper imports (production gain), and consumers buy more (72 up to 86) at the lower price (consumption gain). The two shaded triangles are the gain.", s: { st: 2 } },
+  { cap: "<b>Trade diversion.</b> The 22 units once bought at $3 from the world are now bought from the partner at $4.20. The rectangle ($1.20 × 22) is a loss. Net effect here: gain of 29.2 minus loss of 26.4, a small net gain.", s: { st: 3 } },
+] });
+
+/* ---------- Lab ---------- */
+function labT() {
+  if (!$("#tf") || !$("#pp")) return;
+  const t = +$("#tf").value / 10, pp = +$("#pp").value / 10, m = tcModel(t, pp);
+  $("#r1").textContent = m.same ? "none" : Lib.fmtN(m.tc, 1); $("#r2").textContent = m.same ? "none" : Lib.fmtN(m.td, 1); $("#r3").textContent = m.same ? "0" : (m.net >= 0 ? "+" : "") + Lib.fmtN(m.net, 1);
+  $("#rv").textContent = m.same ? `The partner's price ($${pp.toFixed(1)}) is no lower than the tariff-inclusive price ($${m.p0.toFixed(1)}), so the country keeps buying at the world price plus the tariff and the union makes no difference to this good.` : `The price falls from $${m.p0.toFixed(1)} to $${m.p1.toFixed(1)}. Trade creation (production effect ${Lib.fmtN(m.prod, 1)} plus consumption effect ${Lib.fmtN(m.cons, 1)}) is ${Lib.fmtN(m.tc, 1)}. Trade diversion is the extra $${(pp - m.pw).toFixed(1)} paid on the ${Lib.fmtN(m.qd0 - m.qs0, 0)} units formerly imported from the world: ${Lib.fmtN(m.td, 1)}. Net effect: ${m.net >= 0 ? "a gain" : "a loss"} of ${Lib.fmtN(Math.abs(m.net), 1)}. ${m.net >= 0 ? "The union is better for the country when the partner is nearly as cheap as the rest of the world." : "The union is worse when the partner is much dearer than the world and the external tariff is high."}`;
+  const X = (q) => 40 + q * 2.6, Y = (p) => 295 - p * 29; $("#labA").innerHTML = tcSvg(t, pp, 3, X, Y, 1);
+}
+Lib.slider($("#g1"), { id: "tf", label: "Tariff, $ ", min: 10, max: 40, step: 1, value: 30, fmt: (v) => (v / 10).toFixed(1), onInput: labT });
+Lib.slider($("#g2"), { id: "pp", label: "Partner's price, $ ", min: 31, max: 70, step: 1, value: 42, fmt: (v) => (v / 10).toFixed(1), onInput: labT });
+labT();
+
+/* ---------- Lab 2 ---------- */
+function labM() {
+  if (!$("#yr")) return;
+  const y = +$("#yr").value, gap = (Math.pow(1.03, y) - 1) * 100, adj = (1 - 1 / Math.pow(1.03, y)) * 100;
+  $("#t1").textContent = "+" + Lib.fmtN(gap, 1) + "%"; $("#t2").textContent = gap > 10 ? "Badly weakened" : gap > 4 ? "Weakened" : "Slightly weaker"; $("#t3").textContent = "−" + Lib.fmtN(adj, 1) + "%";
+  $("#tv").textContent = `After ${y} years of costs rising 3% a year faster than in the stronger member, the weaker member's costs are ${Lib.fmtN(gap, 1)}% higher relative to its partner. With one currency it cannot devalue, so to restore competitiveness its wages and prices must fall by about ${Lib.fmtN(adj, 1)}% relative to the partner's: an 'internal devaluation', which usually means unemployment and spending cuts.`;
+  const X = (t) => 50 + t * 11, Y = (v) => 270 - (v - 100) * 4.2; let o = SV.line(50, 270, 400, 270) + SV.line(50, 270, 50, 20) + SV.text(400, 292, "Years", "sm", { "text-anchor": "end" }) + SV.text(56, 16, "Relative cost level (start = 100)", "sm") + SV.line(50, Y(100), 400, Y(100), "c3 dash");
+  const pts = []; for (let t = 0; t <= y; t += 0.5) pts.push([X(t), Y(100 * Math.pow(1.03, t))]); if (pts.length > 1) o += SV.path(Lib.ptsPath(pts), "c2");
+  $("#labB").innerHTML = o + tag(X(y) - 4, Y(100 * Math.pow(1.03, y)) - 8, Lib.fmtN(100 * Math.pow(1.03, y), 0), "t2", 1, "end");
+}
+Lib.slider($("#g3"), { id: "yr", label: "Years in the union ", min: 1, max: 25, step: 1, value: 10, fmt: (v) => v, onInput: labM });
+labM();
+
+/* ---------- Practise ---------- */
+Lib.classify($("#cl1"), { prompt: "Which stage of integration is it?", buckets: [{"label": "Free trade area"}, {"label": "Customs union"}, {"label": "Monetary union"}], items: [{"text": "Members remove tariffs between themselves but set their own tariffs on non-members", "b": 0}, {"text": "Members adopt a common external tariff", "b": 1}, {"text": "Members use one currency and one central bank", "b": 2}, {"text": "Rules of origin are needed to stop trade deflection", "b": 0}, {"text": "No exchange rate risk between members", "b": 2}, {"text": "Members negotiate trade deals as a single bloc", "b": 1}, {"text": "A member can still sign its own trade agreements with outsiders", "b": 0}, {"text": "A weaker member can no longer devalue", "b": 2}], done: "Free trade area: no internal tariffs. Customs union: plus common external tariff. Monetary union: plus single currency." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Free trade area", "Members abolish tariffs and quotas between themselves"], ["Customs union", "A free trade area plus a common external tariff"], ["Monetary union", "Members share a single currency and central bank"], ["Trade creation", "Dearer domestic output replaced by cheaper imports from a partner"], ["Trade diversion", "Imports switched from a cheaper outsider to a dearer partner"], ["Common external tariff", "One tariff all members charge on goods from outside the union"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the integration stages in order, least integrated first.", items: ["Free trade area", "Customs union", "Monetary union", "Full economic union"], done: "Each stage adds a new level of integration." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "The world price is $3 and the tariff is $3. A partner offers $4.20 tariff-free. By how much does the domestic price fall ($)?", "a": 1.8, "unit": "$", "tol": 0.01, "hint": "6 − 4.20.", "sol": "<b>$1.80</b>."},
+  {"q": "Before joining, the country imported 22 units at the world price of $3. The partner price is $4.20. Calculate the trade diversion loss ($).", "a": 26.4, "unit": "$", "tol": 0.1, "hint": "(4.20 − 3.00) × 22.", "sol": "1.20 × 22 = <b>$26.4</b>."},
+  {"q": "The production effect is 16.2 and the consumption effect is 13.0. Calculate total trade creation (1 decimal place).", "a": 29.2, "unit": "", "tol": 0.1, "hint": "Add them.", "sol": "<b>29.2</b>."},
+  {"q": "A member's costs rise 3% a year faster than its partner's for 10 years. By about what percentage are its costs relatively higher (%, 1 decimal place)?", "a": 34.4, "unit": "%", "tol": 0.3, "hint": "1.03^10 − 1.", "sol": "1.03^10 = 1.344, so about <b>34.4%</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "A customs union differs from a free trade area because it has:", opts: ["A common external tariff", "No tariffs between members", "A single currency", "No non-tariff barriers"], a: 0, why: "Members apply the same tariff to outsiders." },
+  { q: "Trade diversion occurs when:", opts: ["Imports switch from a lower-cost outsider to a higher-cost partner", "Domestic output is replaced by cheaper partner imports", "Exports fall to zero", "A currency is devalued"], a: 0, why: "The common external tariff makes outside goods dearer." },
+  { q: "Trade creation is a:", opts: ["Gain, as cheaper imports replace dearer domestic output", "Loss, as dearer imports replace cheaper ones", "Cost of tariffs", "Change in the exchange rate"], a: 0, why: "Production and consumption efficiency improve." },
+  { q: "A disadvantage of a monetary union for a weaker member is that it:", opts: ["Cannot devalue its currency", "Pays more tariffs", "Loses all its exports", "Has too much monetary independence"], a: 0, why: "It has no exchange rate adjustment." },
+  { q: "The net effect of joining a customs union is more likely to be positive if:", opts: ["The partner's price is close to the world price", "The external tariff is very high", "The partner is much less efficient", "Demand is perfectly inelastic"], a: 0, why: "Trade diversion is smaller when the partner is nearly as efficient as outsiders." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Free trade area", "No internal tariffs; own external tariffs."],
+  ["Customs union", "FTA + common external tariff."],
+  ["Monetary union", "Single currency and central bank."],
+  ["Full economic union", "Common economic policies as well."],
+  ["Trade creation", "Cheaper partner replaces dearer domestic output."],
+  ["Trade diversion", "Dearer partner replaces cheaper outsider."],
+  ["Net effect", "Creation minus diversion."],
+  ["Cost of monetary union", "No devaluation or independent interest rate."],
+] });
+Lib.quiz($("#qz2"), { qs: [
+  { q: "A country imposes a tariff on steel imports. What is the likely impact on its economy? (May/June 2025 · 31 · Q25, reworded)", opts: ["Its steel exports become more price competitive", "Productive inefficiency in its steel industry", "An improvement in its terms of trade", "A fall in producer surplus for its steel producers"], a: 1, why: "Protection from foreign competition can reduce the incentive to cut costs. Domestic producers gain surplus, not lose it." },
+  { q: "The US introduced tariffs on many imports from China in 2018. Which policy type was this? (Oct/Nov 2024 · 32 · Q25, reworded)", opts: ["Expenditure-reducing", "Expenditure-switching", "Expansionary monetary", "Contractionary monetary"], a: 1, why: "Tariffs switch spending from imports to domestic goods." },
+  { q: "What is a failure of government microeconomic intervention? (Feb/March 2024 · 32 · Q13, reworded)", opts: ["An indirect tax equal to external costs is imposed on cigarettes and demand falls", "Limits are placed on a union's restrictions that increase labour mobility", "Price controls on bread are removed", "Tariffs on imports raise the Gini coefficient"], a: 3, why: "A policy that worsens an objective, such as higher inequality, is a government failure. The other three work as intended." },
+  { q: "Which is an example of an expenditure-switching policy? (Feb/March 2023 · 32 · Q29, reworded)", opts: ["Higher income tax rates", "Higher interest rates", "Higher tariff rates", "A larger money supply"], a: 2, why: "Tariffs change the mix of spending from imports to domestic goods. The others reduce total spending." },
+  { q: "What is most likely to be an appropriate action to reduce both a current account surplus and inflation? (Oct/Nov 2021 · 32 · Q30, reworded)", opts: ["Lower the rate of interest", "Devalue the currency", "Increase direct taxes", "Remove tariffs on imports"], a: 3, why: "Removing tariffs lowers import prices, which cuts inflation and raises imports, reducing the surplus." },
+] });
+
+Lib.initTabs();
+</script>
+</body></html>
