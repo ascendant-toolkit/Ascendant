@@ -941,8 +941,8 @@ ARTIFACTS = [
     {"src": "as-division-of-labour-entrepreneur", "role": "review", "at": "1.3.4", "title": "Division of Labour, Specialisation and the Entrepreneur", "kind": "Interactive",
      "desc": "1.3.4 onwards · Division of labour, specialisation, money as a medium of exchange and the role of the entrepreneur. Animations, labs and past paper practice.",
      "places": [("a-econ", "as/s1-3")]},
-    {"src": "as-economic-systems", "role": "review", "at": "1.4.1", "title": "Economic Systems", "kind": "Interactive",
-     "desc": "1.4.1 to 1.4.4 · Market, planned and mixed economies and how each allocates resources. Animations, labs and past paper practice.",
+    {"src": "as-economic-systems", "role": "review", "at": "1.4", "title": "Economic Systems: Overview and Comparison", "kind": "Interactive",
+     "desc": "1.4 · Market, planned and mixed economies compared, and changing system. Animations, labs and past paper practice.",
      "places": [("a-econ", "as/s1-4")]},
     {"src": "as-ppc-shape-opportunity-cost", "role": "review", "at": "1.5.1", "title": "Production Possibility Curves: Shape and Opportunity Cost", "kind": "Interactive",
      "desc": "1.5.1 to 1.5.2 · Drawing and reading PPCs, straight-line and concave shapes, and opportunity cost. Animations, labs and past paper practice.",
@@ -1110,6 +1110,17 @@ ARTIFACTS = [
     {"src": "as-supply-side-policy-effects", "role": "review", "at": "5.4.4", "title": "Supply-Side Policy: Effects and Evaluation", "kind": "Interactive",
      "desc": "5.4.4 · AD/AS analysis, short and long run, and evaluation. Animations, labs and past paper practice.",
      "places": [("a-econ", "as/s5-4")]},
+
+    # AS 1.4 one page per system
+    {"src": "as-market-economy", "role": "review", "at": "1.4.1", "title": "The Market Economy and the Price Mechanism", "kind": "Interactive",
+     "desc": "1.4.1 to 1.4.2 · Features, functions of price, strengths and weaknesses of a market economy. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s1-4")]},
+    {"src": "as-planned-economy", "role": "review", "at": "1.4.3", "title": "The Planned Economy", "kind": "Interactive",
+     "desc": "1.4.3 · Central planning, strengths and weaknesses, and transition. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s1-4")]},
+    {"src": "as-mixed-economy", "role": "review", "at": "1.4.4", "title": "The Mixed Economy and the Role of Government", "kind": "Interactive",
+     "desc": "1.4.4 · Roles of government, the spectrum, advantages and disadvantages. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s1-4")]},
 ]
 
 # Old textbook-numbered chapter paths for A-Level Economics -> syllabus-numbered paths. build.py writes a redirect page at each old path.
