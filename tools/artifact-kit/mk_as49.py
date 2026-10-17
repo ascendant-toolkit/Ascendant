@@ -121,7 +121,7 @@ mc_exam = [
 
 exam = exam_page("the consequences of unemployment",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). The consequences of unemployment appear mostly in short data-response parts (2 to 6 marks) and occasionally in Paper 1. Reworded past questions are below, with three Paper 1 multiple choice questions.",
-  [("Data response, 2 to 6 marks", "3", "May/June 2025 (22) Q1(b); May/June 2025 (24) Q1(e); Feb/March 2024 (22) Q1(d)"), ("Multiple choice (Paper 1)", "3 shown below", "2020 to 2024")],
+  [("Data response, 2 marks", "1", "May/June 2025 (22) Q1(b)"), ("Data response, 6 marks", "2", "May/June 2025 (24) Q1(e); Feb/March 2024 (22) Q1(d)"), ("Multiple choice (Paper 1)", "3 shown below", "2020 to 2024")],
   [
   eq(P("s25_22", "1(b)"), "2 marks", "Identify one possible impact on firms and one possible impact on the government of a very high rate of unemployment.",
      ["Firms may find it easier or cheaper to recruit labour, may pay lower wages, or may suffer weaker demand for their products (1).", "The government may have reduced tax revenue or higher welfare payments (1). Maximum 1 mark for each of firms and government."],

@@ -125,7 +125,7 @@ mc_exam = [
 
 exam = exam_page("macroeconomic equilibrium and the effects of shifts",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). AD and AS analysis is used in Paper 2 parts of 6 and 8 marks nearly every series, and in a large share of Paper 1. Reworded past questions are below, with eight Paper 1 multiple choice questions that do not need a diagram.",
-  [("Essay parts, 8 marks", "2", "Feb/March 2024 (22) Q5(a); May/June 2024 (23) Q4(a)"), ("Data response, 6 marks", "1", "May/June 2021 (21) Q1(e); May/June 2020 (22) Q1(d)"), ("Multiple choice (Paper 1)", "8 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "2", "Feb/March 2024 (22) Q5(a); May/June 2024 (23) Q4(a)"), ("Data response, 6 marks", "2", "May/June 2021 (21) Q1(e); May/June 2020 (22) Q1(d)"), ("Multiple choice (Paper 1)", "8 shown below", "2020 to 2025")],
   [
   eq(P("m24_22", "5(a)"), "8 marks", "With the help of an aggregate demand and aggregate supply diagram, explain how a decrease in interest rates could cause economic growth and consider whether economic growth will always result in inflation.",
      ["Knowledge (up to 3): a clear understanding of economic growth (1), inflation (1) and interest rates (1); an accurate diagram with labelled axes and equilibrium price level and real GDP (1).",

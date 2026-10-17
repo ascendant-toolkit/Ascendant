@@ -109,7 +109,7 @@ mc_exam = [
 
 exam = exam_page("the market economy",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). The market economy and the functions of price appear in short Paper 2 parts, in 8 and 12 mark questions, and in Paper 1 every year. Reworded past questions are below, with eight Paper 1 multiple choice questions.",
-  [("Data response, 2 marks", "1", "Oct/Nov 2022 (21) Q1(a)"), ("Essay parts, 8 marks", "1", "Feb/March 2023 (22) Q2(a)"), ("Essay parts, 12 marks", "1", "Oct/Nov 2020 (21) Q2(b)"), ("Multiple choice (Paper 1)", "8 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "1", "Feb/March 2023 (22) Q2(a)"), ("Essay parts, 12 marks", "1", "Oct/Nov 2020 (21) Q2(b)"), ("Data response, 2 marks", "1", "Oct/Nov 2022 (21) Q1(a)"), ("Multiple choice (Paper 1)", "8 shown below", "2020 to 2025")],
   [
   eq(P("w22_21", "1(a)"), "2 marks", "Explain how 'a product's price acts as a signal of its scarcity'.",
      ["A reference to limited resources to satisfy unlimited wants and needs, so price rations the available resources among competing buyers (1).", "A development: rising demand for a product relative to its supply will push up the price and act as an incentive to increase the quantity supplied; scarcity gives rise to the need to make choices between uses of scarce resources (1)."],

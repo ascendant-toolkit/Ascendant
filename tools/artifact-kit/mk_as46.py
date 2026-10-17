@@ -132,7 +132,7 @@ mc_exam = [
 
 exam = exam_page("economic growth and real GDP",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Growth measures appear in short data-response parts (2 marks) asking for a meaning or a calculation, and in Paper 1 as real GDP and index questions. Reworded past questions are below, with six Paper 1 multiple choice questions.",
-  [("Data response, 2 marks", "2", "May/June 2025 (24) Q1(b); Oct/Nov 2023 (23) Q1(a)"), ("Multiple choice (Paper 1)", "6 shown below", "2020 to 2025")],
+  [("Data response, 2 marks", "2", "May/June 2025 (24) Q1(b); Oct/Nov 2023 (23) Q1(a)"), ("Multiple choice (Paper 1)", "6 shown below", "2020 to 2024")],
   [
   eq(P("s25_24", "1(b)"), "2 marks", "Explain what is meant by 'real GDP'.",
      ["GDP is the total value of goods and services produced in an economy (1).", "Real GDP is GDP corrected for or taking account of the effects of inflation or price changes (1). Real GDP is nominal GDP less the rate of inflation (2). Maximum 2 marks."],

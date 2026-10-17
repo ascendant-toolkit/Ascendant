@@ -94,7 +94,7 @@ mc_exam = [
 
 exam = exam_page("merit goods, demerit goods and market failure",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Merit and demerit goods appear in 8 mark Paper 2 parts most series, often paired with a 12 mark policy evaluation, and as Paper 1 questions every year. Reworded past questions are below, with ten Paper 1 multiple choice questions.",
-  [("Essay parts, 8 and 12 marks", "4", "May/June 2020 (22) Q4(b); May/June 2021 (22) Q2(a); May/June 2022 (21) Q2(a); Feb/March 2025 (22) Q3(b)"), ("Data response, 4 marks", "1", "May/June 2020 (23) Q1(a)"), ("Multiple choice (Paper 1)", "10 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "2", "May/June 2022 (21) Q2(a); May/June 2021 (22) Q2(a)"), ("Essay parts, 12 marks", "1", "May/June 2020 (22) Q4(b)"), ("Data response, 4 marks", "1", "May/June 2020 (23) Q1(a)"), ("Multiple choice (Paper 1)", "10 shown below", "2020 to 2025")],
   [
   eq(P("s22_21", "2(a)"), "8 marks", "Explain, using examples, why merit goods are classified as private goods rather than public goods.",
      ["Knowledge (up to 2): of private goods (1) and of public goods (1).",

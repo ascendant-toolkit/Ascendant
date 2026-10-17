@@ -89,7 +89,7 @@ mc_exam = [
 
 exam = exam_page("market prices, basic prices, gross and net",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Basic prices and the gross and net distinction are rarely tested in past papers, and appear only in short Paper 1 questions, so one is shown below. The Practise tab drills the calculations, because they can appear in any series.",
-  [("Multiple choice (Paper 1)", "1 shown below", "2024")],
+  [("Multiple choice (Paper 1)", "1 shown below", "2024 to 2024")],
   [],
   )
 

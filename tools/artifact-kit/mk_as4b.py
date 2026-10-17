@@ -133,7 +133,7 @@ mc_exam = [
 
 exam = exam_page("the causes of inflation",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Demand-pull and cost-push inflation are an 8 mark Paper 2 part in most series (with diagrams) and short 6 mark data-response parts. Reworded past questions are below, with five Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "4", "May/June 2023 (21) Q4(a); Oct/Nov 2021 (22) Q4(a); Feb/March 2020 (22) Q4(a); May/June 2022 (23) Q3(a)"), ("Data response, 6 marks", "2", "May/June 2022 (21) Q1(d); Feb/March 2023 (22) Q1(d)"), ("Multiple choice (Paper 1)", "5 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "4", "May/June 2023 (21) Q4(a); Oct/Nov 2021 (22) Q4(a); Feb/March 2020 (22) Q4(a); May/June 2022 (23) Q3(a)"), ("Data response, 6 marks", "2", "May/June 2022 (21) Q1(d); Feb/March 2023 (22) Q1(d)"), ("Multiple choice (Paper 1)", "5 shown below", "2020 to 2024")],
   [
   eq(P("s23_21", "4(a)"), "8 marks", "With the help of an AD/AS diagram, explain cost-push inflation and demand-pull inflation in an economy and consider in what circumstances one may be more damaging than the other.",
      ["Knowledge (up to 3): an accurate diagram with correctly labelled axes of price level and real output (1), cost-push inflation shown by a leftward shift of AS (1) and demand-pull inflation shown by a rightward shift of AD (1).",

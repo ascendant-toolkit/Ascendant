@@ -98,7 +98,7 @@ mc_exam = [
 
 exam = exam_page("shifts of demand and supply and movements along curves",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). The movement versus shift distinction is tested in nearly every Paper 1 and in 8 mark Paper 2 parts. Reworded past questions are below, with twelve Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "2", "Oct/Nov 2024 (22) Q2(a); May/June 2022 (22) Q3(a)"), ("Multiple choice (Paper 1)", "12 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "2", "Oct/Nov 2024 (22) Q2(a); May/June 2022 (22) Q3(a)"), ("Multiple choice (Paper 1)", "12 shown below", "2020 to 2024")],
   [
   eq(P("w24_22", "2(a)"), "8 marks", "With the help of a diagram, briefly explain how the cause of a movement along the demand curve differs from the cause of a shift in the demand curve and consider the impact on the demand for one good of price changes in other goods.",
      ["Knowledge (up to 3): an accurate demand diagram, or two diagrams, showing a movement and a shift (1); a movement occurs because of a change in price (1); a shift occurs because of a change in a non-price factor (1).",

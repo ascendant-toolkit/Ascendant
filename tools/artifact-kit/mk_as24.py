@@ -95,7 +95,7 @@ mc_exam = [
 
 exam = exam_page("relationships between markets",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Cross elasticity, joint demand and joint supply are tested in every Paper 1 series and in an 8 mark Paper 2 part nearly every year. Reworded past questions are below, with twelve Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "3", "Oct/Nov 2020 (21) Q3(a); Feb/March 2021 (22) Q3(a); May/June 2021 (22) Q3(a)"), ("Multiple choice (Paper 1)", "12 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "3", "Oct/Nov 2020 (21) Q3(a); May/June 2021 (22) Q3(a); Feb/March 2021 (22) Q3(a)"), ("Multiple choice (Paper 1)", "12 shown below", "2020 to 2024")],
   [
   eq(P("w20_21", "3(a)"), "8 marks", "Cross elasticity of demand for bread with respect to the price of rice is +1.4 while the cross elasticity of demand for bread with respect to the price of butter is −0.7. Explain why the cross elasticity of demand figures for bread differ.",
      ["Knowledge (up to 2): what is meant by XED (1) and the formula (1).",

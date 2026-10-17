@@ -108,7 +108,7 @@ mc_exam = [
 
 exam = exam_page("economic methodology: positive and normative statements, ceteris paribus and time periods",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Positive and normative statements, ceteris paribus and the time period are tested almost entirely in Paper 1, with one or more questions on them in most series, and they support the written answers in Paper 2. No full Paper 2 question was found on this part, so two practice questions in the Paper 2 style are included, with twelve Paper 1 multiple choice questions.",
-  [("Paper 2 (no stand-alone question found)", "0", "Practice questions below"), ("Multiple choice (Paper 1)", "12 shown below", "2020 to 2025")],
+  [("Multiple choice (Paper 1)", "12 shown below", "2020 to 2025")],
   [
   eq("Practice question · modelled on the 4 mark style (no past paper)", "4 marks", "Distinguish between a positive statement and a normative statement, giving an example of each.",
      ["Positive: a statement of fact that can be tested with evidence and may be true or false (1); example, such as 'a rise in the minimum wage reduced employment by 2%' (1).",

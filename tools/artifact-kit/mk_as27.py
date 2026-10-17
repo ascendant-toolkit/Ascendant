@@ -83,7 +83,7 @@ mc_exam = [
 
 exam = exam_page("changes in consumer and producer surplus",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Changes in consumer surplus after a tax, subsidy or price control are an 8 mark Paper 2 part nearly every year, and a 12 mark part on elasticity and surplus has appeared. Reworded past questions are below, with four Paper 1 multiple choice questions that do not need a diagram.",
-  [("Essay parts, 8 marks", "3", "May/June 2021 (21) Q3(a); Oct/Nov 2021 (22) Q3(a); Oct/Nov 2020 (22) Q2(a)"), ("Essay parts, 12 marks", "1", "May/June 2023 (23) Q2(b)"), ("Multiple choice (Paper 1)", "4 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "3", "Oct/Nov 2021 (22) Q3(a); May/June 2021 (21) Q3(a); Oct/Nov 2020 (22) Q2(a)"), ("Essay parts, 12 marks", "1", "May/June 2023 (23) Q2(b)"), ("Multiple choice (Paper 1)", "4 shown below", "2020 to 2024")],
   [
   eq(P("w21_22", "3(a)"), "8 marks", "Explain what is meant by consumer surplus and use diagrams to assess the impact on consumer surplus when an indirect tax is imposed on a good with price-elastic demand compared with the impact when the demand is price inelastic.",
      ["Knowledge (up to 2): consumer surplus is the difference between the price a consumer is willing to pay and the price actually paid.",

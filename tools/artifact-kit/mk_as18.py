@@ -97,7 +97,7 @@ mc_exam = [
 
 exam = exam_page("free goods, private goods and public goods",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). The difference between private, free and public goods is the most frequent 8 mark Paper 2 topic after the PPC, with one in nearly every series, and it appears as 2 and 4 mark parts and in Paper 1 every year. Reworded past questions are below, with twelve Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "6", "May/June 2020 (22) Q4(a); May/June 2021 (21) Q2(a); Feb/March 2025 (22) Q3(a); May/June 2025 (22) Q2(a); Oct/Nov 2023 (22) Q3(a); Oct/Nov 2024 (23) Q2(a)"), ("Data response, 2 and 4 marks", "2", "May/June 2022 (22) Q1(b); May/June 2021 (23) Q1(c)"), ("Multiple choice (Paper 1)", "12 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "5", "May/June 2020 (22) Q4(a); May/June 2021 (21) Q2(a); Feb/March 2025 (22) Q3(a); May/June 2025 (22) Q2(a); Oct/Nov 2024 (23) Q2(a)"), ("Data response, 2 marks", "1", "May/June 2021 (23) Q1(c)"), ("Data response, 4 marks", "1", "May/June 2022 (22) Q1(b)"), ("Multiple choice (Paper 1)", "12 shown below", "2020 to 2025")],
   [
   eq(P("s20_22", "4(a)"), "8 marks", "Explain, using examples, the difference between private goods and public goods and why public goods will not be supplied by private enterprise.",
      ["Knowledge (up to 2): the distinction based on excludability (1) and rivalry in consumption (1).",

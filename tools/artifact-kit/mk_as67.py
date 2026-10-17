@@ -68,7 +68,7 @@ mc_exam = [
 
 exam = exam_page("exchange rate changes and the wider economy",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). The effects of an exchange rate change on trade, AD, inflation and employment are common 8 and 12 mark Paper 2 parts. Reworded past questions are below, with seven Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "3", "Feb/March 2024 (22) Q4(a); May/June 2023 (21) Q5(a); May/June 2023 (22) Q5(a)"), ("Essay parts, 12 marks", "2", "May/June 2020 (21) Q4(b); May/June 2025 (24) Q5(b)"), ("Multiple choice (Paper 1)", "7 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "3", "Feb/March 2024 (22) Q4(a); May/June 2023 (22) Q5(a); May/June 2023 (21) Q5(a)"), ("Essay parts, 12 marks", "2", "May/June 2020 (21) Q4(b); May/June 2025 (24) Q5(b)"), ("Multiple choice (Paper 1)", "7 shown below", "2021 to 2024")],
   [
   eq(P("m24_22", "4(a)"), "8 marks", "Explain what is meant by a depreciation of the exchange rate and consider whether a depreciation is likely to increase domestic real output.",
      ["Knowledge (up to 3): an accurate definition of the exchange rate (1); a depreciation is likely if the demand for a currency falls (1) or its supply increases (1).",

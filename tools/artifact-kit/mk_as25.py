@@ -87,7 +87,7 @@ mc_exam = [
 
 exam = exam_page("the functions of price",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). The price mechanism is tested in every Paper 1 series and in 6 and 12 mark Paper 2 parts, often linked to direct provision or mixed economies. Reworded past questions are below, with twelve Paper 1 multiple choice questions.",
-  [("12 mark parts", "2", "May/June 2021 (21) Q2(b); Oct/Nov 2020 (21) Q2(b)"), ("Data response, 6 marks", "1", "May/June 2022 (23) Q1(e)"), ("Multiple choice (Paper 1)", "12 shown below", "2020 to 2025")],
+  [("Essay parts, 12 marks", "2", "May/June 2021 (21) Q2(b); Oct/Nov 2020 (21) Q2(b)"), ("Data response, 6 marks", "1", "May/June 2022 (23) Q1(e)"), ("Multiple choice (Paper 1)", "12 shown below", "2020 to 2025")],
   [
   eq(P("s22_23", "1(e)"), "6 marks", "A market report says a country's avocado market is not allocating resources successfully, because rising prices are encouraging farmers to clear forests. Discuss whether the price mechanism in the avocado market is working to allocate resources successfully.",
      ["Analysis (up to 3): the market is working successfully, because price signals consumer preferences and responds to demand and supply (up to 3).",

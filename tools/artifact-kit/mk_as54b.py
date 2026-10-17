@@ -101,8 +101,8 @@ mc_exam = [
 ]
 
 exam = exam_page("effects of monetary policy",
-  "We searched the AS Level Economics papers in the folder (2020 to 2025). Monetary policy is a regular 8 mark explanation and a very common 12 mark discussion in Paper 2, nearly always linked to inflation or deflation, and appears in 6 mark data-response parts. Reworded past questions are below, with eight Paper 1 multiple choice questions that do not need a diagram.",
-  [("Essay parts, 8 marks", "2", "May/June 2023 (23) Q5(a); Feb/March 2024 (22) Q5(a)"), ("Essay parts, 12 marks", "5", "Oct/Nov 2021 (23) Q4(b); Feb/March 2020 (22) Q4(b); Oct/Nov 2022 (22) Q4(b); May/June 2022 (23) Q3(b); May/June 2021 (21) Q4(b)"), ("Multiple choice (Paper 1)", "8 shown below", "2020 to 2025")],
+  "We searched the AS Level Economics papers in the folder (2020 to 2025). Monetary policy is a regular 8 mark explanation and a very common 12 mark discussion in Paper 2, nearly always linked to inflation or deflation, and appears in 6 mark data-response parts. Reworded past questions are below, with nine Paper 1 multiple choice questions that do not need a diagram.",
+  [("Essay parts, 8 marks", "2", "May/June 2023 (23) Q5(a); Feb/March 2024 (22) Q5(a)"), ("Essay parts, 12 marks", "5", "Oct/Nov 2021 (23) Q4(b); Feb/March 2020 (22) Q4(b); Oct/Nov 2022 (22) Q4(b); May/June 2022 (23) Q3(b); May/June 2021 (21) Q4(b)"), ("Multiple choice (Paper 1)", "9 shown below", "2020 to 2025")],
   [
   eq(P("s23_23", "5(a)"), "8 marks", "Explain how monetary policy may be able to reduce the rate of inflation in an economy and consider the likely success of this policy.",
      ["Knowledge (up to 3): an understanding of monetary policy (1); the tools of monetary policy: interest rates, the supply of money and regulations (1); the nature of a contractionary monetary policy (1).",

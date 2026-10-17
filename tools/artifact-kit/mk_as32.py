@@ -131,7 +131,7 @@ mc_exam = [
 
 exam = exam_page("subsidies",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Subsidies appear as 8 or 12 mark Paper 2 parts most years, often as the best way to raise consumption of a merit good, and in several short data-response parts. Reworded past questions are below, with seven Paper 1 multiple choice questions that do not need a diagram.",
-  [("Essay parts, 8 marks", "3", "May/June 2025 (21) Q3(a); May/June 2024 (22) Q3(a); Oct/Nov 2020 (22) Q2(a)"), ("Essay parts, 12 marks", "1", "Feb/March 2025 (22) Q3(b)"), ("Data response, 2 marks", "1", "Oct/Nov 2022 (23) Q1(a)"), ("Multiple choice (Paper 1)", "7 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "3", "May/June 2025 (21) Q3(a); May/June 2024 (22) Q3(a); Oct/Nov 2020 (22) Q2(a)"), ("Essay parts, 12 marks", "1", "Feb/March 2025 (22) Q3(b)"), ("Data response, 2 marks", "1", "Oct/Nov 2022 (23) Q1(a)"), ("Multiple choice (Paper 1)", "7 shown below", "2020 to 2024")],
   [
   eq(P("s25_21", "3(a)"), "8 marks", "With the help of a diagram, explain how changes in a subsidy can influence the price and quantity sold of a product in a market and consider how expenditure on a subsidy is affected by the price elasticity of demand for the product.",
      ["Knowledge (up to 3): a correct diagram with labelled axes, demand and supply (1); an increase in a subsidy shifting supply to the right, lowering price and raising quantity, with new equilibrium positions shown (1); a decrease in a subsidy shifting supply to the left, raising price and lowering quantity (1).",

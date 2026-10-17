@@ -99,7 +99,7 @@ mc_exam = [
 
 exam = exam_page("scarcity, choice and opportunity cost",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Scarcity, choice and opportunity cost are tested as 8 mark PPC explanations, as short data response parts of 2 to 4 marks, and in Paper 1 every series. Reworded past questions are below, with twelve Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "3", "May/June 2020 (21) Q2(a); Feb/March 2025 (22) Q2(a); Oct/Nov 2022 (22) Q3(a)"), ("Data response, 2 marks", "2", "Oct/Nov 2022 (23) Q1(a); May/June 2021 (23) Q1(b)"), ("Multiple choice (Paper 1)", "12 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "3", "May/June 2020 (21) Q2(a); Feb/March 2025 (22) Q2(a); Oct/Nov 2022 (22) Q3(a)"), ("Data response, 2 marks", "2", "Oct/Nov 2022 (23) Q1(a); May/June 2021 (23) Q1(b)"), ("Multiple choice (Paper 1)", "12 shown below", "2021 to 2025")],
   [
   eq(P("s20_21", "2(a)"), "8 marks", "Explain, with the aid of a production possibility curve diagram, why scarcity makes choice inevitable for firms and how each choice has an opportunity cost.",
      ["Diagram: both axes labelled with named goods (for example consumer goods and capital goods) and the PPC drawn as a curve or straight line showing a trade-off (2 marks).",

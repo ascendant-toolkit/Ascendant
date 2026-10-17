@@ -134,7 +134,7 @@ mc_exam = [
 
 exam = exam_page("maximum and minimum prices",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Price controls are one of the most common Paper 2 topics: an 8 mark diagram part or a 12 mark discussion in nearly every series, plus short data-response parts, and they appear in Paper 1 every year. Reworded past questions are below, with seven Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "2", "Oct/Nov 2021 (21) Q3(a); May/June 2025 (24) Q3(a)"), ("Essay parts, 12 marks", "4", "Oct/Nov 2023 (21) Q3(b); Feb/March 2023 (22) Q3(b); Oct/Nov 2022 (23) Q2(b); May/June 2024 (22) Q3(b)"), ("Data response, 4 to 6 marks", "3", "Oct/Nov 2022 (21) Q1(c); Oct/Nov 2022 (21) Q1(e); May/June 2021 (23) Q1(d)"), ("Multiple choice (Paper 1)", "7 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "2", "Oct/Nov 2021 (21) Q3(a); May/June 2025 (24) Q3(a)"), ("Essay parts, 12 marks", "4", "Oct/Nov 2023 (21) Q3(b); Feb/March 2023 (22) Q3(b); Oct/Nov 2022 (23) Q2(b); May/June 2024 (22) Q3(b)"), ("Data response, 4 marks", "1", "Oct/Nov 2022 (21) Q1(c)"), ("Data response, 6 marks", "2", "Oct/Nov 2022 (21) Q1(e); May/June 2021 (23) Q1(d)"), ("Multiple choice (Paper 1)", "7 shown below", "2020 to 2025")],
   [
   eq(P("w21_21", "3(a)"), "8 marks", "With the aid of a diagram, explain the consequences for consumers and producers of introducing a minimum price in the market for a product.",
      ["Knowledge (up to 2): a correct diagram with price and quantity axes labelled (1); a minimum price shown above the equilibrium, with demand and supply labelled (1).",

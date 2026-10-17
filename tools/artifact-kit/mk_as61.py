@@ -31,6 +31,55 @@ learn = '''
     <li><b>An improvement</b>: higher living standards (more imports per unit exported), lower import costs and inflation. <b>But</b> export prices rise, exports may fall in volume and the current account may worsen if demand is price elastic.</li>
     <li><b>A deterioration</b>: more exports needed to buy the same imports; but it may make exports more competitive. The effect on the trade balance depends on <b>price elasticities of demand</b> for exports and imports.</li>
   </ul>
+
+  <h2>3 · Worked examples</h2>
+  <p><b>Calculating the index.</b> In the base year the index of export prices and the index of import prices are both 100, so the terms of trade are 100.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Year</th><th>Export price index</th><th>Import price index</th><th>Terms of trade</th><th>Change</th></tr>
+    <tr><td>1</td><td>100</td><td>100</td><td>100</td><td>Base year</td></tr>
+    <tr><td>2</td><td>105</td><td>95</td><td>(105 ÷ 95) × 100 = 110.5</td><td>Improvement of 10.5%</td></tr>
+    <tr><td>3</td><td>98</td><td>112</td><td>(98 ÷ 112) × 100 = 87.5</td><td>Deterioration</td></tr>
+    <tr><td>4</td><td>90</td><td>90</td><td>100</td><td>Both fell equally: unchanged</td></tr>
+  </table></div>
+  <ul>
+    <li>In year 2 export prices rose and import prices fell, so the index rose. In year 3 the opposite happened. In year 4 both prices fell by the same percentage, so the ratio did not change.</li>
+    <li>An index of 87.5 means that export prices relative to import prices are 12.5% lower than in the base year.</li>
+  </ul>
+  <p><b>What it means for purchasing power.</b> A country exports coffee at $100 a tonne and imports tractors at $500 each, so it needs 5 tonnes of coffee to buy a tractor. If the price of coffee falls to $80 a tonne while tractors stay at $500, the country needs 6.25 tonnes for each tractor: the terms of trade have <b>deteriorated</b> (80 ÷ 500 compared with 100 ÷ 500, a 20% fall) and it must sell more exports to buy the same imports.</p>
+
+  <h2>4 · Terms of trade and the balance of trade</h2>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Terms of trade</th><th>Balance of trade in goods</th></tr>
+    <tr><td><b>What it measures</b></td><td>The ratio of export prices to import prices (an index)</td><td>The value of exports minus the value of imports (a sum of money)</td></tr>
+    <tr><td><b>Depends on</b></td><td>Prices only</td><td>Prices and quantities</td></tr>
+    <tr><td><b>An improvement is</b></td><td>A rise in the index</td><td>A move towards surplus</td></tr>
+    <tr><td><b>Units</b></td><td>No units (index number)</td><td>Money</td></tr>
+  </table></div>
+  <ul>
+    <li>An improvement in the terms of trade does <b>not</b> necessarily improve the balance of trade. If export prices rise and demand is <b>price elastic</b>, the quantity of exports falls by more, and export revenue falls. If demand is inelastic, revenue rises.</li>
+    <li>A country should be concerned about <b>both</b>: the terms of trade show the purchasing power of exports, the balance of trade shows whether the country is earning enough to pay for its imports.</li>
+  </ul>
+
+  <h2>5 · Effects of a change on the macroeconomy</h2>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Improvement (rise)</th><th>Deterioration (fall)</th></tr>
+    <tr><td><b>Living standards</b></td><td>Each unit of exports buys more imports: higher real income</td><td>Fewer imports for each unit exported: lower real income</td></tr>
+    <tr><td><b>Inflation</b></td><td>Cheaper imports, especially raw materials, reduce cost-push pressure</td><td>Dearer imports raise costs; may add to inflation if imports are price inelastic</td></tr>
+    <tr><td><b>Exports and growth</b></td><td>Export prices rise: volumes may fall if demand is elastic, reducing growth and jobs in exporting industries</td><td>Exports cheaper abroad: export volumes and output may rise</td></tr>
+    <tr><td><b>Current account</b></td><td>May worsen if export volumes fall and imports rise</td><td>May improve if demand for exports and imports is elastic enough</td></tr>
+    <tr><td><b>Open, trade-dependent economy</b></td><td>Effects on income, inflation and jobs are large</td><td>Effects are large and spread widely through the economy</td></tr>
+  </table></div>
+  <ul>
+    <li><b>Primary producers:</b> many low-income countries export agricultural goods and minerals whose demand grows slowly as incomes rise (low income elasticity), while their imports of manufactures have higher income elasticity, so their terms of trade may deteriorate over time. But countries exporting goods that are in high demand, such as oil or key minerals, may see their terms of trade improve.</li>
+    <li><b>Volatile prices:</b> commodity prices swing with harvests and world demand, so the terms of trade of commodity exporters are unstable, which makes planning and government revenue uncertain.</li>
+  </ul>
+
+  <h2>6 · Is a rise always better than a fall?</h2>
+  <ul>
+    <li>A <b>rise</b> is better for living standards and inflation, but may reduce competitiveness and the current account.</li>
+    <li>A <b>fall</b> may boost exports and output but means lower real income, and if it comes from weak demand for exports it signals a weak economy.</li>
+    <li>The answer depends on the <b>cause</b> (higher demand for exports, or higher inflation, or a currency change), the <b>elasticities</b>, the economy's <b>dependence on trade</b> and the <b>time horizon</b>.</li>
+  </ul>
   <div class="tip"><b class="h">Exam tip</b>Always write the <b>formula</b>. Say which way <b>each price</b> moves and whether the index <b>rises or falls</b>. Evaluate the benefit using <b>price elasticity</b> and the effect on the balance of trade.</div>
 '''
 
@@ -70,7 +119,9 @@ real = RWNOTE + (
 rw("A coffee exporter", "A country exports coffee and imports machinery. When coffee prices on world markets halve while machinery prices stay the same, the terms of trade deteriorate: the country must sell twice as much coffee to buy the same machine.", "a fall in export prices worsening the terms of trade.") +
 rw("An oil importer", "When world oil prices rise sharply, an oil-importing country's import price index rises, so its terms of trade deteriorate even if its export prices are unchanged.", "rising import prices.") +
 rw("A stronger currency", "If the currency appreciates, exports become dearer in foreign currency and imports cheaper in home currency. The terms of trade improve, but exporters may lose sales.", "an appreciation improving the terms of trade but hurting competitiveness.") +
-rw("A primary product exporter", "Many low-income countries rely on exporting raw materials. Demand for these grows slowly as world incomes rise, while manufactured imports rise in price, so their terms of trade can deteriorate over time.", "why low-income countries may suffer.")
+rw("A primary product exporter", "Many low-income countries rely on exporting raw materials. Demand for these grows slowly as world incomes rise, while manufactured imports rise in price, so their terms of trade can deteriorate over time.", "why low-income countries may suffer.") +
+rw("A commodity price slump", "A country that exports mainly copper sees the world price fall 30% while the prices of its imported machinery are unchanged. Its terms of trade deteriorate sharply and it must export much more copper to pay for the same imports.", "a deterioration for a primary producer.") +
+rw("Cheaper imported oil", "A country that imports most of its fuel benefits when world oil prices fall. Import prices fall relative to export prices, so the terms of trade improve and cost-push pressure eases.", "an improvement caused by lower import prices.")
 )
 
 mc_exam = [
@@ -90,7 +141,7 @@ mc_exam = [
 
 exam = exam_page("the terms of trade",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). The terms of trade is one of the most common Paper 2 topics: an 8 mark part on causes and benefits in most series, a 12 mark assessment and a 3 mark distinction from the balance of trade. Reworded past questions are below, with twelve Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "5", "Feb/March 2025 (22) Q4(a); Oct/Nov 2022 (23) Q4(a); Oct/Nov 2023 (22) Q4(a); May/June 2025 (24) Q5(a); May/June 2024 (23) Q5(a)"), ("Essay parts, 12 marks", "1", "Oct/Nov 2023 (22) Q4(b)"), ("Data response, 3 marks", "1", "May/June 2020 (21) Q1(b)"), ("Multiple choice (Paper 1)", "12 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "4", "Feb/March 2025 (22) Q4(a); Oct/Nov 2022 (23) Q4(a); Oct/Nov 2023 (22) Q4(a); May/June 2024 (23) Q5(a)"), ("Essay parts, 12 marks", "1", "Oct/Nov 2023 (22) Q4(b)"), ("Data response, 3 marks", "1", "May/June 2020 (21) Q1(b)"), ("Multiple choice (Paper 1)", "12 shown below", "2020 to 2025")],
   [
   eq(P("m25_22", "4(a)"), "8 marks", "With the help of a formula, explain two reasons for an improvement in the terms of trade and consider the extent to which an improvement in the terms of trade will benefit an economy.",
      ["Knowledge (up to 3): an accurate definition of the terms of trade or an accurate formula (1); an improvement is likely if export prices rise (1) relative to import prices (1).",
@@ -113,7 +164,18 @@ exam = exam_page("the terms of trade",
   eq(P("s20_21", "1(b)"), "3 marks", "Distinguish between a country's balance of trade and its terms of trade.",
      ["An explanation of a country's balance of trade: the difference in the value of exported and imported goods and services (1).", "An explanation of the terms of trade: the difference in the average prices of exports and imports, an index of export prices divided by an index of import prices (1).", "An explicit distinction stressing that one involves values and the other prices (1)."],
      "Balance of trade: value of exports minus imports. Terms of trade: ratio of export prices to import prices. Values versus prices.",
-     [[("k", "The balance of trade is the value of exports of goods and services minus the value of imports, so it measures revenue and spending. The terms of trade measure the average price of exports relative to the average price of imports, as an index. The first is about values, the second is about prices.")]])
+     [[("k", "The balance of trade is the value of exports of goods and services minus the value of imports, so it measures revenue and spending. The terms of trade measure the average price of exports relative to the average price of imports, as an index. The first is about values, the second is about prices.")]]),
+  eq(P("s24_23", "5(a)"), "8 marks", "Explain two possible causes of a change in the terms of trade in an economy and consider which of these causes is likely to be more important for low-income countries.",
+     ["Knowledge (up to 3): what is meant by the terms of trade, the ratio of the export price index to the import price index (1); that it measures the number of exports that have to be sold to buy a given number of imports (1); that the terms of trade improve when the ratio increases and deteriorate when it falls (1).",
+      "Analysis (up to 3): two main causes of changes, for example a rise in export prices and a fall in import prices, often the result of changes in demand for exports and imports (1); low-income countries are more likely to export primary goods and import manufactured goods, and the demand for primary goods may be lower than for manufactures when incomes rise, so import prices may fall and the terms of trade deteriorate (1); but commodity prices such as oil may have inelastic demand and prices may rise, improving the terms of trade (1).",
+      "Evaluation (up to 2): considers the significance of changes in the terms of trade for low-income countries that produce foodstuffs compared with those that export minerals in high demand, and a justified conclusion."],
+     "ToT formula. Two causes: export price changes (world demand), import price changes (oil). Low-income: primary goods, low income elasticity. Judge which matters more.",
+     [[("k", "The terms of trade are the index of export prices divided by the index of import prices, times 100. It shows how many exports must be sold to buy a given amount of imports. A rise in the index is an improvement and a fall is a deterioration.")], [("n", "One cause is a change in world demand for the country's exports, which changes export prices. Another is a change in the price of imports, such as oil. Low-income countries typically export primary goods and import manufactures. As world incomes rise, demand for primary goods grows slowly while demand for manufactures grows faster, so export prices may fall relative to import prices and the terms of trade may deteriorate.")], [("e", "For a low-income country exporting food, the export-price cause is probably more important because demand for these goods is slow-growing and prices volatile. A country exporting a mineral in high demand could see its terms of trade improve, so the importance depends on what it exports.")]]),
+  eq(P("w23_22", "4(b)"), "12 marks", "Assess whether a rise or a fall in the terms of trade will benefit the macroeconomic performance of an open economy that is heavily dependent on international trade.",
+     ["Analysis (up to 8): better answers examine the effects on the wider economy: employment, price stability, economic growth and the current account, with reference to the dependency on international trade. For a rise: it may lower inflation if raw material import prices are lower; depending on price elasticity of demand it may lead to growth if income from exports increases and boost employment; it may lead to lower growth if it causes a current account deficit. For a fall: exports may be boosted and growth may rise; it may reduce a current account deficit; it may be a sign of a weak economy; if imports are price inelastic it may cause import cost-push inflation if the economy depends on imports. Answers that do not refer to heavy dependence on international trade cannot gain more than Level 2; answers that refer to only a rise or only a fall cannot gain more than Level 2; at least one negative effect in addition to the positives should be considered to reach lower Level 3.",
+      "Evaluation (up to 4): a judgement on whether a rise or a fall benefits the economy, with a conclusion."],
+     "Rise: lower import costs, higher real income; but dearer exports, current account. Fall: exports up, CA better; but lower real income, import inflation. Link to trade dependence. Judge by elasticities and cause.",
+     [[("n", "In an open economy that depends heavily on trade, a rise in the terms of trade lowers the price of imported raw materials relative to exports, which eases cost-push inflation and raises real income. If demand for exports is inelastic, export revenue also rises, boosting growth and employment. But if demand is elastic, dearer exports may sell less, and a current account deficit may reduce growth. A fall boosts exports and may narrow a deficit, helping output and jobs in exporting industries, but a heavily trade-dependent economy would face dearer imports, so inflation could rise if import demand is inelastic, and real incomes fall.")], [("e", "Neither is clearly better. A rise benefits an economy that wants lower inflation and higher real incomes, while a fall helps one that needs to boost exports. The result depends on the price elasticities of demand for exports and imports and on the reason for the change, so I would judge that the benefit depends mainly on whether demand for exports is elastic.")]])
   ],
   )
 

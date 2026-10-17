@@ -29,6 +29,50 @@ learn = '''
     <li><b>Voluntary export restraints</b> are agreements by an exporter to limit sales, and work like a quota.</li>
     <li><b>Not protectionism:</b> a rise in domestic sales tax that applies equally to all goods, or import subsidies.</li>
   </ul>
+
+  <h2>3 · Worked examples</h2>
+  <p><b>A tariff in numbers.</b> Demand is P = 100 − 0.8Q and domestic supply is P = 20 + 0.8Q. The world price is $40. A tariff of $10 is imposed.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Item</th><th>Before the tariff (price $40)</th><th>After the tariff (price $50)</th></tr>
+    <tr><td>Domestic quantity demanded</td><td>(100 − 40) ÷ 0.8 = 75</td><td>(100 − 50) ÷ 0.8 = 62.5</td></tr>
+    <tr><td>Domestic quantity supplied</td><td>(40 − 20) ÷ 0.8 = 25</td><td>(50 − 20) ÷ 0.8 = 37.5</td></tr>
+    <tr><td>Imports</td><td>75 − 25 = 50</td><td>62.5 − 37.5 = 25</td></tr>
+    <tr><td>Tariff revenue</td><td>–</td><td>$10 × 25 = $250</td></tr>
+    <tr><td>Welfare loss (two triangles)</td><td>–</td><td>½ × $10 × 12.5 + ½ × $10 × 12.5 = $125</td></tr>
+  </table></div>
+  <ul>
+    <li>Domestic firms gain from the higher price and extra output; the government gains revenue; consumers lose because they pay more and buy less. The loss to consumers exceeds the gains to producers and the government, leaving the welfare loss.</li>
+  </ul>
+  <p><b>Tariff versus quota.</b> A quota of 25 units would give the same fall in imports, the same rise in domestic price (to $50) and the same rise in domestic output, but the $250 would go to the importers or foreign suppliers who hold the right to sell at the higher price (quota rent), not to the government, unless licences are sold.</p>
+
+  <h2>4 · Choosing between tools</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Tool</th><th>Advantage</th><th>Disadvantage</th></tr>
+    <tr><td><b>Tariff</b></td><td>Raises revenue; keeps the price mechanism; can be adjusted easily</td><td>Ineffective if demand for imports is inelastic; retaliation; raises costs for firms using imported inputs; rules in trade agreements</td></tr>
+    <tr><td><b>Quota</b></td><td>Guarantees a maximum quantity of imports</td><td>No revenue for the government; quota rent goes to importers; may encourage corruption</td></tr>
+    <tr><td><b>Export subsidy</b></td><td>Lowers costs and prices abroad so firms can undercut foreign rivals; may be less visible than a tariff</td><td>Opportunity cost for taxpayers; firms may become dependent; other countries may retaliate or complain to the WTO</td></tr>
+    <tr><td><b>Embargo</b></td><td>Stops trade completely for security or political aims</td><td>Retaliation; loss of exports and cheaper imports; may encourage smuggling</td></tr>
+    <tr><td><b>Administrative barriers</b></td><td>Hard to challenge and flexible</td><td>Hard to measure; may breach agreements; raise costs for businesses and consumers</td></tr>
+  </table></div>
+
+  <h2>5 · Effects on the terms of trade</h2>
+  <ul>
+    <li>A <b>tariff</b> raises the domestic price of imports, which can raise the measured import price index and so lower the terms of trade. If the importing country is large, the tariff may reduce demand for foreign exporters' goods so much that they cut their prices, which would improve the importer's terms of trade.</li>
+    <li>If protection helps domestic firms to develop (for example infant industries), they may later raise export prices or export more, and the terms of trade could improve.</li>
+    <li><b>Retaliation</b> by trading partners reduces exports, which may push export prices down and worsen the terms of trade.</li>
+    <li><b>Export subsidies</b> lower export prices, which lowers the export price index and so the terms of trade, even though export volumes rise.</li>
+    <li>Other tools, such as quotas or manipulating the exchange rate, can have similar effects on prices.</li>
+  </ul>
+
+  <h2>6 · Why tariffs and other tools may not work</h2>
+  <ul>
+    <li><b>Inelastic demand for imports:</b> consumers keep buying, so imports fall little and the trade deficit is not much reduced.</li>
+    <li><b>Retaliation and trade wars:</b> other countries raise barriers against the exports of the country that protects, so everyone loses.</li>
+    <li><b>Higher costs for firms:</b> producers using imported inputs face higher costs, which can raise prices and reduce competitiveness.</li>
+    <li><b>Inefficiency:</b> protected firms face less competition and may have less incentive to cut costs.</li>
+    <li><b>International rules:</b> membership of trade agreements can limit the use of tariffs and subsidies.</li>
+    <li><b>Consumers lose:</b> higher prices and less choice, especially for poorer households.</li>
+  </ul>
   <div class="tip"><b class="h">Exam tip</b>Define protectionism first, then explain the tool's <b>mechanism</b> (price up, imports down, domestic output up). Include a limit: <b>retaliation</b>, <b>inelastic demand for imports</b>, higher costs or inefficiency.</div>
 '''
 
@@ -68,7 +112,9 @@ real = RWNOTE + (
 rw("A tariff on steel", "A government puts a 25% tariff on imported steel. Steel becomes dearer, domestic steelmakers sell more and may hire more workers, but car makers and builders face higher costs, and trading partners may retaliate against the country's exports.", "a tariff's effects and costs.") +
 rw("A quota on clothing", "A country allows only a fixed volume of clothing imports each year. The price of clothing rises because supply is restricted. Importers with licences earn extra profit, which does not go to the government.", "a quota and the quota rent.") +
 rw("Export subsidies", "A government pays farmers for each tonne they export. Farm exports become cheaper abroad, harming foreign farmers, who may complain or retaliate, and costing taxpayers.", "export subsidies and their drawbacks.") +
-rw("Red tape at the border", "Complex certification and long customs checks raise the cost and time of importing, discouraging foreign sellers without any tariff. It is hard to challenge because it is not an explicit tax.", "excessive administrative burdens.")
+rw("Red tape at the border", "Complex certification and long customs checks raise the cost and time of importing, discouraging foreign sellers without any tariff. It is hard to challenge because it is not an explicit tax.", "excessive administrative burdens.") +
+rw("A trade war", "Two large economies each impose tariffs on the other's goods. Exporters in both lose sales, firms using imported parts face higher costs and consumers pay more, so many people lose even if some protected industries gain.", "retaliation and the costs of protection.") +
+rw("Quotas and quota rent", "A country limits imports of sugar to a fixed amount. Importers who hold the licences can sell at the higher domestic price and earn extra profit, which does not go to the government.", "quota rent and the difference from a tariff.")
 )
 
 mc_exam = [
@@ -86,7 +132,7 @@ mc_exam = [
 
 exam = exam_page("protectionism and its tools",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Protectionist tools are an 8 or 12 mark Paper 2 part in most series (tariff versus quota, effectiveness of tariffs, export subsidies) and a 3 mark short part. Reworded past questions are below, with ten Paper 1 multiple choice questions that do not need a diagram.",
-  [("Essay parts, 8 marks", "3", "Oct/Nov 2023 (21) Q5(a); May/June 2024 (22) Q5(a); Oct/Nov 2024 (23) Q5(a)"), ("Essay parts, 12 marks", "2", "May/June 2022 (21) Q4(b); May/June 2024 (23) Q5(b)"), ("Data response, 3 marks", "1", "Oct/Nov 2021 (23) Q1(c)"), ("Multiple choice (Paper 1)", "10 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "3", "Oct/Nov 2023 (21) Q5(a); May/June 2024 (22) Q5(a); Oct/Nov 2024 (23) Q5(a)"), ("Essay parts, 12 marks", "2", "May/June 2022 (21) Q4(b); May/June 2024 (23) Q5(b)"), ("Data response, 3 marks", "1", "Oct/Nov 2021 (23) Q1(c)"), ("Multiple choice (Paper 1)", "10 shown below", "2020 to 2022")],
   [
   eq(P("w23_21", "5(a)"), "8 marks", "Explain the difference between an import tariff and an import quota and consider why a government would choose an import tariff rather than an import quota as a tool of protection in international trade.",
      ["Knowledge (up to 3): the meaning of an import tariff (up to 2) and of an import quota (up to 2) as tools of protection. Maximum 3.",
@@ -109,7 +155,17 @@ exam = exam_page("protectionism and its tools",
   eq(P("w21_23", "1(c)"), "3 marks", "State one protectionist measure that may be adopted by a country in a trade war and explain what effect this would have on consumers and producers in that country.",
      ["A tariff, quota or regulation (maximum 1 mark for identifying one measure).", "It increases prices of imported goods for consumers (1) and raises costs of production for producers because of higher imported raw material costs (1), while it increases demand for domestic producers (1). Maximum 3 marks; 1 mark maximum for each effect, and both consumers and producers must be considered for full marks."],
      "Tariff. Consumers pay more. Domestic producers face higher input costs but gain sales.",
-     [[("k", "A tariff on imports is one measure."), ("n", "Consumers face higher prices for imported goods, while producers who use imported raw materials see their costs rise, but domestic producers of competing goods sell more because imports have become dearer.")]])
+     [[("k", "A tariff on imports is one measure."), ("n", "Consumers face higher prices for imported goods, while producers who use imported raw materials see their costs rise, but domestic producers of competing goods sell more because imports have become dearer.")]]),
+  eq(P("s22_21", "4(b)"), "12 marks", "Protectionism can take different forms in different countries. Discuss whether export subsidies are always a better method of protectionism than tariffs.",
+     ["Analysis (up to 8): the advantages and disadvantages of export subsidies as a method of protectionism (up to 4): they allow firms to lower cost and price and undercut foreign competition, and are difficult for the WTO to deal with because they are not an overt method of protectionism; against that, they involve an opportunity cost in terms of other government spending and industries may become too dependent on the subsidy; the advantages and disadvantages of tariffs (up to 4): a tariff is a tax on imports making them more expensive and less competitive, if demand for imports is elastic demand should fall, and the government can use tariffs as a source of revenue; they will not be successful if demand for imports is price inelastic and may lead to retaliation.",
+      "Evaluation (up to 4): a judgement on whether export subsidies are always a better method of protectionism than tariffs, with a reserved mark for a conclusion. No knowledge marks for merely defining or explaining terms used in the question."],
+     "Export subsidy: lower prices abroad, hard to challenge; cost, dependence. Tariff: raises import price, revenue; inelastic demand, retaliation. Judge: not always; depends on aim and elasticities.",
+     [[("n", "An export subsidy lowers firms' costs so they can cut prices abroad and undercut foreign rivals, and because it is not an overt trade barrier it may be harder for the WTO to challenge. But it costs taxpayers money that could be spent elsewhere, and firms may become dependent on it. A tariff makes imports dearer, reducing demand if it is elastic, and raises revenue for the government, but it is ineffective if demand for imports is inelastic, and may provoke retaliation.")], [("e", "Export subsidies are not always better. They help exporting industries but cost the government money, whereas tariffs raise revenue and protect the home market. Which is better depends on the aim (protecting the home market or boosting exports), the elasticities and the risk of retaliation.")]]),
+  eq(P("s24_23", "5(b)"), "12 marks", "Assess the extent to which different tools of protection can impact on the terms of trade in an economy.",
+     ["Analysis (up to 8): an explanation of what is meant by tools of protection; an explanation of the different tools and how they may affect the terms of trade; for example tariffs increase import prices, which will reduce the terms of trade, but may improve them if domestic producers, including infant industries, are encouraged to invest and build up demand and increase export prices; retaliation and inelastic PED for imports may reduce the positive impact; at least one additional tool, such as import quotas, embargoes or exchange rate manipulation, should be explained and analysed with its advantages and disadvantages for the terms of trade. Level 2 for a one-sided response.",
+      "Evaluation (up to 4): must focus on the impact of the tools of protection on the terms of trade and lead to a justified conclusion. A one-sided response cannot gain any marks for evaluation."],
+     "Tariff: import prices up, ToT down; but infant industries may raise export prices; retaliation. Quota, embargo, subsidy: also affect prices. Judge: depends on elasticity and size of country.",
+     [[("n", "Tariffs raise the price of imports, which increases the import price index and so lowers the terms of trade. However, if the tariff helps infant industries to grow and later to raise export prices, the terms of trade could improve. Retaliation by trading partners would reduce exports and push export prices down, and inelastic demand for imports would limit any effect. Import quotas restrict supply and raise import prices in a similar way, while export subsidies lower export prices, which worsens the terms of trade even though export volumes rise.")], [("e", "Protection is likely to lower the terms of trade in the short run, because import prices rise or export prices fall, but its long-run effect depends on whether it helps firms to become competitive, on how large the country is, and on the reaction of other countries. The impact on the terms of trade is therefore uncertain and may be small.")]])
   ],
   )
 

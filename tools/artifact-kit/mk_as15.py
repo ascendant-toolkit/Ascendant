@@ -102,7 +102,7 @@ mc_exam = [
 
 exam = exam_page("market, planned and mixed economies",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Economic systems are among the most common 12 mark AS essays, with questions on mixed economies, transition and the role of price in almost every series, and they are tested in Paper 1 every year. Reworded past questions are below, with ten Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "2", "Oct/Nov 2021 (23) Q2(a); Feb/March 2023 (22) Q2(a)"), ("Essay parts, 12 marks", "3", "Feb/March 2023 (22) Q2(b); May/June 2024 (21) Q2(b); Oct/Nov 2021 (21) Q2(b)"), ("Multiple choice (Paper 1)", "10 shown below", "2021 to 2025")],
+  [("Essay parts, 8 marks", "2", "Oct/Nov 2021 (23) Q2(a); Feb/March 2023 (22) Q2(a)"), ("Essay parts, 12 marks", "3", "Feb/March 2023 (22) Q2(b); May/June 2024 (21) Q2(b); Oct/Nov 2021 (21) Q2(b)"), ("Multiple choice (Paper 1)", "10 shown below", "2022 to 2025")],
   [
   eq(P("w21_23", "2(a)"), "8 marks", "Explain how the fundamental economic problem is addressed in a planned economy and in a market economy.",
      ["Knowledge (up to 2): the fundamental economic problem is scarce resources (1) but unlimited wants (1).",

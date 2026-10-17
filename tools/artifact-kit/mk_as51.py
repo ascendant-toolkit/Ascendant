@@ -40,6 +40,60 @@ learn = '''
     <li><b>Why it may be less serious:</b> if the debt is owed to domestic residents it is a transfer within the country; the debt may have financed <b>productive investment</b>; what matters is the <b>debt relative to GDP</b> and whether growth is faster than the interest rate.</li>
     <li>The debt can be reduced by running <b>surpluses</b>, raising taxes, cutting spending, or <b>growing</b> the economy.</li>
   </ul>
+
+  <h2>4 · Worked examples</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Item ($bn)</th><th>Year 1</th><th>Year 2</th></tr>
+    <tr><td>Government revenue</td><td>800</td><td>760</td></tr>
+    <tr><td>Government spending</td><td>900</td><td>940</td></tr>
+    <tr><td><b>Budget balance</b></td><td>−100 (deficit)</td><td>−180 (deficit)</td></tr>
+    <tr><td>National debt at the end of the year</td><td>5,000 + 100 = 5,100</td><td>5,100 + 180 = 5,280</td></tr>
+    <tr><td>GDP</td><td>4,000</td><td>3,900 (a recession)</td></tr>
+    <tr><td><b>Debt to GDP ratio</b></td><td>5,100 ÷ 4,000 = 127.5%</td><td>5,280 ÷ 3,900 = 135.4%</td></tr>
+    <tr><td>Interest at 3% on the debt</td><td>153 (19% of revenue)</td><td>158 (21% of revenue)</td></tr>
+  </table></div>
+  <ul>
+    <li>The deficit grows in year 2 because a <b>recession</b> reduces tax revenue and raises spending on benefits (the <b>automatic stabilisers</b>). The debt rises each year by the size of the deficit.</li>
+    <li>The debt to GDP ratio rises faster than the debt itself because GDP falls. If GDP grows faster than the debt, the ratio can fall even while the government is borrowing.</li>
+    <li>A growing share of revenue going on <b>interest</b> leaves less for health, education or tax cuts: the <b>opportunity cost</b> of debt.</li>
+  </ul>
+
+  <h2>5 · Financing a deficit and the burden of debt</h2>
+  <ul>
+    <li><b>How governments borrow:</b> by selling bonds to domestic savers, banks and pension funds, or to foreign investors. If the central bank creates money to buy the bonds, it risks inflation.</li>
+    <li><b>Crowding out:</b> heavy government borrowing can push up interest rates, making it dearer for firms to borrow, so private investment may fall.</li>
+    <li><b>Owed to residents or to foreigners:</b> debt held by residents is partly a transfer within the country; debt held by foreigners means that interest payments leave the country.</li>
+    <li><b>Financing productive investment:</b> borrowing to build assets that raise future output may pay for itself; borrowing to pay for current spending leaves a burden on future taxpayers.</li>
+    <li><b>Confidence:</b> if lenders doubt that the debt can be repaid they demand higher interest rates, which makes the problem worse.</li>
+  </ul>
+
+  <h2>6 · Cyclical and structural deficits</h2>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Cyclical deficit</th><th>Structural deficit</th></tr>
+    <tr><td><b>Cause</b></td><td>A recession reduces tax revenue and raises benefit spending</td><td>Spending exceeds revenue even when the economy is at potential output</td></tr>
+    <tr><td><b>Remedy</b></td><td>Falls as the economy recovers</td><td>Needs higher taxes, lower spending or faster growth</td></tr>
+    <tr><td><b>Concern</b></td><td>Temporary and stabilising</td><td>Persistent: debt keeps growing</td></tr>
+  </table></div>
+
+  <h2>7 · Should the budget be balanced?</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Position</th><th>Strengths</th><th>Weaknesses</th></tr>
+    <tr><td><b>Balanced budget</b></td><td>Stability; encourages confidence and investment; no growth in debt</td><td>Inflexible: does not allow stimulus in a recession or restraint in a boom</td></tr>
+    <tr><td><b>Deficit</b></td><td>Can raise AD, growth and employment; pays for investment</td><td>Adds to debt and interest costs; may crowd out private investment; unsustainable in the long run</td></tr>
+    <tr><td><b>Surplus</b></td><td>Reduces debt; can cool a boom and reduce inflation</td><td>Opportunity cost of lower spending; may reduce AD and growth</td></tr>
+  </table></div>
+  <ul>
+    <li>A balanced budget does not have to be the aim every year: many economists argue for balance <b>over the economic cycle</b>, with deficits in recessions and surpluses in booms.</li>
+  </ul>
+
+  <h2>8 · Budget deficit versus current account deficit</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Budget deficit</th><th>Current account deficit</th></tr>
+    <tr><td>Government spending exceeds government revenue</td><td>Payments to the rest of the world for goods, services and income exceed receipts</td></tr>
+    <tr><td>Financed by government borrowing</td><td>Financed by borrowing from abroad or selling assets</td></tr>
+    <tr><td>Concerns domestic public finances</td><td>Concerns the external balance and the exchange rate</td></tr>
+  </table></div>
+  <div class="warn"><b class="h">Do not write this</b>The budget deficit is the same as the national debt: the deficit is a flow within one year, the debt is the total stock built up over many years. Do not confuse the budget deficit with the current account deficit.</div>
   <div class="tip"><b class="h">Exam tip</b>Do not mix up the <b>deficit</b> (a flow, one year) and the <b>debt</b> (a stock, accumulated). Avoid confusing a budget deficit with a <b>current account</b> deficit: the question may state this is not about trade.</div>
 '''
 
@@ -79,7 +133,9 @@ real = RWNOTE + (
 rw("A recession and the deficit", "When the economy shrinks, fewer people pay income tax and VAT, and more claim benefits. The budget moves into deficit even if policy has not changed, which helps support demand.", "why deficits rise in recessions.") +
 rw("Paying interest on the debt", "A government with a large debt spends a big share of revenue on interest. That money cannot be used for schools or hospitals, so there is an opportunity cost.", "the opportunity cost of the national debt.") +
 rw("Debt and GDP", "A debt of $2,000bn sounds large, but in an economy with GDP of $4,000bn it is 50% of GDP. A country with the same debt and GDP of $1,000bn has a ratio of 200%, which is much harder to manage.", "why the ratio matters more than the size.") +
-rw("Borrowing to invest", "A government borrows to build railways and broadband. The debt rises, but if the investment raises productivity and growth, future tax revenue may rise enough to pay for it.", "debt that finances productive spending.")
+rw("Borrowing to invest", "A government borrows to build railways and broadband. The debt rises, but if the investment raises productivity and growth, future tax revenue may rise enough to pay for it.", "debt that finances productive spending.") +
+rw("A recession widens the deficit", "When firms cut jobs, income tax and VAT receipts fall while spending on unemployment benefits rises. The budget deficit grows even though the government has not changed its policies.", "automatic stabilisers and a cyclical deficit.") +
+rw("Interest on the national debt", "A government with large debt spends a growing share of its revenue on interest payments. This reduces what is available for schools and hospitals, which is the opportunity cost of the debt.", "the significance of the national debt.")
 )
 
 mc_exam = [
@@ -90,7 +146,7 @@ mc_exam = [
 
 exam = exam_page("macroeconomic objectives, the budget and the national debt",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). The budget and national debt appear as an 8 mark part (surplus versus deficit) and a 12 mark discussion on balancing the budget in most years, with short definitions. Reworded past questions are below, with three Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "1", "May/June 2025 (21) Q5(a)"), ("Essay parts, 12 marks", "2", "Oct/Nov 2023 (21) Q4(b); Oct/Nov 2024 (22) Q5(b)"), ("Data response, 2 marks", "1", "Oct/Nov 2020 (21) Q1(d)(i)"), ("Multiple choice (Paper 1)", "3 shown below", "2020 to 2024")],
+  [("Essay parts, 8 marks", "1", "May/June 2025 (21) Q5(a)"), ("Essay parts, 12 marks", "2", "Oct/Nov 2023 (21) Q4(b); Oct/Nov 2024 (22) Q5(b)"), ("Data response, 2 marks", "2", "Oct/Nov 2020 (21) Q1(d); May/June 2020 (22) Q1(c)(i)"), ("Multiple choice (Paper 1)", "3 shown below", "2020 to 2024")],
   [
   eq(P("s25_21", "5(a)"), "8 marks", "Explain the difference between a budget surplus and a budget deficit and consider the extent to which a budget surplus is better than a budget deficit.",
      ["Knowledge (up to 3): understanding of a government budget (1), a budget surplus (1) and a budget deficit (1).",
@@ -106,7 +162,16 @@ exam = exam_page("macroeconomic objectives, the budget and the national debt",
   eq(P("w20_21", "1(d)"), "2 marks", "Explain what is meant by a 'budget deficit'.",
      ["A budget shows the details of government expenditure and government revenue (1).", "A budget deficit is the amount by which government expenditure exceeds government revenue (1)."],
      "Budget: spending and revenue. Deficit: spending exceeds revenue.",
-     [[("k", "A government budget sets out planned revenue and expenditure. A budget deficit is when government spending exceeds revenue in a year, so the government must borrow the difference.")]])
+     [[("k", "A government budget sets out planned revenue and expenditure. A budget deficit is when government spending exceeds revenue in a year, so the government must borrow the difference.")]]),
+  eq(P("w24_22", "5(b)"), "12 marks", "Assess whether the achievement of a balanced budget should always be a main government macroeconomic objective.",
+     ["Analysis (up to 8): the question asks whether a balanced budget should always be a main objective rather than the main objective, so analysis of other objectives is not essential; a direct comparison of the strengths, weaknesses and uses of a balanced budget with a budget in surplus and in deficit may reach Level 3; a balanced budget may bring stability and encourage domestic and inward investment but may not be flexible enough to deal with unemployment and inflation; a deficit may enable growth or reduce unemployment but may be unsustainable in the long run; a surplus may be needed to reduce inflation but has an opportunity cost in lost government spending.",
+      "Evaluation (up to 4): a judgement on whether a balanced budget should always be a main objective, with a conclusion."],
+     "Balanced: stability, confidence, but inflexible. Deficit: growth, jobs, but debt. Surplus: lower inflation, but lost spending. Judge: balance over the cycle.",
+     [[("n", "A balanced budget gives stability and may encourage domestic and foreign investors, since it does not add to debt. But it is inflexible: in a recession the government may need a deficit to raise AD and reduce unemployment, while in a boom a surplus may be needed to control inflation. A deficit can support growth but may be unsustainable, with rising interest costs and crowding out, and a surplus involves the opportunity cost of lower spending.")], [("e", "A balanced budget should not always be a main objective. It is better seen as a long-run aim, with deficits in recessions and surpluses in booms, than a goal in every year, since the right budget position depends on the state of the economy and the level of existing debt.")]]),
+  eq(P("s20_22", "1(c)(i)"), "2 marks", "Distinguish between a budget deficit and a current account deficit.",
+     ["A budget deficit means that government expenditure exceeds government revenue (1).", "A current account deficit means that exports, or inflows, are less than imports, or outflows, of current account items such as goods and services (1)."],
+     "Budget deficit: government spending above revenue. Current account deficit: payments abroad above receipts.",
+     [[("k", "A budget deficit is where the government spends more than it receives in revenue in a year."), ("n", "A current account deficit is where a country's payments to the rest of the world for goods, services and income are greater than the receipts it gets from abroad.")]])
   ],
   )
 

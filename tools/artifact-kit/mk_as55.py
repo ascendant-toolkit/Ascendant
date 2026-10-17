@@ -112,7 +112,7 @@ mc_exam = [
 
 exam = exam_page("supply-side policy: meaning, objectives and tools",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). The tools of supply-side policy appear in short data-response parts and in 12 mark Paper 2 questions about enterprise, labour and the difficulties of adopting these policies. Reworded past questions are below, with eight Paper 1 multiple choice questions that do not need a diagram.",
-  [("Data response, 2 to 3 marks", "2", "Oct/Nov 2021 (22) Q1(c); May/June 2020 (21) Q1(d)(i)"), ("Essay parts, 12 marks", "3", "Oct/Nov 2022 (21) Q3(b); Feb/March 2021 (22) Q2(b); Oct/Nov 2022 (22) Q3(b)"), ("Multiple choice (Paper 1)", "8 shown below", "2020 to 2025")],
+  [("Essay parts, 12 marks", "3", "Oct/Nov 2022 (21) Q3(b); Feb/March 2021 (22) Q2(b); Oct/Nov 2022 (22) Q3(b)"), ("Data response, 2 marks", "1", "May/June 2020 (21) Q1(d)(i)"), ("Data response, 3 marks", "1", "Oct/Nov 2021 (22) Q1(c)"), ("Multiple choice (Paper 1)", "8 shown below", "2020 to 2025")],
   [
   eq(P("w21_22", "1(c)"), "3 marks", "Identify one policy that could be considered a supply-side measure and explain how this policy could make a country's businesses more competitive.",
      ["Identification of a valid supply-side measure that could make businesses more competitive (1 mark), for example cutting business taxes, cutting income taxes or improving infrastructure; it must be explained as a supply-side tool, not as a demand-side one.",

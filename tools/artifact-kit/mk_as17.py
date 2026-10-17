@@ -91,7 +91,7 @@ mc_exam = [
 
 exam = exam_page("shifts of the PPC and the significance of a position within it",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Shifts of the PPC, growth and unused resources are among the most frequent 8 mark questions in Paper 2 and often appear as 2 mark diagram parts in data response. Reworded past questions are below, with eight Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "5", "Feb/March 2022 (22) Q2(a); May/June 2020 (22) Q2(a); May/June 2023 (21) Q2(a); Oct/Nov 2022 (21) Q3(a); Oct/Nov 2024 (21) Q3(a)"), ("Data response, 2 marks", "2", "May/June 2023 (22) Q1(b); Feb/March 2024 (22) Q1(b)"), ("Multiple choice (Paper 1)", "8 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "5", "Feb/March 2022 (22) Q2(a); May/June 2020 (22) Q2(a); May/June 2023 (21) Q2(a); Oct/Nov 2022 (21) Q3(a); Oct/Nov 2024 (21) Q3(a)"), ("Data response, 2 marks", "1", "May/June 2023 (22) Q1(b)"), ("Multiple choice (Paper 1)", "8 shown below", "2020 to 2025")],
   [
   eq(P("m22_22", "2(a)"), "8 marks", "Explain, with the help of a PPC diagram, how a decision to re-allocate resources in an economy to produce more capital goods and fewer consumer goods would affect consumers in both the short run and the long run.",
      ["Knowledge (up to 2): an accurate diagram labelled consumer goods and capital goods, with the PPC touching both axes.",

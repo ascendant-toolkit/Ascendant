@@ -130,7 +130,7 @@ mc_exam = [
 
 exam = exam_page("the circular flow of income",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). The circular flow is an 8 mark Paper 2 part most years, usually asking for a diagram, the move from a closed to an open economy and what the model says about growth. Reworded past questions are below, with six Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "4", "Feb/March 2023 (22) Q4(a); May/June 2023 (23) Q4(a); May/June 2024 (22) Q4(a); May/June 2025 (21) Q4(a)"), ("Essay parts, 12 marks", "1", "May/June 2023 (23) Q4(b)"), ("Multiple choice (Paper 1)", "6 shown below", "2023 to 2025")],
+  [("Essay parts, 8 marks", "4", "Feb/March 2023 (22) Q4(a); May/June 2025 (21) Q4(a); May/June 2024 (22) Q4(a); May/June 2023 (23) Q4(a)"), ("Essay parts, 12 marks", "1", "May/June 2023 (23) Q4(b)"), ("Multiple choice (Paper 1)", "6 shown below", "2023 to 2025")],
   [
   eq(P("m23_22", "4(a)"), "8 marks", "Explain the circular flow of income in a closed economy and consider the extent to which the circular flow of income changes as an economy becomes an open economy.",
      ["Knowledge (up to 3): the circular flow in a closed economy involves households, firms and the government (1); injections of I and G and withdrawals of S and T (1); equilibrium income is where I + G = S + T (1).",

@@ -86,7 +86,7 @@ mc_exam = [
 
 exam = exam_page("consumer surplus and producer surplus",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Consumer surplus is in an 8 mark Paper 2 part most years and in Paper 1 every year, often with a diagram. Reworded past questions are below, with five Paper 1 multiple choice questions that do not need a diagram.",
-  [("Essay parts, 8 marks", "1", "May/June 2023 (22) Q2(a)"), ("Data response, 4 marks", "1", "Feb/March 2025 (22) Q1(c)"), ("Multiple choice (Paper 1)", "5 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "1", "May/June 2023 (22) Q2(a)"), ("Data response, 4 marks", "1", "Feb/March 2025 (22) Q1(c)"), ("Multiple choice (Paper 1)", "5 shown below", "2020 to 2022")],
   [
   eq(P("s23_22", "2(a)"), "8 marks", "With the help of a diagram, explain what is meant by consumer surplus and producer surplus and consider whether a rise in the price of a product because of higher costs of production is likely to always reduce the consumer surplus.",
      ["Knowledge (up to 3): consumer surplus is the difference between the price a consumer is willing to pay and the market price (1); producer surplus is the difference between the price a producer is willing to accept and what is actually paid (1); both shown on an accurately labelled diagram (1).",

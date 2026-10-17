@@ -116,7 +116,7 @@ mc_exam = [
 
 exam = exam_page("buffer stock schemes",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Buffer stocks are a 12 mark Paper 2 discussion in some series, with a 4 mark data-response version, and appear in Paper 1 occasionally. Reworded past questions are below, with three Paper 1 multiple choice questions that do not need a diagram.",
-  [("Essay parts, 12 marks", "2", "May/June 2023 (21) Q3(b); May/June 2023 (23) Q3(b)"), ("Data response, 4 marks", "1", "Oct/Nov 2024 (23) Q1(c)"), ("Multiple choice (Paper 1)", "3 shown below", "2020 to 2025")],
+  [("Essay parts, 12 marks", "2", "May/June 2023 (21) Q3(b); May/June 2023 (23) Q3(b)"), ("Data response, 4 marks", "1", "Oct/Nov 2024 (23) Q1(c)"), ("Multiple choice (Paper 1)", "3 shown below", "2021 to 2025")],
   [
   eq(P("s23_21", "3(b)"), "12 marks", "With the help of a diagram, assess whether the benefits of a buffer stock scheme for an agricultural product always outweigh its disadvantages.",
      ["Analysis (up to 8): a correctly labelled diagram showing a price band, with the agency buying in a good harvest and selling in a poor one; the benefits, such as stable prices and farm incomes, encouraging investment and long-term supply, and protecting consumers (up to 4); the disadvantages, such as the cost of buying and storing, spoilage, setting the band wrongly, running out of stock or money, and the opportunity cost (up to 4). Indicative content may include these points.",

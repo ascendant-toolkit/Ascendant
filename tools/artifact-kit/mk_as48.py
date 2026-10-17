@@ -132,7 +132,7 @@ mc_exam = [
 
 exam = exam_page("unemployment: measurement and causes",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Unemployment is an 8 mark Paper 2 part in most years, usually on the causes or the measurement, and appears in short data-response parts and in Paper 1. Reworded past questions are below, with six Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "3", "Oct/Nov 2024 (22) Q4(a); May/June 2024 (21) Q5(a); Oct/Nov 2023 (23) Q4(a)"), ("Data response, 4 marks", "1", "May/June 2023 (21) Q1(c)"), ("Multiple choice (Paper 1)", "6 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "3", "Oct/Nov 2024 (22) Q4(a); May/June 2024 (21) Q5(a); Oct/Nov 2023 (23) Q4(a)"), ("Data response, 4 marks", "1", "May/June 2023 (21) Q1(c)"), ("Multiple choice (Paper 1)", "6 shown below", "2023 to 2025")],
   [
   eq(P("w24_22", "4(a)"), "8 marks", "Explain two methods of measuring unemployment and consider the extent of the possible difficulties in obtaining an accurate measurement of unemployment.",
      ["Knowledge (up to 3): identification of two methods of measuring unemployment (1), plus a brief explanation of each (1 each). The two most used are the claimant count, based on those claiming benefits, and the labour force survey, based on a survey of people actively seeking a job. Answers on types of unemployment rather than methods are not rewarded.",

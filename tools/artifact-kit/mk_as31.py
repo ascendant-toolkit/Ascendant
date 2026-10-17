@@ -133,7 +133,7 @@ mc_exam = [
 
 exam = exam_page("indirect taxes and their incidence",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Taxes and incidence are in an 8 or 12 mark Paper 2 part most years, usually with a diagram and elasticity. Reworded past questions are below, with five Paper 1 multiple choice questions that do not need a diagram.",
-  [("Essay parts, 8 marks", "1", "Feb/March 2024 (22) Q2(a)"), ("Essay parts, 12 marks", "2", "Oct/Nov 2020 (23) Q2(b); Oct/Nov 2020 (22) Q2(b)"), ("Data response, 2 marks", "1", "May/June 2020 (23) Q1(b)"), ("Multiple choice (Paper 1)", "5 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "1", "Feb/March 2024 (22) Q2(a)"), ("Essay parts, 12 marks", "2", "Oct/Nov 2020 (23) Q2(b); Oct/Nov 2020 (22) Q2(b)"), ("Data response, 2 marks", "1", "May/June 2020 (23) Q1(b)"), ("Multiple choice (Paper 1)", "5 shown below", "2020 to 2021")],
   [
   eq(P("m24_22", "2(a)"), "8 marks", "With the help of a demand and supply diagram, explain how the introduction of an indirect tax affects equilibrium in a market and consider the extent to which the incidence of the tax will fall on the consumer.",
      ["Knowledge (up to 3): an accurate definition of an indirect tax (1); an accurate diagram with labelled axes and equilibrium price and quantity (1); understanding that indirect taxes are used to discourage consumption of demerit goods (1).",

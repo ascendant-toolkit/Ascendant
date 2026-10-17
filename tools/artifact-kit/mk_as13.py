@@ -106,7 +106,7 @@ mc_exam = [
 
 exam = exam_page("factors of production, human and physical capital and their rewards",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). The factors of production and their rewards are tested in Paper 1 in most series, and enterprise appears in the written papers as an 8 mark explanation and in 12 mark essays on supply-side policy. Reworded past questions are below, with two practice questions and ten Paper 1 multiple choice questions.",
-  [("Essay part, 8 marks", "1", "Oct/Nov 2020 (22) Q3(a)"), ("Multiple choice (Paper 1)", "11 shown below", "2021 to 2025")],
+  [("Essay parts, 8 marks", "1", "Oct/Nov 2020 (22) Q3(a)"), ("Multiple choice (Paper 1)", "11 shown below", "2021 to 2025")],
   [
   eq(P("w20_22", "3(a)"), "8 marks", "Explain how the factor of production enterprise contributes to aggregate supply in a modern economy and how it differs from the other factors of production in terms of the reward for its services.",
      ["Knowledge (2): enterprise organises the other factors of production (1) and bears the risk of production (1).",

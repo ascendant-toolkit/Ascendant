@@ -59,7 +59,7 @@ mc_exam = [
 
 exam = exam_page("policies to correct current account imbalances",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Correcting a current account deficit is a very common 12 mark Paper 2 question, often with protectionism, supply-side or expenditure-reducing policies. Reworded past questions are below, with seven Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "1", "Oct/Nov 2023 (23) Q5(a)"), ("Essay parts, 12 marks", "4", "May/June 2022 (23) Q4(b); Oct/Nov 2020 (21) Q4(b); Oct/Nov 2021 (21) Q4(b); Oct/Nov 2022 (21) Q4(b)"), ("Multiple choice (Paper 1)", "7 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "1", "Oct/Nov 2023 (23) Q5(a)"), ("Essay parts, 12 marks", "4", "May/June 2022 (23) Q4(b); Oct/Nov 2020 (21) Q4(b); Oct/Nov 2021 (21) Q4(b); Oct/Nov 2022 (21) Q4(b)"), ("Multiple choice (Paper 1)", "7 shown below", "2020 to 2023")],
   [
   eq(P("w23_23", "5(a)"), "8 marks", "Explain how import tariffs might correct an imbalance in the current account of the balance of payments and consider whether these tariffs are the best way of correcting such an imbalance.",
      ["Knowledge (up to 3): what is meant by an import tariff (1); what is measured by the current account (1); what is meant by an imbalance in terms of a surplus or deficit (1).",

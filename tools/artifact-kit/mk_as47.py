@@ -131,7 +131,7 @@ mc_exam = [
 
 exam = exam_page("the causes and consequences of economic growth",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Growth is one of the most common Paper 2 topics: an 8 mark part on causes and a 12 mark assessment of whether growth is always beneficial in most series, plus short data-response parts. Reworded past questions are below, with four Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "2", "May/June 2025 (23) Q4(a); Oct/Nov 2024 (21) Q4(a)"), ("Essay parts, 12 marks", "4", "Feb/March 2023 (22) Q4(b); Feb/March 2024 (22) Q5(b); May/June 2025 (23) Q4(b); May/June 2023 (22) Q3(b)"), ("Data response, 6 marks", "1", "Oct/Nov 2023 (21) Q1(e)"), ("Multiple choice (Paper 1)", "4 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "2", "May/June 2025 (23) Q4(a); Oct/Nov 2024 (21) Q4(a)"), ("Essay parts, 12 marks", "4", "Feb/March 2023 (22) Q4(b); Feb/March 2024 (22) Q5(b); May/June 2025 (23) Q4(b); May/June 2023 (22) Q3(b)"), ("Data response, 6 marks", "1", "Oct/Nov 2023 (21) Q1(e)"), ("Multiple choice (Paper 1)", "4 shown below", "2023 to 2024")],
   [
   eq(P("s25_23", "4(a)"), "8 marks", "Explain two causes of economic growth and consider the extent to which their impact can be measured.",
      ["Knowledge (up to 3): economic growth is the increase in the real value of goods and services produced in an economy over time (1); an explanation of two causes, such as an increase in AD (higher real wages, direct tax cuts, lower interest rates) or increases in LRAS (increased investment, increased productivity) (1 + 1).",

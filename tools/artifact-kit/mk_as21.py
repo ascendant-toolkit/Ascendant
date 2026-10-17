@@ -108,7 +108,7 @@ mc_exam = [
 
 exam = exam_page("demand and supply curves and their determinants",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Determinants of demand and supply appear in nearly every Paper 1 and often as the first marks of an 8 mark Paper 2 part. Reworded past questions are below, with twelve Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "2", "Feb/March 2020 (22) Q2(a); May/June 2025 (22) Q3(a)"), ("Multiple choice (Paper 1)", "12 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "2", "May/June 2025 (22) Q3(a); Feb/March 2020 (22) Q2(a)"), ("Multiple choice (Paper 1)", "12 shown below", "2020 to 2025")],
   [
   eq(P("s25_22", "3(a)"), "8 marks", "Explain three reasons, associated with costs of production, why the supply curve for a particular market may shift to the right and consider the extent to which government microeconomic policy may also shift the supply curve for that market to the right.",
      ["Knowledge (up to 3): three explanations, such as a fall in wage rates, an increase in worker productivity, a fall in raw material costs, a fall in distribution costs or improved technology, each explaining why the supply curve shifts to the right (1 each).",

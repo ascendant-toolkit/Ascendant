@@ -129,7 +129,7 @@ mc_exam = [
 
 exam = exam_page("the consequences of inflation",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). The consequences of inflation are a 12 mark Paper 2 discussion in most years (domestic versus external effects, whether they are always negative) and a 4 or 6 mark data-response part. Reworded past questions are below, with four Paper 1 multiple choice questions.",
-  [("Essay parts, 12 marks", "3", "Oct/Nov 2021 (22) Q4(b); Oct/Nov 2023 (22) Q5(b); May/June 2025 (24) Q4(b)"), ("Data response, 4 to 6 marks", "5", "May/June 2022 (21) Q1(c); Oct/Nov 2024 (21) Q1(c); Feb/March 2023 (22) Q1(e); Oct/Nov 2021 (21) Q1(e); May/June 2025 (21) Q1(c)"), ("Multiple choice (Paper 1)", "4 shown below", "2020 to 2024")],
+  [("Essay parts, 12 marks", "3", "Oct/Nov 2021 (22) Q4(b); May/June 2025 (24) Q4(b); Oct/Nov 2023 (22) Q5(b)"), ("Data response, 4 marks", "3", "May/June 2022 (21) Q1(c); Oct/Nov 2024 (21) Q1(c); May/June 2025 (21) Q1(c)"), ("Data response, 6 marks", "2", "Feb/March 2023 (22) Q1(e); Oct/Nov 2021 (21) Q1(e)"), ("Multiple choice (Paper 1)", "4 shown below", "2021 to 2023")],
   [
   eq(P("s22_21", "1(c)"), "4 marks", "Explain one domestic consequence and one external consequence of a relatively high rate of inflation.",
      ["Identification of one possible domestic consequence (1) and an explanation (1): for example redistribution of income as real earnings of some workers rise and others fall, borrowers gaining and lenders losing, menu costs, shoe leather costs, uncertainty that could discourage investment, weaker purchasing power of money.",

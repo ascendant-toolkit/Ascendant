@@ -41,6 +41,56 @@ learn = '''
     <tr><td><b>Collection and avoidance</b></td><td>Costlier to collect; avoidance and evasion are possible</td><td>Easier and quicker to raise; harder to avoid</td></tr>
     <tr><td><b>Effect on demerit goods</b></td><td>None directly</td><td>Can discourage them</td></tr>
   </table></div>
+
+  <h2>4 · Worked examples</h2>
+  <p><b>An income tax with three bands.</b> The first $12,000 of income is tax-free, income from $12,000 to $40,000 is taxed at 20%, and income above $40,000 is taxed at 40%.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Income</th><th>Tax</th><th>Average rate (ART)</th><th>Marginal rate (MRT)</th></tr>
+    <tr><td>$12,000</td><td>$0</td><td>0%</td><td>0%</td></tr>
+    <tr><td>$30,000</td><td>20% × $18,000 = $3,600</td><td>12%</td><td>20%</td></tr>
+    <tr><td>$40,000</td><td>20% × $28,000 = $5,600</td><td>14%</td><td>20%</td></tr>
+    <tr><td>$60,000</td><td>$5,600 + 40% × $20,000 = $13,600</td><td>22.7%</td><td>40%</td></tr>
+    <tr><td>$100,000</td><td>$5,600 + 40% × $60,000 = $29,600</td><td>29.6%</td><td>40%</td></tr>
+  </table></div>
+  <ul>
+    <li>The tax is <b>progressive</b>: the average rate rises with income, and the marginal rate is always at or above the average rate.</li>
+    <li>When income rises from $40,000 to $60,000, the extra tax is $8,000 (13,600 − 5,600), so the MRT = 8,000 ÷ 20,000 = 40%. A worker keeps only 60 cents of each extra dollar, which may reduce the <b>incentive</b> to work more.</li>
+  </ul>
+  <p><b>A regressive indirect tax.</b> A 10% sales tax is paid on spending. A household with income of $15,000 spends $14,000 and pays $1,400 (9.3% of income). A household with income of $120,000 spends $70,000 and pays $7,000 (5.8% of income). The ART falls as income rises, so the tax is regressive, although it has the same rate on spending.</p>
+
+  <h2>5 · Direct or indirect: raising more revenue</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Criterion</th><th>Raising direct taxes</th><th>Raising indirect taxes (for example VAT)</th></tr>
+    <tr><td><b>Amount raised</b></td><td>Can be large from high earners, but depends on the tax base and avoidance</td><td>Wide base: everyone who spends pays, so revenue is large and stable</td></tr>
+    <tr><td><b>Fairness</b></td><td>More progressive: those with more income pay more</td><td>Regressive effect: poorer households pay more as a share of income</td></tr>
+    <tr><td><b>Incentives</b></td><td>High marginal rates may reduce work effort and encourage avoidance or emigration</td><td>Do not reduce pay directly, but raise prices and may reduce spending</td></tr>
+    <tr><td><b>Collection costs and evasion</b></td><td>Needs a good tax system; informal incomes are hard to tax</td><td>Easier to collect at the point of sale; harder to evade, although black markets exist</td></tr>
+    <tr><td><b>Effect on inflation</b></td><td>Little direct effect</td><td>Raises the price level once, may start a wage-price pressure</td></tr>
+    <tr><td><b>Effect on AD</b></td><td>Reduces disposable income, consumption</td><td>Raises prices, reduces real spending power</td></tr>
+  </table></div>
+  <ul>
+    <li><b>Developing economies</b> often rely more on indirect taxes and trade taxes because incomes are low and many people work informally, which makes income tax hard to collect.</li>
+    <li>Whether an indirect tax raises more revenue depends on the <b>price elasticity of demand</b> for the taxed goods: with inelastic demand, quantity falls little and revenue rises most.</li>
+  </ul>
+
+  <h2>6 · The features of a good tax</h2>
+  <ul>
+    <li><b>Equity (fairness):</b> people should pay according to their ability to pay (vertical equity) and people in similar circumstances should pay the same (horizontal equity).</li>
+    <li><b>Efficiency:</b> low cost of collection and little distortion of work, saving and spending choices.</li>
+    <li><b>Certainty:</b> taxpayers should know what they have to pay and when.</li>
+    <li><b>Convenience:</b> easy to pay.</li>
+    <li><b>Flexibility:</b> revenue should respond to the economy and allow governments to change rates.</li>
+    <li>No tax is best on all criteria, so governments use a <b>mix</b> of taxes.</li>
+  </ul>
+
+  <h2>7 · Taxes and the macroeconomy</h2>
+  <ul>
+    <li><b>Higher taxes</b> reduce disposable income, consumption and AD: they are contractionary. <b>Lower taxes</b> raise AD: they are expansionary.</li>
+    <li><b>Supply-side effects:</b> lower income tax may encourage work; lower business taxes may encourage investment.</li>
+    <li><b>Automatic stabilisers:</b> progressive taxes take less revenue in a recession and more in a boom, which cushions the economy without any decision.</li>
+    <li><b>Redistribution:</b> progressive taxes, with benefits, reduce inequality.</li>
+  </ul>
+  <div class="warn"><b class="h">Do not write this</b>Progressive means paid by high earners only: lower earners may pay too, but a smaller proportion. Do not confuse a progressive tax with a direct tax, or a regressive tax with an indirect tax (most indirect taxes are regressive but this is not a definition). Do not use the marginal rate as the average rate.</div>
   <div class="tip"><b class="h">Exam tip</b>Give a worked example when explaining MRT and ART. When asked about <b>raising indirect tax for revenue</b>, weigh ease of collection and revenue against <b>regressivity</b>, the effect on inflation and demand, and elasticity of demand for the taxed goods.</div>
 '''
 
@@ -80,7 +130,9 @@ real = RWNOTE + (
 rw("Income tax bands", "A worker earns $50,000. The first $10,000 is tax free, the next $20,000 is taxed at 20% and the rest at 40%. The total tax is $12,000 (average rate 24%), but the tax on the next dollar is 40% (the marginal rate).", "marginal versus average tax rates.") +
 rw("Tax on tobacco", "A duty on cigarettes raises large revenue because demand is inelastic, and also discourages smoking. But it is regressive, because poorer households spend a higher share of their income on tobacco.", "indirect taxes: revenue, demerit goods and regressivity.") +
 rw("Raising taxes in a boom", "When the economy is overheating and inflation is rising, a government may raise taxes. Disposable income and spending fall, AD shifts left, and inflationary pressure eases.", "contractionary fiscal policy.") +
-rw("Tax avoidance", "High marginal rates give wealthy people an incentive to move income abroad or into lightly taxed forms, so the revenue raised may be less than expected.", "a limit of direct taxes.")
+rw("Tax avoidance", "High marginal rates give wealthy people an incentive to move income abroad or into lightly taxed forms, so the revenue raised may be less than expected.", "a limit of direct taxes.") +
+rw("Income tax bands", "A government taxes the first slice of income at 0%, the next at 20% and income above a threshold at 40%. A worker earning just above the threshold pays 40% on only the extra income, not on all of it.", "marginal and average rates in a progressive tax.") +
+rw("VAT in low-income countries", "Where many people are paid in cash and do not file tax returns, a sales tax collected at the till raises more revenue than an income tax. Poorer households, however, pay a larger share of income.", "why indirect taxes are common in developing economies, and their regressive effect.")
 )
 
 mc_exam = [
@@ -106,7 +158,12 @@ exam = exam_page("taxation",
       "Analysis (up to 3): the distinction between a direct tax, such as income tax, and an indirect tax, such as a sales tax, with appropriate reference to fairness.",
       "Evaluation (up to 2): a valid judgement on whether an increase in income tax is fairer than an increase in sales taxes, with a conclusion."],
      "Reasons: revenue, redistribution, discourage demerit goods, influence AD. Income tax progressive; sales tax regressive. Judge.",
-     [[("k", "Governments impose taxes to raise revenue for public services, to redistribute income, to discourage consumption of demerit goods and to influence aggregate demand.")], [("n", "An increase in income tax usually falls more heavily on those with higher incomes, because the marginal rate is above the average rate, which makes it progressive and generally seen as fairer. Sales taxes are indirect and tend to be regressive, because poorer households spend a larger share of their income on goods and services.")], [("e", "On grounds of fairness an increase in income tax is probably fairer, but it may reduce the incentive to work and can be avoided, while sales taxes are easier to collect. The answer depends on whether fairness or simplicity matters more.")]])
+     [[("k", "Governments impose taxes to raise revenue for public services, to redistribute income, to discourage consumption of demerit goods and to influence aggregate demand.")], [("n", "An increase in income tax usually falls more heavily on those with higher incomes, because the marginal rate is above the average rate, which makes it progressive and generally seen as fairer. Sales taxes are indirect and tend to be regressive, because poorer households spend a larger share of their income on goods and services.")], [("e", "On grounds of fairness an increase in income tax is probably fairer, but it may reduce the incentive to work and can be avoided, while sales taxes are easier to collect. The answer depends on whether fairness or simplicity matters more.")]]),
+  eq(P("s23_22", "1(e)"), "6 marks", "Assess whether adjusting the collection of direct tax or indirect tax is likely to be more effective in increasing the tax revenue collected by a government.",
+     ["Analysis (up to 4): one method of adjusting direct tax, such as introducing a more progressive income tax, with the advantages and disadvantages for raising revenue (up to 3; 1 mark if only advantages or only disadvantages); one method of adjusting indirect tax, such as raising the rate of VAT, with the advantages and disadvantages (up to 3; 1 mark if one-sided); a maximum of 3 marks if only one type of tax is analysed. Issues include fairness and equality, the amount that may be raised and the costs of ensuring compliance.",
+      "Evaluation (up to 2): compare and weigh up the likely effectiveness of both types of tax in raising revenue, considering the problems the government faces in raising more, and reach an overall conclusion on which is more effective."],
+     "Direct: progressive rates raise revenue from high earners, avoidance, incentives. Indirect: VAT wide base, easy to collect, regressive. Compare and conclude.",
+     [[("n", "A more progressive income tax would raise more revenue from higher earners, which is fairer, but high marginal rates may reduce work effort, encourage avoidance, and in a country with a large informal sector few people would pay. Raising VAT would raise revenue from all spending and is easy to collect, but it is regressive, hitting poorer households hardest, and could raise inflation and reduce demand."), ("e", "In a country with a large informal economy, indirect taxes are probably more effective at raising revenue because they are easier to collect, although direct taxes are fairer. A combination is likely to work best.")]])
   ],
   )
 

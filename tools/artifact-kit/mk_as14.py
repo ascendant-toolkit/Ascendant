@@ -90,7 +90,7 @@ mc_exam = [
 
 exam = exam_page("division of labour, specialisation and the entrepreneur",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). The role of the entrepreneur and the effects of specialisation appear as 2 and 6 mark data response parts and as a 12 mark essay on enterprise, and division of labour is tested in Paper 1 every year. Reworded past questions are below, with eleven Paper 1 multiple choice questions.",
-  [("Data response, 2 and 6 marks", "3", "Oct/Nov 2020 (21) Q1(a) and (e); Feb/March 2024 (22) Q1(e)"), ("Essay parts, 12 marks", "2", "May/June 2023 (22) Q3(b); Feb/March 2021 (22) Q2(b)"), ("Multiple choice (Paper 1)", "11 shown below", "2020 to 2025")],
+  [("Essay parts, 12 marks", "2", "May/June 2023 (22) Q3(b); Feb/March 2021 (22) Q2(b)"), ("Data response, 2 marks", "1", "Oct/Nov 2020 (21) Q1(a)"), ("Data response, 6 marks", "2", "Feb/March 2024 (22) Q1(e); Oct/Nov 2020 (21) Q1(e)"), ("Multiple choice (Paper 1)", "11 shown below", "2020 to 2025")],
   [
   eq(P("w20_21", "1(a)"), "2 marks", "Describe the functions of an entrepreneur in the production process.",
      ["A reference to taking decisions or organising, combining and coordinating the factors of production (1).", "A reference to taking a risk (1)."],

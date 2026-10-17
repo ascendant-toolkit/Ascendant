@@ -84,7 +84,7 @@ mc_exam = [
 
 exam = exam_page("the production possibility curve: meaning, shape and opportunity cost",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). The PPC is the most reliable 8 mark question in Paper 2: nearly every series has one on opportunity cost, shape, shifts or position, and it also appears as a 2 to 4 mark diagram in data response. Reworded past questions are below, with eight Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "3", "Oct/Nov 2021 (22) Q2(a); Feb/March 2024 (22) Q3(a); Oct/Nov 2021 (21) Q2(a)"), ("Data response, 3 and 4 marks", "2", "May/June 2022 (23) Q1(d); May/June 2025 (23) Q1(c)"), ("Multiple choice (Paper 1)", "8 shown below", "2020 to 2024")],
+  [("Essay parts, 8 marks", "2", "Oct/Nov 2021 (22) Q2(a); Oct/Nov 2024 (22) Q3(a)"), ("Data response, 3 marks", "1", "May/June 2022 (23) Q1(d)"), ("Data response, 4 marks", "1", "May/June 2025 (23) Q1(c)"), ("Multiple choice (Paper 1)", "8 shown below", "2020 to 2024")],
   [
   eq(P("w21_22", "2(a)"), "8 marks", "Use a diagram to explain how a production possibility curve can be used to show opportunity cost and why such a curve is usually drawn with increasing opportunity costs.",
      ["Knowledge (up to 2): a PPC diagram with correctly labelled axes.",

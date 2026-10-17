@@ -134,7 +134,7 @@ mc_exam = [
 
 exam = exam_page("income, wealth and inequality",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Inequality appears as an 8 mark Paper 2 part most years (Gini coefficient, reasons for inequality, measuring wealth) and as short data-response parts. Reworded past questions are below, with four Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "3", "May/June 2024 (22) Q2(a); Oct/Nov 2024 (23) Q3(a); Feb/March 2023 (22) Q3(a)"), ("Data response, 2 marks", "1", "Oct/Nov 2024 (22) Q1(c)"), ("Multiple choice (Paper 1)", "4 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "3", "May/June 2024 (22) Q2(a); Oct/Nov 2024 (23) Q3(a); Feb/March 2023 (22) Q3(a)"), ("Data response, 2 marks", "1", "Oct/Nov 2024 (22) Q1(c)"), ("Multiple choice (Paper 1)", "4 shown below", "2021 to 2025")],
   [
   eq(P("s24_22", "2(a)"), "8 marks", "Explain how the Gini coefficient is used to measure income inequality and consider the relative strength of two economic reasons suggested for such inequality in a low-income country.",
      ["Knowledge (up to 3): the Gini coefficient is a numerical measure of the extent of income inequality (1); zero means no inequality and one means all income earned by one person (1); the nearer to zero the more equal, the nearer to one the more unequal (1).",
