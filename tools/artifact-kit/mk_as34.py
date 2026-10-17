@@ -33,6 +33,51 @@ learn = '''
     <tr><td><b>Typical aim</b></td><td>Affordability</td><td>Producer income, cut demerit goods</td></tr>
     <tr><td><b>Typical result</b></td><td>Rationing, black markets</td><td>Government buying, waste</td></tr>
   </table></div>
+
+  <h2>3 · Worked examples</h2>
+  <p>Demand is P = 90 − Q and supply is P = 10 + Q, so equilibrium is a price of $50 and a quantity of 40.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Maximum price of $30</th><th>Working</th><th>Result</th></tr>
+    <tr><td>Quantity demanded</td><td>90 − 30</td><td>60</td></tr>
+    <tr><td>Quantity supplied</td><td>30 − 10</td><td>20</td></tr>
+    <tr><td>Shortage</td><td>60 − 20</td><td>40 units</td></tr>
+    <tr><td>Quantity actually traded</td><td>The lower amount</td><td>20 units</td></tr>
+    <tr><td>Possible black market price</td><td>The price at which consumers would buy the 20 available units: 90 − 20</td><td>$70</td></tr>
+  </table></div>
+  <div class="tw"><table class="t">
+    <tr><th>Minimum price of $70</th><th>Working</th><th>Result</th></tr>
+    <tr><td>Quantity supplied</td><td>70 − 10</td><td>60</td></tr>
+    <tr><td>Quantity demanded</td><td>90 − 70</td><td>20</td></tr>
+    <tr><td>Surplus</td><td>60 − 20</td><td>40 units</td></tr>
+    <tr><td>Cost if the government buys the surplus</td><td>40 × $70</td><td>$2,800</td></tr>
+    <tr><td>Quantity actually traded to consumers</td><td>The lower amount</td><td>20 units</td></tr>
+  </table></div>
+
+  <h2>4 · Who gains and who loses?</h2>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Maximum price (below equilibrium)</th><th>Minimum price (above equilibrium)</th></tr>
+    <tr><td><b>Consumers</b></td><td>Those who get the good gain (lower price); those who cannot find it lose; consumer surplus changes</td><td>Pay a higher price and buy less; consumer surplus falls</td></tr>
+    <tr><td><b>Producers</b></td><td>Lower price and output; producer surplus falls; less incentive to invest</td><td>Higher price; those who sell gain; but sales fall if demand is elastic and some producers cannot sell all their output</td></tr>
+    <tr><td><b>Government</b></td><td>May have to enforce, ration or fund alternatives</td><td>May buy the surplus (cost) or store or export it</td></tr>
+    <tr><td><b>Society</b></td><td>Welfare loss from lost trades; resources spent queuing</td><td>Welfare loss; waste of resources producing unsold output</td></tr>
+  </table></div>
+
+  <h2>5 · Special cases and elasticity</h2>
+  <ul>
+    <li><b>Rent controls:</b> a maximum price on rented housing. In the short run tenants gain, but over time landlords supply fewer homes or let quality fall, so shortages worsen.</li>
+    <li><b>Minimum wage:</b> a minimum price for labour. Low-paid workers who stay in work gain, but if the wage is above equilibrium some workers may lose their jobs, especially if demand for labour is elastic.</li>
+    <li><b>Minimum price for demerit goods:</b> for example a minimum price per unit of alcohol. It targets cheap, strong drinks, but if demand is inelastic consumption falls little, and consumers may switch to other products or buy illegally. The extra revenue goes to sellers, unlike a tax, where it goes to the government.</li>
+    <li><b>Farm minimum prices:</b> support farmers' incomes and secure food supply, but create surpluses and make food dearer.</li>
+    <li><b>Elasticity matters:</b> the more elastic demand and supply are, the bigger the shortage or surplus created by a control of a given size.</li>
+  </ul>
+
+  <h2>6 · Alternatives to price controls</h2>
+  <ul>
+    <li><b>Instead of a maximum price:</b> subsidise producers or consumers, give cash transfers to low-income households, or increase supply (for example build more homes).</li>
+    <li><b>Instead of a minimum price:</b> direct income support for farmers, buffer stocks (see 3.2.5), or an indirect tax on demerit goods.</li>
+    <li>These alternatives often cost the government money but avoid shortages or surpluses; price controls shift costs onto consumers or producers.</li>
+  </ul>
+  <div class="warn"><b class="h">Do not write this</b>A maximum price always causes a shortage. It only does so if it is set <b>below</b> the equilibrium price. The same goes for a minimum price, which only creates a surplus if it is above equilibrium. Always check where the control is set.</div>
   <div class="tip"><b class="h">Exam tip</b>Draw the control line <b>on the correct side</b> of equilibrium, mark the shortage or surplus, say who <b>gains and loses</b>, and add at least one <b>unintended consequence</b>. Then evaluate with <b>elasticity</b> and <b>alternatives</b> such as subsidies or taxes.</div>
 '''
 
@@ -72,7 +117,9 @@ real = RWNOTE + (
 rw("Rent control", "A cap on rents below the market level makes housing cheaper for tenants who find a home. But landlords supply fewer homes and spend less on upkeep, so there is a shortage, long waiting lists and sometimes illegal side payments.", "a maximum price, shortage, rationing and a black market.") +
 rw("Minimum alcohol price", "A minimum price per unit of alcohol targets the cheapest, strongest drinks. It cuts consumption among heavy drinkers if demand is elastic, but if demand is inelastic spending rises and producers gain.", "a minimum price on a demerit good and the role of elasticity.") +
 rw("Farm price support", "A guaranteed minimum price for grain encourages farmers to produce. The state must buy or store the surplus, which costs taxpayers and may be dumped abroad at low prices.", "a surplus and the cost of buying it.") +
-rw("Minimum wage", "A legal minimum wage is a price floor in the labour market. Low-paid workers who keep their jobs gain, but if the minimum is above the equilibrium wage employers may hire fewer workers.", "a minimum price applied to labour.")
+rw("Minimum wage", "A legal minimum wage is a price floor in the labour market. Low-paid workers who keep their jobs gain, but if the minimum is above the equilibrium wage employers may hire fewer workers.", "a minimum price applied to labour.") +
+rw("Minimum unit pricing for alcohol", "Scotland introduced a minimum price per unit of alcohol in 2018 to reduce harmful drinking. It targets cheap, strong drinks, but the effect depends on how many drinkers respond to the higher price and on whether they switch to other products.", "a minimum price used for a demerit good.") +
+rw("The minimum wage", "A legal minimum wage is a minimum price for labour. Workers on low pay who keep their jobs gain, but if it is set too high above the equilibrium wage, employers may cut jobs or hours.", "a minimum price in the labour market.")
 )
 
 mc_exam = [
@@ -87,7 +134,7 @@ mc_exam = [
 
 exam = exam_page("maximum and minimum prices",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Price controls are one of the most common Paper 2 topics: an 8 mark diagram part or a 12 mark discussion in nearly every series, plus short data-response parts, and they appear in Paper 1 every year. Reworded past questions are below, with seven Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "2", "Oct/Nov 2021 (21) Q3(a); May/June 2025 (24) Q3(a)"), ("Essay parts, 12 marks", "4", "Oct/Nov 2023 (21) Q3(b); Feb/March 2023 (22) Q3(b); Oct/Nov 2022 (23) Q2(b); May/June 2024 (22) Q3(b)"), ("Data response, 4 to 6 marks", "4", "Oct/Nov 2022 (21) Q1(c) and (e); May/June 2021 (23) Q1(d); Oct/Nov 2024 (21) Q1(d)"), ("Multiple choice (Paper 1)", "7 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "2", "Oct/Nov 2021 (21) Q3(a); May/June 2025 (24) Q3(a)"), ("Essay parts, 12 marks", "4", "Oct/Nov 2023 (21) Q3(b); Feb/March 2023 (22) Q3(b); Oct/Nov 2022 (23) Q2(b); May/June 2024 (22) Q3(b)"), ("Data response, 4 to 6 marks", "3", "Oct/Nov 2022 (21) Q1(c); Oct/Nov 2022 (21) Q1(e); May/June 2021 (23) Q1(d)"), ("Multiple choice (Paper 1)", "7 shown below", "2020 to 2025")],
   [
   eq(P("w21_21", "3(a)"), "8 marks", "With the aid of a diagram, explain the consequences for consumers and producers of introducing a minimum price in the market for a product.",
      ["Knowledge (up to 2): a correct diagram with price and quantity axes labelled (1); a minimum price shown above the equilibrium, with demand and supply labelled (1).",
@@ -114,7 +161,27 @@ exam = exam_page("maximum and minimum prices",
   eq(P("w22_21", "1(c)"), "4 marks", "With the help of a diagram, explain how an effective minimum price would affect the market for a basic food such as rice.",
      ["A correctly labelled diagram showing a minimum price above the equilibrium (1).", "The price rises and quantity supplied rises (1).", "Quantity demanded falls (1).", "There is excess supply, which may need to be bought by the government or wasted (1)."],
      "Minimum price above equilibrium. Price up, supply up, demand down. Surplus.",
-     [[("k", "An effective minimum price is a line above the equilibrium price. At that price quantity supplied rises and quantity demanded falls, so there is excess supply."), ("n", "Rice farmers receive a higher price, but consumers buy less, and the surplus rice may have to be bought by the government, stored or exported.")]])
+     [[("k", "An effective minimum price is a line above the equilibrium price. At that price quantity supplied rises and quantity demanded falls, so there is excess supply."), ("n", "Rice farmers receive a higher price, but consumers buy less, and the surplus rice may have to be bought by the government, stored or exported.")]]),
+  eq(P("w22_23", "2(b)"), "12 marks", "Discuss the extent to which the introduction of a maximum price in a market will benefit consumers.",
+     ["Analysis (up to 8): how a maximum price may benefit consumers (up to 4): it ensures access to essential products such as food, water and power, and frees up income to buy other essentials; how it may not benefit consumers (up to 4). To be effective the maximum price must be below the equilibrium price; an accurate diagram is not required but would enhance the analysis.",
+      "Evaluation (up to 4): considers the extent to which consumers may benefit (up to 3), with a reasoned conclusion (1)."],
+     "Benefit: affordability, access, income for other goods. Cost: shortage, rationing, black market, lower quality. Judge: depends on how far below equilibrium and who gets the goods.",
+     [[("n", "A maximum price set below the equilibrium price makes essentials such as food cheaper, so low-income households can afford them and have more income left for other goods. But the lower price increases quantity demanded and reduces quantity supplied, so a shortage appears. Goods have to be rationed by queues or waiting lists, a black market may emerge with higher prices, and quality may fall as producers cut costs, so some consumers end up worse off.")], [("e", "Consumers may benefit in the short run, particularly those who can obtain the good, but the benefit is limited by shortages and by the loss of supply in the longer term. The extent depends on how far below equilibrium the price is set and how well the good is rationed. Targeted help such as subsidies or transfers could be more effective.")]]),
+  eq(P("s24_22", "3(b)"), "12 marks", "Assess whether fixing a minimum price is likely to be the best policy to reduce the consumption of a demerit good.",
+     ["Analysis (up to 8): use of minimum pricing to raise the price of a demerit good and reduce consumption; problems of minimum pricing, such as inelastic demand, the persistence of information failure and the emergence of informal markets; and alternative policies such as indirect taxes, education and the provision of information, with their advantages and disadvantages, including ease of introduction, time and cost and reception by consumers.",
+      "Evaluation (up to 4): a judgement on whether a minimum price is likely to be the best policy, with a conclusion."],
+     "Minimum price: raises price, cuts consumption if demand elastic; inelastic demand, informal markets. Alternatives: tax, education, information. Judge: a combination may be best.",
+     [[("n", "A minimum price raises the price of cheap, strong products, which should reduce quantity demanded, particularly if demand is elastic. But if demand is inelastic, because the good is addictive, consumption may fall little, and the information failure that causes over-consumption remains. Informal markets may develop, and the extra revenue goes to sellers rather than the government. An indirect tax would raise revenue for the state, education and information tackle the cause of the problem but work slowly.")], [("e", "A minimum price is unlikely to be the best policy on its own. It may work for goods with elastic demand, but a combination of price measures and information is likely to be more effective at reducing consumption.")]]),
+  eq(P("w22_21", "1(e)"), "6 marks", "Discuss whether maximum price controls will always be effective in controlling inflation.",
+     ["Analysis (up to 5): the advantages of a maximum price (up to 3): the price will be lower than otherwise, which means a lower rate of inflation, and helps the poor afford necessities such as foodstuffs, housing rents and transport; the disadvantages (up to 3), such as lower prices stimulating demand-pull inflation elsewhere and shortages.",
+      "Reserve 1 mark for a conclusion."],
+     "Advantages: lower prices, affordability. Disadvantages: shortages, black markets, demand-pull pressure elsewhere. Conclude: not always effective.",
+     [[("n", "A maximum price on essentials keeps their prices below the market level, which lowers measured inflation and helps poorer households to afford food and rent. But the lower price raises quantity demanded and cuts supply, causing shortages and black markets where prices may be higher, and the extra spending power left may stimulate demand-pull pressure on other prices."), ("e", "Maximum prices will not always be effective in controlling inflation: they may help in the short run but are unlikely to deal with its causes, so they are better used alongside other policies.")]]),
+  eq(P("s21_23", "1(d)"), "6 marks", "Discuss whether a minimum price for fuel would be effective in reducing the congestion caused by the demand for roads exceeding supply.",
+     ["Analysis (up to 5): the effect of introducing a minimum price in a market (up to 3): a minimum price above the equilibrium raises the price for drivers and in theory reduces demand and congestion; why it may not be effective (up to 3): it works only if demand for fuel is price elastic, it creates excess supply and possible informal markets, and depends on the government's ability to enforce it.",
+      "Reserve 1 mark for a justified conclusion."],
+     "Minimum price: higher fuel price, less driving, less congestion, but only if demand is elastic. Surplus, informal markets, enforcement. Conclude: probably limited.",
+     [[("n", "A minimum price for fuel above the equilibrium raises the cost of driving, which could reduce demand for fuel and so the number of cars on the road. But fuel has few substitutes, so demand is likely to be inelastic and traffic will fall little. The policy also creates a surplus of fuel and may lead to informal markets, and it depends on the government being able to enforce the price."), ("e", "A minimum price is therefore unlikely to be effective on its own; other policies, such as better public transport or road charges, may reduce congestion more.")]])
   ],
   )
 

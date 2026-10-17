@@ -42,6 +42,41 @@ learn = '''
     <tr><td><b>Transfer payments</b></td><td>Direct help for the poorest</td><td>Cost; possible dependency</td></tr>
     <tr><td><b>State provision</b></td><td>Gives access to essentials regardless of income</td><td>Opportunity cost; queues; inefficiency</td></tr>
   </table></div>
+
+  <h2>4 · Worked examples</h2>
+  <p><b>A progressive income tax.</b> Suppose the first $10,000 of income is tax-free, the next $20,000 is taxed at 20% and income above $30,000 is taxed at 40%.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Income</th><th>Tax</th><th>Average rate</th><th>Marginal rate</th></tr>
+    <tr><td>$10,000</td><td>$0</td><td>0%</td><td>0% up to $10,000</td></tr>
+    <tr><td>$30,000</td><td>20% × $20,000 = $4,000</td><td>13.3%</td><td>20% on income from $10,000 to $30,000</td></tr>
+    <tr><td>$50,000</td><td>$4,000 + 40% × $20,000 = $12,000</td><td>24%</td><td>40% on income above $30,000</td></tr>
+    <tr><td>$100,000</td><td>$4,000 + 40% × $70,000 = $32,000</td><td>32%</td><td>40%</td></tr>
+  </table></div>
+  <ul>
+    <li>The tax is <b>progressive</b> because the <b>average rate rises</b> with income (0%, 13.3%, 24%, 32%), and the marginal rate (40%) is above the average rate.</li>
+    <li><b>Marginal rate of tax</b> = change in tax ÷ change in income. From $30,000 to $50,000: ($12,000 − $4,000) ÷ $20,000 = 40%.</li>
+  </ul>
+  <p><b>A regressive sales tax.</b> A 10% sales tax is paid on spending. A household with income of $10,000 spends $9,000 and pays $900, which is 9% of its income. A household with income of $100,000 spends $60,000 and pays $6,000, which is 6% of its income. The tax takes a smaller share of the higher income, so it is regressive even though the rate on spending is the same.</p>
+
+  <h2>5 · Effects of a minimum wage: a worked example</h2>
+  <p>Suppose the equilibrium wage is $8 an hour and 1,000 workers are employed. A minimum wage of $10 is introduced, and labour demand falls to 900 workers, while 1,100 want to work.</p>
+  <ul>
+    <li><b>Winners:</b> the 900 workers who keep jobs gain $2 an hour (and those on low pay in other jobs may also get a rise).</li>
+    <li><b>Losers:</b> 100 workers lose their jobs, and there are 200 unemployed in total (1,100 − 900), so the policy helps some low-paid workers at the cost of others.</li>
+    <li><b>Employers:</b> costs rise, so some may cut hours, raise prices or replace labour with machines.</li>
+    <li>If demand for labour is inelastic, few jobs are lost; if it is elastic, many jobs are lost.</li>
+  </ul>
+
+  <h2>6 · Evaluating redistribution policies</h2>
+  <ul>
+    <li><b>Incentives:</b> high marginal rates of tax may reduce the reward for working and enterprise; generous benefits may discourage job search.</li>
+    <li><b>Avoidance and evasion:</b> high taxes encourage people to move income or assets out of reach.</li>
+    <li><b>Cost and funding:</b> transfers and state provision need tax revenue, so there is an opportunity cost.</li>
+    <li><b>Targeting:</b> universal benefits help the poor but also go to the better off; means-tested ones are cheaper but may create poverty traps.</li>
+    <li><b>Time lags:</b> improving education changes the distribution of income only over many years.</li>
+    <li><b>Inequality of wealth:</b> income taxes and benefits do not directly address it; inheritance and capital taxes do, but are hard to collect.</li>
+    <li><b>Judgement:</b> a mix of progressive taxes, transfers and provision of education and health is likely to be more effective than any one policy.</li>
+  </ul>
   <div class="tip"><b class="h">Exam tip</b>Name the policy, explain <b>how</b> it narrows the gap, then give a <b>limit</b>. For essays, compare at least two and conclude which is <b>most effective</b> and why. Do not confuse progressive (a feature of a tax) with direct (who pays it).</div>
 '''
 
@@ -81,7 +116,9 @@ real = RWNOTE + (
 rw("Income tax bands", "A worker earning $20,000 pays tax only on income above the allowance, so the average rate is low. A manager earning $90,000 pays 40% on the top slice, so the average rate is much higher. Both pay the same rate on a given slice, but the average rate rises with income.", "progressive taxation and the marginal versus average rate.") +
 rw("Sales tax on food", "A flat 10% sales tax on food takes the same percentage of each purchase, but low-income households spend most of their income on food, so the tax takes a bigger share of their income. It is regressive.", "why indirect taxes can be regressive.") +
 rw("Child benefit and pensions", "These are transfer payments: money is moved from taxpayers to families and pensioners with no output in return. They lift the incomes of low-income groups, but they cost money and may affect work choices.", "transfer payments.") +
-rw("A national minimum wage", "Many countries set a legal wage floor. Low-paid workers who keep jobs gain, but some firms may hire fewer workers or replace them with machines, so the overall effect depends on how elastic demand for labour is.", "the minimum wage and the unemployment risk.")
+rw("A national minimum wage", "Many countries set a legal wage floor. Low-paid workers who keep jobs gain, but some firms may hire fewer workers or replace them with machines, so the overall effect depends on how elastic demand for labour is.", "the minimum wage and the unemployment risk.") +
+rw("Progressive income tax bands", "A government taxes the first slice of income at 0%, the next at 20% and income above a higher threshold at 40%. Higher earners pay a larger share of their income, which narrows the gap after tax.", "a progressive tax and the marginal rate.") +
+rw("Free school meals", "Providing free meals in school gives children from poorer households a meal worth a larger share of their family's income than for richer households. It is redistribution in kind, paid for by taxpayers.", "state provision as redistribution.")
 )
 
 mc_exam = [
@@ -101,7 +138,7 @@ mc_exam = [
 
 exam = exam_page("policies to redistribute income and wealth",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Redistribution is a regular 12 mark Paper 2 discussion (minimum wage, which policies work best), with 8 mark parts on progressive and regressive taxes. Reworded past questions are below, with twelve Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "2", "Oct/Nov 2022 (23) Q3(a); Oct/Nov 2023 (21) Q4(a)"), ("Essay parts, 12 marks", "3", "May/June 2025 (24) Q3(b); May/June 2024 (22) Q2(b); Oct/Nov 2024 (23) Q3(b)"), ("Data response, 6 marks", "1", "Oct/Nov 2024 (22) Q1(d)"), ("Multiple choice (Paper 1)", "12 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "2", "Oct/Nov 2022 (23) Q3(a); Oct/Nov 2023 (21) Q4(a)"), ("Essay parts, 12 marks", "2", "May/June 2025 (24) Q3(b); May/June 2024 (22) Q2(b)"), ("Data response, 6 marks", "1", "Oct/Nov 2024 (22) Q1(d)"), ("Multiple choice (Paper 1)", "12 shown below", "2020 to 2025")],
   [
   eq(P("w22_23", "3(a)"), "8 marks", "Explain the difference between a progressive direct tax and a regressive indirect tax, with an example of each.",
      ["Knowledge (up to 2): a direct tax is a tax on income and wealth (1) and an indirect tax is a tax on the sale of or spending on goods and services (1).",
@@ -124,7 +161,12 @@ exam = exam_page("policies to redistribute income and wealth",
       "Analysis (up to 3): the distinction between a direct tax, such as income tax, and an indirect tax, such as a sales tax, with appropriate reference to fairness.",
       "Evaluation (up to 2): a valid judgement on whether an increase in income tax is fairer than an increase in sales taxes, and a conclusion."],
      "Reasons for tax: revenue, redistribution, discourage demerit goods. Income tax progressive; sales tax regressive. Judge on fairness.",
-     [[("k", "Governments tax to raise revenue to pay for public goods and services, to redistribute income, and to discourage consumption of demerit goods.")], [("n", "An increase in income tax is direct and usually progressive: those with higher incomes pay a larger share, so it is generally seen as fairer. An increase in sales taxes is indirect and tends to be regressive, because people on low incomes spend a larger share of their income and so lose a larger share to the tax.")], [("e", "Income tax is therefore likely to be fairer, although high rates may reduce the incentive to work. A sales tax is easier to collect, and exemptions for essentials such as basic foods could make it less regressive.")]])
+     [[("k", "Governments tax to raise revenue to pay for public goods and services, to redistribute income, and to discourage consumption of demerit goods.")], [("n", "An increase in income tax is direct and usually progressive: those with higher incomes pay a larger share, so it is generally seen as fairer. An increase in sales taxes is indirect and tends to be regressive, because people on low incomes spend a larger share of their income and so lose a larger share to the tax.")], [("e", "Income tax is therefore likely to be fairer, although high rates may reduce the incentive to work. A sales tax is easier to collect, and exemptions for essentials such as basic foods could make it less regressive.")]]),
+  eq(P("w24_22", "1(d)"), "6 marks", "Assess the extent to which the government increasing its education spending may improve the incomes of poorer households.",
+     ["Analysis (up to 4): reasons and benefits of the government increasing education spending to improve the incomes of poorer households (up to 3): education is a merit good beneficial to the individual and to society, raising income levels through a better educated and skilled workforce; additional spending may increase the availability of provision and free tuition may make it more affordable to poorer households; it may also reduce other costs of education and raise awareness of its benefits.",
+      "Evaluation (up to 2): a judgement on the extent to which the spending improves the incomes of poorer households, with a conclusion."],
+     "Benefits: skills, access, lower cost, awareness. Limits: time lag, cost, quality, other barriers. Judge: helps in the long run, not quickly.",
+     [[("n", "Spending on education raises the supply and affordability of schooling for poorer households. A better educated, more skilled worker can earn more, so household incomes may rise, and free tuition removes a financial barrier."), ("e", "The effect takes many years and depends on the quality of the education and on the availability of jobs. It improves the incomes of poorer households to some extent, but other policies such as transfers may be needed in the short run.")]])
   ],
   )
 

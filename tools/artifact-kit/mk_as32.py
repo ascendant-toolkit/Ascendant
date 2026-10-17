@@ -29,6 +29,52 @@ learn = '''
     <tr><td>Supports domestic industries and jobs; encourages new technology (e.g. renewables)</td><td>Producers may become inefficient or dependent; hard to remove</td></tr>
     <tr><td>Can offset other market failures</td><td>Does not address information failure on its own; may distort trade</td></tr>
   </table></div>
+
+  <h2>3 · Types of subsidy and why governments use them</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Reason</th><th>Example</th><th>How the subsidy helps</th></tr>
+    <tr><td><b>Increase consumption of a merit good</b></td><td>Subsidised vaccinations, school meals, public transport</td><td>Lower price raises quantity demanded</td></tr>
+    <tr><td><b>Support domestic producers and jobs</b></td><td>Farm subsidies</td><td>Lower costs or higher receipts for producers</td></tr>
+    <tr><td><b>Encourage new industries or technology</b></td><td>Renewable energy, electric vehicles</td><td>Reduces the cost of switching or starting out</td></tr>
+    <tr><td><b>Keep essentials affordable</b></td><td>Food and fuel subsidies</td><td>Lower prices for low-income households</td></tr>
+    <tr><td><b>Boost exports</b></td><td>Export subsidies</td><td>Lower export prices raise sales abroad (a form of protectionism)</td></tr>
+  </table></div>
+  <ul>
+    <li>A subsidy can be paid to <b>producers</b> (lowering costs and shifting supply) or to <b>consumers</b> (raising their ability to buy, shifting demand). The usual AS diagram treats a per-unit subsidy to producers.</li>
+    <li>It is <b>paid for out of taxation</b> or borrowing, so there is always an <b>opportunity cost</b>: less spending on other services or higher taxes elsewhere.</li>
+  </ul>
+
+  <h2>4 · Worked example</h2>
+  <p>Demand is P = 90 − Q and supply is P = 10 + Q (equilibrium price $50, quantity 40). The government gives producers a subsidy of $10 per unit, so the new supply curve is P = Q.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Item</th><th>Working</th><th>Result</th></tr>
+    <tr><td>New equilibrium</td><td>90 − Q = Q</td><td>Q = 45, price paid by consumers = $45</td></tr>
+    <tr><td>Price received by producers</td><td>45 + 10</td><td>$55</td></tr>
+    <tr><td>Consumers' gain per unit</td><td>50 − 45</td><td>$5</td></tr>
+    <tr><td>Producers' gain per unit</td><td>55 − 50</td><td>$5</td></tr>
+    <tr><td>Cost to the government</td><td>$10 × 45</td><td>$450</td></tr>
+    <tr><td>Welfare loss (if no external benefits)</td><td>½ × $10 × (45 − 40)</td><td>$25</td></tr>
+  </table></div>
+  <ul>
+    <li>Use the <b>quantity after the subsidy</b> (45) to find the cost. The cost ($450) is greater than the gain in consumer and producer surplus ($425); the difference is the welfare loss, unless the good gives external benefits.</li>
+    <li><b>Elasticity and cost:</b> if demand is elastic, the same subsidy per unit leads to a larger rise in quantity and so a higher total cost; if demand is inelastic, the price falls by more but quantity rises less.</li>
+  </ul>
+
+  <h2>5 · Subsidies and trade</h2>
+  <ul>
+    <li>A subsidy to domestic producers lowers their costs, so they can <b>cut prices in export markets</b> and sell more abroad. It can also help domestic producers to compete with imports.</li>
+    <li>Other countries may see this as <b>unfair competition</b> and respond with <b>retaliation</b> or tariffs, and subsidies can distort trade by keeping inefficient firms in business.</li>
+    <li>Export revenue rises only if the extra volume more than offsets the lower price, which depends on the <b>price elasticity of demand for the export</b>.</li>
+  </ul>
+
+  <h2>6 · Is a subsidy the best policy?</h2>
+  <ul>
+    <li><b>Compared with direct provision:</b> a subsidy keeps private supply and choice and may be cheaper, but benefits may go to people who would have bought anyway.</li>
+    <li><b>Compared with information:</b> subsidies tackle price as a barrier; if the problem is information failure, a subsidy may not raise consumption much.</li>
+    <li><b>Compared with taxes on substitutes or regulation:</b> subsidies cost the government money, whereas taxes raise revenue.</li>
+    <li><b>Evaluate</b> with elasticity of demand, the size of the external benefits, the cost and the risk of dependence, then judge whether the aim (consumption, income, jobs) is met.</li>
+  </ul>
+  <div class="warn"><b class="h">Do not write this</b>A subsidy does not shift the demand curve in the standard diagram: it lowers producers' costs, so the <b>supply</b> curve shifts right. Do not forget that the price producers receive is higher than the price consumers pay, by the subsidy.</div>
   <div class="tip"><b class="h">Exam tip</b>Draw the new supply curve <b>below</b> the old one, label the price consumers pay and the price producers get, and shade the <b>cost</b>. Evaluate with <b>elasticity</b>, <b>opportunity cost</b> and whether other policies (information, regulation) might work better.</div>
 '''
 
@@ -68,7 +114,9 @@ real = RWNOTE + (
 rw("Subsidised public transport", "A government pays bus operators a fixed amount per journey. Fares fall, more people use buses and congestion may fall. The cost to taxpayers is large, and the opportunity cost is spending on other services.", "a subsidy on a merit good and its opportunity cost.") +
 rw("Electric vehicle grants", "Grants lower the effective price of electric cars. Demand is fairly elastic, so sales rise by a lot, but some of the money goes to buyers who would have bought one anyway.", "elastic demand raising the cost, and poor targeting.") +
 rw("Farm subsidies", "Payments to farmers raise their incomes and keep food cheap, but can lead to over-production and make farmers dependent on support. Removing them can cause hardship.", "producer incidence and the difficulty of removing a subsidy.") +
-rw("Free school meals", "Meals are provided at no cost to the pupil. Some of the benefit is private, but better nutrition improves learning, an external benefit that justifies public spending.", "a subsidy on a merit good with external benefits.")
+rw("Free school meals", "Meals are provided at no cost to the pupil. Some of the benefit is private, but better nutrition improves learning, an external benefit that justifies public spending.", "a subsidy on a merit good with external benefits.") +
+rw("Subsidised public transport", "A city pays bus operators a subsidy per passenger so fares are lower. More people travel, reducing road congestion, but the city has less to spend on other services, which is the opportunity cost.", "a subsidy to raise use of a merit good, and opportunity cost.") +
+rw("Renewable energy subsidies", "Governments pay part of the cost of solar panels or wind farms. Lower costs encourage firms to supply more renewable energy and may help new technology to develop, but the subsidy is costly and may be hard to withdraw.", "subsidies to encourage new industries.")
 )
 
 mc_exam = [
@@ -83,7 +131,7 @@ mc_exam = [
 
 exam = exam_page("subsidies",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Subsidies appear as 8 or 12 mark Paper 2 parts most years, often as the best way to raise consumption of a merit good, and in several short data-response parts. Reworded past questions are below, with seven Paper 1 multiple choice questions that do not need a diagram.",
-  [("Essay parts, 8 marks", "2", "May/June 2025 (21) Q3(a); May/June 2024 (22) Q3(a)"), ("Essay parts, 12 marks", "2", "Feb/March 2025 (22) Q3(b); Oct/Nov 2023 (23) Q3(b)"), ("Data response, 2 marks", "1", "Oct/Nov 2022 (23) Q1(a)"), ("Multiple choice (Paper 1)", "7 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "3", "May/June 2025 (21) Q3(a); May/June 2024 (22) Q3(a); Oct/Nov 2020 (22) Q2(a)"), ("Essay parts, 12 marks", "1", "Feb/March 2025 (22) Q3(b)"), ("Data response, 2 marks", "1", "Oct/Nov 2022 (23) Q1(a)"), ("Multiple choice (Paper 1)", "7 shown below", "2020 to 2025")],
   [
   eq(P("s25_21", "3(a)"), "8 marks", "With the help of a diagram, explain how changes in a subsidy can influence the price and quantity sold of a product in a market and consider how expenditure on a subsidy is affected by the price elasticity of demand for the product.",
      ["Knowledge (up to 3): a correct diagram with labelled axes, demand and supply (1); an increase in a subsidy shifting supply to the right, lowering price and raising quantity, with new equilibrium positions shown (1); a decrease in a subsidy shifting supply to the left, raising price and lowering quantity (1).",
@@ -105,7 +153,12 @@ exam = exam_page("subsidies",
   eq(P("w22_23", "1(a)"), "2 marks", "Explain what might be the opportunity cost if a government agreed to pay larger subsidies to its farmers.",
      ["Opportunity cost is the cost in terms of the best alternative forgone (1).", "Other areas of government funding, such as healthcare or education, would have less spending allocated to them (1)."],
      "Opportunity cost defined. Name what the money could have been spent on.",
-     [[("k", "Opportunity cost is the next best alternative given up. If the government pays more subsidies to farmers, it has less to spend on something else, such as health care or schools, which is the opportunity cost.")]])
+     [[("k", "Opportunity cost is the next best alternative given up. If the government pays more subsidies to farmers, it has less to spend on something else, such as health care or schools, which is the opportunity cost.")]]),
+  eq(P("w20_22", "2(a)"), "8 marks", "Use a diagram to explain how a subsidy given to producers in the market for vaccinations will affect the market price and explain the impact of this subsidy upon the consumer surplus in this market.",
+     ["Knowledge (up to 2): the meaning of consumer surplus (2).",
+      "Application (up to 6): an accurately labelled diagram showing the supply curve shifting right (1) and the fall in equilibrium price and rise in equilibrium quantity (1); the consumer surplus before the subsidy (1) and the rise in consumer surplus after the subsidy (1); one other factor determining the fall in price, for example the elasticity of demand or supply or the size of the subsidy (1); and one other factor determining the change in consumer surplus (1)."],
+     "Consumer surplus defined. Diagram: S shifts right, price falls, quantity rises, CS area larger. Other factors: elasticity and the size of the subsidy.",
+     [[("k", "Consumer surplus is the difference between what consumers are willing to pay and what they actually pay, shown as the area under the demand curve and above the price.")], [("n", "A subsidy lowers producers' costs, so the supply curve shifts to the right. The equilibrium price of vaccinations falls and quantity rises, and the area of consumer surplus becomes larger. How far the price falls depends on the size of the subsidy and on the elasticities of demand and supply: the more inelastic demand is, the larger the fall in price and the greater the gain in consumer surplus.")]])
   ],
   )
 

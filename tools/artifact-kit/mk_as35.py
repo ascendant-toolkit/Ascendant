@@ -24,6 +24,46 @@ learn = '''
     <tr><td>Reduces the risk of famine or panic when harvests fail</td><td><b>The stock can run out</b> after a run of bad years, or the agency can run out of money in a run of good years</td></tr>
     <tr><td>Smooths foreign exchange earnings for countries relying on one crop</td><td>May encourage <b>over-production</b> and inefficiency; <b>opportunity cost</b> of the funds; can be affected by corruption</td></tr>
   </table></div>
+
+  <h2>3 · Why are agricultural prices so unstable?</h2>
+  <ul>
+    <li><b>Supply is unpredictable:</b> weather, disease and pests change the size of the harvest from year to year, shifting the supply curve.</li>
+    <li><b>Supply is inelastic in the short run:</b> farmers cannot change output once the crop is planted, so they cannot respond to price within the season.</li>
+    <li><b>Demand is inelastic:</b> food is a necessity, so a fall in price does not raise quantity demanded by much.</li>
+    <li><b>Result:</b> with both curves steep, a small shift in supply leads to a large change in price. Example: if the quantity supplied falls by 10% and the price elasticity of demand is −0.5, the price must rise by about 20% to restore equilibrium.</li>
+    <li><b>Farmers' incomes can fall in a good harvest:</b> if demand is inelastic, price falls by a larger percentage than quantity rises, so total revenue falls.</li>
+    <li><b>Planning problem:</b> farmers decide how much to plant on last year's price, so output may overshoot and undershoot, and unstable income discourages investment in the long run.</li>
+  </ul>
+
+  <h2>4 · Worked example</h2>
+  <p>Demand is P = 90 − Q. The agency sets a floor price of $40 and a ceiling of $60. In a normal year supply is P = 10 + Q (equilibrium $50, quantity 40).</p>
+  <div class="tw"><table class="t">
+    <tr><th>Year</th><th>Without the scheme</th><th>With the scheme</th></tr>
+    <tr><td><b>Good harvest</b>, supply P = Q − 30 (shifts right)</td><td>Supply P = Q − 30 gives 90 − Q = Q − 30, so Q = 60 and the price falls to $30</td><td>At the $40 floor, consumers buy 50 but producers supply 70, so the agency buys 20 units</td></tr>
+    <tr><td><b>Poor harvest</b>, supply P = 50 + Q (shifts left)</td><td>Supply P = 50 + Q gives 90 − Q = 50 + Q, so Q = 20 and the price rises to $70</td><td>At the $60 ceiling, consumers want 30 but producers supply only 10, so the agency sells 20 units from stock</td></tr>
+    <tr><td><b>Cost of buying 20 units</b> at $40</td><td>None</td><td>$800, to be recovered when the stock is sold at higher prices</td></tr>
+  </table></div>
+  <ul>
+    <li>The scheme works if the agency <b>buys when prices are low and sells when they are high</b>, so the stock cycles around a safe level. If the floor is set above the long-run equilibrium, the agency keeps buying and the stock grows without limit.</li>
+  </ul>
+
+  <h2>5 · Why schemes fail, and alternatives</h2>
+  <ul>
+    <li><b>Running out of stock:</b> several years of poor harvests exhaust the stock, and the agency can no longer hold the price down.</li>
+    <li><b>Running out of money:</b> several good harvests require the agency to keep buying, and it may not be able to finance it. For example, the International Tin Council's scheme ended in the mid-1980s when it ran short of funds.</li>
+    <li><b>Wrong price band:</b> a floor set too high is just a minimum price with growing surpluses; too low and farmers get no protection.</li>
+    <li><b>Storage costs and spoilage</b> for perishable goods; opportunity cost of the money tied up.</li>
+    <li><b>Alternatives:</b> subsidies or income support for farmers, crop insurance, futures contracts and diversification into other crops or products, and improved storage and information.</li>
+  </ul>
+
+  <h2>6 · Who gains and who loses?</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Group</th><th>Effect</th></tr>
+    <tr><td><b>Farmers</b></td><td>More stable incomes, a guaranteed minimum price and the confidence to invest; may lose from extra output they cannot sell at a high price</td></tr>
+    <tr><td><b>Consumers</b></td><td>Protected from price spikes; may pay higher average prices if the floor is set high</td></tr>
+    <tr><td><b>Government or agency</b></td><td>Bears the cost of buying and storing; may gain when it sells at higher prices</td></tr>
+    <tr><td><b>Taxpayers</b></td><td>Pay if the scheme makes a loss</td></tr>
+  </table></div>
   <div class="tip"><b class="h">Exam tip</b>Draw the floor and ceiling prices and show <b>both</b> a good and a poor harvest on supply and demand diagrams, labelling what the agency buys and sells. Evaluate with <b>cost</b>, <b>running out of stock</b>, whether the band is <b>set correctly</b> and alternatives such as <b>subsidies</b> or <b>futures markets</b>.</div>
 '''
 
@@ -63,7 +103,9 @@ real = RWNOTE + (
 rw("Grain reserves", "Some countries hold national reserves of rice or wheat. In a good year the government buys grain from farmers at a guaranteed price; in a shortage it releases stock at a set price to keep bread and rice affordable.", "buying at the floor and selling at the ceiling.") +
 rw("Coffee exporters", "Countries that depend on coffee exports can see their incomes swing with world prices. A stock scheme can smooth them, but past international schemes failed when prices stayed above the band and stocks grew too large to finance.", "cost and the risk of setting the band too high.") +
 rw("Poor harvest years", "After a drought the agency sells stock, so prices rise less than they otherwise would. If droughts last several years the reserve runs out, and prices then jump to the free market level.", "stock running out.") +
-rw("Food price spikes", "Rising food prices hit low-income households hardest because they spend a large share of income on food. A release of stored food can hold prices down at a critical time.", "the case for buffer stocks and the equity argument.")
+rw("Food price spikes", "Rising food prices hit low-income households hardest because they spend a large share of income on food. A release of stored food can hold prices down at a critical time.", "the case for buffer stocks and the equity argument.") +
+rw("Coffee and cocoa price swings", "Countries that rely on one crop see export income and farmers' earnings swing with world prices. A stabilisation scheme could smooth these swings, but needs finance and a correct price band.", "price instability for a single-crop economy.") +
+rw("A run of poor harvests", "A government agency sells grain from its stock to stop prices rising above the ceiling. After several bad years the stock runs out, the ceiling cannot be defended and prices jump.", "why buffer stocks can fail.")
 )
 
 mc_exam = [
