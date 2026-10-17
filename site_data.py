@@ -909,7 +909,7 @@ ARTIFACTS = [
      "places": [("a-econ", "a-level/s9-4")]},
 
     # A-Level Economics, AS chapters requested by students
-    {"src": "as-elasticities-of-demand", "role": "review", "at": "2.2.1", "title": "Elasticities of Demand", "kind": "Interactive",
+    {"src": "as-elasticities-of-demand", "role": "review", "at": "2.2", "title": "Elasticities of Demand: Overview", "kind": "Interactive",
      "desc": "Price, income and cross elasticity: animated diagrams, labs, drag-and-drop practice, calculations and exam questions with model answers.",
      "places": [("a-econ", "as/s2-2")]},
     {"src": "as-government-intervention", "role": "review", "title": "Methods and Effects of Government Intervention", "kind": "Interactive",
@@ -1085,6 +1085,17 @@ ARTIFACTS = [
     {"src": "as-correcting-current-account-imbalances", "role": "review", "at": "6.5.1", "title": "Correcting Current Account Imbalances", "kind": "Interactive",
      "desc": "6.5.1 to 6.5.2 · Expenditure-switching, expenditure-reducing and supply-side policies. Animations, labs and past paper practice.",
      "places": [("a-econ", "as/s6-5")]},
+
+    # AS 2.2 separate elasticity reviews
+    {"src": "as-price-elasticity-of-demand", "role": "review", "at": "2.2.1", "title": "Price Elasticity of Demand", "kind": "Interactive",
+     "desc": "2.2.1 · PED formula, elastic and inelastic demand, determinants and total revenue. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s2-2")]},
+    {"src": "as-income-elasticity-of-demand", "role": "review", "at": "2.2.2", "title": "Income Elasticity of Demand", "kind": "Interactive",
+     "desc": "2.2.2 · Sign and size of YED, normal and inferior goods, and business uses. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s2-2")]},
+    {"src": "as-cross-elasticity-of-demand", "role": "review", "at": "2.2.3", "title": "Cross Elasticity of Demand", "kind": "Interactive",
+     "desc": "2.2.3 · Sign and size of XED, substitutes and complements, and business uses. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s2-2")]},
 ]
 
 # Old textbook-numbered chapter paths for A-Level Economics -> syllabus-numbered paths. build.py writes a redirect page at each old path.
