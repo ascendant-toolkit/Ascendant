@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Effects of Exchange Rate Changes</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">AS Level Economics · 9708 · Syllabus 6.4.5</div>
+  <h1>Effects of Exchange Rate Changes</h1>
+  <p class="lead">6.4.5: how a depreciation or appreciation affects trade, AD, AS, inflation and employment. AD/AS animations, labs, drills and the past paper questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This part in four sentences</h3>
+  <p>A <b class="kw">depreciation</b> makes exports <b>cheaper in foreign currency</b> and imports <b>dearer in domestic currency</b>. If the combined price elasticities of demand for exports and imports exceed one (the <b class="kw">Marshall-Lerner condition</b>), <b>net exports rise</b>, so <b>AD shifts right</b>, raising real output, employment and, close to full capacity, the price level (<b>demand-pull</b>); but dearer imported raw materials and components raise costs, so <b>SRAS may shift left</b> (<b>cost-push</b>). The effect on the current account may be <b>delayed</b>, because demand adjusts slowly (the <b class="kw">J-curve</b>), and the <b>terms of trade</b> usually worsen. An <b>appreciation</b> has the opposite effects: <b>lower import prices</b> and downward pressure on inflation, but <b>less competitive exports</b>, lower net exports, and possible falls in output and employment. The net result depends on <b>elasticities, spare capacity, reliance on imported inputs</b> and <b>time</b>.</p></div>
+
+  <h2>1 · Depreciation through AD and AS</h2>
+  <div id="pic1" class="card"></div>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Depreciation</th><th>Appreciation</th></tr>
+    <tr><td><b>Exports</b></td><td>Cheaper abroad, volume may rise</td><td>Dearer abroad, volume may fall</td></tr>
+    <tr><td><b>Imports</b></td><td>Dearer, volume may fall</td><td>Cheaper, volume may rise</td></tr>
+    <tr><td><b>Net exports and AD</b></td><td>May rise (if PEDx + PEDm &gt; 1)</td><td>May fall</td></tr>
+    <tr><td><b>Import costs and SRAS</b></td><td>Costs rise, SRAS may shift left</td><td>Costs fall, SRAS may shift right</td></tr>
+    <tr><td><b>Output and jobs</b></td><td>May rise, if spare capacity exists</td><td>May fall</td></tr>
+    <tr><td><b>Inflation</b></td><td>May rise (demand-pull and cost-push)</td><td>May fall</td></tr>
+    <tr><td><b>Terms of trade</b></td><td>Deteriorate</td><td>Improve</td></tr>
+  </table></div>
+
+  <h2>2 · Why the effects may be limited</h2>
+  <ul>
+    <li><b>Elasticity:</b> if demand for exports and imports is inelastic (sum below one), a depreciation may <b>worsen</b> the trade balance, as import spending rises more than export revenue.</li>
+    <li><b>J-curve:</b> in the short run, contracts and habits mean the balance may get worse before it improves.</li>
+    <li><b>Spare capacity:</b> if the economy is near full capacity, the extra demand mainly raises prices rather than output.</li>
+    <li><b>Imported inputs:</b> a high share of imported raw materials makes cost-push inflation more likely.</li>
+    <li><b>Retaliation:</b> other countries may respond by depreciating too.</li>
+  </ul>
+  <div class="tip"><b class="h">Exam tip</b>Trace the <b>chain</b>: exchange rate, then relative prices, then X and M, then AD (and SRAS), then output, jobs and prices. Then <b>evaluate</b>: elasticities, spare capacity, imported inputs, time lags.</div>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · A depreciation and AD</h2>
+  <p>Press Play, or click the numbered steps.</p>
+  <div id="stA"></div>
+  <h2>2 · The chain of effects of an appreciation</h2>
+  <div id="stB"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Depreciate the currency</h2>
+  <p>The economy starts at output 50 and price level 50. A depreciation raises AD only if the sum of the price elasticities is above one, and raises costs if the economy relies on imported inputs.</p>
+  <div class="card"><div class="grid2"><div><div id="g1"></div><div id="g2"></div>
+    <div class="readout"><div><small>Net export effect on AD</small><strong id="r1"></strong></div><div><small>New output</small><strong id="r2"></strong></div><div><small>New price level</small><strong id="r3"></strong></div></div>
+    <div class="verdict" id="rv"></div></div>
+    <div><svg id="labA" viewBox="0 0 760 300" role="img" aria-label="AD and SRAS after a depreciation"></svg></div></div></div>
+
+  <h2>Lab 2 · Choose an effect</h2>
+  <p>Choose a possible effect of a depreciation or appreciation to see its direction, the main condition and how large it may be.</p>
+  <div class="card"><div class="grid2"><div><div id="hB" class="btnrow"></div>
+    <div class="readout"><div><small>Direction</small><strong id="h1"></strong></div><div><small>Main condition</small><strong id="h2"></strong></div><div><small>Time frame</small><strong id="h3"></strong></div></div>
+    <div class="verdict" id="hv"></div></div>
+    <div><svg id="hS" viewBox="0 0 420 200" role="img" aria-label="Lab 2 · Choose an effect"></svg></div></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Depreciation or appreciation effect?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Match the term to its description</h2><div id="m1" class="card"></div>
+  <h2>3 · Put the effects of a depreciation in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Calculations</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A weaker currency helps exporters</h3><p>When a currency falls, exporters can cut their prices abroad, or keep the same price and earn more at home. Orders may rise, but only if buyers respond to the lower prices.</p><div class="use"><b>Exam use:</b> a depreciation and export competitiveness.</div></div>
+  <div class="rw"><h3>Dearer imported fuel</h3><p>A country that imports most of its fuel finds petrol and heating costs rise after a depreciation. Firms and households face higher costs, adding to inflation.</p><div class="use"><b>Exam use:</b> imported inputs and cost-push inflation.</div></div>
+  <div class="rw"><h3>The J-curve</h3><p>After a currency falls, existing import and export contracts continue for months. The trade deficit may widen at first and only narrow later as volumes adjust.</p><div class="use"><b>Exam use:</b> the J-curve.</div></div>
+  <div class="rw"><h3>A strong currency squeezes manufacturers</h3><p>When a currency rises, manufacturers selling abroad face dearer exports and may lose orders, while consumers enjoy cheaper imports and lower inflation.</p><div class="use"><b>Exam use:</b> an appreciation and its effects.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Past paper questions on exchange rate changes and the wider economy</h2>
+  <p>We searched the AS Level Economics papers in the folder (2020 to 2025). The effects of an exchange rate change on trade, AD, inflation and employment are common 8 and 12 mark Paper 2 parts. Reworded past questions are below, with seven Paper 1 multiple choice questions.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Type</th><th>Examples found</th><th>Where</th></tr>
+    <tr><td>Essay parts, 8 marks</td><td>3</td><td>Feb/March 2024 (22) Q4(a); May/June 2023 (21) Q5(a); May/June 2023 (22) Q5(a)</td></tr>
+    <tr><td>Essay parts, 12 marks</td><td>2</td><td>May/June 2020 (21) Q4(b); May/June 2025 (24) Q5(b)</td></tr>
+    <tr><td>Multiple choice (Paper 1)</td><td>7 shown below</td><td>2020 to 2025</td></tr>
+  </table></div>
+  <h2>A · Written questions (reworded)</h2>
+  <p>The wording, context and figures are our own, so they are safe to set as practice. The source paper is named for reference. Mark scheme points are in our own words.</p>
+  <details class="eq"><summary>Based on Feb/March 2024 · 9708/22 · Q4(a) <span class="mark">8 marks</span> Explain what is meant by a depreciation of the exchange rate and consider whether a depreciation is likely to increase domestic real output.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Knowledge (up to 3): an accurate definition of the exchange rate (1); a depreciation is likely if the demand for a currency falls (1) or its supply increases (1).</li>
+        <li>Analysis (up to 3): a depreciation reduces the perceived price of exports and increases the perceived price of imports (1), which raises net exports (X - M) and aggregate demand (1) and so the level of domestic real output (1).</li>
+        <li>Evaluation (up to 2): this assumes the economy is not at full capacity (1) or depends on the elasticity of demand for traded goods (1); the second mark is for a justified conclusion.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Define the exchange rate and depreciation. Cheaper exports, dearer imports: X-M up, AD up, output up. Evaluate: spare capacity, elasticities.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">The exchange rate is the price of one currency in terms of another. A depreciation is a fall in the value of a floating currency, which may be caused by a fall in demand for it or an increase in its supply.</span></p>
+    <p><span class="mk n" data-t="N">A depreciation makes exports cheaper abroad and imports dearer at home. If demand for them is elastic enough, exports rise and imports fall, so net exports increase. This raises aggregate demand, which could increase real output and employment.</span></p>
+    <p><span class="mk e" data-t="E">The rise in output depends on spare capacity: if the economy is already near full capacity, the extra AD may raise prices rather than output. It also depends on elasticities, since if the sum of the price elasticities is below one, net exports may fall. Overall, a depreciation could raise output, but not always.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on May/June 2023 · 9708/22 · Q5(a) <span class="mark">8 marks</span> Explain the difference between cost-push and demand-pull inflation and consider which is more likely to occur if there is a depreciation in the exchange rate of a country with few natural resources.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Knowledge (up to 3): cost-push inflation is caused by rises in the costs of production (1); demand-pull inflation is caused by increases in AD not matched by increases in AS (1); a clear explanation of the differences (1).</li>
+        <li>Analysis (up to 3): a depreciation lowers the price of exports for trading partners and raises the price of imports. Demand-pull: the effect on X - M and AD, with reference to the PED of exports and imports (maximum 2 if only this is considered). Cost-push: the importance of imports, and that a country with few natural resources probably must import its inputs (maximum 2 if only this is considered).</li>
+        <li>Evaluation (up to 2): considers that the country has few natural resources (1) and reaches a justified conclusion on which type of inflation is more likely (1).</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Define both types. Depreciation: AD up (demand-pull) and import costs up (cost-push). Few resources: imported inputs, so cost-push is likely.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">Cost-push inflation is caused by a rise in the costs of production, which shifts SRAS to the left. Demand-pull inflation is caused by a rise in aggregate demand that is not matched by a rise in aggregate supply.</span></p>
+    <p><span class="mk n" data-t="N">A depreciation raises the price of imports and lowers the price of exports for foreigners. Cheaper exports and dearer imports may raise net exports, increasing AD and creating demand-pull pressure, depending on the elasticities of demand. At the same time a country with few natural resources probably has to import raw materials and fuel, so its costs of production rise, which shifts SRAS left and creates cost-push inflation.</span></p>
+    <p><span class="mk e" data-t="E">Cost-push inflation is probably the more likely outcome, because the country relies on imported inputs, so the rise in costs is likely to be large and immediate. Demand-pull pressure may be smaller if demand for exports is inelastic or if there is spare capacity.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on May/June 2023 · 9708/21 · Q5(a) <span class="mark">8 marks</span> With the help of a diagram(s), explain the likely causes of a depreciation of a floating exchange rate and consider whether such a depreciation is always beneficial to an economy.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Knowledge (up to 3): a correctly labelled diagram of the demand for and supply of a currency (1), with appropriate shifts (1) and a fall in the exchange rate (1).</li>
+        <li>Analysis (up to 3): uses the diagram to explain what could shift demand for the currency left and/or supply right, and analyses the potential advantages and disadvantages of a depreciation.</li>
+        <li>Evaluation (up to 2): a valid judgement on whether the benefits of a depreciation always outweigh the disadvantages (1) and a conclusion (1).</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Diagram: D left or S right. Causes: lower exports, lower interest rates, more imports. Benefits: exports, AD. Costs: import prices, inflation. Judge: not always.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">The diagram shows the exchange rate against the quantity of the currency, with demand and supply curves. The demand curve shifts left or the supply curve shifts right, so the equilibrium exchange rate falls.</span></p>
+    <p><span class="mk n" data-t="N">Demand for the currency may fall if foreign demand for exports falls or interest rates are cut, and supply may rise if imports increase. A depreciation makes exports cheaper, which could raise AD, output and employment, and may help reduce a current account deficit. But imports become dearer, which may raise costs and prices and reduce living standards.</span></p>
+    <p><span class="mk e" data-t="E">A depreciation is not always beneficial. It is more likely to help if demand for exports and imports is elastic and there is spare capacity, and less beneficial if the economy relies on imported inputs.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on May/June 2020 · 9708/21 · Q4(b) <span class="mark">12 marks</span> Discuss whether an appreciation of a country's foreign exchange rate is likely to cause both a rise in inflation and a decrease in employment in its economy.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Analysis (up to 8): the effect of an appreciation on the level of inflation (up to 4); the effect of an appreciation on the level of employment (up to 4).</li>
+        <li>Evaluation (up to 4): a judgement on whether an appreciation is likely to cause both a rise in inflation and a fall in employment, with a conclusion (1 mark reserved).</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Appreciation: imports cheaper, so inflation may fall, not rise. Exports dearer, so net exports and employment may fall. Judge: not both.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk n" data-t="N">An appreciation makes imports cheaper in domestic currency, which lowers the cost of imported raw materials and goods, so cost-push inflation could fall rather than rise. It also reduces the price of imported goods in the price index. Exports become dearer abroad, so demand for them may fall, and imports become cheaper so more are bought. Net exports fall, AD may fall, and output and employment in export industries could decrease.</span></p>
+    <p><span class="mk e" data-t="E">An appreciation is likely to decrease employment, especially in export-led industries, but it is unlikely to cause a rise in inflation, because import prices fall and AD is lower. So the two effects are unlikely to occur together. The effect on employment depends on elasticities and spare capacity.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on May/June 2025 · 9708/24 · Q5(b) <span class="mark">12 marks</span> Assess whether the depreciation of an exchange rate is always beneficial to an economy.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Analysis (up to 8): what a depreciation means; the potential advantages, such as an increase in exports as prices fall, which can help reduce a current account deficit and raise AD; and the potential disadvantages, such as dearer imports of finished goods and raw materials, higher costs of production and cost-push inflation.</li>
+        <li>Evaluation (up to 4): balance, considering alternatives and the conditions in which a depreciation may or may not be beneficial, with a conclusion.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Define. Benefits: cheaper exports, deficit narrows, AD up. Costs: dearer imports, cost-push inflation. Judge: depends on elasticities, spare capacity, imported inputs.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk n" data-t="N">A depreciation is a fall in the value of a floating currency. It makes exports cheaper abroad, which could increase export sales, narrow a current account deficit and raise AD, output and employment. But it also makes imports dearer, including raw materials, so costs of production could rise and cause cost-push inflation, and households may see their living standards fall because imported goods are dearer.</span></p>
+    <p><span class="mk e" data-t="E">A depreciation is not always beneficial. It is more likely to help when demand for exports and imports is elastic, there is spare capacity, and the economy does not depend heavily on imported inputs. If those conditions do not hold, the costs may outweigh the benefits.</span></p>
+    </div>
+  </div></details>
+  <h2>B · Multiple choice questions (Paper 1)</h2>
+  <p>Choose an answer, then read the reason. Reworded from the paper and question number shown.</p>
+  <div id="qz2"></div>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Follow the chain.</b> Rate, relative prices, X and M, AD, output.</li>
+    <li><b>Mention elasticity.</b> Sum above one (Marshall-Lerner) for a better trade balance.</li>
+    <li><b>Mention time.</b> J-curve: it may worsen before it improves.</li>
+    <li><b>Both AD and AS.</b> AD right, but SRAS may shift left.</li>
+    <li><b>Use the context.</b> Few natural resources: imported inputs.</li>
+    <li><b>Spare capacity.</b> Near full capacity, prices rise more than output.</li>
+    <li><b>Judge.</b> Not always beneficial; depends on conditions.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Marshall-Lerner condition</td><td>"The Marshall-Lerner condition is that the sum of the price elasticities of demand for exports and imports exceeds one."</td></tr>
+    <tr><td>J-curve</td><td>"The J-curve shows the trade balance worsening before it improves after a depreciation."</td></tr>
+    <tr><td>Cost-push inflation</td><td>"Cost-push inflation is caused by rising costs of production."</td></tr>
+    <tr><td>Terms of trade</td><td>"The terms of trade are export prices relative to import prices."</td></tr>
+    <tr><td>Net exports</td><td>"Net exports are exports minus imports."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Explain</td><td>Give reasons, with a clear chain of cause and effect.</td></tr>
+    <tr><td>Assess</td><td>Judge how important or effective something is, with reasons.</td></tr>
+    <tr><td>Discuss</td><td>Arguments on both sides, then a judgement.</td></tr>
+    <tr><td>Consider</td><td>Look at the issue from several sides and judge how strong each is.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const SDX = (q) => 70 + q * 6.4, SDY = (p) => 270 - p * 2.4;
+const sdEq = (d, s) => { const q = 50 + 0.5 * (d + s); return { q, p: 10 + 0.8 * (q - s) }; };
+const sdSeg = (k, sh) => {
+  const f = (q) => (k === "D" ? 90 - 0.8 * (q - sh) : 10 + 0.8 * (q - sh)), inv = (p) => (k === "D" ? sh + (90 - p) / 0.8 : sh + (p - 10) / 0.8);
+  const qa = inv(k === "D" ? 95 : 12), qb = inv(k === "D" ? 12 : 95), lo = Math.max(0, Math.min(qa, qb)), hi = Math.min(100, Math.max(qa, qb));
+  return [lo, f(lo), hi, f(hi)];
+};
+const sdCurve = (k, sh, c, v, name) => { const [a, b, e, f] = sdSeg(k, sh); return SV.line(SDX(a), SDY(b), SDX(e), SDY(f), c, { "stroke-width": 3, ...op(v) }) + tag(SDX(e) + 6, SDY(f) + (k === "D" ? 14 : -4), name, c, v); };
+const sdGuide = (e, pn, qn, v) => SV.line(SDX(e.q), SDY(e.p), SDX(e.q), 270, "dash", op(v)) + SV.line(70, SDY(e.p), SDX(e.q), SDY(e.p), "dash", op(v)) + SV.text(62, SDY(e.p) + 4, pn, "sm", { "text-anchor": "end", ...op(v) }) + SV.text(SDX(e.q), 286, qn, "sm", { "text-anchor": "middle", ...op(v) });
+function sdPlot(st, lab = {}) {
+  const { d = 0, s = 0, g = 1, n = 1 } = st, mv = Math.abs(d) > 0.05 || Math.abs(s) > 0.05, e0 = sdEq(0, 0), e1 = sdEq(d, s);
+  let o = axes(70, 270, 720, 25, lab.x || "Quantity", lab.y || "Price");
+  o += sdCurve("D", 0, "c2", Math.abs(d) > 0.05 ? 0.4 : 1, lab.D1 || "D1") + sdCurve("S", 0, "c1", Math.abs(s) > 0.05 ? 0.4 : 1, lab.S1 || "S1");
+  if (Math.abs(d) > 0.05) o += sdCurve("D", d, "c2", n, lab.D2 || "D2");
+  if (Math.abs(s) > 0.05) o += sdCurve("S", s, "c1", n, lab.S2 || "S2");
+  o += SV.circle(SDX(e0.q), SDY(e0.p), 5, "dot1", op(mv ? 0.6 : 1)) + sdGuide(e0, lab.P1 || "P1", lab.Q1 || "Q1", g * (mv ? 0.5 : 1));
+  if (mv) o += SV.circle(SDX(e1.q), SDY(e1.p), 6, "dot3", op(n)) + sdGuide(e1, lab.P2 || "P2", lab.Q2 || "Q2", g * n);
+  return o;
+}
+
+const adLab = { x: "Real output (Y)", y: "Price level", D1: "AD1", D2: "AD2", S1: "SRAS1", S2: "SRAS2", P1: "P1", Q1: "Y1", P2: "P2", Q2: "Y2" };
+function adasPlot(st, o = {}) {
+  const l = st.l || 0, ln = o.lras !== false;
+  let s = sdPlot({ d: st.a || 0, s: st.s || 0, g: st.g === undefined ? 1 : st.g, n: st.n === undefined ? 1 : st.n }, adLab);
+  if (ln) s += SV.line(SDX(75 + l), SDY(0), SDX(75 + l), SDY(100), "c4", { "stroke-width": 3, "stroke-dasharray": "7 4" }) + tag(SDX(75 + l) + 6, SDY(98), "LRAS", "c4");
+  return s;
+}
+
+function chainDraw(nodes, k) {
+  const H = 40, G = 16; let o = "";
+  nodes.forEach((t, i) => {
+    const v = Math.max(0, Math.min(1, k - i)); if (v <= 0) return;
+    const y = 8 + i * (H + G);
+    o += SV.rect(30, y, 700, H, ["f1", "f2", "f3"][i % 3], { rx: 8, ...op(0.55 * v) }) + SV.text(380, y + 25, t, "lbl bd", { "text-anchor": "middle", ...op(v) });
+    if (i > 0) o += SV.poly([[373, y - 10], [387, y - 10], [380, y - 2]], "dot4", op(v));
+  });
+  return o;
+}
+function chainStep(el, label, nodes, caps) {
+  Lib.stepper($(el), { w: 760, h: 16 + nodes.length * 56, label, base: { k: 0 }, draw: (s) => chainDraw(nodes, s.k), tween: 700, dwell: 5200, steps: nodes.map((n, i) => ({ cap: caps[i], s: { k: i + 1 } })) });
+}
+function chooser(p, items, tmpl, lab = "Strength of the case") {
+  const show = (i) => {
+    const it = items[i]; $$("#" + p + "B button").forEach((b, k) => b.classList.toggle("pri", k === i));
+    $("#" + p + "1").textContent = it[1]; $("#" + p + "2").textContent = it[2]; $("#" + p + "3").textContent = it[3]; $("#" + p + "v").textContent = tmpl(it);
+    const w = (it[4] / 5) * 340;
+    $("#" + p + "S").innerHTML = SV.text(210, 60, it[0], "lbl bd", { "text-anchor": "middle", style: "font-size:20px" }) + SV.rect(40, 100, 340, 18, "f3", { rx: 9, ...op(0.2) }) + SV.rect(40, 100, w, 18, "f1", { rx: 9, ...op(0.7) }) + SV.text(210, 146, lab + ": " + it[4] + " out of 5", "sm", { "text-anchor": "middle" });
+  };
+  $("#" + p + "B").innerHTML = items.map((t, i) => `<button class="b" data-i="${i}">${t[0]}</button>`).join("");
+  $$("#" + p + "B button").forEach((b) => (b.onclick = () => show(+b.dataset.i)));
+  show(0);
+}
+
+$("#pic1").innerHTML = `<svg viewBox="0 0 760 300" role="img" aria-label="A depreciation shifts AD to the right and may shift SRAS to the left">${adasPlot({ a: 20, s: -20, g: 1, n: 1, lras: false })}</svg>`;
+function dpDraw(s) { return adasPlot({ a: s.a, s: s.s, g: 1, n: s.n, lras: false }); }
+Lib.stepper($("#stA"), { w: 760, h: 300, label: "A depreciation shifts AD right and may shift SRAS left", base: { a: 0, s: 0, n: 0 }, draw: dpDraw, tween: 900, dwell: 5600, steps: [
+  { cap: "<b>Start.</b> AD and SRAS meet at output 50 and price level 50.", s: { a: 0, s: 0, n: 0 } },
+  { cap: "<b>The currency depreciates.</b> Exports are cheaper, imports dearer, net exports rise and <b>AD shifts right</b>. Output rises to 60 and the price level to 58 (demand-pull).", s: { a: 20, s: 0, n: 1 } },
+  { cap: "<b>Imported inputs cost more.</b> If the economy depends on imports, <b>SRAS shifts left</b> as well, adding cost-push pressure.", s: { a: 20, s: -20, n: 1 } },
+  { cap: "<b>Net effect:</b> the price level rises to 66 and output stays at 50: the cost-push effect has offset the output gain.", s: { a: 20, s: -20, n: 1 } },
+] });
+chainStep("#stB", "The chain of effects of an appreciation", ["The exchange rate rises", "Imports are cheaper; exports are dearer abroad", "Net exports fall and AD shifts left", "Output and employment may fall", "Import costs fall, so inflation may be lower"], [
+  "<b>An appreciation</b> raises the value of the currency.", "<b>Relative prices change:</b> import prices fall and export prices rise in foreign currency.", "<b>Net exports fall</b> if demand is elastic enough, shifting AD left.", "<b>Lower AD</b> could reduce output and jobs, especially in export industries.", "<b>Cheaper imports</b> lower costs, so SRAS may shift right and inflation falls."]);
+
+function labA() {
+  if (!["g1v", "g2v"].every((i) => $("#" + i))) return;
+  const sum = +$("#g1v").value / 10, imp = +$("#g2v").value, a = Math.max(-15, 30 * (sum - 1)), s = -imp, e = sdEq(a, s);
+  $("#r1").textContent = (a >= 0 ? "+" : "") + Lib.fmtN(a, 1); $("#r2").textContent = Lib.fmtN(e.q, 1); $("#r3").textContent = Lib.fmtN(e.p, 1);
+  $("#rv").textContent = (sum > 1 ? `The sum of the elasticities is ${Lib.fmtN(sum, 1)}, above one, so net exports rise and AD shifts right. ` : sum < 1 ? `The sum of the elasticities is ${Lib.fmtN(sum, 1)}, below one, so the trade balance may worsen and AD shifts left. ` : "The sum of the elasticities is one, so net exports are unchanged. ") + (imp > 0 ? `Dearer imported inputs shift SRAS left by ${imp}. ` : "No reliance on imported inputs, so SRAS is unchanged. ") + `Output is ${Lib.fmtN(e.q, 1)} and the price level ${Lib.fmtN(e.p, 1)}.`;
+  $("#labA").innerHTML = adasPlot({ a, s, g: 1, n: 1, lras: false });
+}
+Lib.slider($("#g1"), { id: "g1v", label: "Sum of price elasticities (PEDx + PEDm) × 10 ", min: 4, max: 20, step: 2, value: 14, fmt: (v) => Lib.fmtN(v / 10, 1), onInput: labA });
+Lib.slider($("#g2"), { id: "g2v", label: "Reliance on imported inputs (SRAS shift left) ", min: 0, max: 20, step: 5, value: 5, fmt: (v) => v, onInput: labA });
+labA();
+
+chooser("h", [
+  ["Exports rise (depreciation)", "Up", "Demand for exports is elastic", "Short run slow; long run larger", 4],
+  ["Imports fall (depreciation)", "Down in volume, up in price", "Few close domestic substitutes weakens this", "Short run slow; long run larger", 3],
+  ["Cost-push inflation (depreciation)", "Up", "Reliance on imported inputs", "Short run, fast", 4],
+  ["AD rises (depreciation)", "Up", "PEDx + PEDm above one and spare capacity", "Medium run", 4],
+  ["Trade balance worsens first (J-curve)", "Down, then up", "Contracts and habits delay adjustment", "Months to a few years", 3],
+  ["Lower inflation (appreciation)", "Down", "Imports are a large share of spending", "Short run", 3],
+  ["Exporters lose orders (appreciation)", "Down", "Demand for exports is elastic", "Short to medium run", 4]
+], (it) => `${it[0]}: the direction is ${it[1].toLowerCase()}. It mainly depends on this condition: ${it[2].toLowerCase()}. Time frame: ${it[3].toLowerCase()}.`, "Likely size of the effect");
+Lib.classify($("#cl1"), { prompt: "Is the effect more likely after a depreciation or after an appreciation?", buckets: [{"label": "Depreciation"}, {"label": "Appreciation"}], items: [{"text": "Exports become cheaper abroad", "b": 0}, {"text": "Imported raw materials become cheaper", "b": 1}, {"text": "Cost-push inflation pressure rises", "b": 0}, {"text": "Net exports and AD may fall", "b": 1}, {"text": "The terms of trade deteriorate", "b": 0}, {"text": "Manufacturers selling abroad lose orders", "b": 1}, {"text": "A current account deficit may narrow", "b": 0}, {"text": "Downward pressure on the price level", "b": 1}], done: "A depreciation helps exports and raises import prices; an appreciation does the reverse." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Marshall-Lerner condition", "The sum of the price elasticities of exports and imports exceeds one"], ["J-curve", "The trade balance worsens before it improves after a depreciation"], ["Net exports", "Exports minus imports"], ["Cost-push inflation", "Inflation caused by rising costs of production"], ["Terms of trade", "The ratio of export prices to import prices"], ["Expenditure switching", "Moving spending from imports to domestic goods"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the effects of a depreciation on output in order.", items: ["The exchange rate falls", "Exports become cheaper and imports dearer", "Net exports rise", "AD shifts right", "Real output and employment may rise"], done: "Relative prices change, net exports rise, AD and output rise." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "PED of exports is 0.8 and PED of imports is 0.5. What is the sum?", "a": 1.3, "unit": "", "tol": 0.01, "hint": "0.8 + 0.5.", "sol": "<b>1.3</b>, above one, so the Marshall-Lerner condition is met."},
+  {"q": "The terms of trade index was 100 and the price of exports falls 8% with import prices unchanged. What is the new index?", "a": 92, "unit": "", "tol": 0.1, "hint": "100 × 0.92.", "sol": "<b>92</b>."},
+  {"q": "Exports are $120bn, imports $150bn. After a depreciation, exports rise by 10% and imports fall by 5% in value. What is the new trade balance ($bn)?", "a": -10.5, "unit": "$bn", "tol": 0.1, "hint": "132 − 142.5.", "sol": "Exports $132bn, imports $142.5bn, so <b>-$10.5bn</b>."},
+  {"q": "A firm imports inputs costing $1000 and the currency depreciates by 10% against the supplier's currency (so inputs cost 10% more). What is the new cost ($)?", "a": 1100, "unit": "$", "tol": 0.5, "hint": "1000 × 1.10.", "sol": "<b>$1100</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "A depreciation makes imports:", opts: ["Dearer in domestic currency", "Cheaper", "Unchanged", "Free"], a: 0, why: "Each unit of foreign currency costs more." },
+  { q: "The Marshall-Lerner condition is that:", opts: ["PEDx + PEDm is above 1", "PEDx is above 1 only", "PEDm is below 1", "Elasticities are zero"], a: 0, why: "Then net exports improve." },
+  { q: "An appreciation is likely to:", opts: ["Lower import prices", "Raise import prices", "Lift exports", "Raise inflation"], a: 0, why: "Imports cost less in domestic currency." },
+  { q: "Cost-push inflation after a depreciation is more likely if:", opts: ["The economy relies on imported inputs", "It has many natural resources", "Imports are small", "There is spare capacity"], a: 0, why: "Imported inputs cost more." },
+  { q: "A depreciation will usually cause the terms of trade to:", opts: ["Deteriorate", "Improve", "Stay the same", "Double"], a: 0, why: "Export prices fall relative to import prices." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Depreciation", "Cheaper exports, dearer imports."],
+  ["Appreciation", "Dearer exports, cheaper imports."],
+  ["Marshall-Lerner", "PEDx + PEDm above 1."],
+  ["J-curve", "Worse first, then better."],
+  ["AD effect", "Net exports up, AD right."],
+  ["AS effect", "Import costs up, SRAS left."],
+  ["Spare capacity", "Output rises; else prices rise."],
+  ["Judge", "Elasticity, time, inputs."],
+] });
+Lib.quiz($("#qz2"), { qs: [
+  { q: "An economy has an unemployment rate of 8%, an increase of 2% from the previous year. At the same time, the current account deficit rose from 3% of GDP to 4% of GDP. What would be most likely to reduce both unemployment and the current account deficit? (Feb/March 2024 · 12 · Q21, reworded)", opts: ["decrease government spending", "depreciation of the currency", "increase indirect taxation", "increase interest rates"], a: 1, why: "A depreciation could raise exports and reduce imports, boosting AD, output and employment while narrowing the deficit." },
+  { q: "A government decides to allow the country's currency to depreciate to remove the deficit on its current account of the balance of payments. What is the most likely reason why this would not work? (Feb/March 2024 · 12 · Q25, reworded)", opts: ["The country gains a competitive advantage from the depreciation.", "The country has a surplus on its capital and financial accounts.", "The price elasticities of demand for the country's exports and imports are greater than one.", "There are high trade barriers with the country's main trading partners."], a: 3, why: "High trade barriers could limit the rise in exports." },
+  { q: "Increased international competition leads to a worsening in a country's current account balance. In the absence of any offsetting factors, how is this likely to affect the exchange rate and domestic cost-push inflation? (exchange rate, cost-push inflation) (May/June 2021 · 12 · Q27, reworded)", opts: ["appreciate, decrease", "appreciate, increase", "depreciate, decrease", "depreciate, increase"], a: 3, why: "A worse current account tends to lower the exchange rate, which raises import costs and cost-push inflation." },
+  { q: "A country has a balance of trade deficit. When will this be least likely to be improved as a result of a depreciation of its currency? (May/June 2021 · 13 · Q25, reworded)", opts: ["if it is currently operating with a significant amount of unused resources", "if the sum of the price elasticities of demand for exports and imports is less than 1", "if in the long term, the price elasticity of demand for exports should increase", "if the country uses a relatively small proportion of imports in their production process"], a: 1, why: "If the sum of the elasticities is below one, the Marshall-Lerner condition fails." },
+  { q: "The table gives combinations of the price elasticity of demand for exports and for imports. Following a devaluation, under which combination would the current account worsen? (exports, imports) (May/June 2022 · 12 · Q24, reworded)", opts: ["0.3 and 0.3", "0.2 and 0.9", "0.6 and 0.5", "1.2 and 1.2"], a: 0, why: "The sum is 0.6, which is below one, so the trade balance worsens." },
+  { q: "Why might a government wish to increase the value of its foreign exchange rate when the sum of the price elasticity of demand for imports and exports is greater than 1? (May/June 2021 · 11 · Q22, reworded)", opts: ["to attract more tourists into the country", "to improve the current account of the balance of payments in the long run", "to increase inflation if the country is in recession", "to make imported raw materials cheaper"], a: 3, why: "A higher exchange rate lowers import prices, including raw materials." },
+  { q: "A government devalues its fixed exchange rate. What is most likely to be its aim? (May/June 2021 · 12 · Q20, reworded)", opts: ["to improve the terms of trade", "to increase the level of aggregate demand", "to reduce a current account surplus", "to reduce demand-pull inflation"], a: 1, why: "A devaluation aims to raise net exports and so AD." },
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

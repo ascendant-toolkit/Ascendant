@@ -1068,6 +1068,23 @@ ARTIFACTS = [
     {"src": "as-protectionism-tools", "role": "review", "at": "6.2.1", "title": "Protectionism and Its Tools", "kind": "Interactive",
      "desc": "6.2.1 to 6.2.2 · Tariffs, quotas, export subsidies, embargoes and red tape. Animations, labs and past paper practice.",
      "places": [("a-econ", "as/s6-2")]},
+
+    # AS Topic 6 (cont.)
+    {"src": "as-protectionism-arguments", "role": "review", "at": "6.2.3", "title": "Arguments for and Against Protectionism", "kind": "Interactive",
+     "desc": "6.2.3 · Infant, declining and strategic industries, dumping, and the case against. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s6-2")]},
+    {"src": "as-current-account-imbalances", "role": "review", "at": "6.3.3", "title": "Causes and Consequences of Current Account Imbalances", "kind": "Interactive",
+     "desc": "6.3.3 to 6.3.4 · Why deficits and surpluses arise and what they may mean. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s6-3")]},
+    {"src": "as-exchange-rate-determination", "role": "review", "at": "6.4.1", "title": "Exchange Rates: Systems and Determination", "kind": "Interactive",
+     "desc": "6.4.1 to 6.4.4 · Floating, fixed and managed rates and what moves them. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s6-4")]},
+    {"src": "as-exchange-rate-changes-ad-as", "role": "review", "at": "6.4.5", "title": "Effects of Exchange Rate Changes", "kind": "Interactive",
+     "desc": "6.4.5 · Depreciation and appreciation through AD, AS, inflation and jobs. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s6-4")]},
+    {"src": "as-correcting-current-account-imbalances", "role": "review", "at": "6.5.1", "title": "Correcting Current Account Imbalances", "kind": "Interactive",
+     "desc": "6.5.1 to 6.5.2 · Expenditure-switching, expenditure-reducing and supply-side policies. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s6-5")]},
 ]
 
 # Old textbook-numbered chapter paths for A-Level Economics -> syllabus-numbered paths. build.py writes a redirect page at each old path.
