@@ -915,10 +915,10 @@ ARTIFACTS = [
     {"src": "as-government-intervention", "role": "review", "title": "Methods and Effects of Government Intervention", "kind": "Interactive",
      "desc": "Indirect taxes and incidence, subsidies, direct provision, price controls, buffer stocks and information, with diagrams, labs and exam practice.",
      "places": [("a-econ", "as/s3-2")]},
-    {"src": "as-comparative-advantage", "role": "review", "title": "Comparative Advantage and the Gains from Trade", "kind": "Interactive",
+    {"src": "as-comparative-advantage", "role": "review", "at": "6.1.1", "title": "Comparative Advantage and the Gains from Trade", "kind": "Interactive",
      "desc": "Opportunity cost, specialisation, terms of trade and the limits of the theory, with animated PPCs, labs and exam questions.",
      "places": [("a-econ", "as/s6-1")]},
-    {"src": "as-balance-of-payments", "role": "review", "title": "The Current Account of the Balance of Payments", "kind": "Interactive",
+    {"src": "as-balance-of-payments", "role": "review", "at": "6.3.1", "title": "The Current Account of the Balance of Payments", "kind": "Interactive",
      "desc": "Credits and debits, the four components, calculations, causes and consequences of deficits and surpluses, with exam practice.",
      "places": [("a-econ", "as/s6-3")]},
     {"src": "as-reasons-for-intervention", "role": "review", "at": "3.1.1", "title": "Reasons for Government Intervention in Markets", "kind": "Interactive",
@@ -1057,6 +1057,17 @@ ARTIFACTS = [
     {"src": "as-supply-side-policy", "role": "review", "at": "5.4.1", "title": "Supply-Side Policy", "kind": "Interactive",
      "desc": "5.4.1 to 5.4.4 · Meaning, objectives, tools and AD/AS analysis of supply-side policy. Animations, labs and past paper practice.",
      "places": [("a-econ", "as/s5-4")]},
+
+    # AS Topic 6
+    {"src": "as-terms-of-trade", "role": "review", "at": "6.1.3", "title": "Exports, Imports and the Terms of Trade", "kind": "Interactive",
+     "desc": "6.1.3 · Measuring the terms of trade, causes and effects of changes. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s6-1")]},
+    {"src": "as-free-trade-comparative-advantage-limits", "role": "review", "at": "6.1.2", "title": "Free Trade and the Limits of Comparative Advantage", "kind": "Interactive",
+     "desc": "6.1.2 and 6.1.4 · Gains from trade, the TPC, and limitations of the theories. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s6-1")]},
+    {"src": "as-protectionism-tools", "role": "review", "at": "6.2.1", "title": "Protectionism and Its Tools", "kind": "Interactive",
+     "desc": "6.2.1 to 6.2.2 · Tariffs, quotas, export subsidies, embargoes and red tape. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s6-2")]},
 ]
 
 # Old textbook-numbered chapter paths for A-Level Economics -> syllabus-numbered paths. build.py writes a redirect page at each old path.
