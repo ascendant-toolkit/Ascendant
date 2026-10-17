@@ -1,0 +1,949 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paper 1 Computer Systems: Technique and Practice</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">IGCSE Computer Science · 0478 · Exam technique</div>
+  <h1>Paper 1 Computer Systems: Technique and Practice</h1>
+  <p class="lead">How Paper 1 is built and marked, a plan for the 105 minutes, how to show working in number questions, what each diagram part earns, the misconceptions examiners flag, and fourteen real questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This part in five sentences</h3>
+  <p>Paper 1 is a <b>75-mark written paper in 1 hour 45 minutes</b> on Topics 1 to 6, made of short and structured questions that you answer on the question paper, with <b>no calculator</b>. About 60% of the marks are for knowledge (AO1) and about 20% each for applying it to a scenario (AO2) and for reasoned judgements (AO3), so most marks reward <b>precise technical facts</b>, and the rest reward <b>applying them to the device in the question</b>. The paper mixes one-mark recall with number work where you must <b>show the working</b>, diagrams where each labelled part earns a mark, and explain questions set in a scenario. The examiner reports keep naming the same causes of lost marks: vague wording, ignoring the context, and mixing up stages or devices. At 1.4 minutes a mark you have time to plan every answer, so aim to <b>earn every mark on the short questions</b> and then use the time on the 4-mark and 6-mark answers.</p></div>
+
+  <h2>1 · The facts</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Feature</th><th>Detail</th></tr>
+    <tr><td><b>Paper</b></td><td>Paper 1 Computer Systems (variants 11 to 13 in the main series)</td></tr>
+    <tr><td><b>Time and marks</b></td><td>1 hour 45 minutes (105 minutes), 75 marks, so 1.4 minutes per mark</td></tr>
+    <tr><td><b>Content</b></td><td>Topics 1 to 6: data representation, data transmission, hardware, software, the internet and its uses, automated and emerging technologies</td></tr>
+    <tr><td><b>Question types</b></td><td>Short answer and structured; all questions are compulsory</td></tr>
+    <tr><td><b>Answering</b></td><td>On the question paper, in the space provided. If you use an extra page, say clearly which question it answers.</td></tr>
+    <tr><td><b>Equipment</b></td><td>Black or dark blue pen; HB pencil for diagrams; no calculator</td></tr>
+    <tr><td><b>Assessment objectives</b></td><td>Approximately AO1 knowledge 60%, AO2 application 20%, AO3 judgement 20% of the paper</td></tr>
+    <tr><td><b>Brand names</b></td><td>No marks for brand names of software or hardware</td></tr>
+  </table></div>
+
+  <h2>2 · Where the 75 marks sit</h2>
+  <p>This is Oct/Nov 2024 paper 11, with the marks added up from the published mark scheme. Other papers differ in the order but not in the mix.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Q</th><th>Topic</th><th>Marks</th><th>What the marks reward</th></tr>
+    <tr><td>1</td><td>Data representation: file size units, compression</td><td>6</td><td>Recall of units and types of compression, three benefits</td></tr>
+    <tr><td>2</td><td>Hardware: smart phone input, output and storage</td><td>10</td><td>Devices that fit a phone; justify solid state storage</td></tr>
+    <tr><td>3</td><td>Data representation: character sets, conversions, shift, addition</td><td>11</td><td>Accurate number work with working</td></tr>
+    <tr><td>4</td><td>Data transmission: packets, parallel full-duplex</td><td>11</td><td>Describe the packet; explain why a method suits the scenario</td></tr>
+    <tr><td>5</td><td>Hardware: fetch-decode-execute, registers, buses, clock speed</td><td>11</td><td>What happens at each stage; effect of a faster clock</td></tr>
+    <tr><td>6</td><td>Software: embedded systems, translators, assembly, IDE</td><td>10</td><td>Six marks for how an IDE helps</td></tr>
+    <tr><td>7</td><td>Software: operating system, firmware</td><td>4</td><td>Function and description</td></tr>
+    <tr><td>8</td><td>Internet: blockchain diagram</td><td>4</td><td>Labelled diagram</td></tr>
+    <tr><td>9</td><td>Emerging technology: AI components, machine learning</td><td>8</td><td>Complete a paragraph; name the ability</td></tr>
+  </table></div>
+  <p>The marks come in very different sizes. Questions worth one or two marks are quick to earn if the fact is exact, and the answers worth four, six or seven marks (the packet, parallel transmission, solid state storage, the IDE, blockchain) are where explaining and applying decide the total, so give them the time.</p>
+
+  <h2>3 · Using the 105 minutes</h2>
+  <div id="pic1" class="card"></div>
+  <div class="tw"><table class="t">
+    <tr><th>Marks</th><th>Time at 1.4 min a mark</th><th>What that buys</th></tr>
+    <tr><td>1</td><td>1.4 minutes</td><td>Read, answer, move on</td></tr>
+    <tr><td>2</td><td>2.8 minutes</td><td>Two points, or a name and a description</td></tr>
+    <tr><td>4</td><td>5.6 minutes</td><td>Two points with reasons, or a labelled diagram</td></tr>
+    <tr><td>6</td><td>8.4 minutes</td><td>Three pairs of feature and purpose, with time to check</td></tr>
+  </table></div>
+  <p>This is a guide, not a rule in the mark scheme. A sensible plan: about 85 minutes to work through the paper in order, answering everything, then about 15 to 20 minutes to return to anything you skipped and to check number work and diagrams. Leave a blank only until you come back to it.</p>
+
+  <h2>4 · Question shapes and how to attack them</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Shape</th><th>Example</th><th>How to attack it</th></tr>
+    <tr><td><b>Tick or circle</b></td><td>Which is not a unit of file size? Circle three buses.</td><td>Read every option. For "circle three", you must circle exactly three. The reports say the common wrong answers were "central" and "execute" for buses.</td></tr>
+    <tr><td><b>Complete the paragraph</b></td><td>Choose terms from a list; each may be used more than once</td><td>Read the whole paragraph first. Use only words from the list. A term can be reused when the question says so.</td></tr>
+    <tr><td><b>Number work</b></td><td>Convert, add, shift, work out a file size</td><td>Show the working in the form asked. One mark is usually for working and one for the answer.</td></tr>
+    <tr><td><b>Give or state a list</b></td><td>Give two registers used in the fetch stage</td><td>Exactly the number asked; accept the first two that you are sure of.</td></tr>
+    <tr><td><b>Describe a process</b></td><td>What happens at the decode stage?</td><td>Steps in order, with the register or bus named in each.</td></tr>
+    <tr><td><b>Draw and annotate</b></td><td>DNS lookup, blockchain, decode stage</td><td>Boxes, arrows and a label on every arrow. Each correct part is a mark.</td></tr>
+    <tr><td><b>Explain in a scenario</b></td><td>Why is serial simplex suitable for this stock system?</td><td>Reason plus context. Use the command-word habits from the first review in this section.</td></tr>
+    <tr><td><b>Suggest and justify</b></td><td>Choose a storage device for a smart phone and justify it</td><td>Name it (1), then reasons with consequences.</td></tr>
+  </table></div>
+
+  <h2>5 · Show the working</h2>
+  <p>Paper 1 has no calculator, and many number questions award separate marks for working. The syllabus says calculations use 1024, not 1000, and that answers must be in the units asked for.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Skill</th><th>What earns the working mark</th><th>What goes wrong</th></tr>
+    <tr><td><b>Binary addition</b></td><td>The carries shown, then each nibble correct, and for overflow: a 9th bit or a statement that the result is too big for 8 bits</td><td>The reports say candidates who converted to denary, added and converted back did not show binary addition and lost the working mark</td></tr>
+    <tr><td><b>Denary to binary</b></td><td>Working such as 128 + 32 + 8 + 4 + 2 + 1</td><td>Writing the answer with nothing else</td></tr>
+    <tr><td><b>Binary or denary to hexadecimal</b></td><td>Split into nibbles, convert each</td><td>Reading the whole byte as one number</td></tr>
+    <tr><td><b>Logical shift</b></td><td>Each bit moves; the end bit is lost; a 0 is added at the other end. Left shift multiplies, right shift divides</td><td>"The value is increased" or "changed" is too vague for the effect</td></tr>
+    <tr><td><b>Two's complement</b></td><td>"Flip and add" working, then the sign</td><td>Reading a two's complement pattern as an ordinary positive number</td></tr>
+    <tr><td><b>File size</b></td><td>Bits = (image) pixels × colour depth, or (sound) sample rate × resolution × seconds; ÷ 8 for bytes; ÷ 1024 for each larger unit</td><td>Dividing by 1000, or stopping at bits when the question asks for KiB</td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Exam tip</b>The mark scheme for a three-mark conversion question commonly splits into two marks for stages of working and one for the answer. A correct answer with no working may still earn full marks, but a wrong answer with working keeps marks. Always write the working.</div>
+
+  <h2>6 · Diagrams: what each correct part earns</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Diagram</th><th>Parts that each earn a mark</th></tr>
+    <tr><td><b>Decode stage of the FDE cycle</b> (4)</td><td>The instruction goes from the MDR to the CIR/control unit; it travels along the data bus; the CIR is part of the control unit; the instruction is split into opcode and operand; the control unit decodes it using the instruction set</td></tr>
+    <tr><td><b>Retrieving a web page</b> (5)</td><td>URL sent from the browser to the DNS; DNS finds the matching IP address (passing it to the next DNS if it cannot); IP address returned to the browser; request sent from the browser to the web server; web page sent back; browser renders the HTML</td></tr>
+    <tr><td><b>Blockchain in a transaction</b> (4)</td><td>A digital ledger is used; the payment details are sent from the device to the ledger; the transaction is stored in a block with details such as a digital signature and time stamp; each block has a unique hash; the full block is added to the chain held on every device</td></tr>
+  </table></div>
+  <p>The reports say few candidates drew the decode stage correctly; many drew the fetch or the execute stage. Some candidates also showed the request for the web page going from the DNS to the web server, when the browser sends it after receiving the IP address.</p>
+
+  <h2>7 · Misconceptions the examiners have flagged</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Wrong idea</th><th>What is correct</th></tr>
+    <tr><td>Secondary storage is only used when primary storage is full</td><td>It stores data and programs permanently, so they are still there each time the device is switched on</td></tr>
+    <tr><td>The accumulator carries out calculations</td><td>It stores the interim result of a calculation; the ALU does the calculation</td></tr>
+    <tr><td>Encryption stops data being stolen</td><td>It makes stolen data meaningless to the person who has it</td></tr>
+    <tr><td>JPEG is a type of compression</td><td>JPEG is a file format. The two types are lossy and lossless</td></tr>
+    <tr><td>Hexadecimal is for the benefit of the computer</td><td>It is a shorter representation of binary that is easier for people to read and write</td></tr>
+    <tr><td>A hard disk drive is the best storage for a phone</td><td>Solid state suits it: small, light, no moving parts, fast, cool, quiet, low power</td></tr>
+    <tr><td>The DNS sends the request for the page to the web server</td><td>The DNS returns the IP address to the browser, which sends the request</td></tr>
+    <tr><td>Decode and execute are the same</td><td>Decode: the control unit splits the instruction into opcode and operand using the instruction set. Execute: the instruction is carried out</td></tr>
+  </table></div>
+
+  <h2>8 · Choosing a device and justifying it</h2>
+  <p>Questions that set a device, such as a smart phone, a smartwatch or an automated plough, reward choices that fit it. For storage in a smart phone the mark scheme gives one mark for naming solid state, then three marks for reasons, each with its consequence:</p>
+  <div class="tw"><table class="t">
+    <tr><th>Reason</th><th>Consequence for the phone</th></tr>
+    <tr><td>Small and thin</td><td>It fits easily inside the phone</td></tr>
+    <tr><td>Light</td><td>It does not make the phone heavy to carry</td></tr>
+    <tr><td>No moving parts</td><td>Durable: the data is less likely to be lost if the phone is dropped</td></tr>
+    <tr><td>Fast read and write</td><td>Files and software load quickly</td></tr>
+    <tr><td>Runs cool and quiet</td><td>The phone does not get hot to hold, and does not spoil music or video with noise</td></tr>
+    <tr><td>Low power</td><td>It does not drain the battery</td></tr>
+  </table></div>
+
+  <h2>9 · Common ways to lose marks</h2>
+  <ul>
+    <li><b>Confusing the stages</b> of the fetch-decode-execute cycle, or naming a stage instead of a register or bus.</li>
+    <li><b>No working</b> on number questions, or converting to denary when binary addition was asked for.</li>
+    <li><b>Vague wording</b>: "faster", "better", "more secure", with no technical term.</li>
+    <li><b>Generic devices</b> in a scenario.</li>
+    <li><b>Describing when asked to explain</b>, or listing when asked for a description of how it helps.</li>
+    <li><b>Skipping the diagram</b>: each labelled part is a mark and a diagram can be built from memory with arrows and labels.</li>
+    <li><b>Not reading "use only terms from the list"</b>.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · The decode stage, step by step</h2>
+  <p>Press Play, or click the numbered steps.</p>
+  <div id="stA"></div>
+  <h2>2 · Binary addition with the carries</h2>
+  <div id="stB"></div>
+  <h2>3 · A file size, with the working</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Binary addition with working</h2>
+  <p>Choose a pair of 8-bit numbers to see the carries, the answer and whether it overflows.</p>
+  <div class="card"><div id="aB" class="btnrow"></div><div id="aO"></div></div>
+
+  <h2>Lab 2 · Two's complement</h2>
+  <p>Choose an 8-bit pattern. A pattern that starts with 1 is negative, so flip the bits and add 1 to find the size.</p>
+  <div class="card"><div id="tB" class="btnrow"></div><div id="tO"></div></div>
+
+  <h2>Lab 3 · File size working</h2>
+  <p>Choose a file. The working goes in the order the mark scheme rewards: bits, bytes, then the unit asked for. The last line shows the answer you would get by dividing by 1000, which is the common error.</p>
+  <div class="card"><div id="fB" class="btnrow"></div><div id="fO"></div></div>
+
+  <h2>Lab 4 · Where the marks sit</h2>
+  <p>Choose a question from Oct/Nov 2024 paper 11 to see its topic, its marks and the time that many marks deserve at 1.4 minutes a mark.</p>
+  <div class="card"><div id="qB" class="btnrow"></div><div id="qO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Does the device fit?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Misconception or correct?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the web page retrieval in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the register or part to its job</h2><div id="m1" class="card"></div>
+  <h2>5 · Calculations</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">These come from the Principal Examiner Reports for Cambridge IGCSE Computer Science, which describe what candidates actually wrote. The wording is ours.</p>
+  <div class="rw"><h3>Drawing fetch or execute instead of decode</h3><p>Oct/Nov 2024, papers 11 and 13: asked what happens at the decode stage, many candidates described or drew the execute stage, and some the fetch stage. The mark scheme looks for the instruction going from the MDR to the CIR, the split into opcode and operand, and the control unit decoding with the instruction set.</p><div class="use"><b>Exam use:</b> FDE questions: write the name of the stage at the top of your answer and check every point belongs to it.</div></div>
+  <div class="rw"><h3>Converting to denary to add</h3><p>Oct/Nov 2024, papers 11 and 13: asked to add two binary values, some candidates converted both to denary, added, and converted back. The report says they did not show the working as binary addition, which is where a mark is given.</p><div class="use"><b>Exam use:</b> 'add in binary' questions: write the numbers one above the other with a carries row.</div></div>
+  <div class="rw"><h3>Reading two's complement as plain binary</h3><p>Oct/Nov 2024, paper 13: some candidates converted a two's complement value as though it were an ordinary positive binary number. The mark scheme gives a mark for working such as flip and add and a mark for the negative denary answer.</p><div class="use"><b>Exam use:</b> if a question mentions two's complement, check the left-hand bit first.</div></div>
+  <div class="rw"><h3>The wrong direction for the request</h3><p>Oct/Nov 2024, paper 12: some candidates drew the request for the web page going from the DNS to the web server. The DNS returns the IP address to the browser, and the browser then sends the request.</p><div class="use"><b>Exam use:</b> diagram questions: put an arrow and a label on every step, and check the direction.</div></div>
+  <div class="rw"><h3>The accumulator does not calculate</h3><p>Oct/Nov 2024, paper 12: a common misconception was that the accumulator carries out calculations. It stores the interim result of a calculation.</p><div class="use"><b>Exam use:</b> CPU questions: link each register to what it stores, not to a process it does not perform.</div></div>
+  <div class="rw"><h3>A hard disk drive in a phone</h3><p>Oct/Nov 2024, paper 11: the most common wrong answer for the most suitable storage in a smart phone was a hard disk drive. Solid state was accepted, with reasons such as small size, no moving parts and low power.</p><div class="use"><b>Exam use:</b> 'most suitable' questions: pick the item that fits the device, then say why.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Past paper questions on Paper 1 technique</h2>
+  <p>Fourteen Paper 1 questions covering the shapes in this review: number work with working, file sizes, describing a process, three diagrams, justifying a choice and explaining in a scenario. The figures and contexts are changed, and the answers have been recalculated; the mark scheme points are the ones the papers used.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Type</th><th>Examples found</th><th>Where</th></tr>
+    <tr><td>Paper 1 written questions</td><td>14 shown below</td><td>Oct/Nov 2024 (11) Q3(d) [3]; Oct/Nov 2024 (13) Q1(e) [2]; Oct/Nov 2024 (12) Q3(d) [3]; May/June 2024 (12) Q2(d) [3]; Oct/Nov 2024 (12) Q2(c) [3]; Oct/Nov 2024 (11) Q4(a) [4]; Oct/Nov 2024 (12) Q5(b) [6]; Oct/Nov 2024 (11) Q5(b) [3]; Oct/Nov 2024 (11) Q5(e) [2]; Oct/Nov 2024 (13) Q3(b) [4]; Oct/Nov 2024 (12) Q7(d) [5]; Oct/Nov 2024 (11) Q8 [4]; Oct/Nov 2024 (11) Q2(c) [6]; Oct/Nov 2024 (13) Q5(b) [3]</td></tr>
+  </table></div>
+  <h2>Written questions (reworded)</h2>
+  <p>The wording, context and figures are our own, so they are safe to set as practice. The source paper is named for reference. Mark scheme points are in our own words. Open a question, plan an answer, then read the mark scheme points.</p>
+  <details class="eq"><summary>Based on Oct/Nov 2024 · 0478/11 · Q3(d) <span class="mark">[3]</span> Add these two 8-bit binary integers and show your working as binary addition: 01010100 and 01110100.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>One mark for working that shows binary addition, for example the carries</li>
+        <li>One mark for each correct nibble: the answer is 11001000 (denary 84 + 116 = 200)</li>
+        <li>The report says candidates who converted to denary, added and converted back did not show binary addition</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>Write the numbers one above the other, add a carries row, and work from the right: 0+0, 0+0, 1+1 (0 carry 1), 0+0+1, 1+1 (0 carry 1), 0+1+1 (0 carry 1), 1+1+1 (1 carry 1), 0+0+1.</p></div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2024 · 0478/13 · Q1(e) <span class="mark">[2]</span> The 8-bit two's complement binary integer 10011100 is stored. Convert it to a denary number and show your working.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>One mark for correct working, for example flip the bits and add 1</li>
+        <li>One mark for the correct denary number: 10011100 flips to 01100011, adding 1 gives 01100100 = 100, so the answer is −100</li>
+        <li>The left-hand bit is 1, so the number is negative</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>Check the left-hand bit. It is 1, so flip and add. Do not read 10011100 as 156.</p></div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2024 · 0478/12 · Q3(d) <span class="mark">[3]</span> A logical left shift of one place is performed on the binary integer 00110101. (i) Describe the shift. (ii) State the effect on the value.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>(i) Two from: each bit moves one place to the left; the most significant bit is lost; a 0 is added as the new least significant bit</li>
+        <li>(ii) The value is multiplied by 2: 00110101 (53) becomes 01101010 (106)</li>
+        <li>The report says answers such as 'it increases' were too vague</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>Use the words moved, lost and added. For the effect, give the operation: multiplied by 2.</p></div>
+  </div></details>
+  <details class="eq"><summary>Based on May/June 2024 · 0478/12 · Q2(d) <span class="mark">[3]</span> A 24-bit colour image is 256 pixels wide and 128 pixels high. Calculate the file size in kibibytes (KiB). Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Up to two marks for stages of working, for example 256 × 128 = 32 768 pixels, then × 24 bits = 786 432 bits</li>
+        <li>÷ 8 gives 98 304 bytes; ÷ 1024 gives the answer</li>
+        <li>One mark for the correct answer: 96 KiB</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>Pixels, then bits, then bytes, then KiB. Divide by 1024 for the last step, not 1000.</p></div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2024 · 0478/12 · Q2(c) <span class="mark">[3]</span> A 16 second sound clip is recorded at a sample rate of 8192 Hz with a resolution of 16 bits. Calculate the file size in kibibytes (KiB). Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Up to two marks for stages of working: 8192 × 16 × 16 = 2 097 152 bits</li>
+        <li>÷ 8 gives 262 144 bytes</li>
+        <li>÷ 1024 gives the answer, one mark: 256 KiB</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>Sample rate × resolution × seconds gives bits. Then ÷ 8, then ÷ 1024.</p></div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2024 · 0478/11 · Q4(a) <span class="mark">[4]</span> An email is split into data packets. Describe the structure of a data packet.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Any four from: the packet has three sections</li>
+        <li>A packet header, which contains data such as the destination address</li>
+        <li>A payload, which contains the main data of the email</li>
+        <li>A trailer, which contains data such as the error detection method</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>The report says some candidates listed what goes in the header instead of describing the structure. Name the three sections, then say what each holds.</p></div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2024 · 0478/12 · Q5(b) <span class="mark">[6]</span> A barcode scanner sends stock data to a stock control system using serial simplex transmission. (i) Explain how data is sent using serial simplex. (ii) Explain why serial simplex is appropriate here.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>(i) Three: bits are sent one at a time; down a single wire; in one direction only</li>
+        <li>(ii) Any three from: the stock system may be a long distance away, and serial is more reliable over distance</li>
+        <li>The data does not need to arrive quickly, and only small amounts are sent, so the speed of parallel is not needed</li>
+        <li>Bits arrive in order, so the data cannot be skewed, and there are fewer errors or less interference</li>
+        <li>No reply is needed, so half- or full-duplex is not necessary</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>Part (i) is how; part (ii) is why. Put the stock system and the one-way data into the reasons.</p></div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2024 · 0478/11 · Q5(b) <span class="mark">[3]</span> Describe what happens at the decode stage of the fetch-decode-execute cycle.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Any three from: the control unit or CIR receives the instruction from the MDR, using the data bus</li>
+        <li>The instruction is split into opcode and operand</li>
+        <li>The control unit decodes the instruction using the instruction set</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>The report says many candidates described the execute stage. Start with 'The instruction goes from the MDR to the CIR', and stay at the decode stage.</p></div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2024 · 0478/11 · Q5(e) <span class="mark">[2]</span> A user changes their dual core CPU with a clock speed of 2.0 GHz to a dual core CPU with a clock speed of 3.0 GHz. Explain the effect on the performance of the CPU.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>It can now carry out more instructions, or more fetch-decode-execute cycles, each second</li>
+        <li>So the performance of the CPU increases</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>The report says few gave a technically correct reason. Say what changes (more instructions per second) and the result (performance rises). Name the direction.</p></div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2024 · 0478/13 · Q3(b) <span class="mark">[4]</span> Draw a labelled diagram to show what happens at the decode stage of the fetch-decode-execute cycle.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>The instruction or data is sent from the MDR to the CIR or control unit, using the data bus</li>
+        <li>The CIR is shown as part of the control unit</li>
+        <li>The instruction is separated into operand and opcode</li>
+        <li>The control unit decodes the instruction using the instruction set</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>Draw MDR → (data bus) → CIR inside the CU, then a box that splits into opcode and operand, with the instruction set labelled. Each labelled part is a mark.</p></div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2024 · 0478/12 · Q7(d) <span class="mark">[5]</span> Draw and annotate a diagram to show how a web page is found and retrieved when a user enters a URL into a browser.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>The URL is sent from the browser to the DNS</li>
+        <li>The DNS finds the matching IP address, passing the URL to the next DNS if it is not found</li>
+        <li>The IP address is returned to the browser</li>
+        <li>The request for the page is sent from the browser to the web server</li>
+        <li>The web page or HTML files are sent back to the browser, which renders the HTML</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>Three boxes (browser, DNS, web server) and arrows labelled in order. The report says some candidates sent the request from the DNS to the server.</p></div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2024 · 0478/11 · Q8 <span class="mark">[4]</span> Draw and annotate a diagram to show how blockchain is used when a customer pays for goods online.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>A digital ledger is used and the customer's device sends the payment data to it, encrypted</li>
+        <li>The payment is recorded, with details such as digital signature, time and date</li>
+        <li>The transaction is stored in a block, and a block can hold several transactions</li>
+        <li>Each block has a block hash or unique identifier</li>
+        <li>When the block is full it is added to the blockchain held on every device</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>The report says very few candidates drew this correctly. Label the device, the ledger, a block with its hash, and the chain on every device.</p></div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2024 · 0478/11 · Q2(c) <span class="mark">[6]</span> A smart phone has primary and secondary storage. (i) Explain the purpose of the secondary storage. (ii) Name the most suitable type of secondary storage for the phone and justify your choice.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>(i) Two from: to store data and files permanently, so they do not have to be entered or installed each time the phone is switched on</li>
+        <li>To let software be downloaded and installed, or to store the user's files, or to create virtual memory</li>
+        <li>(ii) One mark for solid state, then three from: small, so it fits in the phone; light; no moving parts, so durable if dropped</li>
+        <li>Fast read and write, so files load quickly; runs cool; quiet; low power, so it does not drain the battery</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>The report says some thought secondary storage was only used when primary storage is full. For (ii) the common wrong answer was a hard disk drive. Name solid state, then give reasons with consequences.</p></div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2024 · 0478/13 · Q5(b) <span class="mark">[3]</span> An automated irrigation system uses a microprocessor. Describe the role of the microprocessor in the system.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>It receives data from the sensors</li>
+        <li>It analyses the data, for example by checking whether it is within or outside a range</li>
+        <li>It sends signals to trigger actions based on the data</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>Only the role of the microprocessor is asked for. The report says some candidates described the whole system.</p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Show the working.</b> Binary addition with carries, flip and add, bits then bytes then KiB.</li>
+    <li><b>Use 1024, not 1000.</b> For every file size unit.</li>
+    <li><b>Name the stage.</b> Decode, not fetch or execute.</li>
+    <li><b>Arrows and labels.</b> Every part of a diagram is a mark.</li>
+    <li><b>Fit the device.</b> Phone: touchscreen, SSD. Not a mouse or an HDD.</li>
+    <li><b>Say which way it changes.</b> More instructions per second, not 'faster'.</li>
+    <li><b>Read 'use only terms from the list'.</b> And note if terms can be reused.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Binary addition</td><td>"I wrote the carries above each column and added from the right."</td></tr>
+    <tr><td>Logical shift</td><td>"Each bit moves one place left, the left-hand bit is lost, a 0 is added, so the value is multiplied by 2."</td></tr>
+    <tr><td>Two's complement</td><td>"The left-hand bit is 1, so I flipped the bits, added 1 and made the result negative."</td></tr>
+    <tr><td>Justifying a device</td><td>"Solid state has no moving parts, so the data is less likely to be lost if the phone is dropped."</td></tr>
+    <tr><td>File size</td><td>"Bits divided by 8 gives bytes, and bytes divided by 1024 gives KiB."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Identify</td><td>Name or select.</td></tr>
+    <tr><td>State</td><td>A clear statement.</td></tr>
+    <tr><td>Describe</td><td>Features or steps, in order.</td></tr>
+    <tr><td>Explain</td><td>Reasons: why and how.</td></tr>
+    <tr><td>Calculate</td><td>Work out, with working.</td></tr>
+    <tr><td>Draw</td><td>A labelled diagram: each part is a mark.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+function chainDraw(nodes, k) {
+  const H = 40, G = 16; let o = "";
+  nodes.forEach((t, i) => {
+    const v = Math.max(0, Math.min(1, k - i)); if (v <= 0) return;
+    const y = 8 + i * (H + G);
+    o += SV.rect(30, y, 700, H, ["f1", "f2", "f3"][i % 3], { rx: 8, ...op(0.55 * v) }) + SV.text(380, y + 25, t, "lbl bd", { "text-anchor": "middle", ...op(v) });
+    if (i > 0) o += SV.poly([[373, y - 10], [387, y - 10], [380, y - 2]], "dot4", op(v));
+  });
+  return o;
+}
+function chainStep(el, label, nodes, caps) {
+  Lib.stepper($(el), { w: 760, h: 16 + nodes.length * 56, label, base: { k: 0 }, draw: (s) => chainDraw(nodes, s.k), tween: 700, dwell: 5200, steps: nodes.map((n, i) => ({ cap: caps[i], s: { k: i + 1 } })) });
+}
+function chooser(p, items, tmpl, lab = "Strength of the case") {
+  const show = (i) => {
+    const it = items[i]; $$("#" + p + "B button").forEach((b, k) => b.classList.toggle("pri", k === i));
+    $("#" + p + "1").textContent = it[1]; $("#" + p + "2").textContent = it[2]; $("#" + p + "3").textContent = it[3]; $("#" + p + "v").textContent = tmpl(it);
+    const w = (it[4] / 5) * 340;
+    $("#" + p + "S").innerHTML = SV.text(210, 60, it[0], "lbl bd", { "text-anchor": "middle", style: "font-size:20px" }) + SV.rect(40, 100, 340, 18, "f3", { rx: 9, ...op(0.2) }) + SV.rect(40, 100, w, 18, "f1", { rx: 9, ...op(0.7) }) + SV.text(210, 146, lab + ": " + it[4] + " out of 5", "sm", { "text-anchor": "middle" });
+  };
+  $("#" + p + "B").innerHTML = items.map((t, i) => `<button class="b" data-i="${i}">${t[0]}</button>`).join("");
+  $$("#" + p + "B button").forEach((b) => (b.onclick = () => show(+b.dataset.i)));
+  show(0);
+}
+
+function pick(id, items, render) {
+  const B = $("#" + id + "B"), O = $("#" + id + "O");
+  B.innerHTML = items.map((t, i) => `<button class="b" data-i="${i}">${t.label}</button>`).join("");
+  const show = (i) => { $$("button", B).forEach((b, k) => b.classList.toggle("pri", k === i)); O.innerHTML = render(items[i]); };
+  $$("button", B).forEach((b) => (b.onclick = () => show(+b.dataset.i)));
+  show(0);
+}
+const scoreBar = (m, max) => `<div style="background:var(--soft);border-radius:7px;height:14px;margin:6px 0 2px"><div class="bar ${m === max ? "b3" : m === 0 ? "b2" : "b4"}" style="width:${Math.max(2, (m / max) * 100)}%"></div></div><small>${m} of ${max} marks</small>`;
+
+$("#pic1").innerHTML = (() => {
+  const B = [["Work in order", "about 85 min", "Answer every question; short ones first", 20, "f2", 400], ["Return and check", "15 to 20 min", "Skipped questions, number work, diagrams", 440, "f1", 180], ["Buffer", "to 105", "Extra pages labelled", 640, "f3", 100]];
+  let o = ""; B.forEach(([n, t, d, x, c, w]) => { o += SV.rect(x, 12, w, 90, c, { rx: 12, ...op(0.45) }) + SV.text(x + w / 2, 40, n, "lbl bd", { "text-anchor": "middle", style: "font-size:15px" }) + SV.text(x + w / 2, 62, t, "sm", { "text-anchor": "middle" }) + SV.text(x + w / 2, 84, d.length > 34 ? d.slice(0, 34) + "…" : d, "sm", { "text-anchor": "middle" }); });
+  return `<svg viewBox="0 0 760 114" role="img" aria-label="Suggested plan for the 105 minutes of Paper 1">${o}</svg>`;
+})();
+chainStep("#stA", "The decode stage", ["The instruction is held in the MDR after the fetch stage", "It is sent along the data bus to the CIR, which is part of the control unit", "The instruction is split into the opcode and the operand", "The control unit decodes it using the instruction set"], [
+  "<b>Start:</b> fetch has finished; the instruction is in the MDR.", "<b>Transfer:</b> MDR to CIR along the data bus.", "<b>Split:</b> the opcode says what to do; the operand says what to do it to.", "<b>Decode:</b> the control unit uses the instruction set. Then execute begins."]);
+chainStep("#stB", "Adding 01010100 and 01110100", ["Write the numbers one above the other and add a row for the carries", "Right to left: 0+0=0, 0+0=0, then 1+1=0 carry 1", "0+0+1=1, then 1+1=0 carry 1, then 0+1+1=0 carry 1", "1+1+1=1 carry 1, then 0+0+1=1: the answer is 11001000 (200)"], [
+  "<b>Layout:</b> the carries row is where the working mark is earned.", "<b>First columns:</b> the first carry appears in the third column.", "<b>Middle columns:</b> carries keep moving left.", "<b>Check:</b> 84 + 116 = 200 and 11001000 is 200. No overflow, because there is no carry out of the last column."]);
+chainStep("#stC", "A sound file: 10 s, 22 016 Hz, 8 bits", ["Bits = sample rate × resolution × seconds", "22 016 × 8 × 10 = 1 761 280 bits", "Bytes = bits ÷ 8 = 220 160 bytes", "KiB = bytes ÷ 1024 = 215 KiB"], [
+  "<b>Formula:</b> write it first.", "<b>Substitute:</b> the first working mark.", "<b>Bytes:</b> divide by 8.", "<b>Unit asked:</b> divide by 1024 to get 215 KiB. One mark for the answer."]);
+
+const bin = (n) => n.toString(2).padStart(8, "0");
+pick("a", [[84, 116], [155, 100], [15, 15], [170, 85], [200, 100]].map(([x, y]) => ({ label: bin(x) + " + " + bin(y), x, y })), (it) => {
+  const A = bin(it.x), B = bin(it.y); let c = 0, s = "", cr = "";
+  for (let i = 7; i >= 0; i--) { const t = +A[i] + +B[i] + c; s = (t & 1) + s; cr = (c ? "1" : "·") + cr; c = t >> 1; }
+  const sp = (t) => t.split("").join("  "), tot = it.x + it.y;
+  return `<div class="formula" style="white-space:pre;overflow-x:auto">carries   ${sp(cr)}\n          ${sp(A)}\n        + ${sp(B)}\n        ──────────────────────\n    =   ${sp(s)}${c ? "  (carry out 1)" : ""}</div><p>${it.x} + ${it.y} = ${tot}. ${c ? "<b>Overflow:</b> the result is greater than 255, so it does not fit in 8 bits. The ninth bit is lost, and the error is called overflow." : "No carry out of the left-hand column, so there is no overflow."} The mark scheme gives a mark for the carries and a mark for each correct nibble.</p>`;
+});
+
+pick("t", [0b10011100, 0b11110001, 0b10000000, 0b01111111, 0b11111111].map((v) => ({ label: bin(v), v })), (it) => {
+  const b = bin(it.v), neg = b[0] === "1", flip = b.split("").map((x) => (x === "1" ? "0" : "1")).join(""), mag = (parseInt(flip, 2) + 1) & 255 || 128;
+  return neg
+    ? `<div class="formula" style="white-space:pre;overflow-x:auto">pattern   ${b}   left-hand bit = 1: negative\nflip      ${flip}\nadd 1     ${bin((parseInt(flip, 2) + 1) & 255)}   = ${mag}\nanswer    −${mag}</div><p>Trap: read as an ordinary unsigned number, ${b} would be ${it.v}. The mark scheme gives a mark for the flip-and-add working and a mark for the correct negative answer.</p>`
+    : `<div class="formula" style="white-space:pre;overflow-x:auto">pattern   ${b}   left-hand bit = 0: positive\nanswer    ${it.v}</div><p>A left-hand bit of 0 means the number is positive and is read as normal binary.</p>`;
+});
+
+const KB = (n) => (n % 1 ? n.toFixed(2) : n);
+pick("f", [
+  { label: "Image 256 × 128, 24-bit", kind: "image", w: 256, h: 128, d: 24 },
+  { label: "Image 512 × 512, 16-bit", kind: "image", w: 512, h: 512, d: 16 },
+  { label: "Sound 16 s, 8192 Hz, 16-bit", kind: "sound", r: 8192, d: 16, t: 16 },
+  { label: "Sound 10 s, 22 016 Hz, 8-bit", kind: "sound", r: 22016, d: 8, t: 10 }
+], (it) => {
+  const bitsN = it.kind === "image" ? it.w * it.h * it.d : it.r * it.d * it.t, by = bitsN / 8, kib = by / 1024, wrong = by / 1000, f = (n) => n.toLocaleString("en-GB").replace(/,/g, " ");
+  const l1 = it.kind === "image" ? `bits = width × height × colour depth = ${it.w} × ${it.h} × ${it.d} = ${f(bitsN)}` : `bits = sample rate × resolution × seconds = ${f(it.r)} × ${it.d} × ${it.t} = ${f(bitsN)}`;
+  return `<div class="formula" style="white-space:pre-wrap">${l1}\nbytes = bits ÷ 8 = ${f(by)}\nKiB = bytes ÷ 1024 = ${KB(kib)}</div><p>Common error: dividing by 1000 gives ${KB(wrong)}, which is not ${KB(kib)}. The syllabus says calculations use 1024. Marks: up to two for the stages of working and one for the answer in the unit asked.</p>`;
+});
+
+const QS = [
+  ["Q1", "Data representation: units and compression", 6, "A tick, two types of compression, three benefits"],
+  ["Q2", "Hardware: smart phone devices and storage", 10, "Input, output, purpose of secondary storage, justify a choice"],
+  ["Q3", "Data representation: conversions, shift, addition", 11, "Number work with working"],
+  ["Q4", "Data transmission: packets and methods", 11, "Describe the packet; explain why a method is chosen"],
+  ["Q5", "Hardware: fetch-decode-execute", 11, "Registers, decode stage, buses, clock speed"],
+  ["Q6", "Software: embedded system, assembly, IDE", 10, "Six marks for how an IDE helps"],
+  ["Q7", "Software: operating system and firmware", 4, "Function and description"],
+  ["Q8", "Internet: blockchain", 4, "A labelled diagram"],
+  ["Q9", "Emerging technology: AI", 8, "Complete a paragraph; name machine learning"]
+].map(([label, topic, m, what]) => ({ label, topic, m, what }));
+pick("q", QS, (it) => `<p><b>${it.topic}</b></p>${scoreBar(it.m, 11)}<p>${it.what}. At 1.4 minutes a mark this question deserves about <b>${Lib.fmtN(it.m * 1.4, 1)} minutes</b>. It is ${Lib.fmtN((it.m / 75) * 100, 0)}% of the paper.</p>`);
+Lib.classify($("#cl1"), { prompt: "Does the device fit a smart phone or smartwatch?", buckets: [{"label": "Fits"}, {"label": "Does not fit"}], items: [{"text": "Touchscreen", "b": 0}, {"text": "Microphone", "b": 0}, {"text": "Digital camera", "b": 0}, {"text": "Screen", "b": 0}, {"text": "Speaker", "b": 0}, {"text": "Mouse", "b": 1}, {"text": "Printer", "b": 1}, {"text": "Full-size keyboard", "b": 1}, {"text": "Plotter", "b": 1}], done: "A device must be one that could feasibly be built into the product." });
+Lib.classify($("#cl2"), { prompt: "Is the statement correct or a misconception?", buckets: [{"label": "Correct"}, {"label": "Misconception"}], items: [{"text": "Encryption makes stolen data meaningless to the thief", "b": 0}, {"text": "Encryption stops data being stolen", "b": 1}, {"text": "The accumulator stores the interim result of a calculation", "b": 0}, {"text": "The accumulator carries out calculations", "b": 1}, {"text": "Lossy and lossless are the two types of compression", "b": 0}, {"text": "JPEG is a type of compression", "b": 1}, {"text": "The browser sends the page request to the web server after the DNS returns the IP address", "b": 0}, {"text": "The DNS sends the page request to the web server", "b": 1}, {"text": "Secondary storage keeps data when the device is switched off", "b": 0}, {"text": "Secondary storage is only used when primary storage is full", "b": 1}], done: "Each wrong idea is one the examiners have recorded." });
+Lib.order($("#o1"), { prompt: "Put the retrieval of a web page in order.", items: ["The user enters the URL in the web browser", "The browser sends the URL to the DNS", "The DNS finds the matching IP address", "The IP address is returned to the browser", "The browser sends a request to the web server", "The web server sends the web page back", "The browser renders the HTML"], done: "URL, DNS, IP address, request, page, render." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Program counter", "Stores the address of the next instruction to be fetched"], ["Accumulator", "Stores the interim result of a calculation"], ["Memory data register", "Holds the data or instruction just fetched from memory"], ["Control unit", "Decodes instructions and sends signals to manage the flow of data"], ["Instruction set", "A list of all the commands the processor can carry out"], ["Opcode", "The part of an instruction that says what to do"]], done: "Learn these terms." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "Add 01010100 and 01110100. Give the answer in denary.", "a": 200, "unit": "", "tol": 0.01, "hint": "84 + 116.", "sol": "<b>200</b> (11001000)."},
+  {"q": "A logical left shift of 2 places is performed on 00001111. Give the answer in denary.", "a": 60, "unit": "", "tol": 0.01, "hint": "00111100.", "sol": "<b>60</b>: 15 multiplied by 4."},
+  {"q": "A 16-bit colour image is 512 pixels wide and 512 pixels high. What is its file size in KiB?", "a": 512, "unit": "KiB", "tol": 0.01, "hint": "512 × 512 × 16 ÷ 8 ÷ 1024.", "sol": "<b>512 KiB</b>."},
+  {"q": "A sound file is 10 seconds at 22 016 Hz with 8-bit samples. What is its size in KiB?", "a": 215, "unit": "KiB", "tol": 0.5, "hint": "22 016 × 8 × 10 ÷ 8 ÷ 1024.", "sol": "<b>215 KiB</b>."},
+  {"q": "The 8-bit two's complement pattern 11110001 is stored. What is its denary value?", "a": -15, "unit": "", "tol": 0.01, "hint": "Flip to 00001110, add 1.", "sol": "<b>−15</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "Which of these is a mistake candidates make about the accumulator?", opts: ["It stores the interim result of a calculation", "It carries out calculations", "It is a register", "It is in the CPU"], a: 1, why: "The ALU calculates; the accumulator stores the result." },
+  { q: "A question asks you to add two binary numbers. What gets the working mark?", opts: ["Converting to denary", "Showing the carries in a binary addition", "Writing only the answer", "Drawing a circuit"], a: 1, why: "The working mark is for binary addition." },
+  { q: "Which is the best storage device for a smart phone?", opts: ["Hard disk drive", "Solid state", "Magnetic tape", "Optical disc"], a: 1, why: "Small, light, no moving parts, low power." },
+  { q: "In the web page retrieval, what does the DNS return to the browser?", opts: ["The web page", "The IP address", "The URL", "The HTML"], a: 1, why: "The DNS returns the IP address. The browser then sends the request." },
+  { q: "What does the syllabus say to use when calculating file sizes?", opts: ["1000", "1024", "1048", "Either"], a: 1, why: "Calculations must use 1024, not 1000." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Paper 1", "75 marks, 105 minutes, no calculator."],
+  ["1.4 minutes", "Per mark."],
+  ["Binary addition", "Carries row; overflow above 255."],
+  ["Two's complement", "Left bit 1: flip, add 1, negative."],
+  ["File size", "Bits ÷ 8 ÷ 1024."],
+  ["Decode", "MDR → CIR, opcode and operand, instruction set."],
+  ["DNS", "URL → IP address → browser → request → page."],
+  ["Phone storage", "Solid state: small, light, no moving parts."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

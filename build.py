@@ -201,7 +201,8 @@ def chapter_grid(ckey, prefix, chapters, root_key=lambda ch: ch["id"], grouped=F
             if cards:
                 out.append(f'<div class="grid">{"".join(cards)}</div>')
             current = ch["group"]
-            out.append(f'<h2 class="group">{esc(current or "")}</h2>')
+            if current:
+                out.append(f'<h2 class="group">{esc(current)}</h2>')
             cards = []
         cards.append(one(ch))
     out.append(f'<div class="grid">{"".join(cards)}</div>')
@@ -261,7 +262,7 @@ def build_courses():
     for ckey, c in COURSES.items():
         crumbs = [("Home", ""), (c["title"], None)]
         if c["kind"] == "chapters":
-            grid = chapter_grid(ckey, ckey, c["chapters"])
+            grid = chapter_grid(ckey, ckey, c["chapters"], grouped=any(ch["group"] for ch in c["chapters"]))
             write(f"{ckey}/index.html", layout(c["title"], head(c["title"], c["blurb"], "Course") + grid, f"{ckey}/", ckey, crumbs, c["accent"]))
             for ch in c["chapters"]:
                 chapter_page(ckey, ch["id"])

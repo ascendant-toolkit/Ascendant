@@ -24,6 +24,7 @@ IG_CS = [
     _ch(8, "Programming"),
     _ch(9, "Databases"),
     _ch(10, "Boolean logic"),
+    {"id": "exam-technique", "n": None, "label": "★", "title": "Exam technique", "group": "Exam preparation"},
 ]
 
 def _sy(sec, sub, title):
@@ -347,6 +348,23 @@ ARTIFACTS = [
     {"src": "ig-cs-trace-tables-errors-algorithms", "role": "review", "at": "7.6", "title": "Trace Tables, Errors and Writing Algorithms", "kind": "Interactive",
      "desc": "7.6 Completing trace tables, finding and fixing errors, and writing precise algorithms, with a trace table tool and exam questions.",
      "places": [("ig-cs", "ch-07")]},
+
+    # IGCSE CS exam technique
+    {"src": "ig-cs-command-words", "role": "review", "title": "Command Words and Mark Allocation: Answering What Is Asked", "kind": "Interactive",
+     "desc": "How the command word and the mark tell you what to write: describe versus explain, technical terms, using the context, and fourteen real questions with what the mark scheme wanted. Animations, labs and practice.",
+     "places": [("ig-cs", "exam-technique")]},
+    {"src": "ig-cs-paper1-technique", "role": "review", "title": "Paper 1 Computer Systems: Technique and Practice", "kind": "Interactive",
+     "desc": "How Paper 1 is marked, a plan for the 105 minutes, working in number questions, what each diagram part earns, the misconceptions examiners flag, and fourteen real questions. Animations, labs and practice.",
+     "places": [("ig-cs", "exam-technique")]},
+    {"src": "ig-cs-paper2-algorithms-technique", "role": "review", "title": "Paper 2 Algorithms and Programming: Technique and Practice", "kind": "Interactive",
+     "desc": "The syllabus pseudocode, the standard methods, trace tables, finding errors, flowcharts, test data and short written answers, with fourteen real questions. Animations, labs and practice.",
+     "places": [("ig-cs", "exam-technique")]},
+    {"src": "ig-cs-scenario-question-technique", "role": "review", "title": "The 15-Mark Scenario Question: How Each Band Is Reached", "kind": "Interactive",
+     "desc": "How the last question of Paper 2 is marked, what the AO2 and AO3 bands look like in a real program, a 30-minute plan and six practice scenarios. Animations, labs and practice.",
+     "places": [("ig-cs", "exam-technique")]},
+    {"src": "ig-cs-logic-databases-technique", "role": "review", "title": "Logic Circuits, Truth Tables and Databases: Technique and Practice", "kind": "Interactive",
+     "desc": "Expressions, working columns, drawing circuits, SQL output, data types and primary keys in Paper 2, with eight real questions. Animations, labs and practice.",
+     "places": [("ig-cs", "exam-technique")]},
 
     # IGCSE Economics (numbered as in the syllabus)
     {"src": "macro-aims-explorer", "role": "review", "at": "4.1.1", "title": "Macroeconomic Aims", "kind": "Interactive",
