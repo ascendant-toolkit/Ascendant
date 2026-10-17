@@ -909,7 +909,7 @@ ARTIFACTS = [
      "places": [("a-econ", "a-level/s9-4")]},
 
     # A-Level Economics, AS chapters requested by students
-    {"src": "as-elasticities-of-demand", "role": "review", "title": "Elasticities of Demand", "kind": "Interactive",
+    {"src": "as-elasticities-of-demand", "role": "review", "at": "2.2.1", "title": "Elasticities of Demand", "kind": "Interactive",
      "desc": "Price, income and cross elasticity: animated diagrams, labs, drag-and-drop practice, calculations and exam questions with model answers.",
      "places": [("a-econ", "as/s2-2")]},
     {"src": "as-government-intervention", "role": "review", "title": "Methods and Effects of Government Intervention", "kind": "Interactive",
@@ -924,7 +924,7 @@ ARTIFACTS = [
     {"src": "as-reasons-for-intervention", "role": "review", "title": "Reasons for Government Intervention in Markets", "kind": "Interactive",
      "desc": "Public goods and the free rider problem, merit and demerit goods, and why governments set price controls, with diagrams, labs and exam practice.",
      "places": [("a-econ", "as/s3-1")]},
-    {"src": "as-elasticity-of-supply", "role": "review", "title": "Price Elasticity of Supply", "kind": "Interactive",
+    {"src": "as-elasticity-of-supply", "role": "review", "at": "2.3.1", "title": "Price Elasticity of Supply", "kind": "Interactive",
      "desc": "PES values, what determines supply flexibility, and why farm prices swing, with animated diagrams, labs, calculations and exam questions.",
      "places": [("a-econ", "as/s2-3")]},
 
@@ -956,6 +956,29 @@ ARTIFACTS = [
     {"src": "as-merit-demerit-goods", "role": "review", "at": "1.6.3", "title": "Merit and Demerit Goods", "kind": "Interactive",
      "desc": "1.6.3 to 1.6.4 · Merit and demerit goods, information failure and policy responses. Animations, labs and past paper practice.",
      "places": [("a-econ", "as/s1-6")]},
+
+    # AS Topic 2
+    {"src": "as-demand-supply-curves", "role": "review", "at": "2.1.1", "title": "Demand and Supply Curves and Their Determinants", "kind": "Interactive",
+     "desc": "2.1.1 to 2.1.4 · Effective demand, individual and market demand and supply, and the determinants of each. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s2-1")]},
+    {"src": "as-shifts-movements-demand-supply", "role": "review", "at": "2.1.5", "title": "Shifts of Demand and Supply and Movements Along Curves", "kind": "Interactive",
+     "desc": "2.1.5 to 2.1.7 · Causes of shifts of the demand and supply curves and the difference between a shift and a movement along a curve. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s2-1")]},
+    {"src": "as-market-equilibrium", "role": "review", "at": "2.4.1", "title": "Market Equilibrium and the Effects of Shifts", "kind": "Interactive",
+     "desc": "2.4.1 to 2.4.2 · Equilibrium and disequilibrium, excess supply and demand, and single and combined shifts. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s2-4")]},
+    {"src": "as-related-markets", "role": "review", "at": "2.4.3", "title": "Relationships Between Markets", "kind": "Interactive",
+     "desc": "2.4.3 · Joint demand, alternative demand, derived demand and joint supply, with cross elasticity. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s2-4")]},
+    {"src": "as-price-functions", "role": "review", "at": "2.4.4", "title": "Functions of Price in Resource Allocation", "kind": "Interactive",
+     "desc": "2.4.4 · Rationing, signalling and incentivising, and what happens when price cannot work. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s2-4")]},
+    {"src": "as-consumer-producer-surplus", "role": "review", "at": "2.5.1", "title": "Consumer and Producer Surplus", "kind": "Interactive",
+     "desc": "2.5.1 to 2.5.2 · The meaning and significance of consumer surplus and producer surplus. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s2-5")]},
+    {"src": "as-surplus-changes-elasticity", "role": "review", "at": "2.5.3", "title": "Changes in Consumer and Producer Surplus", "kind": "Interactive",
+     "desc": "2.5.3 to 2.5.4 · Causes of changes in surplus and the role of price elasticity of demand and supply. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s2-5")]},
 ]
 
 # Old textbook-numbered chapter paths for A-Level Economics -> syllabus-numbered paths. build.py writes a redirect page at each old path.

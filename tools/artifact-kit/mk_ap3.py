@@ -10,13 +10,13 @@ paper = '''
 
   <h2>1 · The facts</h2>
   <div class="tw"><table class="t">
-    <tr><th></th><th>Paper 1 (AS)</th><th>Paper 3 (A Level)</th></tr>
-    <tr><td><b>Time and marks</b></td><td>1 hour, 30 marks</td><td>1 hour 15 minutes, 30 marks</td></tr>
-    <tr><td><b>Questions</b></td><td>30 multiple choice, four options (A to D)</td><td>30 multiple choice, four options (A to D)</td></tr>
-    <tr><td><b>Content</b></td><td>AS topics 1 to 6</td><td>A Level topics 7 to 11, with AS knowledge assumed</td></tr>
-    <tr><td><b>Weighting</b></td><td>33% of AS, 17% of A Level</td><td>17% of the A Level</td></tr>
-    <tr><td><b>Time per question</b></td><td>2 minutes</td><td>2.5 minutes</td></tr>
-    <tr><td><b>Negative marking</b></td><td colspan="2">None: never leave a blank</td></tr>
+    <tr><th></th><th>Paper 3 (A Level)</th></tr>
+    <tr><td><b>Time and marks</b></td><td>1 hour 15 minutes, 30 marks</td></tr>
+    <tr><td><b>Questions</b></td><td>30 multiple choice, four options (A to D)</td></tr>
+    <tr><td><b>Content</b></td><td>A Level topics 7 to 11, with AS knowledge assumed</td></tr>
+    <tr><td><b>Weighting</b></td><td>17% of the A Level</td></tr>
+    <tr><td><b>Time per question</b></td><td>2.5 minutes</td></tr>
+    <tr><td><b>Negative marking</b></td><td>None: never leave a blank</td></tr>
   </table></div>
 
   <h2>2 · Using 75 minutes</h2>

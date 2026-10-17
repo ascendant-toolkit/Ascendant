@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Relationships Between Markets</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">AS Level Economics · 9708 · Syllabus 2.4.3</div>
+  <h1>Relationships Between Markets</h1>
+  <p class="lead">2.4.3: joint demand, alternative demand, derived demand and joint supply, with cross elasticity of demand. Animated diagrams, labs, drills and the past paper questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This part in four sentences</h3>
+  <p>Markets are linked, so a change in one market can <b>shift a curve in another</b>. <b class="kw">Joint demand</b> (complements) means goods are used together, so a rise in the price of one lowers demand for the other; <b class="kw">alternative demand</b> (substitutes) means goods can replace each other, so a rise in the price of one raises demand for the other. <b class="kw">Derived demand</b> means demand for an input exists because of demand for the final product it helps make, and <b class="kw">joint supply</b> means producing more of one good automatically produces more of another (a by-product). The <b>cross elasticity of demand</b> (XED) measures the strength and sign of the link: positive for substitutes, negative for complements, zero for unrelated goods.</p></div>
+
+  <h2>1 · Joint demand and alternative demand (2.4.3)</h2>
+  <div id="pic1" class="card"></div>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Joint demand (complements)</th><th>Alternative demand (substitutes)</th></tr>
+    <tr><td><b>Meaning</b></td><td>Goods used together</td><td>Goods that can replace one another</td></tr>
+    <tr><td><b>Examples</b></td><td>Cars and petrol, printers and ink, smartphones and data</td><td>Tea and coffee, bus and train, butter and margarine</td></tr>
+    <tr><td><b>Price of X rises</b></td><td>Demand for Y <b>falls</b> (left shift)</td><td>Demand for Y <b>rises</b> (right shift)</td></tr>
+    <tr><td><b>Cross elasticity (XED)</b></td><td><b>Negative</b></td><td><b>Positive</b></td></tr>
+    <tr><td><b>Strength</b></td><td>The larger the number (ignoring the sign), the stronger the link</td><td>The larger the number, the closer the substitutes</td></tr>
+  </table></div>
+  <ul>
+    <li><b>XED = % change in quantity demanded of Y ÷ % change in price of X.</b> Example: price of rice rises 10% and demand for bread rises 14%: XED = +1.4, strong substitutes. Price of butter rises 10% and demand for bread falls 7%: XED = −0.7, weaker complements.</li>
+    <li>A value of <b>zero</b> means the goods are unrelated.</li>
+  </ul>
+
+  <h2>2 · Derived demand</h2>
+  <div class="card"><div id="pic2"></div></div>
+  <ul>
+    <li>Demand for <b>steel</b> is derived from demand for cars, buildings and appliances. Demand for <b>labour</b> is derived from demand for what workers make.</li>
+    <li>A rise in demand for the final product raises demand for the inputs, so their <b>prices and quantities</b> tend to rise.</li>
+    <li>The more <b>inelastic</b> the supply of the input, the more its price rises.</li>
+  </ul>
+
+  <h2>3 · Joint supply</h2>
+  <ul>
+    <li>Goods are in joint supply when producing one <b>necessarily produces another</b>: beef and leather, butter and buttermilk, petrol and diesel from crude oil.</li>
+    <li>A rise in demand for beef raises the price of beef, so farmers supply <b>more beef and more leather</b>. The supply of leather shifts <b>right</b>, so leather becomes <b>cheaper</b> and its quantity rises.</li>
+    <li>In the market for the product whose demand changed, there is a <b>movement along</b> supply; in the by-product's market there is a <b>shift</b> of supply.</li>
+    <li>Joint supply goods are also in <b>joint demand</b> only if consumers buy them together, which is usually not the case.</li>
+  </ul>
+  <div class="tip"><b class="h">Exam tip</b>Always say which <b>curve shifts</b> in the second market and why. For XED, give the <b>formula</b>, the <b>sign</b> and what the <b>size</b> means.</div>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · A rise in the price of a complement or a substitute</h2>
+  <p>Press Play, or click the numbered steps.</p>
+  <div id="stC"></div>
+  <h2>2 · Joint supply: beef and leather</h2>
+  <div id="stJ"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · How are the markets linked?</h2>
+  <p>Choose a relationship, then change the trigger. The diagram shows the market that reacts (the second good).</p>
+  <div class="card"><div class="grid2"><div><div id="relB" class="btnrow"></div><div id="g1"></div>
+    <div class="readout"><div><small>What shifts</small><strong id="r1"></strong></div><div><small>Price of the second good</small><strong id="r2"></strong></div><div><small>Quantity</small><strong id="r3"></strong></div></div>
+    <div class="verdict" id="rv"></div></div>
+    <div><svg id="labA" viewBox="0 0 760 300" role="img" aria-label="Supply and demand in the second market with the curve that shifts"></svg></div></div></div>
+
+  <h2>Lab 2 · Calculate cross elasticity</h2>
+  <p>Change the percentage rise in the price of good X and the percentage change in demand for good Y.</p>
+  <div class="card"><div class="grid2"><div><div id="g2"></div><div id="g3"></div>
+    <div class="readout"><div><small>XED</small><strong id="t1"></strong></div><div><small>Relationship</small><strong id="t2"></strong></div><div><small>Strength</small><strong id="t3"></strong></div></div>
+    <div class="verdict" id="tv"></div></div>
+    <div><svg id="labB" viewBox="0 0 420 200" role="img" aria-label="A number line from negative three to positive three with the cross elasticity marked"></svg></div></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Complement, substitute or unrelated?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>3 · Put the joint supply chain in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Calculations</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Printers and ink</h3><p>Printers are cheap but ink cartridges are dear. Printers and ink are complements: if the price of ink rises, fewer printers are bought. Firms may sell the printer at a low price to earn profit from the ink, which is why demand for one affects the other.</p><div class="use"><b>Exam use:</b> joint demand and the negative cross elasticity.</div></div>
+  <div class="rw"><h3>Bus and train</h3><p>A rise in train fares sends some commuters to buses. Demand for buses shifts right, so the bus company may raise fares. The positive cross elasticity between them shows how close the substitutes are.</p><div class="use"><b>Exam use:</b> alternative demand and substitutes.</div></div>
+  <div class="rw"><h3>Steel and cars</h3><p>When car sales fall, car makers order less steel. The fall in demand for the input is derived from the fall in demand for the final product, so steel prices and output both tend to fall.</p><div class="use"><b>Exam use:</b> derived demand.</div></div>
+  <div class="rw"><h3>Beef and leather</h3><p>More demand for beef raises beef output, which produces more hides. The supply of leather rises, so the price of leather falls without any change in demand for leather.</p><div class="use"><b>Exam use:</b> joint supply and the movement along one curve with a shift in the other.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Past paper questions on relationships between markets</h2>
+  <p>We searched the AS Level Economics papers in the folder (2020 to 2025). Cross elasticity, joint demand and joint supply are tested in every Paper 1 series and in an 8 mark Paper 2 part nearly every year. Reworded past questions are below, with twelve Paper 1 multiple choice questions.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Type</th><th>Examples found</th><th>Where</th></tr>
+    <tr><td>Essay parts, 8 marks</td><td>3</td><td>Oct/Nov 2020 (21) Q3(a); Feb/March 2021 (22) Q3(a); May/June 2021 (22) Q3(a)</td></tr>
+    <tr><td>Multiple choice (Paper 1)</td><td>12 shown below</td><td>2020 to 2025</td></tr>
+  </table></div>
+  <h2>A · Written questions (reworded)</h2>
+  <p>The wording, context and figures are our own, so they are safe to set as practice. The source paper is named for reference. Mark scheme points are in our own words.</p>
+  <details class="eq"><summary>Based on Oct/Nov 2020 · 9708/21 · Q3(a) <span class="mark">8 marks</span> Cross elasticity of demand for bread with respect to the price of rice is +1.4 while the cross elasticity of demand for bread with respect to the price of butter is −0.7. Explain why the cross elasticity of demand figures for bread differ.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Knowledge (up to 2): what is meant by XED (1) and the formula (1).</li>
+        <li>Application (up to 6): bread and rice as substitutes with a positive XED (1 each for the goods as substitutes and applying it to bread and rice), and a strong relationship (1); bread and butter as complements with a negative XED (1 each), and a weak relationship (1).</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Define XED and give the formula. Rice: positive, substitute, strong. Butter: negative, complement, weak.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">Cross elasticity of demand measures the responsiveness of the quantity demanded of one good to a change in the price of another: the percentage change in quantity demanded of good A divided by the percentage change in the price of good B.</span></p>
+    <p><span class="mk n" data-t="N">The figure for rice is positive because rice and bread are substitutes: if rice becomes dearer, consumers buy more bread. A value of 1.4 means demand for bread is quite responsive, so they are close substitutes. The figure for butter is negative because bread and butter are complements, bought together: if butter becomes dearer, people buy less bread. The value of 0.7 is smaller in size, so the link is weaker.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on May/June 2021 · 9708/22 · Q3(a) <span class="mark">8 marks</span> Explain how the concept of cross-elasticity of demand can be used to distinguish between goods that are substitutes, those that are complements and those that have no relationship.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Knowledge (up to 2): what XED measures, with the idea of responsiveness (1), and an accurate formula (1).</li>
+        <li>Application (up to 6): a positive value indicates substitutes and why (2); a negative value indicates complements and why (2); a value of zero indicates unrelated goods and why (2).</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Define and give the formula. Positive: substitutes. Negative: complements. Zero: unrelated. Explain each.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">Cross elasticity of demand measures how far the quantity demanded of one good responds to a change in the price of another, calculated as the percentage change in quantity demanded of A divided by the percentage change in the price of B.</span></p>
+    <p><span class="mk n" data-t="N">A positive value shows the goods are substitutes, because a rise in the price of B makes consumers switch to A. A negative value shows they are complements, because a rise in the price of B lowers demand for the good used with it. A value of zero means the quantity demanded of A does not respond to the price of B, so the goods are unrelated.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on Feb/March 2021 · 9708/22 · Q3(a) <span class="mark">8 marks</span> Explain how you would use the concept of cross-elasticity of demand to measure the impact on the demand for cars when there is a rise in the price of fuel for cars and when there is a rise in the price of public transport.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Knowledge (up to 2): what XED measures (1) and the formula (1).</li>
+        <li>Application (up to 3): cars and fuel are complements so the coefficient is negative (1), explained (1), and the impact is greater the closer the relationship (1).</li>
+        <li>Application (up to 3): cars and public transport are substitutes so the coefficient is positive (1), explained (1), and the impact is greater the closer the relationship (1).</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Formula. Fuel: complement, negative, demand for cars falls. Public transport: substitute, positive, demand for cars rises.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">Cross elasticity of demand is the percentage change in the quantity demanded of cars divided by the percentage change in the price of the other good.</span></p>
+    <p><span class="mk n" data-t="N">Cars and fuel are complements, so the coefficient is negative: a rise in the price of fuel makes motoring dearer, so demand for cars falls. The closer the relationship, the larger the negative value and the bigger the fall. Cars and public transport are substitutes, so the coefficient is positive: a rise in the price of public transport makes cars more attractive and demand for cars rises, by more if the link is stronger.</span></p>
+    </div>
+  </div></details>
+  <h2>B · Multiple choice questions (Paper 1)</h2>
+  <p>Choose an answer, then read the reason. Reworded from the paper and question number shown.</p>
+  <div id="qz2"></div>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Give the formula for XED.</b> % change in quantity of Y ÷ % change in price of X.</li>
+    <li><b>Sign tells the relationship.</b> Positive: substitutes. Negative: complements. Zero: unrelated.</li>
+    <li><b>Size tells the strength.</b> A larger number means a closer link.</li>
+    <li><b>Name the curve that shifts.</b> A rise in a substitute's price shifts demand right.</li>
+    <li><b>Derived demand needs a final product.</b> Steel demand follows car demand.</li>
+    <li><b>Joint supply is a by-product.</b> More beef means more leather: supply shifts right.</li>
+    <li><b>Use examples.</b> Cars and petrol, tea and coffee, beef and leather.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Joint demand</td><td>"Joint demand means two goods are used together, so a rise in the price of one lowers demand for the other."</td></tr>
+    <tr><td>Alternative demand</td><td>"Alternative demand means consumers can substitute one good for the other."</td></tr>
+    <tr><td>Derived demand</td><td>"Demand for an input is derived from demand for the final product."</td></tr>
+    <tr><td>Joint supply</td><td>"Producing more of one good produces more of a by-product."</td></tr>
+    <tr><td>Cross elasticity</td><td>"The sign shows whether goods are substitutes or complements."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Define / State</td><td>Give the exact meaning, briefly. No explanation needed.</td></tr>
+    <tr><td>Explain</td><td>Give reasons, with a clear chain of cause and effect.</td></tr>
+    <tr><td>Consider</td><td>Look at the issue from several sides and judge how strong each is.</td></tr>
+    <tr><td>Assess</td><td>Judge how important or effective something is, with reasons.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const SDX = (q) => 70 + q * 6.4, SDY = (p) => 270 - p * 2.4;
+const sdEq = (d, s) => { const q = 50 + 0.5 * (d + s); return { q, p: 10 + 0.8 * (q - s) }; };
+const sdSeg = (k, sh) => {
+  const f = (q) => (k === "D" ? 90 - 0.8 * (q - sh) : 10 + 0.8 * (q - sh)), inv = (p) => (k === "D" ? sh + (90 - p) / 0.8 : sh + (p - 10) / 0.8);
+  const qa = inv(k === "D" ? 95 : 12), qb = inv(k === "D" ? 12 : 95), lo = Math.max(0, Math.min(qa, qb)), hi = Math.min(100, Math.max(qa, qb));
+  return [lo, f(lo), hi, f(hi)];
+};
+const sdCurve = (k, sh, c, v, name) => { const [a, b, e, f] = sdSeg(k, sh); return SV.line(SDX(a), SDY(b), SDX(e), SDY(f), c, { "stroke-width": 3, ...op(v) }) + tag(SDX(e) + 6, SDY(f) + (k === "D" ? 14 : -4), name, c, v); };
+const sdGuide = (e, pn, qn, v) => SV.line(SDX(e.q), SDY(e.p), SDX(e.q), 270, "dash", op(v)) + SV.line(70, SDY(e.p), SDX(e.q), SDY(e.p), "dash", op(v)) + SV.text(62, SDY(e.p) + 4, pn, "sm", { "text-anchor": "end", ...op(v) }) + SV.text(SDX(e.q), 286, qn, "sm", { "text-anchor": "middle", ...op(v) });
+function sdPlot(st, lab = {}) {
+  const { d = 0, s = 0, g = 1, n = 1 } = st, mv = Math.abs(d) > 0.05 || Math.abs(s) > 0.05, e0 = sdEq(0, 0), e1 = sdEq(d, s);
+  let o = axes(70, 270, 720, 25, lab.x || "Quantity", lab.y || "Price");
+  o += sdCurve("D", 0, "c2", Math.abs(d) > 0.05 ? 0.4 : 1, lab.D1 || "D1") + sdCurve("S", 0, "c1", Math.abs(s) > 0.05 ? 0.4 : 1, lab.S1 || "S1");
+  if (Math.abs(d) > 0.05) o += sdCurve("D", d, "c2", n, lab.D2 || "D2");
+  if (Math.abs(s) > 0.05) o += sdCurve("S", s, "c1", n, lab.S2 || "S2");
+  o += SV.circle(SDX(e0.q), SDY(e0.p), 5, "dot1", op(mv ? 0.6 : 1)) + sdGuide(e0, "P1", "Q1", g * (mv ? 0.5 : 1));
+  if (mv) o += SV.circle(SDX(e1.q), SDY(e1.p), 6, "dot3", op(n)) + sdGuide(e1, "P2", "Q2", g * n);
+  return o;
+}
+
+/* ---------- complement and substitute ---------- */
+function csDraw(s) { return sdPlot({ d: s.d, s: 0, g: 1, n: s.n }, { y: "Price of cars", D1: "D1", D2: "D2" }); }
+$("#pic1").innerHTML = `<svg viewBox="0 0 760 300" role="img" aria-label="Demand for cars falls when the price of fuel, a complement, rises">${csDraw({ d: -20, n: 1 })}</svg>`;
+Lib.stepper($("#stC"), { w: 760, h: 300, label: "The market for cars when the price of a related good rises", base: { d: 0, n: 0 }, draw: csDraw, tween: 900, dwell: 5600, steps: [
+  { cap: "<b>Start.</b> The market for cars is in equilibrium.", s: { d: 0, n: 0 } },
+  { cap: "<b>The price of petrol (a complement) rises.</b> Driving costs more, so demand for cars shifts <b>left</b>. XED for cars with respect to petrol is <b>negative</b>.", s: { d: -20, n: 1 } },
+  { cap: "<b>The price of public transport (a substitute) rises.</b> Cars look cheaper by comparison, so demand shifts <b>right</b>. XED is <b>positive</b>.", s: { d: 20, n: 1 } },
+] });
+
+/* ---------- derived demand chain ---------- */
+const bx = (x, y, w, t, v, c = "f1") => SV.rect(x, y, w, 46, c, { rx: 8, ...op(0.55 * v) }) + SV.text(x + w / 2, y + 28, t, "lbl bd", { "text-anchor": "middle", ...op(v) });
+function chDraw(s) {
+  const ar = (x1, x2, v) => SV.line(x1, 70, x2 - 8, 70, "c4", { "stroke-width": 2.5, ...op(v) }) + SV.arrowHead(x2, 70, "r", "dot4");
+  let o = bx(20, 47, 150, "Demand for cars rises", s.a, "f3") + ar(172, 210, s.b) + bx(212, 47, 160, "Car firms order more steel", s.b) + ar(374, 412, s.c) + bx(414, 47, 150, "Demand for steel rises", s.c, "f2") + ar(566, 604, s.d) + bx(606, 47, 130, "Steel price up", s.d, "f1");
+  return o;
+}
+$("#pic2").innerHTML = `<svg viewBox="0 0 760 120" role="img" aria-label="Demand for cars rises so car firms order more steel, so demand and price for steel rise">${chDraw({ a: 1, b: 1, c: 1, d: 1 })}</svg>`;
+
+/* ---------- joint supply chain ---------- */
+function jsDraw(s) {
+  const ar = (x1, x2, y, v) => SV.line(x1, y, x2 - 8, y, "c4", { "stroke-width": 2.5, ...op(v) }) + SV.arrowHead(x2, y, "r", "dot4");
+  let o = bx(20, 20, 190, "Demand for beef rises", s.a, "f3") + ar(212, 260, 43, s.a) + bx(262, 20, 190, "Beef price and output rise", s.b) + ar(454, 502, 43, s.b);
+  o += bx(504, 20, 230, "Movement along beef supply", s.b, "f1");
+  o += SV.line(357, 68, 357, 112, "c4", { "stroke-width": 2.5, ...op(s.c) }) + SV.arrowHead(357, 120, "d", "dot4") + bx(20, 124, 200, "More hides are produced", s.c);
+  o += ar(222, 262, 147, s.d) + bx(264, 124, 190, "Leather supply shifts right", s.d, "f2") + ar(456, 502, 147, s.e) + bx(504, 124, 230, "Leather price falls", s.e, "f1");
+  return o;
+}
+Lib.stepper($("#stJ"), { w: 760, h: 190, label: "Joint supply of beef and leather", base: { a: 0, b: 0, c: 0, d: 0, e: 0 }, draw: jsDraw, tween: 700, dwell: 4800, steps: [
+  { cap: "<b>Demand for beef rises.</b> This is the main product, and the first change in the chain.", s: { a: 1 } },
+  { cap: "<b>Beef price and output rise.</b> Farmers move along their beef supply curve.", s: { a: 1, b: 1 } },
+  { cap: "<b>More cattle are slaughtered,</b> so more hides are produced as a by-product.", s: { a: 1, b: 1, c: 1 } },
+  { cap: "<b>The supply of leather shifts right</b> at every price, because the hides come with the beef.", s: { a: 1, b: 1, c: 1, d: 1 } },
+  { cap: "<b>The price of leather falls</b> and the quantity rises, with no change in demand for leather.", s: { a: 1, b: 1, c: 1, d: 1, e: 1 } },
+] });
+
+/* ---------- Lab 1 ---------- */
+const REL = [
+  ["Complements (joint demand)", "price of the first good", "Demand", -0.6, "A rise in the price of a complement lowers demand for this good."],
+  ["Substitutes (alternative demand)", "price of the first good", "Demand", 0.6, "A rise in the price of a substitute raises demand for this good."],
+  ["Derived demand", "demand for the final product", "Demand", 0.6, "More demand for the final product raises demand for the input."],
+  ["Joint supply", "demand for the main product", "Supply", 0.6, "More of the main product means more of the by-product at every price."],
+];
+let relI = 0;
+function labR() {
+  if (!$("#rr")) return;
+  const [nm, trig, curve, k, why] = REL[relI], t = +$("#rr").value, sh = Math.max(-30, Math.min(30, k * t)), d = curve === "Demand" ? sh : 0, s = curve === "Supply" ? sh : 0, e = sdEq(d, s), e0 = sdEq(0, 0);
+  $$("#relB button").forEach((b, k2) => b.classList.toggle("pri", k2 === relI));
+  $("#r1").textContent = Math.abs(sh) < 0.5 ? "Nothing" : curve + (sh > 0 ? " right" : " left"); $("#r2").textContent = "$" + Lib.fmtN(e.p, 0); $("#r3").textContent = Lib.fmtN(e.q, 0);
+  $("#rv").textContent = Math.abs(sh) < 0.5 ? `The ${trig} is unchanged, so the second market does not move.` : `${nm}: a ${t > 0 ? "rise" : "fall"} of ${Math.abs(t)}% in the ${trig}. ${why} The curve moves ${sh > 0 ? "right" : "left"}, so the price ${e.p > e0.p ? "rises" : "falls"} and the quantity ${e.q > e0.q ? "rises" : "falls"} in the second market.`.replace(why, t > 0 ? why : "The opposite happens: " + why.charAt(0).toLowerCase() + why.slice(1));
+  $("#labA").innerHTML = sdPlot({ d, s, g: 1, n: 1 });
+}
+$("#relB").innerHTML = REL.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+$$("#relB button").forEach((b) => (b.onclick = () => { relI = +b.dataset.i; labR(); }));
+Lib.slider($("#g1"), { id: "rr", label: "Change in the trigger, % ", min: -30, max: 30, step: 5, value: 20, fmt: (v) => v + "%", onInput: labR });
+labR();
+
+/* ---------- Lab 2 ---------- */
+function labX() {
+  if (!$("#xp") || !$("#xq")) return;
+  const p = +$("#xp").value, q = +$("#xq").value, x = p === 0 ? 0 : q / p, a = Math.abs(x);
+  $("#t1").textContent = (x > 0 ? "+" : "") + Lib.fmtN(x, 2); $("#t2").textContent = a < 0.05 ? "Unrelated" : x > 0 ? "Substitutes" : "Complements"; $("#t3").textContent = a < 0.05 ? "None" : a < 1 ? "Weak" : "Strong";
+  $("#tv").textContent = a < 0.05 ? `A ${p}% price rise leaves demand unchanged, so XED is about zero and the goods are unrelated.` : `XED = ${q}% ÷ ${p}% = ${x > 0 ? "+" : ""}${Lib.fmtN(x, 2)}. ${x > 0 ? "Positive, so the goods are substitutes" : "Negative, so the goods are complements"}; ${a < 1 ? "the value is below 1 in size, so the link is fairly weak." : "the value is above 1 in size, so the link is strong."}`;
+  const X = (v) => 30 + (v + 3) * 60, mx = Math.max(-3, Math.min(3, x));
+  let o = SV.line(30, 100, 390, 100) + [-3, -2, -1, 0, 1, 2, 3].map((v) => SV.line(X(v), 94, X(v), 106) + SV.text(X(v), 124, (v > 0 ? "+" : "") + v, "sm", { "text-anchor": "middle" })).join("");
+  o += SV.text(X(-1.5), 70, "Complements", "lbl bd", { "text-anchor": "middle" }) + SV.text(X(1.5), 70, "Substitutes", "lbl bd", { "text-anchor": "middle" }) + SV.circle(X(mx), 100, 9, "dot3") + SV.text(X(mx), 82, (x > 0 ? "+" : "") + Lib.fmtN(x, 2), "lbl bd", { "text-anchor": "middle", ...halo });
+  $("#labB").innerHTML = o;
+}
+Lib.slider($("#g2"), { id: "xp", label: "% change in the price of good X ", min: 5, max: 30, step: 5, value: 10, fmt: (v) => v + "%", onInput: labX });
+Lib.slider($("#g3"), { id: "xq", label: "% change in quantity demanded of good Y ", min: -30, max: 30, step: 1, value: 14, fmt: (v) => v + "%", onInput: labX });
+labX();
+
+/* ---------- Practise ---------- */
+Lib.classify($("#cl1"), { prompt: "How are the two goods related?", buckets: [{"label": "Complements"}, {"label": "Substitutes"}, {"label": "Unrelated"}], items: [{"text": "Cars and petrol", "b": 0}, {"text": "Tea and coffee", "b": 1}, {"text": "Printers and ink cartridges", "b": 0}, {"text": "Bus travel and train travel", "b": 1}, {"text": "Butter and margarine", "b": 1}, {"text": "Bread and butter", "b": 0}, {"text": "A guitar and a bag of rice", "b": 2}, {"text": "Smartphones and mobile data", "b": 0}], done: "Used together: complements. Replace each other: substitutes. No link: unrelated." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Joint demand", "Goods used together, so demand moves together"], ["Alternative demand", "Goods that can replace each other"], ["Derived demand", "Demand for an input that comes from demand for the final good"], ["Joint supply", "Producing one good also produces another"], ["Positive XED", "Substitutes"], ["Negative XED", "Complements"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the joint supply chain in order.", items: ["Demand for beef rises", "Beef price and output rise", "More hides are produced", "The supply of leather shifts to the right", "The price of leather falls"], done: "A by-product's supply shifts when the main product's output changes." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "The price of rice rises 10% and demand for bread rises 14%. What is the cross elasticity of demand?", "a": 1.4, "unit": "", "tol": 0.05, "hint": "14 ÷ 10.", "sol": "<b>+1.4</b>: strong substitutes."},
+  {"q": "The price of butter rises 10% and demand for bread falls 7%. What is the cross elasticity (include the sign)?", "a": -0.7, "unit": "", "tol": 0.05, "hint": "−7 ÷ 10.", "sol": "<b>−0.7</b>: weaker complements."},
+  {"q": "XED between two goods is +0.4. The price of one rises 15%. By what % does demand for the other change?", "a": 6, "unit": "%", "tol": 0.2, "hint": "0.4 × 15.", "sol": "<b>+6%</b>."},
+  {"q": "XED of cars with respect to petrol is −0.5. Petrol prices rise 40%. What is the % change in demand for cars (include the sign)?", "a": -20, "unit": "%", "tol": 0.5, "hint": "−0.5 × 40.", "sol": "<b>−20%</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "A positive cross elasticity of demand means the goods are:", opts: ["Substitutes", "Complements", "Unrelated", "Inferior"], a: 0, why: "Positive XED: substitutes." },
+  { q: "A rise in the price of a complement:", opts: ["Lowers demand for this good", "Raises demand for this good", "Raises supply of this good", "Has no effect"], a: 0, why: "Used together." },
+  { q: "Demand for steel is an example of:", opts: ["Derived demand", "Joint supply", "Alternative demand", "Effective demand"], a: 0, why: "Steel is demanded because of what it makes." },
+  { q: "Beef and leather are an example of:", opts: ["Joint supply", "Joint demand", "Derived demand", "Alternative demand"], a: 0, why: "Leather is a by-product." },
+  { q: "XED = +3 compared with +0.5 shows:", opts: ["A closer substitute", "A weaker substitute", "A complement", "An inferior good"], a: 0, why: "A larger positive value means a stronger link." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Joint demand", "Complements: used together."],
+  ["Alternative demand", "Substitutes: replace each other."],
+  ["Derived demand", "Input demand comes from final demand."],
+  ["Joint supply", "By-products: one output brings another."],
+  ["XED formula", "% change Qd of A ÷ % change price of B."],
+  ["Positive XED", "Substitutes."],
+  ["Negative XED", "Complements."],
+  ["Zero XED", "Unrelated."],
+] });
+Lib.quiz($("#qz2"), { qs: [
+  { q: "What is the measure of cross-elasticity of demand for good X in terms of good Y? (Feb/March 2022 · 12 · Q8, reworded)", opts: ["the change in the demand for X divided by the change in the price of Y", "the change in the price of X divided by the change in the demand for Y", "the percentage change in the demand for X divided by the percentage change in the price of Y", "the percentage change in the demand for Y divided by the percentage change in the price of X"], a: 2, why: "XED of X with respect to Y is the percentage change in demand for X divided by the percentage change in the price of Y." },
+  { q: "Which row correctly describes the relationship between two goods implied by the value of the cross elasticity of demand? (May/June 2023 · 11 · Q5, reworded)", opts: ["−2.0: weak complements", "−0.5: weak substitutes", "+0.5: weak substitutes", "+2.0: strong complements"], a: 2, why: "A positive value means substitutes and a value near zero means a weak link. A negative value means complements." },
+  { q: "Following the introduction of a 10% increase in charges for car parking in a city centre, the demand for bus journeys per day into the city rose from 800 to 1000. What was the cross elasticity of demand for bus journeys with respect to car parking charges? (May/June 2020 · 12 · Q8, reworded)", opts: ["−0.4", "+0.4", "+2.0", "+2.5"], a: 3, why: "Quantity demanded rose 25% (200 ÷ 800) and the price rose 10%, so XED = +25 ÷ 10 = +2.5." },
+  { q: "The cross elasticity of demand between bus travel and rail travel is +2. A rise in the price of bus fares caused the demand for rail travel to rise by 10%. Which change in bus fares would have caused this? (May/June 2023 · 12 · Q8, reworded)", opts: ["from 20 cents to 21 cents", "from 30 cents to 33 cents", "from 40 cents to 45 cents", "from 50 cents to 60 cents"], a: 0, why: "A 10% rise in rail demand with XED +2 needs a 5% rise in bus fares, which is 20 to 21." },
+  { q: "The cross-elasticity of demand of good S with respect to the price of good P is +1.5. The cross-elasticity of demand of good S with respect to the price of good R is −1.5. The cross-elasticity of demand of good P with respect to the price of good R is −1.5. What can be concluded about goods P, R and S? (May/June 2022 · 12 · Q10, reworded)", opts: ["S and P are complements; P and R are substitutes", "S and P are complements; R is an inferior good", "S and P are substitutes; P and R are complements", "S and P are substitutes; R is an inferior good"], a: 2, why: "Positive values mean substitutes (S and P) and negative values mean complements (S and R, P and R)." },
+  { q: "Which reason for the increase in demand for a smartphone is an example of joint demand? (May/June 2024 · 12 · Q11, reworded)", opts: ["a fall in its price", "a fall in the price of connecting to a network", "a fall in the price of parts used to make smartphones", "a rise in the price of a substitute"], a: 1, why: "Network connection is a complement, so its price falling raises demand for the phone." },
+  { q: "Goods X and Y are complements and have upward-sloping supply curves. What will be the effect on the equilibrium price and quantity of good X of an increase in the supply of good Y? (May/June 2022 · 14 · Q5, reworded)", opts: ["price decreases, quantity decreases", "price increases, quantity decreases", "price decreases, quantity increases", "price increases, quantity increases"], a: 3, why: "Cheaper Y raises demand for X, so price and quantity of X both rise." },
+  { q: "What does joint supply mean? (May/June 2023 · 13 · Q9, reworded)", opts: ["A firm can choose between producing a range of different goods", "A good has multiple uses", "A good is a by-product of the production process of another good", "Consumers consider two goods as complements"], a: 2, why: "Joint supply is where a by-product is produced with the main product." },
+  { q: "Butter and buttermilk are goods in joint supply. Supply curves in both markets slope upwards to the right. Health concerns cause people to reduce their consumption of butter. What are the initial consequences of this for supply in the markets for butter and buttermilk? (Feb/March 2023 · 12 · Q11, reworded)", opts: ["butter: move left along supply curve; buttermilk: move left along supply curve", "butter: move left along supply curve; buttermilk: shift left of the supply curve", "butter: shift left of the supply curve; buttermilk: move left along supply curve", "butter: shift left of the supply curve; buttermilk: shift left of the supply curve"], a: 1, why: "Lower butter demand cuts the price, a movement along butter's supply. Less butter means less buttermilk at every price, a left shift of its supply." },
+  { q: "Butter is a normal good. It is in joint demand with bread and in joint supply with buttermilk. The demand for butter increases because of a rise in consumer incomes. What are the effects of this increase on the prices of bread and buttermilk? (Feb/March 2024 · 12 · Q10, reworded)", opts: ["bread price decreases, buttermilk price decreases", "bread price decreases, buttermilk price increases", "bread price increases, buttermilk price decreases", "bread price increases, buttermilk price increases"], a: 2, why: "More butter demand raises bread demand (complement), so bread price rises. Butter output rises, so buttermilk supply rises and its price falls." },
+  { q: "Goods X, Y and Z all have downward-sloping demand curves and upward-sloping supply curves. Good X is in joint supply with good Y and in joint demand with good Z. There is an increase in the demand for good X. What will happen to the prices and sales of goods Y and Z? (May/June 2022 · 13 · Q10, reworded)", opts: ["Y: price falls, sales fall; Z: price rises, sales rise", "Y: price falls, sales rise; Z: price rises, sales rise", "Y: price rises, sales fall; Z: price falls, sales rise", "Y: price rises, sales rise; Z: price falls, sales fall"], a: 1, why: "More X means more of its by-product Y, so Y's supply rises (price falls, sales rise). Z is a complement of X, so demand for Z rises (price and sales rise)." },
+  { q: "Which pair of products are substitutes both in consumption and production? (May/June 2023 · 12 · Q6, reworded)", opts: ["barley and cotton", "gold and silver", "soap and toothpaste", "spinach and cabbage"], a: 3, why: "Consumers can replace one leafy vegetable with another and farmers can switch land between them." },
+] });
+
+Lib.initTabs();
+</script>
+</body></html>
