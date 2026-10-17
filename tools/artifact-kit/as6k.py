@@ -59,3 +59,15 @@ def practise_html(h1, h2, h3):
   <h2>4 · Calculations</h2><div id="c1"></div>
   <h2>5 · Multiple choice</h2><div id="qz1"></div>
 '''
+
+WFJS = '''
+function wfDraw(items, s) {
+  const max = Math.max(...items.map((it) => it[3] || 0)) * 1.15, Y = (v) => 250 - (v / max) * 190, w = 600 / items.length; let o = SV.line(50, 250, 740, 250);
+  items.forEach((it, i) => {
+    const [lab, val, kind, top, bot] = it, x = 70 + i * (w + 8), v = Math.max(0, Math.min(1, s.k - i));
+    if (v <= 0) return;
+    o += SV.rect(x, Y(top), w - 20, Math.max(2, Y(bot) - Y(top)), kind === "t" ? "f1" : val < 0 ? "f3" : "f2", op(0.65 * v)) + SV.text(x + (w - 20) / 2, Y(top) - 8, (kind === "d" && val > 0 ? "+" : "") + Lib.fmtN(val, 0), "lbl bd", { "text-anchor": "middle", ...op(v) }) + SV.text(x + (w - 20) / 2, 270, lab, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return o;
+}
+'''

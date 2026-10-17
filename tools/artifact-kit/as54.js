@@ -39,41 +39,56 @@ function adasPlot(st, o = {}) {
   return s;
 }
 
-/* ---------- transmission chain ---------- */
-function trDraw(s) {
-  const bx = (x, y, w, t, k, v) => SV.rect(x, y, w, 46, k, { rx: 8, ...op(0.55 * v) }) + SV.text(x + w / 2, y + 28, t, "lbl bd", { "text-anchor": "middle", ...op(v) });
-  const ar = (x1, y1, x2, y2, d, v) => SV.line(x1, y1, x2, y2, "c4", { "stroke-width": 2.5, ...op(v) }) + SV.arrowHead(x2, y2, d, "dot4");
-  let o = bx(20, 20, 180, "Central bank cuts the base rate", "f3", s.a) + ar(202, 43, 250, 43, "r", s.b) + bx(252, 20, 220, "Borrowing cheaper, saving less attractive", "f1", s.b) + ar(474, 43, 522, 43, "r", s.c) + bx(524, 20, 220, "Consumption and investment rise", "f2", s.c);
-  o += ar(634, 68, 634, 118, "d", s.d) + bx(480, 122, 264, "AD shifts right; currency may weaken", "f1", s.d) + ar(478, 145, 430, 145, "l", s.e) + bx(140, 122, 288, "Output and employment rise; prices may rise", "f3", s.e);
+function chainDraw(nodes, k) {
+  const H = 40, G = 16; let o = "";
+  nodes.forEach((t, i) => {
+    const v = Math.max(0, Math.min(1, k - i)); if (v <= 0) return;
+    const y = 8 + i * (H + G);
+    o += SV.rect(30, y, 700, H, ["f1", "f2", "f3"][i % 3], { rx: 8, ...op(0.55 * v) }) + SV.text(380, y + 25, t, "lbl bd", { "text-anchor": "middle", ...op(v) });
+    if (i > 0) o += SV.poly([[373, y - 10], [387, y - 10], [380, y - 2]], "dot4", op(v));
+  });
   return o;
 }
-$("#pic1").innerHTML = `<svg viewBox="0 0 760 190" role="img" aria-label="A cut in the base rate lowers borrowing costs, raises consumption and investment, and shifts AD right">${trDraw({ a: 1, b: 1, c: 1, d: 1, e: 1 })}</svg>`;
-Lib.stepper($("#stT"), { w: 760, h: 190, label: "The transmission of an interest rate cut", base: { a: 0, b: 0, c: 0, d: 0, e: 0 }, draw: trDraw, tween: 700, dwell: 4800, steps: [
-  { cap: "<b>The central bank cuts its base rate.</b> This is expansionary monetary policy.", s: { a: 1 } },
-  { cap: "<b>Borrowing becomes cheaper</b> (loans, mortgages) and saving less rewarding, so people have an incentive to spend.", s: { a: 1, b: 1 } },
-  { cap: "<b>Consumption and investment rise.</b> Households borrow to buy and firms to expand.", s: { a: 1, b: 1, c: 1 } },
-  { cap: "<b>AD shifts right.</b> Lower interest rates may also weaken the currency, raising net exports.", s: { a: 1, b: 1, c: 1, d: 1 } },
-  { cap: "<b>Output and employment rise,</b> and prices may rise if there is little spare capacity.", s: { a: 1, b: 1, c: 1, d: 1, e: 1 } },
-] });
+function chainStep(el, label, nodes, caps) {
+  Lib.stepper($(el), { w: 760, h: 16 + nodes.length * 56, label, base: { k: 0 }, draw: (s) => chainDraw(nodes, s.k), tween: 700, dwell: 5200, steps: nodes.map((n, i) => ({ cap: caps[i], s: { k: i + 1 } })) });
+}
+function chooser(p, items, tmpl, lab = "Strength of the case") {
+  const show = (i) => {
+    const it = items[i]; $$("#" + p + "B button").forEach((b, k) => b.classList.toggle("pri", k === i));
+    $("#" + p + "1").textContent = it[1]; $("#" + p + "2").textContent = it[2]; $("#" + p + "3").textContent = it[3]; $("#" + p + "v").textContent = tmpl(it);
+    const w = (it[4] / 5) * 340;
+    $("#" + p + "S").innerHTML = SV.text(210, 60, it[0], "lbl bd", { "text-anchor": "middle", style: "font-size:20px" }) + SV.rect(40, 100, 340, 18, "f3", { rx: 9, ...op(0.2) }) + SV.rect(40, 100, w, 18, "f1", { rx: 9, ...op(0.7) }) + SV.text(210, 146, lab + ": " + it[4] + " out of 5", "sm", { "text-anchor": "middle" });
+  };
+  $("#" + p + "B").innerHTML = items.map((t, i) => `<button class="b" data-i="${i}">${t[0]}</button>`).join("");
+  $$("#" + p + "B button").forEach((b) => (b.onclick = () => show(+b.dataset.i)));
+  show(0);
+}
 
-function mcDraw(s) { return adasPlot({ a: s.a, s: 0, g: 1, n: s.n }, { lras: false }); }
-$("#pic2").innerHTML = `<svg viewBox="0 0 760 300" role="img" aria-label="A higher interest rate shifts AD to the left, lowering the price level and output">${mcDraw({ a: -20, n: 1 })}</svg>`;
-Lib.stepper($("#stC"), { w: 760, h: 300, label: "Contractionary monetary policy to reduce inflation", base: { a: 0, n: 0 }, draw: mcDraw, tween: 900, dwell: 5400, steps: [
-  { cap: "<b>Start.</b> Inflation is above target and AD is strong.", s: { a: 0, n: 0 } },
-  { cap: "<b>The central bank raises interest rates.</b> Borrowing is dearer, saving is more attractive and the currency may rise. Consumption, investment and net exports fall: AD shifts <b>left</b>. The price level falls (inflation eases) but so does output.", s: { a: -20, n: 1 } },
-  { cap: "<b>The trade-off.</b> Lower inflation comes with slower growth and possibly higher unemployment in the short run, and the effect appears only after a time lag.", s: { a: -20, n: 1 } },
-] });
+$("#pic1").innerHTML = (() => {
+  const B = [["Interest rates", "The base rate and the rates that follow it", 30, "f1"], ["Money supply", "Open market operations and QE", 270, "f2"], ["Credit regulation", "Rules on bank lending", 510, "f3"]];
+  let o = ""; B.forEach(([n, d, x, c]) => { o += SV.rect(x, 20, 220, 90, c, { rx: 12, ...op(0.45) }) + SV.text(x + 110, 55, n, "lbl bd", { "text-anchor": "middle", style: "font-size:18px" }) + SV.text(x + 110, 82, d, "sm", { "text-anchor": "middle" }); });
+  o += SV.text(380, 142, "All three change the cost and availability of credit, so spending and AD change", "sm", { "text-anchor": "middle" });
+  return `<svg viewBox="0 0 760 160" role="img" aria-label="The three tools of monetary policy">${o}</svg>`;
+})();
+chainStep("#stT", "A cut in the base rate", ["The central bank cuts the base rate", "Commercial banks cut mortgage and loan rates; saving returns fall", "Borrowing is cheaper and saving less attractive", "Consumption and investment rise; asset prices rise", "The currency may fall, raising net exports; AD shifts right"], [
+  "<b>Expansionary monetary policy</b> begins with the base rate.", "<b>Pass-through</b> to the rates households and firms face.", "<b>Incentives change:</b> spend and invest rather than save.", "<b>Components of AD rise</b> and wealth effects add to spending.", "<b>AD shifts right</b>, with net exports helped by a weaker currency."]);
+chainStep("#stQ", "Quantitative easing", ["Interest rates are already close to zero", "The central bank creates money and buys government bonds", "Bond prices rise, so long-term interest rates fall", "Banks and investors have more money to lend and invest", "Spending and AD rise, if people borrow and spend"], [
+  "<b>The usual tool is exhausted</b> at the zero bound.", "<b>Open market purchases</b> put money into the banking system.", "<b>Lower long-term rates</b> make borrowing cheaper.", "<b>More credit</b> is available.", "<b>The effect depends</b> on confidence and the willingness to borrow."]);
+chainStep("#stC", "Tightening credit regulation", ["The central bank raises deposit and capital requirements", "Banks lend less and check borrowers more strictly", "Households find it harder to borrow, especially for housing", "Spending and house prices rise more slowly", "AD grows more slowly, reducing inflationary pressure"], [
+  "<b>Contractionary credit regulation.</b>", "<b>Credit supply</b> falls.", "<b>Borrowing</b> becomes harder, even at the same interest rate.", "<b>House purchases</b> slow.", "<b>AD growth falls</b> without changing the base rate."]);
 
 /* ---------- Lab 1 ---------- */
 function labM() {
-  if (!["ch", "rs"].every((i) => $("#" + i))) return;
-  const c = +$("#ch").value, r = +$("#rs").value / 100, a = Math.max(-30, Math.min(30, -c * 8 * r)), e = sdEq(a, 0), e0 = sdEq(0, 0);
-  $("#r1").textContent = Math.abs(a) < 0.5 ? "No shift" : a > 0 ? "Shifts right" : "Shifts left"; $("#r2").textContent = Lib.fmtN(e.q, 1); $("#r3").textContent = Lib.fmtN(e.p, 1);
-  $("#rv").textContent = Math.abs(a) < 0.5 ? "Either the base rate is unchanged or spending does not respond to it, so AD does not shift." : `A ${c < 0 ? "cut" : "rise"} of ${Math.abs(c)} percentage points, with spending ${Lib.fmtN(r * 100, 0)}% responsive to interest rates, shifts AD ${a > 0 ? "right (expansionary)" : "left (contractionary)"}. Real output ${e.q > e0.q ? "rises" : "falls"} to ${Lib.fmtN(e.q, 1)} and the price level ${e.p > e0.p ? "rises" : "falls"} to ${Lib.fmtN(e.p, 1)}. ${r < 0.4 ? "Households and firms respond weakly, so the policy has a small effect: a limit of monetary policy." : ""}`;
-  $("#labA").innerHTML = adasPlot({ a, s: 0, g: 1, n: 1 }, { lras: false });
+  if (!["rt", "mg", "sv"].every((i) => $("#" + i))) return;
+  const r = +$("#rt").value / 10, mg = +$("#mg").value, sv = +$("#sv").value, mi = (mg * r) / 100 / 12, si = (sv * r) / 100 * 0.5, base = (mg * 4) / 100 / 12, bs = (sv * 4) / 100 * 0.5, net = (si - bs) / 12 - (mi - base);
+  $("#r1").textContent = "$" + Lib.fmtN(mi, 0); $("#r2").textContent = "$" + Lib.fmtN(si, 0); $("#r3").textContent = (net >= 0 ? "+" : "−") + "$" + Lib.fmtN(Math.abs(net), 0);
+  $("#rv").textContent = `At a rate of ${Lib.fmtN(r, 1)}% the monthly mortgage interest on $${Lib.fmtN(mg, 0)} is $${Lib.fmtN(mi, 0)}, compared with $${Lib.fmtN(base, 0)} at 4%. Savings earn about half the base rate here ($${Lib.fmtN(si, 0)} a year). The household's monthly budget is ${net >= 0 ? "better" : "worse"} by $${Lib.fmtN(Math.abs(net), 0)}. ${net < 0 ? "A rate rise reduces the spending power of borrowers, which is how it reduces AD." : net > 0 ? "A rate cut raises the spending power of borrowers." : ""}`;
+  const mx = Math.max(mi, si / 12, 1), W = (v) => (v / mx) * 250, bar = (y, l, v, c) => SV.text(10, y + 15, l, "sm") + SV.rect(150, y, Math.max(2, W(v)), 24, c, op(0.7)) + SV.text(156 + W(v), y + 17, "$" + Lib.fmtN(v, 0), "lbl bd");
+  $("#labA").innerHTML = bar(40, "Mortgage interest / month", mi, "f3") + bar(100, "Savings interest / month", si / 12, "f1");
 }
-Lib.slider($("#g1"), { id: "ch", label: "Change in the base rate, percentage points ", min: -3, max: 3, step: 0.5, value: 2, fmt: (v) => (v > 0 ? "+" : "") + v, onInput: labM });
-Lib.slider($("#g2"), { id: "rs", label: "How responsive spending is to interest rates, % ", min: 10, max: 100, step: 10, value: 70, fmt: (v) => v + "%", onInput: labM });
+Lib.slider($("#g1"), { id: "rt", label: "Base rate, % × 10 ", min: 10, max: 100, step: 5, value: 40, fmt: (v) => Lib.fmtN(v / 10, 1) + "%", onInput: labM });
+Lib.slider($("#g2"), { id: "mg", label: "Variable-rate mortgage, $ ", min: 50000, max: 400000, step: 25000, value: 200000, fmt: (v) => Lib.fmtN(v, 0), onInput: labM });
+Lib.slider($("#g3"), { id: "sv", label: "Savings, $ ", min: 0, max: 100000, step: 5000, value: 20000, fmt: (v) => Lib.fmtN(v, 0), onInput: labM });
 labM();
 
 /* ---------- Lab 2 ---------- */
@@ -86,44 +101,54 @@ function labI() {
   [["Nominal rate", n, "f1"], ["Inflation", f, "f3"], ["Real rate", r, r >= 0 ? "f2" : "f3"]].forEach(([l, v, c], i) => (o += SV.rect(70 + i * 110, v >= 0 ? Y(v) : 120, 80, Math.abs(Y(v) - 120), c, op(0.65)) + SV.text(110 + i * 110, 185, l, "sm", { "text-anchor": "middle" }) + SV.text(110 + i * 110, v >= 0 ? Y(v) - 6 : 120 + Math.abs(Y(v) - 120) + 14, Lib.fmtN(v, 1) + "%", "lbl bd", { "text-anchor": "middle" })));
   $("#labB").innerHTML = o;
 }
-Lib.slider($("#g3"), { id: "nm", label: "Nominal interest rate, % ", min: 0, max: 12, step: 0.5, value: 4, fmt: (v) => v + "%", onInput: labI });
-Lib.slider($("#g4"), { id: "fl", label: "Inflation rate, % ", min: 0, max: 12, step: 0.5, value: 6, fmt: (v) => v + "%", onInput: labI });
+Lib.slider($("#g4"), { id: "nm", label: "Nominal interest rate, % ", min: 0, max: 12, step: 0.5, value: 4, fmt: (v) => v + "%", onInput: labI });
+Lib.slider($("#g5"), { id: "fl", label: "Inflation rate, % ", min: 0, max: 12, step: 0.5, value: 6, fmt: (v) => v + "%", onInput: labI });
 labI();
 
-/* ---------- Practise ---------- */
-Lib.classify($("#cl1"), { prompt: "Expansionary or contractionary monetary policy?", buckets: [{"label": "Expansionary"}, {"label": "Contractionary"}], items: [{"text": "A cut in the base rate", "b": 0}, {"text": "A rise in the base rate", "b": 1}, {"text": "Quantitative easing", "b": 0}, {"text": "Reducing the money supply", "b": 1}, {"text": "Looser rules on mortgage lending", "b": 0}, {"text": "Tighter credit regulation for banks", "b": 1}, {"text": "Lowering interest rates to end deflation", "b": 0}, {"text": "Raising rates to reduce inflation", "b": 1}], done: "Expansionary: cheaper, easier credit. Contractionary: dearer, tighter credit." });
-Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Monetary policy", "Use of interest rates, money supply and credit regulation"], ["Base rate", "The central bank's policy interest rate"], ["Quantitative easing", "Creating money to buy bonds and raise the money supply"], ["Credit regulation", "Rules on how banks lend"], ["Real interest rate", "Nominal rate minus inflation"], ["Time lag", "Delay before a policy takes full effect"]], done: "Learn these terms." });
-Lib.order($("#o1"), { prompt: "Put the effect of a rise in interest rates in order.", items: ["The central bank raises the base rate", "Borrowing becomes dearer and saving more attractive", "Consumption and investment fall", "AD shifts to the left", "The price level and inflation fall"], done: "Higher rates reduce spending and AD, lowering inflation." });
+/* ---------- Lab 3 ---------- */
+chooser("h", [
+  ["Interest rates", "A change in the base rate alters borrowing costs and the return on saving", "Cut: expansionary", "Responses may be weak if confidence is low; time lags", 5],
+  ["Quantitative easing", "The central bank buys bonds, raising the money supply and lowering long-term rates", "Expansionary", "Banks may not lend; may raise asset prices more than spending", 3],
+  ["Open market sales of bonds", "The central bank sells bonds, taking money out of the banking system", "Contractionary", "Raises yields; effects on spending slow", 3],
+  ["Credit regulation (looser)", "Easier lending rules let more people borrow", "Expansionary", "Risk of excess lending and asset bubbles", 4],
+  ["Credit regulation (tighter)", "Stricter rules limit borrowing", "Contractionary", "May reduce lending to good borrowers", 4],
+  ["Inflation target", "Anchors expectations of future inflation", "Neither (framework)", "Only works if the bank is credible and willing to act", 3]
+], (it) => `${it[0]}: ${it[1].toLowerCase()}. It is ${it[2].toLowerCase()}. Main drawback: ${it[3].toLowerCase()}.`, "Importance as a tool");
+Lib.classify($("#cl1"), { prompt: "Which tool of monetary policy is it?", buckets: [{"label": "Interest rates"}, {"label": "Money supply"}, {"label": "Credit regulation"}], items: [{"text": "Raising the base rate", "b": 0}, {"text": "Quantitative easing", "b": 1}, {"text": "Lowering the deposit needed for a mortgage", "b": 2}, {"text": "Selling government bonds to banks", "b": 1}, {"text": "Cutting the rate at which the central bank lends to banks", "b": 0}, {"text": "Higher capital requirements for banks", "b": 2}], done: "Interest rates: the price of money. Money supply: the amount of money. Credit regulation: rules on lending." });
+Lib.classify($("#cl2"), { prompt: "Expansionary or contractionary monetary policy?", buckets: [{"label": "Expansionary"}, {"label": "Contractionary"}], items: [{"text": "A cut in the base rate", "b": 0}, {"text": "A rise in the base rate", "b": 1}, {"text": "Quantitative easing", "b": 0}, {"text": "Reducing the money supply", "b": 1}, {"text": "Looser rules on mortgage lending", "b": 0}, {"text": "Tighter credit regulation for banks", "b": 1}, {"text": "Lowering interest rates to end deflation", "b": 0}, {"text": "Raising rates to reduce inflation", "b": 1}], done: "Expansionary: cheaper, easier credit. Contractionary: dearer, tighter credit." });
+Lib.order($("#o1"), { prompt: "Put the effect of a rise in interest rates in order.", items: ["The central bank raises the base rate", "Banks raise mortgage and loan rates", "Borrowing becomes dearer and saving more attractive", "Consumption and investment fall", "AD shifts to the left"], done: "Higher rates reduce spending and AD." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Monetary policy", "Use of interest rates, money supply and credit regulation"], ["Base rate", "The central bank's policy interest rate"], ["Quantitative easing", "Creating money to buy bonds and raise the money supply"], ["Credit regulation", "Rules on how banks lend"], ["Real interest rate", "Nominal rate minus inflation"], ["Inflation target", "A published goal for the inflation rate"]], done: "Learn these terms." });
 Lib.calc($("#c1"), { qs: [
   {"q": "The nominal interest rate is 5% and inflation 3%. What is the real interest rate (%)?", "a": 2, "unit": "%", "tol": 0.1, "hint": "5 − 3.", "sol": "<b>2%</b>."},
+  {"q": "The nominal rate is 3% and inflation 7%. What is the real interest rate (%)?", "a": -4, "unit": "%", "tol": 0.1, "hint": "3 − 7.", "sol": "<b>−4%</b>."},
   {"q": "A firm borrows $200,000 at 6%. What is the yearly interest ($)?", "a": 12000, "unit": "$", "tol": 1, "hint": "0.06 × 200,000.", "sol": "<b>$12,000</b>."},
   {"q": "The rate rises to 8%. What is the new yearly interest ($)?", "a": 16000, "unit": "$", "tol": 1, "hint": "0.08 × 200,000.", "sol": "<b>$16,000</b>."},
   {"q": "By what % has the cost of borrowing risen?", "a": 33.3, "unit": "%", "tol": 0.3, "hint": "4,000 ÷ 12,000.", "sol": "<b>33.3%</b>."},
 ] });
 Lib.quiz($("#qz1"), { qs: [
   { q: "Monetary policy uses:", opts: ["Interest rates, money supply and credit regulation", "Taxes and spending", "Training schemes", "Tariffs"], a: 0, why: "Not fiscal." },
-  { q: "A rise in interest rates will usually:", opts: ["Shift AD left", "Shift AD right", "Shift LRAS right", "Raise investment"], a: 0, why: "Borrowing dearer." },
+  { q: "A rise in the base rate will usually:", opts: ["Make borrowing dearer", "Make borrowing cheaper", "Raise investment", "Lower saving"], a: 0, why: "The cost of credit rises." },
   { q: "Quantitative easing is:", opts: ["Expansionary", "Contractionary", "A tax", "A subsidy"], a: 0, why: "Raises the money supply." },
-  { q: "A limit of monetary policy is:", opts: ["Time lags", "Instant effect", "No effect on AD", "It lowers the deficit"], a: 0, why: "Delays." },
-  { q: "Which inflation is monetary policy least suited to?", opts: ["Cost-push", "Demand-pull", "Both equally", "Neither"], a: 0, why: "Higher rates do not cut costs." },
+  { q: "Credit regulation is:", opts: ["Rules on how banks lend", "A tax on loans", "The base rate", "A subsidy to borrowers"], a: 0, why: "Controls access to credit." },
+  { q: "A negative real interest rate means:", opts: ["Inflation is above the nominal rate", "The nominal rate is zero", "Savers gain", "Borrowers lose"], a: 0, why: "Borrowers gain, savers lose in real terms." },
 ] });
 Lib.cards($("#fc1"), { cards: [
   ["Tools", "Rates, money supply, credit rules."],
-  ["Expansionary", "AD right."],
-  ["Contractionary", "AD left."],
+  ["Base rate", "Central bank's policy rate."],
   ["QE", "Creates money for bonds."],
   ["Credit rules", "Looser = expansionary."],
   ["Real rate", "Nominal − inflation."],
-  ["Lags", "12 to 18 months."],
-  ["Limits", "Confidence, zero bound."],
+  ["Pass-through", "Base rate feeds into loan and saving rates."],
+  ["Inflation target", "Anchors expectations."],
+  ["Central bank", "Often independent."],
 ] });
 Lib.quiz($("#qz2"), { qs: [
   { q: "A country's central bank decides to reduce the level of credit regulation. What is this an example of? (Feb/March 2025 · 12 · Q23, reworded)", opts: ["contractionary fiscal policy", "contractionary monetary policy", "expansionary fiscal policy", "expansionary monetary policy"], a: 3, why: "Looser credit rules make borrowing easier, which is expansionary monetary policy." },
-  { q: "To counter deflation a central bank uses expansionary monetary policy. What is likely to result? (May/June 2024 · 11 · Q20, reworded)", opts: ["a higher cost of borrowing", "an increase in aggregate demand", "an appreciation of the exchange rate", "an increase in government debt"], a: 1, why: "Lower interest rates and more credit raise AD." },
-  { q: "Why will a contractionary monetary policy reduce inflation? (May/June 2022 · 11 · Q29, reworded)", opts: ["Banks will lend more", "Consumers will have higher disposable income", "Consumers will pay more tax", "Consumers will save more"], a: 3, why: "Higher interest rates encourage saving and reduce spending, lowering AD." },
-  { q: "The diagram shows the current equilibrium of an economy. The government introduces a contractionary monetary policy. What is the most likely outcome? (May/June 2023 · 12 · Q27, reworded)", opts: ["a fall in investment and a fall in inflation", "a fall in investment and a rise in inflation", "a rise in investment and a fall in inflation", "a rise in investment and a rise in inflation"], a: 0, why: "Higher interest rates raise the cost of borrowing, so investment falls, AD shifts left and inflationary pressure falls." },
-  { q: "A government has a target to reduce the rate of inflation. Why might it not want to raise interest rates to achieve this target? (May/June 2025 · 13 · Q25, reworded)", opts: ["aggregate demand may fall", "aggregate supply may fall", "saving may fall", "the exchange rate may fall"], a: 1, why: "Higher rates raise firms' borrowing costs and can reduce investment, which may reduce capacity (aggregate supply), shifting SRAS left and worsening cost-push inflation." },
-  { q: "What would make a policy of raising interest rates less likely to be effective in reducing inflation? (Oct/Nov 2021 · 12 · Q29, reworded)", opts: ["Aggregate supply is increasing faster than aggregate demand", "Consumers expect prices to rise even faster in the future", "Consumers' spending is largely paid for on credit", "Interest rates are still higher abroad"], a: 1, why: "If consumers expect faster price rises, they bring forward spending, offsetting the effect of higher rates." },
-  { q: "Why are higher interest rates together with increased taxation on expenditure likely to cause domestic deflation? (May/June 2021 · 12 · Q28, reworded)", opts: ["because the contractionary monetary policy will over-ride the expansionary fiscal policy", "because the monetary and fiscal policies involved will reinforce each other", "because the expansionary monetary policy will over-ride the contractionary fiscal policy", "because the monetary and fiscal policies involved will cancel each other out"], a: 1, why: "Both are contractionary, so they reinforce each other, strongly reducing AD." },
-  { q: "Which type of policy would have the most immediate effect in dealing with a deflationary economic downturn? (May/June 2021 · 13 · Q27, reworded)", opts: ["increasing the government's budget surplus", "increasing borrowing by assisting banks to lend more", "investing in long-term projects to improve transport networks", "switching the burden of taxation from earning to spending"], a: 1, why: "Helping banks to lend more raises credit and spending quickly. Long-term projects take years." },
+  { q: "What is likely to cause a decrease in aggregate demand? (May/June 2020 · 12 · Q19, reworded)", opts: ["an appreciation in the exchange rate", "an improvement in consumer confidence", "an increase in government expenditure", "an increase in the money supply"], a: 0, why: "A higher exchange rate lowers net exports, reducing AD. The other options raise AD." },
+  { q: "The diagram shows a shift in an economy's aggregate demand curve from AD1 to AD2 (to the right). What could not be a cause of the shift? (Feb/March 2022 · 12 · Q23, reworded)", opts: ["a decrease in income tax", "a decrease in the price of goods", "an increase in money wage rates", "an increase in the money supply"], a: 1, why: "A change in the price level causes a movement along AD, not a shift." },
+  { q: "What is most likely to cause a rise in a country's exchange rate? (Feb/March 2023 · 12 · Q22, reworded)", opts: ["a fall in its direct taxes", "a fall in its export orders", "a rise in its interest rates", "a rise in its imports"], a: 2, why: "Higher interest rates attract funds from abroad, raising demand for the currency." },
+  { q: "A country operates a floating exchange rate. What will cause the demand curve for the country's currency to shift left in the foreign exchange market? (May/June 2020 · 13 · Q22, reworded)", opts: ["a decrease in the country's interest rate", "a decrease in the country's money supply", "an increase in the country's export sales", "an increase in the country's import purchases"], a: 0, why: "Lower interest rates reduce the return on holding the currency, so demand falls." },
+  { q: "Which policy will not cause a reduction in the rate of inflation? (May/June 2021 · 12 · Q30, reworded)", opts: ["increasing income tax", "reducing government spending", "reducing interest rates", "removing subsidies"], a: 2, why: "Cutting interest rates raises AD, which would add to inflation." },
+  { q: "The table shows the consumer prices index (CPI) for an economy: 2016 100, 2017 103, 2018 101, 2019 97. Which action is the government most likely to take to achieve price stability? (Feb/March 2021 · 12 · Q28, reworded)", opts: ["appreciate the exchange rate", "decrease the budget deficit", "increase the money supply", "increase the rate of interest"], a: 2, why: "Prices are falling, so an increase in the money supply would raise AD and push prices up." },
+  { q: "In an economy with an interest rate of 4% per annum, the rate of inflation falls from 5% to 3% per annum. What will be a benefit of this fall? (May/June 2020 · 12 · Q27, reworded)", opts: ["Menu costs will fall to zero.", "People on fixed incomes will be better off in real terms.", "Savers will gain in real terms.", "The purchasing power of the currency will rise."], a: 2, why: "The real interest rate rises from −1% to +1%, so savers now earn a positive real return." },
 ] });

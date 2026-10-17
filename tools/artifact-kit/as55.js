@@ -39,74 +39,111 @@ function adasPlot(st, o = {}) {
   return s;
 }
 
-function slDraw(s) { return adasPlot({ a: s.a, s: s.s, l: s.l, g: 1, n: s.n }); }
-$("#pic1").innerHTML = `<svg viewBox="0 0 760 300" role="img" aria-label="LRAS and SRAS shifting right, raising output and lowering the price level">${slDraw({ a: 0, s: 15, l: 15, n: 1 })}</svg>`;
-$("#pic2").innerHTML = `<svg viewBox="0 0 760 300" role="img" aria-label="AD shifts right first, then supply shifts right">${slDraw({ a: 10, s: 15, l: 15, n: 1 })}</svg>`;
-Lib.stepper($("#stL"), { w: 760, h: 300, label: "A supply-side policy shifts LRAS and SRAS to the right", base: { a: 0, s: 0, l: 0, n: 0 }, draw: slDraw, tween: 900, dwell: 5600, steps: [
-  { cap: "<b>Start.</b> AD and SRAS meet at output 50 and price level 50. Potential output (LRAS) is 75.", s: { a: 0, s: 0, l: 0, n: 0 } },
-  { cap: "<b>Supply-side policy.</b> Better training, infrastructure and technology raise productivity and capacity. SRAS and LRAS shift <b>right</b>.", s: { a: 0, s: 15, l: 15, n: 1 } },
-  { cap: "<b>The result:</b> real output rises, the price level falls and employment rises. Potential output has increased: long-run economic growth.", s: { a: 0, s: 15, l: 15, n: 1 } },
-] });
-Lib.stepper($("#stS"), { w: 760, h: 300, label: "The short-run demand effect and the long-run supply effect", base: { a: 0, s: 0, l: 0, n: 0 }, draw: slDraw, tween: 900, dwell: 5600, steps: [
-  { cap: "<b>Start.</b> The economy is in equilibrium.", s: { a: 0, s: 0, l: 0, n: 0 } },
-  { cap: "<b>Short run.</b> The government spends on roads and training. This is government spending, so <b>AD shifts right</b> first: output rises but so may the price level.", s: { a: 10, s: 0, l: 0, n: 1 } },
-  { cap: "<b>Long run.</b> As workers become more productive and transport improves, <b>SRAS and LRAS shift right</b>. Output rises further and the price level is held down.", s: { a: 10, s: 15, l: 15, n: 1 } },
-] });
-
-/* ---------- Lab 1 ---------- */
-function labP() {
-  if (!["tr", "in", "rd", "dr"].every((i) => $("#" + i))) return;
-  const [t, f, r, d] = ["tr", "in", "rd", "dr"].map((k) => +$("#" + k).value), raw = 0.5 * t + 0.4 * f + 0.5 * r + 0.3 * d, sh = Math.min(25, raw), cost = t + f + r + d * 0.5;
-  $("#r1").textContent = Lib.fmtN(sh, 1) + " units right"; $("#r2").textContent = Lib.fmtN(75 + sh, 1); $("#r3").textContent = "$" + Lib.fmtN(cost, 0) + "bn";
-  $("#rv").textContent = sh < 0.5 ? "No spending on the tools, so LRAS stays at 75." : `Spending of $${Lib.fmtN(cost, 0)}bn shifts LRAS right by ${Lib.fmtN(sh, 1)} to ${Lib.fmtN(75 + sh, 1)}. The effect takes years and has diminishing returns (it is capped at 25). In the short run the spending also raises AD, so inflation could rise before capacity grows.`;
-  $("#labA").innerHTML = adasPlot({ a: 0, s: sh * 0.6, l: sh, g: 1, n: 1 });
+function chainDraw(nodes, k) {
+  const H = 40, G = 16; let o = "";
+  nodes.forEach((t, i) => {
+    const v = Math.max(0, Math.min(1, k - i)); if (v <= 0) return;
+    const y = 8 + i * (H + G);
+    o += SV.rect(30, y, 700, H, ["f1", "f2", "f3"][i % 3], { rx: 8, ...op(0.55 * v) }) + SV.text(380, y + 25, t, "lbl bd", { "text-anchor": "middle", ...op(v) });
+    if (i > 0) o += SV.poly([[373, y - 10], [387, y - 10], [380, y - 2]], "dot4", op(v));
+  });
+  return o;
 }
-[["g1", "tr", "Education and training, $bn ", 10], ["g2", "in", "Infrastructure, $bn ", 10], ["g3", "rd", "Technology and R&D support, $bn ", 5], ["g4", "dr", "Deregulation and reforms (effort), index ", 10]].forEach(([el, id, lab, v]) => Lib.slider($("#" + el), { id, label: lab, min: 0, max: 30, step: 5, value: v, fmt: (z) => z, onInput: labP }));
-labP();
-
-/* ---------- Lab 2 ---------- */
-const PL = [["Education and training", "Human capital", "More skilled, productive workers", "Takes years; may not match skills needed"], ["Infrastructure spending", "Capital and technology", "Lower costs; better access to markets", "High cost; long delay; raises the deficit"], ["Lower income tax", "Incentive", "More work effort and enterprise", "May widen inequality; reduces revenue"], ["Deregulation", "Market reform", "Easier entry, more competition and efficiency", "Weaker consumer or environmental protection"], ["Privatisation", "Market reform", "Profit motive and competition cut costs", "Possible private monopoly power"], ["Cutting benefits for the long-term unemployed", "Incentive", "Encourages people to seek work", "Hardship; may not create jobs"]];
-function showP(i) {
-  const [n, t, h, d] = PL[i]; $$("#pB button").forEach((b, k) => b.classList.toggle("pri", k === i));
-  $("#t1").textContent = t; $("#t2").textContent = h; $("#t3").textContent = d; $("#tv").textContent = `${n}: it raises supply through "${h.toLowerCase()}", shifting LRAS right over time. The main drawback is that it ${d.toLowerCase()}.`;
-  $("#labB").innerHTML = SV.rect(60, 50, 300, 90, "f2", { rx: 12, ...op(0.45) }) + SV.text(210, 105, n, "lbl bd", { "text-anchor": "middle", style: "font-size:18px" }) + SV.text(210, 170, "Type: " + t, "sm", { "text-anchor": "middle" });
+function chainStep(el, label, nodes, caps) {
+  Lib.stepper($(el), { w: 760, h: 16 + nodes.length * 56, label, base: { k: 0 }, draw: (s) => chainDraw(nodes, s.k), tween: 700, dwell: 5200, steps: nodes.map((n, i) => ({ cap: caps[i], s: { k: i + 1 } })) });
 }
-$("#pB").innerHTML = PL.map((p, i) => `<button class="b" data-i="${i}">${p[0]}</button>`).join("");
-$$("#pB button").forEach((b) => (b.onclick = () => showP(+b.dataset.i)));
-showP(0);
+function chooser(p, items, tmpl, lab = "Strength of the case") {
+  const show = (i) => {
+    const it = items[i]; $$("#" + p + "B button").forEach((b, k) => b.classList.toggle("pri", k === i));
+    $("#" + p + "1").textContent = it[1]; $("#" + p + "2").textContent = it[2]; $("#" + p + "3").textContent = it[3]; $("#" + p + "v").textContent = tmpl(it);
+    const w = (it[4] / 5) * 340;
+    $("#" + p + "S").innerHTML = SV.text(210, 60, it[0], "lbl bd", { "text-anchor": "middle", style: "font-size:20px" }) + SV.rect(40, 100, 340, 18, "f3", { rx: 9, ...op(0.2) }) + SV.rect(40, 100, w, 18, "f1", { rx: 9, ...op(0.7) }) + SV.text(210, 146, lab + ": " + it[4] + " out of 5", "sm", { "text-anchor": "middle" });
+  };
+  $("#" + p + "B").innerHTML = items.map((t, i) => `<button class="b" data-i="${i}">${t[0]}</button>`).join("");
+  $$("#" + p + "B button").forEach((b) => (b.onclick = () => show(+b.dataset.i)));
+  show(0);
+}
 
-/* ---------- Practise ---------- */
-Lib.classify($("#cl1"), { prompt: "Supply-side policy or not?", buckets: [{"label": "Supply-side"}, {"label": "Demand-side"}], items: [{"text": "Funding apprenticeships", "b": 0}, {"text": "Cutting interest rates", "b": 1}, {"text": "Building new ports", "b": 0}, {"text": "A cut in VAT to boost spending", "b": 1}, {"text": "Tax relief for R&D", "b": 0}, {"text": "Deregulating industries", "b": 0}, {"text": "Higher government spending on benefits", "b": 1}, {"text": "Privatising state industries", "b": 0}], done: "Supply-side policies raise capacity and productivity; demand-side policies change spending." });
-Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Supply-side policy", "Measures to increase aggregate supply"], ["LRAS", "Potential output; shifted by supply-side policy"], ["Human capital", "Skills and knowledge of the workforce"], ["Deregulation", "Removing rules to increase competition and efficiency"], ["Privatisation", "Transferring state industries to private ownership"], ["Time lag", "Delay before supply improvements appear"]], done: "Learn these terms." });
+$("#pic1").innerHTML = (() => {
+  const B = [["Interventionist", "Government spends: education, training, infrastructure, research", 30, "f1"], ["Market-based", "Incentives and competition: tax cuts, deregulation, privatisation", 270, "f2"], ["Result", "Productivity and capacity rise: LRAS shifts right", 510, "f3"]];
+  let o = ""; B.forEach(([n, d, x, c]) => { o += SV.rect(x, 20, 220, 110, c, { rx: 12, ...op(0.45) }) + SV.text(x + 110, 52, n, "lbl bd", { "text-anchor": "middle", style: "font-size:17px" }); d.split(": ").forEach((p, i) => { o += SV.text(x + 110, 80 + i * 20, i === 0 ? p + ":" : p, "sm", { "text-anchor": "middle" }); }); });
+  return `<svg viewBox="0 0 760 150" role="img" aria-label="Interventionist and market-based tools both raise productivity and capacity">${o}</svg>`;
+})();
+chainStep("#stA", "Government spending on training", ["The government funds training and apprenticeships", "Workers gain skills that employers need", "Labour productivity rises and structural unemployment falls", "Unit costs fall and potential output rises", "LRAS shifts to the right: long-run growth"], [
+  "<b>Interventionist policy:</b> the state pays for training.", "<b>Human capital</b> improves: the quality of labour rises.", "<b>More output per worker</b> and a better match of skills and jobs.", "<b>Firms can produce more</b> at lower cost.", "<b>Potential output grows</b>, but only after years of delay."]);
+chainStep("#stB", "Deregulation and competition", ["The government removes barriers to entry and red tape", "More firms can enter the market", "Competition increases", "Firms cut costs and innovate to survive", "Efficiency and capacity rise; prices may fall"], [
+  "<b>Market-based policy</b> that reduces the role of rules.", "<b>Entry</b> becomes cheaper and easier.", "<b>Rivals</b> compete for customers.", "<b>Efficiency</b> rises under pressure.", "<b>The risk:</b> weaker consumer, worker or environmental protection."]);
+chainStep("#stC", "A tax cut as a supply-side incentive", ["Income tax rates on earnings are cut", "The reward for working rises; the opportunity cost of leisure rises", "More people join the labour force and some work longer hours", "The quantity of labour supplied rises", "Potential output rises, if jobs are available"], [
+  "<b>Supply-side aim:</b> incentives, not spending.", "<b>Incentive effect</b> on work effort.", "<b>Participation</b> and hours increase.", "<b>The labour supply</b> grows.", "<b>The limit:</b> people may simply spend the extra income (a demand effect), and jobs must exist."]);
+
+function labT() {
+  if (!["cs", "gn", "dl"].every((i) => $("#" + i))) return;
+  const cost = +$("#cs").value, gain = +$("#gn").value, dl = +$("#dl").value; let cum = -cost, first = null, rows = [];
+  for (let y = 1; y <= 10; y++) { if (y > dl) cum += gain; rows.push(cum); if (cum >= 0 && first === null) first = y; }
+  $("#r1").textContent = Lib.fmtN(cost / gain, 1) + " years"; $("#r2").textContent = (cum >= 0 ? "+" : "−") + "$" + Lib.fmtN(Math.abs(cum), 0) + "m"; $("#r3").textContent = first === null ? "None in 10 years" : "Year " + first;
+  $("#rv").textContent = `The programme costs $${cost}m now and raises output by $${gain}m a year, starting after a delay of ${dl} years. It takes ${Lib.fmtN(cost / gain, 1)} years of gains to repay the cost, so the first net gain is ${first === null ? "beyond year 10" : "in year " + first}. After 10 years the net result is ${cum >= 0 ? "+" : "−"}$${Lib.fmtN(Math.abs(cum), 0)}m. A longer delay or lower gain makes supply-side spending harder to justify.`;
+  const mx = Math.max(cost, Math.abs(Math.min(...rows)), Math.max(...rows), 1), Y = (v) => 110 - (v / mx) * 85; let o = SV.line(30, Y(0), 400, Y(0));
+  rows.forEach((v, i) => (o += SV.rect(40 + i * 35, v >= 0 ? Y(v) : Y(0), 26, Math.max(2, Math.abs(Y(v) - Y(0))), v >= 0 ? "f2" : "f3", op(0.7))));
+  o += SV.text(30, 205, "Cumulative net gain by year (1 to 10)", "sm"); $("#labA").innerHTML = o;
+}
+Lib.slider($("#g1"), { id: "cs", label: "Cost of the programme, $m ", min: 20, max: 200, step: 10, value: 100, fmt: (v) => v, onInput: labT });
+Lib.slider($("#g2"), { id: "gn", label: "Yearly gain once it works, $m ", min: 5, max: 60, step: 5, value: 25, fmt: (v) => v, onInput: labT });
+Lib.slider($("#g3"), { id: "dl", label: "Delay before gains start, years ", min: 0, max: 8, step: 1, value: 3, fmt: (v) => v, onInput: labT });
+labT();
+
+chooser("h", [
+  ["Education and training", "Interventionist; labour (quality)", "Raises skills and productivity", "Costly; years before payoff; skills may not match", 5],
+  ["Infrastructure", "Interventionist; capital", "Lowers costs and opens markets", "High cost; long delay; raises the deficit", 4],
+  ["Research and technology support", "Interventionist; capital and enterprise", "Faster innovation", "Uncertain returns", 3],
+  ["Lower income tax", "Market-based; labour (quantity)", "Raises the reward for work", "Revenue falls; may widen inequality", 3],
+  ["Deregulation", "Market-based; enterprise", "More competition and lower costs", "Weaker consumer or environmental protection", 4],
+  ["Privatisation", "Market-based; capital and enterprise", "Profit motive and competition cut costs", "Possible private monopoly power", 4],
+  ["Reduced benefits for the long-term unemployed", "Market-based; labour (quantity)", "Encourages people to look for work", "Hardship; may not create jobs", 2],
+  ["Free trade zones", "Market-based; capital and enterprise", "Attract investment and cut bureaucracy", "May only move activity around", 3]
+], (it) => `${it[0]}: ${it[1].toLowerCase()}. It raises supply by ${it[2].toLowerCase()}. The main drawback is that it ${it[3].toLowerCase()}.`, "Long-run effect on capacity");
+chooser("k", [
+  ["Funding apprenticeships", "Supply-side", "Raise skills and productivity", "LRAS and SRAS", 5],
+  ["Cutting the interest rate to boost spending", "Demand-side", "Raise total spending", "AD", 1],
+  ["A tax cut to raise work incentives", "Supply-side", "Raise labour supply", "LRAS", 4],
+  ["A tax cut to boost spending in a recession", "Demand-side", "Raise consumption", "AD", 1],
+  ["Building new railways to cut firms' costs", "Supply-side (also boosts AD in the short run)", "Raise productive capacity", "LRAS (and AD at first)", 4],
+  ["Raising benefits to support spending", "Demand-side", "Raise consumption", "AD", 1]
+], (it) => `${it[0]}: ${it[1].toLowerCase()}. Its aim is to ${it[2].toLowerCase()}, so the curve that shifts is ${it[3]}.`, "How supply-side the policy is (5 = fully)");
+Lib.classify($("#cl1"), { prompt: "Market-based or interventionist?", buckets: [{"label": "Market-based"}, {"label": "Interventionist"}], items: [{"text": "Cutting income tax rates", "b": 0}, {"text": "Government funding for apprenticeships", "b": 1}, {"text": "Privatising a state-owned railway", "b": 0}, {"text": "Building a new port", "b": 1}, {"text": "Removing barriers to entry for new firms", "b": 0}, {"text": "Grants for research and development", "b": 1}, {"text": "Making it easier to hire and fire workers", "b": 0}, {"text": "Funding health services", "b": 1}], done: "Market-based measures change incentives and competition; interventionist measures involve the government spending to improve the supply side." });
+Lib.classify($("#cl2"), { prompt: "Supply-side or demand-side?", buckets: [{"label": "Supply-side"}, {"label": "Demand-side"}], items: [{"text": "Funding apprenticeships", "b": 0}, {"text": "Cutting interest rates", "b": 1}, {"text": "Building new ports", "b": 0}, {"text": "A cut in VAT to boost spending", "b": 1}, {"text": "Tax relief for R&D", "b": 0}, {"text": "Deregulating industries", "b": 0}, {"text": "Higher government spending on benefits", "b": 1}, {"text": "Privatising state industries", "b": 0}], done: "Supply-side policies raise capacity and productivity; demand-side policies change spending." });
 Lib.order($("#o1"), { prompt: "Put the long-run effect of training in order.", items: ["The government funds training", "Workers' skills and productivity rise", "Unit costs fall and capacity rises", "LRAS shifts to the right", "Real output rises and the price level falls"], done: "Training raises productivity, shifting LRAS right." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Supply-side policy", "Measures to increase aggregate supply"], ["Productivity", "Output per unit of input"], ["Human capital", "Skills and knowledge of the workforce"], ["Deregulation", "Removing rules to increase competition and efficiency"], ["Privatisation", "Transferring state industries to private ownership"], ["Productive capacity", "The maximum output the economy can produce"]], done: "Learn these terms." });
 Lib.calc($("#c1"), { qs: [
   {"q": "Potential output is 800 and a supply-side package raises it by 5%. What is the new potential output?", "a": 840, "unit": "", "tol": 0.5, "hint": "800 × 1.05.", "sol": "<b>840</b>."},
   {"q": "A training programme costs $30m and raises output per worker by $200 for 100,000 workers. What is the extra output ($m)?", "a": 20, "unit": "$m", "tol": 0.1, "hint": "200 × 100,000.", "sol": "<b>$20m</b> a year."},
   {"q": "How many years does it take for the extra output to cover the cost?", "a": 1.5, "unit": "years", "tol": 0.05, "hint": "30 ÷ 20.", "sol": "<b>1.5 years</b>."},
+  {"q": "A worker produces 40 units a day and productivity rises 15%. How many units a day now?", "a": 46, "unit": "units", "tol": 0.1, "hint": "40 × 1.15.", "sol": "<b>46 units</b>."},
   {"q": "A firm's labour costs are 50% of its costs. Productivity rises 10%, so labour cost per unit falls 9.1%. By roughly how much do total unit costs fall (%)?", "a": 4.5, "unit": "%", "tol": 0.2, "hint": "0.5 × 9.1.", "sol": "<b>4.5%</b>."},
 ] });
 Lib.quiz($("#qz1"), { qs: [
   { q: "A supply-side policy aims to:", opts: ["Increase aggregate supply", "Reduce aggregate supply", "Raise interest rates", "Cut government spending only"], a: 0, why: "Raise capacity." },
   { q: "Which is a supply-side policy?", opts: ["Spending on education and training", "A cut in interest rates", "A rise in VAT", "A rise in the money supply"], a: 0, why: "Human capital." },
-  { q: "Supply-side policy shifts:", opts: ["LRAS to the right", "AD to the right only", "LRAS to the left", "SRAS to the left"], a: 0, why: "More capacity." },
+  { q: "Privatisation is:", opts: ["A market-based supply-side policy", "A demand-side policy", "An interventionist policy", "A tax"], a: 0, why: "It aims to raise efficiency." },
   { q: "A limit of supply-side policy is:", opts: ["It takes a long time to work", "It reduces productivity", "It always raises inflation", "It has no cost"], a: 0, why: "Time lags." },
-  { q: "Privatisation may:", opts: ["Increase efficiency through competition", "Lower the quality always", "Raise unemployment always", "Reduce supply"], a: 0, why: "Profit motive." },
+  { q: "A tax cut is supply-side if its aim is to:", opts: ["Raise incentives to work and invest", "Boost spending in a recession", "Reduce the budget deficit", "Raise import demand"], a: 0, why: "Incentive effect." },
 ] });
 Lib.cards($("#fc1"), { cards: [
   ["Supply-side", "Raise AS and LRAS."],
-  ["Tools", "Education, infrastructure, tech, incentives, reforms."],
-  ["Effect", "Output up, price level down."],
-  ["Short run", "Spending raises AD."],
-  ["Long run", "LRAS shifts right."],
-  ["Limits", "Lags, cost, uncertainty."],
-  ["Suits", "Structural unemployment, cost-push."],
-  ["Evaluate", "Mix of policies."],
+  ["Interventionist", "Government spends: training, infrastructure."],
+  ["Market-based", "Incentives and competition."],
+  ["Productivity", "Output per unit of input."],
+  ["Deregulation", "Remove rules, raise competition."],
+  ["Privatisation", "Sell state firms."],
+  ["Limits", "Cost, time lags, uncertainty."],
+  ["Demand-side", "Changes spending, not capacity."],
 ] });
 Lib.quiz($("#qz2"), { qs: [
   { q: "What can be considered an expansionary supply-side policy? (Feb/March 2024 · 12 · Q23, reworded)", opts: ["an increase in government expenditure on training", "an increase in sales tax", "an increase in the rate of interest", "an increase of the exchange rate"], a: 0, why: "Training raises productivity and capacity, shifting aggregate supply right." },
   { q: "What is not an example of an expansionary supply-side policy? (May/June 2025 · 11 · Q24, reworded)", opts: ["a reduction in government spending on training", "an increase in support for technological improvement", "a reduction in payments to the unemployed", "an increase in privatisation of industry"], a: 0, why: "Cutting training would reduce skills. The others aim to raise supply." },
   { q: "A government cuts income tax. Why might this be seen as an example of a supply-side policy? (Feb/March 2025 · 12 · Q21, reworded)", opts: ["Real incomes are increased", "The costs of businesses are reduced", "The opportunity cost of unemployment has increased", "The standard of living has improved"], a: 2, why: "Lower income tax raises the reward for working, so the opportunity cost of not working rises, encouraging people into work." },
   { q: "What is most likely to occur when the government privatises public sector organisations? (May/June 2020 · 13 · Q14, reworded)", opts: ["Consumer choice will increase", "Employment will increase in the short run", "Innovation will be discouraged", "The production of public goods will increase"], a: 0, why: "Privatisation usually increases competition and choice." },
+  { q: "Which argument has often been used to justify the privatisation of state enterprises? (Feb/March 2020 · 12 · Q14, reworded)", opts: ["Private firms can produce the same outputs using fewer inputs.", "Private firms try to earn large profits.", "State enterprises are always monopolies which exploit consumers.", "State enterprises cannot operate without government subsidies."], a: 0, why: "The efficiency argument: the profit motive and competition reduce costs." },
   { q: "Which combination identifies a main aim of supply-side policy and a measure used to achieve this target? (main aim, policy measure) (May/June 2021 · 13 · Q28, reworded)", opts: ["economic growth, deregulation", "full employment, increasing the money supply", "income equality, more progressive taxation", "stable prices, decreasing interest rates"], a: 0, why: "Deregulation is a supply-side measure aimed at growth. The others are demand-side or distribution policies." },
   { q: "A country increases its spending on education and training. It pays for this by reducing unemployment benefit payments and increasing taxes on imports of machinery. What is the likely effect of these changes on human capital and physical capital? (May/June 2025 · 12 · Q4, reworded)", opts: ["human capital decreases, physical capital decreases", "human capital decreases, physical capital increases", "human capital increases, physical capital decreases", "human capital increases, physical capital increases"], a: 2, why: "Education and training raise human capital. Taxes on imported machinery make capital goods dearer, so physical capital is likely to fall." },
+  { q: "What would supporters of a nationalised public transport service expect to be the most likely outcome from the privatisation of train and bus services? (May/June 2020 · 11 · Q16, reworded)", opts: ["fewer destinations served by trains and buses", "lower fares", "more frequent services to all destinations", "more people employed in public transport services"], a: 0, why: "Supporters of nationalisation would expect private firms to drop unprofitable routes." },
 ] });

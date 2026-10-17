@@ -1004,8 +1004,8 @@ ARTIFACTS = [
      "places": [("a-econ", "as/s3-3")]},
 
     # AS Topic 4
-    {"src": "as-national-income-statistics", "role": "review", "at": "4.1.1", "title": "National Income Statistics: GDP, GNI and NNI", "kind": "Interactive",
-     "desc": "4.1.1 to 4.1.4 · GDP, GNI and NNI, market and basic prices, gross and net values. Animations, labs and past paper practice.",
+    {"src": "as-national-income-statistics", "role": "review", "at": "4.1.1", "title": "National Income and GDP", "kind": "Interactive",
+     "desc": "4.1.1 · Output, income and expenditure methods, value added, real GDP and GDP per head. Animations, labs and past paper practice.",
      "places": [("a-econ", "as/s4-1")]},
     {"src": "as-circular-flow-of-income", "role": "review", "at": "4.2.1", "title": "The Circular Flow of Income", "kind": "Interactive",
      "desc": "4.2.1 to 4.2.3 · Closed and open economies, injections, withdrawals and equilibrium. Animations, labs and past paper practice.",
@@ -1051,11 +1051,11 @@ ARTIFACTS = [
     {"src": "as-fiscal-policy", "role": "review", "at": "5.2.5", "title": "Government Spending and Fiscal Policy", "kind": "Interactive",
      "desc": "5.2.5 to 5.2.7 · Current and capital spending, expansionary and contractionary fiscal policy and AD/AS analysis. Animations, labs and past paper practice.",
      "places": [("a-econ", "as/s5-2")]},
-    {"src": "as-monetary-policy", "role": "review", "at": "5.3.1", "title": "Monetary Policy", "kind": "Interactive",
-     "desc": "5.3.1 to 5.3.4 · Interest rates, money supply, credit regulation and AD/AS analysis. Animations, labs and past paper practice.",
+    {"src": "as-monetary-policy", "role": "review", "at": "5.3.1", "title": "Monetary Policy: Tools and the Central Bank", "kind": "Interactive",
+     "desc": "5.3.1 to 5.3.2 · Central bank, interest rates, money supply, credit regulation and inflation targets. Animations, labs and past paper practice.",
      "places": [("a-econ", "as/s5-3")]},
-    {"src": "as-supply-side-policy", "role": "review", "at": "5.4.1", "title": "Supply-Side Policy", "kind": "Interactive",
-     "desc": "5.4.1 to 5.4.4 · Meaning, objectives, tools and AD/AS analysis of supply-side policy. Animations, labs and past paper practice.",
+    {"src": "as-supply-side-policy", "role": "review", "at": "5.4.1", "title": "Supply-Side Policy: Meaning, Objectives and Tools", "kind": "Interactive",
+     "desc": "5.4.1 to 5.4.3 · Objectives, interventionist and market-based tools. Animations, labs and past paper practice.",
      "places": [("a-econ", "as/s5-4")]},
 
     # AS Topic 6
@@ -1096,6 +1096,20 @@ ARTIFACTS = [
     {"src": "as-cross-elasticity-of-demand", "role": "review", "at": "2.2.3", "title": "Cross Elasticity of Demand", "kind": "Interactive",
      "desc": "2.2.3 · Sign and size of XED, substitutes and complements, and business uses. Animations, labs and past paper practice.",
      "places": [("a-econ", "as/s2-2")]},
+
+    # AS splits: 4.1, 5.3, 5.4
+    {"src": "as-gni-and-nni", "role": "review", "at": "4.1.2", "title": "Gross National Income and Net National Income", "kind": "Interactive",
+     "desc": "4.1.2 · GDP to GNI through net primary income, and to NNI through capital consumption. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s4-1")]},
+    {"src": "as-market-basic-prices-gross-net", "role": "review", "at": "4.1.3", "title": "Market Prices, Basic Prices, Gross and Net", "kind": "Interactive",
+     "desc": "4.1.3 to 4.1.4 · Market and basic prices, gross and net values. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s4-1")]},
+    {"src": "as-monetary-policy-effects", "role": "review", "at": "5.3.3", "title": "Monetary Policy: Effects and Limitations", "kind": "Interactive",
+     "desc": "5.3.3 to 5.3.4 · Expansionary and contractionary policy in AD/AS analysis, and its limits. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s5-3")]},
+    {"src": "as-supply-side-policy-effects", "role": "review", "at": "5.4.4", "title": "Supply-Side Policy: Effects and Evaluation", "kind": "Interactive",
+     "desc": "5.4.4 · AD/AS analysis, short and long run, and evaluation. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s5-4")]},
 ]
 
 # Old textbook-numbered chapter paths for A-Level Economics -> syllabus-numbered paths. build.py writes a redirect page at each old path.

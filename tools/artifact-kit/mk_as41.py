@@ -1,198 +1,228 @@
-"""AS syllabus 4.1 National income statistics. Run: python3 tools/artifact-kit/mk_as41.py"""
-from asx import *
-EY = EYAS("4.1")
+"""AS syllabus 4.1.1 National income and GDP. Run: python3 tools/artifact-kit/mk_as41.py"""
+from as6k import *
+EY = EYAS("4.1.1")
 
 learn = '''
-  <div class="card big"><h3>This part in four sentences</h3>
-  <p><b class="kw">National income</b> is the total value of the goods and services an economy produces in a year, which equals the <b>total income</b> earned and the <b>total expenditure</b> on that output. <b class="kw">Gross Domestic Product (GDP)</b> is the value of final output produced <b>within a country's borders</b>, whoever owns the firms; <b class="kw">Gross National Income (GNI)</b> is GDP plus <b>net primary income from abroad</b> (income earned by residents overseas minus income sent home by foreign owners); and <b class="kw">Net National Income (NNI)</b> is GNI minus <b>capital consumption (depreciation)</b>. Figures can be quoted at <b>market prices</b> (including taxes on products, excluding subsidies) or at <b>basic prices</b> (what producers actually receive: market prices minus taxes on products plus subsidies), and as <b>gross</b> values (before depreciation) or <b>net</b> values (after it).</p></div>
+  <div class="card big"><h3>This part in five sentences</h3>
+  <p><b class="kw">National income</b> is the total value of the goods and services an economy produces in a period, normally a year. <b class="kw">Gross Domestic Product (GDP)</b> is the <b>value of all final goods and services produced within a country's borders</b>, whoever owns the firms. Because every pound or dollar spent is also income for someone, there are <b>three ways to measure it</b> that should give the same total: the <b>output (value added) method</b>, the <b>income method</b> and the <b>expenditure method</b>, where <b>GDP = C + I + G + (X − M)</b>. Only <b>final</b> goods are counted, to avoid <b>double counting</b> of intermediate goods. <b>Real</b> GDP adjusts for inflation and <b>GDP per capita</b> divides by population, but GDP has limits as a measure of living standards, since it misses the <b>informal economy</b>, unpaid work, inequality and damage to the environment.</p></div>
 
-  <h2>1 · The three measures (4.1.1 to 4.1.2)</h2>
+  <h2>1 · What GDP measures</h2>
+  <ul>
+    <li><b>Flow of output:</b> GDP is a <b>flow</b> (value per year), not a stock of wealth.</li>
+    <li><b>Inside the borders:</b> GDP counts output produced in the country, including that of <b>foreign-owned firms</b> located there, and excludes output of the country's firms abroad. (GNI, on the next page, adjusts for this.)</li>
+    <li><b>Final goods only:</b> goods bought for consumption, investment, government use or export. <b>Intermediate goods</b> (flour bought by a baker) are used up in making other goods and are not counted separately, because their value is already in the final price.</li>
+    <li><b>Market value:</b> goods are valued at prices. Output not sold for money (home production, voluntary work) is generally excluded.</li>
+    <li><b>Circular flow link:</b> the value of output equals the incomes paid to factors of production, which equals the spending on that output.</li>
+  </ul>
+
+  <h2>2 · Three ways to measure GDP</h2>
   <div id="pic1" class="card"></div>
   <div class="tw"><table class="t">
-    <tr><th>Measure</th><th>What it is</th><th>Calculation</th></tr>
-    <tr><td><b>GDP</b></td><td>Value of all final goods and services produced <b>inside</b> the country in a year (C + I + G + X − M)</td><td>Output, income or expenditure</td></tr>
-    <tr><td><b>GNI</b></td><td>Income of a country's <b>residents</b>, wherever it is earned</td><td>GDP + net primary income from abroad</td></tr>
-    <tr><td><b>NNI</b></td><td>National income after allowing for the wear and tear of capital</td><td>GNI − capital consumption (depreciation)</td></tr>
+    <tr><th>Method</th><th>What is added up</th><th>Example</th></tr>
+    <tr><td><b>Output (value added)</b></td><td>The value added at each stage of production in every industry: value of output minus the cost of intermediate goods</td><td>Farm $40 + mill $30 + bakery $50 = $120</td></tr>
+    <tr><td><b>Income</b></td><td>Incomes earned from producing output: wages, rent, interest and profit (before tax)</td><td>Wages + rent + interest + profit</td></tr>
+    <tr><td><b>Expenditure</b></td><td>Total spending on final goods and services: <b>C + I + G + (X − M)</b></td><td>Consumption + investment + government spending + net exports</td></tr>
   </table></div>
   <ul>
-    <li><b>Primary income from abroad</b> = profits, interest, dividends and wages earned by residents overseas. <b>Net</b> primary income = income received from abroad − income paid abroad. A country with many foreign-owned firms may have <b>GNI below GDP</b>; one with many citizens working or investing overseas may have GNI above GDP.</li>
-    <li><b>Capital consumption</b> is the value of capital goods worn out or made obsolete in the year; subtracting it gives a better picture of the income that can be spent without running down capital.</li>
-    <li><b>Per capita</b> figures divide by population, and <b>real</b> figures adjust for inflation. They are used to compare living standards but have limits (they ignore the informal economy, unpaid work, inequality and the environment).</li>
+    <li><b>C:</b> household consumption; <b>I:</b> investment by firms (capital goods, stocks); <b>G:</b> government spending on goods and services (not transfer payments such as pensions, which are not payment for output); <b>X − M:</b> exports minus imports, so that spending on imports is removed and foreign spending on exports is added.</li>
+    <li>In practice the three measures differ a little because of data errors; a <b>statistical discrepancy</b> is used to reconcile them.</li>
   </ul>
 
-  <h2>2 · Market prices, basic prices, gross and net (4.1.3 to 4.1.4)</h2>
-  <div id="pic2" class="card"></div>
+  <h2>3 · Value added and double counting</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Stage</th><th>Sells for</th><th>Cost of inputs</th><th>Value added</th></tr>
+    <tr><td>Farmer (wheat)</td><td>$40</td><td>$0</td><td>$40</td></tr>
+    <tr><td>Miller (flour)</td><td>$70</td><td>$40</td><td>$30</td></tr>
+    <tr><td>Baker (bread)</td><td>$120</td><td>$70</td><td>$50</td></tr>
+    <tr><td>Total</td><td>Final price $120</td><td></td><td>$120</td></tr>
+  </table></div>
   <ul>
-    <li><b>Market prices</b> are what consumers pay: they include <b>taxes on products</b> (such as VAT) and exclude <b>subsidies</b>.</li>
-    <li><b>Basic prices</b> are what producers receive: <b>market prices − taxes on products + subsidies on products</b>.</li>
-    <li><b>Gross → net:</b> subtract capital consumption (depreciation). A <b>net</b> value is lower than the corresponding <b>gross</b> value.</li>
-    <li>Example: GDP at market prices $120bn; taxes on products $15bn; subsidies $5bn. GDP at basic prices = 120 − 15 + 5 = <b>$110bn</b>.</li>
+    <li>If every sale were added ($40 + $70 + $120 = $230), the output of the farmer and miller would be counted <b>more than once</b>. The correct addition is the final price, $120, which equals the sum of value added.</li>
   </ul>
-  <div class="tip"><b class="h">Exam tip</b>For calculations, write the <b>steps</b>: GDP + net primary income = GNI; GNI − depreciation = NNI. Be careful with <b>signs</b>: net income from abroad can be negative.</div>
+
+  <h2>4 · Real GDP and GDP per capita</h2>
+  <ul>
+    <li><b>Nominal (money) GDP</b> is measured at current prices, so it can rise because prices rise. <b>Real GDP</b> is adjusted for inflation using a price index (the GDP deflator): <b>real GDP = nominal GDP ÷ price index × 100</b>. Real GDP shows changes in the actual quantity of output.</li>
+    <li><b>GDP per capita</b> = GDP ÷ population. It is a better indicator of average living standards than total GDP, since a country can have a large GDP and a low income per person.</li>
+    <li>Example: nominal GDP $550bn with a price index of 110 gives real GDP of $500bn.</li>
+  </ul>
+
+  <h2>5 · Limits of GDP as a measure of living standards</h2>
+  <ul>
+    <li><b>Informal and illegal activity</b> is not recorded, so poorer economies may be understated.</li>
+    <li><b>Unpaid work</b> (housework, voluntary work) is excluded.</li>
+    <li><b>Distribution:</b> an average hides inequality.</li>
+    <li><b>Quality and variety</b> of goods, leisure time and working conditions are not captured.</li>
+    <li><b>Environmental damage</b> and resource depletion are not deducted, and goods that harm welfare still raise GDP.</li>
+    <li><b>Different price levels</b> across countries make exchange-rate comparisons misleading, which is why purchasing power adjustments are used.</li>
+  </ul>
+  <div class="tip"><b class="h">Exam tip</b>State the <b>formula</b> and say that it measures <b>final</b> goods <b>inside the borders</b>. For limits, give two or three developed points and say what they mean for <b>comparing living standards</b>. Use "may" and "likely".</div>
 '''
 
 watch = '''
-  <h2>1 · From GDP to GNI to NNI</h2>
+  <h2>1 · Value added in a chain of production</h2>
   <p>Press Play, or click the numbered steps.</p>
-  <div id="stN"></div>
-  <h2>2 · From market prices to basic prices</h2>
-  <div id="stP"></div>
+  <div id="stA"></div>
+  <h2>2 · Building GDP by the expenditure method</h2>
+  <div id="stB"></div>
+  <h2>3 · The same total three ways</h2>
+  <div id="stC"></div>
 '''
 
 explore = '''
-  <h2>Lab 1 · Calculate the measures</h2>
-  <p>Change the figures ($ billion) and see GNI, NNI and GDP at basic prices.</p>
+  <h2>Lab 1 · Expenditure method</h2>
+  <p>Change the components ($ billion) to see GDP and the share of each part.</p>
   <div class="card"><div class="grid2"><div><div id="g1"></div><div id="g2"></div><div id="g3"></div><div id="g4"></div><div id="g5"></div>
-    <div class="readout"><div><small>GNI</small><strong id="r1"></strong></div><div><small>NNI</small><strong id="r2"></strong></div><div><small>GDP at basic prices</small><strong id="r3"></strong></div></div>
+    <div class="readout"><div><small>GDP</small><strong id="r1"></strong></div><div><small>Net exports</small><strong id="r2"></strong></div><div><small>Consumption share</small><strong id="r3"></strong></div></div>
     <div class="verdict" id="rv"></div></div>
-    <div><svg id="labA" viewBox="0 0 420 300" role="img" aria-label="Bars for GDP, GNI and NNI"></svg></div></div></div>
+    <div><svg id="labA" viewBox="0 0 420 260" role="img" aria-label="Bars for the components of GDP and the total"></svg></div></div></div>
 
-  <h2>Lab 2 · Why GNI differs from GDP</h2>
-  <p>Choose a country type to see which way GNI differs from GDP.</p>
-  <div class="card"><div class="grid2"><div><div id="cB" class="btnrow"></div>
-    <div class="readout"><div><small>GDP</small><strong id="t1"></strong></div><div><small>Net income from abroad</small><strong id="t2"></strong></div><div><small>GNI</small><strong id="t3"></strong></div></div>
+  <h2>Lab 2 · Real GDP and GDP per head</h2>
+  <p>Set nominal GDP, the price index and population to see real GDP and income per head.</p>
+  <div class="card"><div class="grid2"><div><div id="g6"></div><div id="g7"></div><div id="g8"></div>
+    <div class="readout"><div><small>Real GDP</small><strong id="t1"></strong></div><div><small>Real GDP per head</small><strong id="t2"></strong></div><div><small>Inflation effect</small><strong id="t3"></strong></div></div>
     <div class="verdict" id="tv"></div></div>
-    <div><svg id="labB" viewBox="0 0 420 200" role="img" aria-label="GDP and GNI bars for the chosen country"></svg></div></div></div>
-'''
+    <div><svg id="labB" viewBox="0 0 420 220" role="img" aria-label="Bars comparing nominal and real GDP"></svg></div></div></div>
+''' + chooser_html("h", "Lab 3 · Is it counted in GDP?", "Choose a transaction to see whether it is counted in GDP, and why.", ["Counted?", "Reason", "Which component"])
 
 practise = '''
-  <h2>1 · Which measure is it?</h2><div id="cl1" class="card"></div>
-  <h2>2 · Match the term to its meaning</h2><div id="m1" class="card"></div>
-  <h2>3 · Put the steps from GDP to NNI in order</h2><div id="o1" class="card"></div>
-  <h2>4 · Calculations</h2><div id="c1"></div>
-  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+  <h2>1 · Is it a component of expenditure?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Counted in GDP or not?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the steps in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the term</h2><div id="m1" class="card"></div>
+  <h2>5 · Calculations</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
 '''
 
 real = RWNOTE + (
-rw("A country with many foreign factories", "Overseas firms own large factories and send their profits home. GDP counts all the output made inside the country, but some income leaves, so net primary income from abroad is negative and GNI is smaller than GDP.", "GDP versus GNI and net primary income.") +
-rw("A country with many overseas workers", "Millions of citizens work abroad and send wages home. Those earnings count as primary income from abroad, so GNI exceeds GDP.", "net primary income from abroad being positive.") +
-rw("Replacing worn-out machines", "A firm spends $10m a year replacing machinery that wears out. National income after allowing for this wear and tear is lower than the gross figure, which is why NNI is lower than GNI.", "capital consumption.") +
-rw("Sales tax and basic prices", "A $100 product includes $15 of sales tax, so the producer receives $85 (before any subsidy). GDP at market prices counts $100, while GDP at basic prices counts the amount producers actually receive.", "market prices versus basic prices.")
+rw("Bread from field to shop", "A farmer, a miller and a baker each add value. Only the final price of the loaf enters GDP, which equals the sum of value added, so the wheat and flour are not counted twice.", "value added and double counting.") +
+rw("A foreign-owned car plant", "A car factory owned by an overseas firm produces cars in the country. The output counts in GDP because it is produced inside the borders, even though the profits go abroad.", "GDP counts output inside the borders, whoever owns the firm.") +
+rw("Unpaid care and the informal economy", "Parents caring for children, volunteers and street traders paid in cash may not appear in official figures. GDP may understate output and living standards, especially in lower-income economies.", "limits of GDP as a measure.") +
+rw("Rebuilding after a flood", "Spending on repairs raises recorded GDP, but people are no better off than before the flood. GDP counts the spending, not the loss of wealth.", "why higher GDP does not always mean higher welfare.") +
+rw("Comparing two countries", "One country has a larger GDP but a much bigger population, so GDP per head is lower. Comparing per head figures, and using purchasing power adjustments, gives a better picture of average living standards.", "GDP per capita and its use.")
 )
 
 mc_exam = [
-  mcq("m23_12", 16, "The table shows selected information from a country's national accounts ($ billion): GDP 28, net property income from abroad −3, capital consumption 6, national debt 2. What is the country's net national income?", ["$19 billion", "$25 billion", "$31 billion", "$33 billion"], 0, "GNI = 28 − 3 = 25. NNI = 25 − 6 = 19. National debt is not part of the calculation."),
-  mcq("s23_13", 21, "The table gives details of national income statistics ($bn): consumption 2000, investment 500, government expenditure 600, net exports −100, net foreign factor income −200, depreciation 100. What is the net national income for this economy?", ["$2,700bn", "$2,800bn", "$2,900bn", "$3,000bn"], 0, "GDP = 2000 + 500 + 600 − 100 = 3000. GNI = 3000 − 200 = 2800. NNI = 2800 − 100 = 2700."),
-  mcq("s24_11", 16, "A country's net national income (NNI) is less than its gross national income (GNI). What does this mean?", ["incomes earned overseas were less than incomes sent overseas", "inflation has been accounted for in NNI but not in GNI", "the country's exports decreased", "there has been a net depreciation in the value of the country's fixed capital assets"], 3, "NNI is GNI minus capital consumption, so NNI is lower when capital has depreciated."),
-  mcq("s24_12", 19, "Which factor explains the difference between GDP and GNI?", ["foreign investment in the domestic automobile industry", "revenues received from exporting capital goods", "revenues received from exporting consumer goods", "salaries remitted by those working abroad to their home accounts"], 3, "GNI adds net primary income from abroad, such as wages sent home by residents working overseas. Exports are already in GDP."),
-  mcq("m25_12", 19, "The money income of a country rises by 10% whereas its population falls by 10% during a year. What is likely to happen to the national income per head?", ["It will remain unchanged", "It will rise by exactly 20%", "It will rise by less than 20%", "It will rise by more than 20%"], 3, "Income per head = 1.10 ÷ 0.90 = 1.222, a rise of about 22%, which is more than 20%.")
+  mcq("m25_12", 19, "The money income of a country rises by 10% whereas its population falls by 10% during a year. What is likely to happen to the national income per head?", ["It will remain unchanged", "It will rise by exactly 20%", "It will rise by less than 20%", "It will rise by more than 20%"], 3, "Income per head = 1.10 ÷ 0.90 = 1.222, a rise of about 22%, which is more than 20%."),
+  mcq("s23_12", 20, "What is used to convert nominal GDP to real GDP?", ["exchange rates", "changes in the price level", "interest rates", "taxation"], 1, "A price index adjusts nominal values for inflation."),
+  mcq("s23_13", 20, "In year 1, a country's real GDP was $500 billion. In year 2, nominal GDP rose to $577.5 billion and the prices increased by 5%. What is the real GDP in year 2?", ["$4.76 billion", "$5 billion", "$476 billion", "$550 billion"], 3, "Real GDP = 577.5 ÷ 1.05 = 550."),
+  mcq("s20_13", 25, "The real national income of a country fell by 3%. What could have caused this?", ["Money national income fell by 3% when the rate of inflation was 6%.", "Money national income fell by 6% when the rate of inflation was 3%.", "Money national income rose by 3% when the rate of inflation was 6%.", "Money national income rose by 6% when the rate of inflation was 3%."], 2, "Real income falls by about 3% when money income rises 3% and prices rise 6%.")
 ]
 
-exam = exam_page("national income statistics",
-  "We searched the AS Level Economics papers in the folder (2020 to 2025). These measures appear almost only in Paper 1, as numerical questions on GDP, GNI and NNI and on real and per capita figures, so this page has five Paper 1 questions. The calculations are drilled in the Practise tab.",
-  [("Multiple choice (Paper 1)", "5 shown below", "2023 to 2025")],
+exam = exam_page("national income and GDP",
+  "We searched the AS Level Economics papers in the folder (2020 to 2025). National income and GDP appear mostly in Paper 1, as calculations and as questions on real and nominal figures, with short data-response parts in Paper 2. Four Paper 1 multiple choice questions are shown below; the Practise tab drills the calculations.",
+  [("Multiple choice (Paper 1)", "4 shown below", "2020 to 2025")],
   [],
   )
 
 tips = tips_html(
-  [("GDP is inside the borders.", "Whoever owns the firms."),
-   ("GNI adds net primary income.", "Income from abroad less income paid abroad. It may be negative."),
-   ("NNI subtracts depreciation.", "Capital consumption: the wear and tear of capital."),
-   ("Write the steps.", "GDP, then GNI, then NNI. Mark the signs."),
-   ("Market to basic prices.", "Subtract taxes on products, add subsidies."),
-   ("Gross is bigger than net.", "Net means after depreciation."),
-   ("Know the limits.", "Informal output, inequality and the environment are missed.")],
-  [("GDP", "GDP is the value of output produced within a country in a year."),
-   ("GNI", "GNI adds net primary income from abroad to GDP."),
-   ("NNI", "NNI is GNI less capital consumption."),
-   ("Basic prices", "Basic prices exclude taxes on products and include subsidies."),
-   ("Per capita", "National income per head is national income divided by population.")],
+  [("Say 'final' and 'inside the borders'.", "The two key words in the definition."),
+   ("Write the formula.", "C + I + G + (X − M)."),
+   ("Three methods, one total.", "Output, income, expenditure."),
+   ("Avoid double counting.", "Count final goods or value added, not every sale."),
+   ("Real not nominal.", "Adjust for inflation with a price index."),
+   ("Per head.", "Divide by population to compare living standards."),
+   ("Give limits.", "Informal economy, inequality, environment, unpaid work.")],
+  [("GDP", "GDP is the value of final goods and services produced within a country in a year."),
+   ("Value added", "Value added is the value of output minus the cost of intermediate goods."),
+   ("Double counting", "Double counting is counting the same output more than once."),
+   ("Real GDP", "Real GDP is GDP adjusted for inflation."),
+   ("GDP per capita", "GDP per capita is GDP divided by population.")],
   [CW["define"], CW["explain"], CW["consider"], CW["assess"]]) + FC
 
-js = '''
-/* ---------- waterfall ---------- */
-function wfDraw(items, s) {
-  // items: [label, value, kind] kind: "t" total, "d" delta; s.k = number of items visible
-  const max = Math.max(...items.map((it) => it[3] || 0)) * 1.15, Y = (v) => 250 - (v / max) * 190, w = 600 / items.length; let o = SV.line(50, 250, 740, 250);
-  items.forEach((it, i) => {
-    const [lab, val, kind, top, bot] = it, x = 70 + i * (w + 8), v = Math.max(0, Math.min(1, s.k - i));
-    if (v <= 0) return;
-    o += SV.rect(x, Y(top), w - 20, Math.max(2, Y(bot) - Y(top)), kind === "t" ? "f1" : val < 0 ? "f3" : "f2", op(0.65 * v)) + SV.text(x + (w - 20) / 2, Y(top) - 8, (kind === "d" && val > 0 ? "+" : "") + Lib.fmtN(val, 0), "lbl bd", { "text-anchor": "middle", ...op(v) }) + SV.text(x + (w - 20) / 2, 270, lab, "sm", { "text-anchor": "middle", ...op(v) });
-  });
-  return o;
-}
-const A = { gdp: 100, net: -5, dep: 10 };
-const itemsA = [["GDP", 100, "t", 100, 0], ["Net income from abroad", -5, "d", 100, 95], ["GNI", 95, "t", 95, 0], ["Capital consumption", -10, "d", 95, 85], ["NNI", 85, "t", 85, 0]];
-function nDraw(s) { return wfDraw(itemsA, s); }
-$("#pic1").innerHTML = `<svg viewBox="0 0 760 290" role="img" aria-label="GDP of 100, minus net income paid abroad of 5, gives GNI of 95, minus capital consumption of 10 gives NNI of 85">${nDraw({ k: 5 })}</svg>`;
-Lib.stepper($("#stN"), { w: 760, h: 290, label: "GDP to GNI to NNI", base: { k: 0 }, draw: nDraw, tween: 800, dwell: 5000, steps: [
-  { cap: "<b>GDP</b> counts all final output produced inside the country: $100bn here.", s: { k: 1 } },
-  { cap: "<b>Net primary income from abroad.</b> Residents earn $15bn overseas but foreign owners take $20bn out, a net <b>−$5bn</b>.", s: { k: 2 } },
-  { cap: "<b>GNI = GDP + net primary income from abroad = $95bn.</b> This is the income of residents.", s: { k: 3 } },
-  { cap: "<b>Capital consumption</b> of $10bn (wear and tear of machinery) is subtracted.", s: { k: 4 } },
-  { cap: "<b>NNI = GNI − capital consumption = $85bn.</b> A net figure is always below the gross one.", s: { k: 5 } },
+js = WFJS + CHAINJS + '''
+$("#pic1").innerHTML = (() => {
+  const B = [["Output", "Value added in every industry", 30, "f1"], ["Income", "Wages, rent, interest, profit", 270, "f2"], ["Expenditure", "C + I + G + (X − M)", 510, "f3"]];
+  let o = ""; B.forEach(([n, d, x, c]) => { o += SV.rect(x, 20, 220, 90, c, { rx: 12, ...op(0.45) }) + SV.text(x + 110, 55, n, "lbl bd", { "text-anchor": "middle", style: "font-size:18px" }) + SV.text(x + 110, 82, d, "sm", { "text-anchor": "middle" }); });
+  o += SV.text(380, 142, "Same total: value of output = incomes earned = spending on final output", "sm", { "text-anchor": "middle" });
+  return `<svg viewBox="0 0 760 160" role="img" aria-label="The output, income and expenditure methods give the same GDP">${o}</svg>`;
+})();
+chainStep("#stA", "Value added in a chain of production", ["Farmer grows wheat and sells it for $40: value added $40", "Miller buys wheat for $40, sells flour for $70: value added $30", "Baker buys flour for $70, sells bread for $120: value added $50", "Total value added: 40 + 30 + 50 = $120", "Only the final price ($120) is counted; adding all sales ($230) would double count"], [
+  "<b>The first stage:</b> no intermediate inputs, so value added is the whole $40.", "<b>The mill</b> adds $30 to the $40 wheat.", "<b>The bakery</b> adds $50 to the $70 flour.", "<b>Sum of value added</b> equals the value of the final loaf.", "<b>Double counting</b> would overstate GDP by counting wheat and flour twice."]);
+const itemsE = [["C", 600, "t", 600, 0], ["I", 150, "d", 750, 600], ["G", 200, "d", 950, 750], ["X", 180, "d", 1130, 950], ["M", -160, "d", 1130, 970], ["GDP", 970, "t", 970, 0]];
+function eDraw(s) { return wfDraw(itemsE, s); }
+Lib.stepper($("#stB"), { w: 760, h: 290, label: "GDP by the expenditure method", base: { k: 0 }, draw: eDraw, tween: 800, dwell: 4800, steps: [
+  { cap: "<b>Consumption (C)</b> is household spending: $600bn.", s: { k: 1 } },
+  { cap: "<b>Investment (I)</b> by firms in capital goods and stocks adds $150bn.", s: { k: 2 } },
+  { cap: "<b>Government spending (G)</b> on goods and services adds $200bn.", s: { k: 3 } },
+  { cap: "<b>Exports (X)</b> are spending by foreigners on domestic output: +$180bn.", s: { k: 4 } },
+  { cap: "<b>Imports (M)</b> are spending on foreign output and are subtracted: −$160bn.", s: { k: 5 } },
+  { cap: "<b>GDP = 600 + 150 + 200 + (180 − 160) = $970bn.</b>", s: { k: 6 } },
 ] });
-const itemsB = [["GDP at market prices", 120, "t", 120, 0], ["Taxes on products", -15, "d", 120, 105], ["Subsidies on products", 5, "d", 110, 105], ["GDP at basic prices", 110, "t", 110, 0]];
-function bDraw(s) { return wfDraw(itemsB, s); }
-$("#pic2").innerHTML = `<svg viewBox="0 0 760 290" role="img" aria-label="GDP at market prices of 120, less taxes on products of 15, plus subsidies of 5, gives GDP at basic prices of 110">${bDraw({ k: 4 })}</svg>`;
-Lib.stepper($("#stP"), { w: 760, h: 290, label: "GDP from market prices to basic prices", base: { k: 0 }, draw: bDraw, tween: 800, dwell: 5000, steps: [
-  { cap: "<b>Market prices</b> are what buyers pay, including sales taxes: $120bn.", s: { k: 1 } },
-  { cap: "<b>Subtract taxes on products</b> ($15bn). Producers do not receive this money.", s: { k: 2 } },
-  { cap: "<b>Add subsidies on products</b> ($5bn). Producers do receive this money.", s: { k: 3 } },
-  { cap: "<b>GDP at basic prices = 120 − 15 + 5 = $110bn</b>, the amount producers actually receive.", s: { k: 4 } },
-] });
+chainStep("#stC", "The same total three ways", ["Firms produce $970bn of final output (output method: sum of value added)", "They pay out $970bn as wages, rent, interest and profit (income method)", "Households, firms, government and foreigners spend $970bn on it (expenditure method)", "Output = income = expenditure, so GDP can be measured from any side"], [
+  "<b>Output</b> is produced by firms.", "<b>Income</b> is paid to the owners of factors of production.", "<b>Expenditure</b> is the total spent on the final output.", "<b>Circular flow of income:</b> all three describe the same flow."]);
 
 /* ---------- Lab 1 ---------- */
-function labN() {
-  if (!["gd", "nt", "dp", "tx", "sb"].every((i) => $("#" + i))) return;
-  const gdp = +$("#gd").value, net = +$("#nt").value, dep = +$("#dp").value, tx = +$("#tx").value, sb = +$("#sb").value, gni = gdp + net, nni = gni - dep, basic = gdp - tx + sb;
-  $("#r1").textContent = "$" + gni + "bn"; $("#r2").textContent = "$" + nni + "bn"; $("#r3").textContent = "$" + basic + "bn";
-  $("#rv").textContent = `GNI = ${gdp} ${net >= 0 ? "+" : "−"} ${Math.abs(net)} = ${gni}. NNI = ${gni} − ${dep} = ${nni}. GDP at basic prices = ${gdp} − ${tx} + ${sb} = ${basic}. ${net < 0 ? "Net primary income from abroad is negative, so GNI is below GDP." : net > 0 ? "Net primary income from abroad is positive, so GNI is above GDP." : "There is no net income from abroad, so GNI equals GDP."}`;
-  const Y = (v) => 250 - v * 1.5, bars = [["GDP", gdp, "f1"], ["GNI", gni, "f2"], ["NNI", nni, "f3"], ["Basic", basic, "f1"]]; let o = SV.line(40, 250, 400, 250);
-  bars.forEach(([l, v, c], i) => (o += SV.rect(60 + i * 85, Y(v), 60, 250 - Y(v), c, op(0.65)) + SV.text(90 + i * 85, 268, l, "sm", { "text-anchor": "middle" }) + SV.text(90 + i * 85, Y(v) - 6, "$" + v, "lbl bd", { "text-anchor": "middle" })));
-  $("#labA").innerHTML = o;
+function labE() {
+  const ids = ["gc", "gi", "gg", "gx", "gm"];
+  if (!ids.every((i) => $("#" + i))) return;
+  const [c, i, g, x, m] = ids.map((k) => +$("#" + k).value), gdp = c + i + g + x - m;
+  $("#r1").textContent = "$" + gdp + "bn"; $("#r2").textContent = (x - m >= 0 ? "+" : "") + (x - m); $("#r3").textContent = Lib.fmtN((c / gdp) * 100, 0) + "%";
+  $("#rv").textContent = `GDP = ${c} + ${i} + ${g} + (${x} − ${m}) = ${gdp}. ${x - m >= 0 ? "Net exports are positive, a trade surplus that adds to GDP." : "Net exports are negative, a trade deficit that subtracts from GDP."} Consumption is ${Lib.fmtN((c / gdp) * 100, 0)}% of GDP.`;
+  const mx = Math.max(gdp, c, 1), W = (v) => (Math.abs(v) / mx) * 250, row = (y, l, v, k) => SV.text(10, y + 15, l, "sm") + SV.rect(100, y, Math.max(2, W(v)), 22, k, op(0.7)) + SV.text(106 + W(v), y + 16, (v < 0 ? "−" : "") + Math.abs(v), "lbl bd");
+  $("#labA").innerHTML = row(10, "C", c, "f1") + row(48, "I", i, "f2") + row(86, "G", g, "f3") + row(124, "X", x, "f1") + row(162, "M", -m, "f3") + row(210, "GDP", gdp, "f2");
 }
-Lib.slider($("#g1"), { id: "gd", label: "GDP at market prices, $bn ", min: 80, max: 160, step: 5, value: 120, fmt: (v) => v, onInput: labN });
-Lib.slider($("#g2"), { id: "nt", label: "Net primary income from abroad, $bn ", min: -20, max: 20, step: 1, value: -5, fmt: (v) => v, onInput: labN });
-Lib.slider($("#g3"), { id: "dp", label: "Capital consumption (depreciation), $bn ", min: 0, max: 25, step: 1, value: 10, fmt: (v) => v, onInput: labN });
-Lib.slider($("#g4"), { id: "tx", label: "Taxes on products, $bn ", min: 0, max: 30, step: 1, value: 15, fmt: (v) => v, onInput: labN });
-Lib.slider($("#g5"), { id: "sb", label: "Subsidies on products, $bn ", min: 0, max: 20, step: 1, value: 5, fmt: (v) => v, onInput: labN });
-labN();
+[["g1", "gc", "Consumption (C), $bn ", 300, 900, 600], ["g2", "gi", "Investment (I), $bn ", 50, 300, 150], ["g3", "gg", "Government spending (G), $bn ", 50, 400, 200], ["g4", "gx", "Exports (X), $bn ", 50, 400, 180], ["g5", "gm", "Imports (M), $bn ", 50, 400, 160]].forEach(([el, id, lab, mn, mx, v]) => Lib.slider($("#" + el), { id, label: lab, min: mn, max: mx, step: 10, value: v, fmt: (z) => z, onInput: labE }));
+labE();
 
 /* ---------- Lab 2 ---------- */
-const CTY = [["Host to foreign firms", 100, -12, "Foreign-owned factories send profits home, so more income leaves than arrives."], ["Many citizens working abroad", 100, 10, "Remittances and overseas earnings flow in, so GNI is above GDP."], ["Balanced flows", 100, 0, "Income received from abroad matches income paid abroad."]];
-function showCty(i) {
-  const [n, gdp, net, why] = CTY[i], gni = gdp + net; $$("#cB button").forEach((b, k) => b.classList.toggle("pri", k === i));
-  $("#t1").textContent = "$" + gdp + "bn"; $("#t2").textContent = (net > 0 ? "+" : "") + net; $("#t3").textContent = "$" + gni + "bn";
-  $("#tv").textContent = `${n}: ${why} GNI = ${gdp} ${net >= 0 ? "+" : "−"} ${Math.abs(net)} = ${gni}.`;
-  const Y = (v) => 170 - v * 1.2; $("#labB").innerHTML = SV.line(40, 170, 400, 170) + SV.rect(100, Y(gdp), 80, 170 - Y(gdp), "f1", op(0.65)) + SV.rect(240, Y(gni), 80, 170 - Y(gni), "f2", op(0.65)) + SV.text(140, 190, "GDP", "sm", { "text-anchor": "middle" }) + SV.text(280, 190, "GNI", "sm", { "text-anchor": "middle" }) + SV.text(140, Y(gdp) - 6, gdp, "lbl bd", { "text-anchor": "middle" }) + SV.text(280, Y(gni) - 6, gni, "lbl bd", { "text-anchor": "middle" });
+function labR() {
+  if (!["ng", "pi", "pp"].every((i) => $("#" + i))) return;
+  const n = +$("#ng").value, pi = +$("#pi").value, pop = +$("#pp").value, real = (n / pi) * 100, ph = (real * 1000) / pop;
+  $("#t1").textContent = "$" + Lib.fmtN(real, 1) + "bn"; $("#t2").textContent = "$" + Lib.fmtN(ph, 0); $("#t3").textContent = Lib.fmtN(n - real, 1) + "bn";
+  $("#tv").textContent = `Real GDP = ${n} ÷ ${pi} × 100 = ${Lib.fmtN(real, 1)}. ${pi > 100 ? `Prices have risen, so nominal GDP overstates the growth in output by $${Lib.fmtN(n - real, 1)}bn.` : "Prices have not risen, so nominal and real GDP are the same."} Real GDP per head is $${Lib.fmtN(ph, 0)} for a population of ${pop} million.`;
+  const mx = Math.max(n, real), W = (v) => (v / mx) * 280, bar = (y, l, v, k) => SV.text(10, y + 15, l, "sm") + SV.rect(110, y, W(v), 24, k, op(0.7)) + SV.text(116 + W(v), y + 17, Lib.fmtN(v, 0), "lbl bd");
+  $("#labB").innerHTML = bar(40, "Nominal", n, "f3") + bar(100, "Real", real, "f1");
 }
-$("#cB").innerHTML = CTY.map((c, i) => `<button class="b" data-i="${i}">${c[0]}</button>`).join("");
-$$("#cB button").forEach((b) => (b.onclick = () => showCty(+b.dataset.i)));
-showCty(0);
+Lib.slider($("#g6"), { id: "ng", label: "Nominal GDP, $bn ", min: 200, max: 1000, step: 10, value: 550, fmt: (v) => v, onInput: labR });
+Lib.slider($("#g7"), { id: "pi", label: "Price index (base year 100) ", min: 80, max: 160, step: 5, value: 110, fmt: (v) => v, onInput: labR });
+Lib.slider($("#g8"), { id: "pp", label: "Population, millions ", min: 5, max: 100, step: 5, value: 25, fmt: (v) => v, onInput: labR });
+labR();
 
-/* ---------- Practise ---------- */
-''' + CLASSIFY("cl1", "Which measure is it?", ["GDP", "GNI", "NNI"],
-  [("Output produced inside the country's borders", 0), ("Income of a country's residents wherever earned", 1), ("GNI less capital consumption", 2), ("GDP plus net primary income from abroad", 1), ("Includes output of foreign-owned firms located here", 0), ("The measure adjusted for depreciation of capital", 2), ("Wages sent home by citizens working overseas are added", 1), ("C + I + G + (X − M)", 0)],
-  "GDP: inside the borders. GNI: residents' income. NNI: GNI minus depreciation.") + MATCH([
-  ["GDP", "Value of output produced within a country in a year"],
-  ["GNI", "GDP plus net primary income from abroad"],
-  ["NNI", "GNI minus capital consumption"],
-  ["Basic prices", "Market prices minus taxes on products plus subsidies"],
-  ["Net primary income", "Income received from abroad less income paid abroad"],
-  ["Capital consumption", "The value of capital worn out in a year"]]) + ORDER(
-  "Put the steps from GDP to NNI in order.",
-  ["Start with GDP", "Add net primary income from abroad", "This gives GNI", "Subtract capital consumption", "This gives NNI"],
-  "GDP + net income from abroad = GNI; GNI − depreciation = NNI.") + CALC([
-  {"q": "GDP is $500bn, net primary income from abroad is −$30bn. What is GNI ($bn)?", "a": 470, "unit": "$bn", "tol": 0.5, "hint": "500 − 30.", "sol": "<b>$470bn</b>."},
-  {"q": "Capital consumption is $45bn. What is NNI ($bn)?", "a": 425, "unit": "$bn", "tol": 0.5, "hint": "470 − 45.", "sol": "<b>$425bn</b>."},
-  {"q": "GDP at market prices is $200bn, taxes on products $25bn and subsidies $10bn. What is GDP at basic prices ($bn)?", "a": 185, "unit": "$bn", "tol": 0.5, "hint": "200 − 25 + 10.", "sol": "<b>$185bn</b>."},
-  {"q": "National income is $900bn and population is 30 million. What is national income per head ($)?", "a": 30000, "unit": "$", "tol": 50, "hint": "900,000m ÷ 30m.", "sol": "<b>$30,000</b>."}]) + MCQ([
-  ("GNI equals:", ["GDP plus net primary income from abroad", "GDP minus depreciation", "GDP plus taxes", "Exports minus imports"], 0, "Income of residents."),
-  ("NNI is calculated by:", ["Subtracting capital consumption from GNI", "Adding subsidies to GDP", "Adding net exports", "Subtracting taxes from GNI"], 0, "Net of depreciation."),
-  ("GDP at basic prices is found by:", ["Subtracting taxes on products and adding subsidies", "Adding taxes on products", "Subtracting depreciation", "Adding net income from abroad"], 0, "What producers receive."),
-  ("A country whose firms are mostly foreign-owned is likely to have:", ["GNI below GDP", "GNI above GDP", "NNI above GNI", "GDP of zero"], 0, "Profits flow out."),
-  ("Which is a stock rather than a flow?", ["Capital goods", "GDP", "NNI", "Consumption"], 0, "Output measures are flows; capital is a stock that depreciates.")
+/* ---------- Lab 3 ---------- */
+chooser("h", [
+  ["A new car sold to a household", "Yes", "Final good produced this year", "Consumption (C)"],
+  ["Flour bought by a bakery", "No (on its own)", "Intermediate good: its value is in the price of the bread", "Not counted separately"],
+  ["A firm buys a new machine", "Yes", "Capital good for production", "Investment (I)"],
+  ["A government pays teachers and builds schools", "Yes", "Government spending on goods and services", "Government (G)"],
+  ["A pension payment to a retired person", "No", "A transfer payment: not payment for current output", "Not counted"],
+  ["A second-hand car sold between households", "No", "Not produced this year; the dealer's margin is counted", "Only the margin"],
+  ["Housework done by a parent", "No", "Unpaid and not recorded", "Not counted"]
+].map((r) => [r[0], r[1], r[2], r[3], r[1].startsWith("Yes") ? 5 : r[1].startsWith("No (on") ? 2 : 1]), (it) => `${it[0]}: ${it[1].toLowerCase()}. ${it[2]}. ${it[3] === "Not counted" || it[3].startsWith("Not") || it[3].startsWith("Only") ? "" : "Component: " + it[3] + "."}`, "Clarity of inclusion (5 = clearly counted)");
+''' + CLASSIFY("cl1", "Which component of expenditure is it?", ["C", "I", "G", "X − M"],
+  [("Households buy food and clothing", 0), ("A firm buys a new factory machine", 1), ("The government pays for road building", 2), ("Foreign customers buy the country's cars", 3), ("Households buy imported phones", 3), ("A firm adds to its stock of unsold goods", 1), ("The government pays doctors' salaries", 2), ("A household buys a holiday at home", 0)],
+  "C consumption, I investment, G government spending, X − M net exports (imports are subtracted).") + CLASSIFY("cl2", "Is it counted in GDP?", ["Counted", "Not counted"],
+  [("A new house built this year", 0), ("Steel sold to a car maker (an intermediate good)", 1), ("A haircut paid for in cash and recorded", 0), ("Unpaid voluntary work", 1), ("A pension payment (transfer)", 1), ("A new school built by the government", 0), ("The sale of a second-hand car (only the dealer's margin counts)", 1), ("Output of a foreign-owned factory in the country", 0)],
+  "GDP counts final goods and services produced inside the borders this year; transfers, intermediate goods, unpaid work and second-hand sales (except margins) are excluded.") + ORDER(
+  "Put the steps in order for measuring GDP by the expenditure method.",
+  ["Measure consumption (C)", "Add investment (I)", "Add government spending (G)", "Add exports and subtract imports (X − M)", "The total is GDP"],
+  "C + I + G + (X − M) = GDP.") + MATCH([
+  ["GDP", "Value of final output produced within a country in a year"],
+  ["Value added", "Value of output minus the cost of intermediate goods"],
+  ["Double counting", "Counting the same output more than once"],
+  ["Real GDP", "GDP adjusted for inflation"],
+  ["GDP per capita", "GDP divided by population"],
+  ["Transfer payment", "Money paid without output in return, such as a pension"]]) + CALC([
+  {"q": "C = 700, I = 200, G = 250, X = 220, M = 190 ($bn). What is GDP ($bn)?", "a": 1180, "unit": "$bn", "tol": 0.5, "hint": "700 + 200 + 250 + 220 − 190.", "sol": "<b>$1180bn</b>."},
+  {"q": "A farmer sells wheat for $30, a miller sells flour for $55 and a baker sells bread for $100. What is the value added by the baker ($)?", "a": 45, "unit": "$", "tol": 0.5, "hint": "100 − 55.", "sol": "<b>$45</b>."},
+  {"q": "What is the total value added in the chain ($)?", "a": 100, "unit": "$", "tol": 0.5, "hint": "30 + 25 + 45.", "sol": "<b>$100</b>, equal to the final price."},
+  {"q": "Nominal GDP is $660bn and the price index is 120. What is real GDP ($bn)?", "a": 550, "unit": "$bn", "tol": 0.5, "hint": "660 ÷ 1.20.", "sol": "<b>$550bn</b>."},
+  {"q": "Real GDP is $550bn and the population is 11 million. What is real GDP per head ($)?", "a": 50000, "unit": "$", "tol": 50, "hint": "550,000m ÷ 11m.", "sol": "<b>$50,000</b>."}]) + MCQ([
+  ("GDP measures:", ["Final goods and services produced inside the country", "All sales including intermediate goods", "Wealth", "Output of the country's firms abroad only"], 0, "A flow of final output inside the borders."),
+  ("Expenditure GDP is:", ["C + I + G + (X − M)", "C + I + G − X + M", "C + S + T", "X − M"], 0, "The expenditure formula."),
+  ("Counting the output of the miller and the baker in full would cause:", ["Double counting", "Underestimation", "Deflation", "A transfer"], 0, "Intermediate goods counted twice."),
+  ("Real GDP is calculated by:", ["Adjusting nominal GDP for inflation", "Adding net exports", "Dividing by population", "Adding taxes"], 0, "Divide by the price index."),
+  ("A limit of GDP as a welfare measure is:", ["It ignores unpaid work and the informal economy", "It counts every activity", "It is adjusted for inequality", "It deducts pollution"], 0, "Many activities are not recorded.")
 ], "qz1") + CARDS([
-  ("GDP", "Output inside the borders."),
-  ("GNI", "GDP + net primary income."),
-  ("NNI", "GNI − depreciation."),
-  ("Net primary income", "Received − paid abroad."),
-  ("Market prices", "Include product taxes."),
-  ("Basic prices", "Market − taxes + subsidies."),
-  ("Gross", "Before depreciation."),
-  ("Net", "After depreciation.")]) + MCQ(mc_exam)
+  ("GDP", "Final output inside the borders."),
+  ("Three methods", "Output, income, expenditure."),
+  ("Expenditure", "C + I + G + (X − M)."),
+  ("Value added", "Output minus intermediate inputs."),
+  ("Double counting", "Counting intermediate goods too."),
+  ("Real GDP", "Nominal ÷ price index × 100."),
+  ("Per capita", "GDP ÷ population."),
+  ("Limits", "Informal, unpaid, inequality, environment.")]) + MCQ(mc_exam)
 
-build("as41", "as-national-income-statistics", "National Income Statistics: GDP, GNI and NNI", EY,
-  "4.1.1 to 4.1.4: national income, GDP, GNI and NNI, adjusting from market prices to basic prices and from gross to net values. Animated diagrams, labs, drills and the past paper questions.",
+build("as41", "as-national-income-statistics", "National Income and GDP", EY,
+  "4.1.1: national income, the output, income and expenditure methods of measuring GDP, value added, real GDP and GDP per head, and the limits of GDP. Animated diagrams, labs, drills and past paper questions.",
   tabs(learn, watch, explore, practise, real, exam, tips), js)
