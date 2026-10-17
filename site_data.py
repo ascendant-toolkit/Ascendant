@@ -1040,6 +1040,23 @@ ARTIFACTS = [
     {"src": "as-consequences-of-inflation", "role": "review", "at": "4.6.5", "title": "Consequences of Inflation", "kind": "Interactive",
      "desc": "4.6.5 · Domestic and external consequences, winners and losers. Animations, labs and past paper practice.",
      "places": [("a-econ", "as/s4-6")]},
+
+    # AS Topic 5
+    {"src": "as-objectives-budget-national-debt", "role": "review", "at": "5.1.1", "title": "Macroeconomic Objectives, the Budget and the National Debt", "kind": "Interactive",
+     "desc": "5.1.1 and 5.2.1 to 5.2.3 · Policy objectives, budget deficits and surpluses, and the national debt. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s5-1")]},
+    {"src": "as-taxation", "role": "review", "at": "5.2.4", "title": "Taxation: Types, Rates and Reasons", "kind": "Interactive",
+     "desc": "5.2.4 · Direct and indirect taxes, progressive and regressive, marginal and average rates, reasons for taxation. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s5-2")]},
+    {"src": "as-fiscal-policy", "role": "review", "at": "5.2.5", "title": "Government Spending and Fiscal Policy", "kind": "Interactive",
+     "desc": "5.2.5 to 5.2.7 · Current and capital spending, expansionary and contractionary fiscal policy and AD/AS analysis. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s5-2")]},
+    {"src": "as-monetary-policy", "role": "review", "at": "5.3.1", "title": "Monetary Policy", "kind": "Interactive",
+     "desc": "5.3.1 to 5.3.4 · Interest rates, money supply, credit regulation and AD/AS analysis. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s5-3")]},
+    {"src": "as-supply-side-policy", "role": "review", "at": "5.4.1", "title": "Supply-Side Policy", "kind": "Interactive",
+     "desc": "5.4.1 to 5.4.4 · Meaning, objectives, tools and AD/AS analysis of supply-side policy. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s5-4")]},
 ]
 
 # Old textbook-numbered chapter paths for A-Level Economics -> syllabus-numbered paths. build.py writes a redirect page at each old path.
