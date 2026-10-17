@@ -29,6 +29,52 @@ learn = '''
     <li>The equilibrium condition can be rearranged: (S − I) + (T − G) + (M − X) = 0. So a <b>budget deficit</b> (G &gt; T) or a <b>trade deficit</b> (M &gt; X) must be matched by saving exceeding investment, or by another sector's surplus.</li>
     <li><b>Examples:</b> a rise in exports or in investment is an injection and raises national income; a rise in saving or in taxes is a withdrawal and lowers it unless offset by an injection.</li>
   </ul>
+
+  <h2>3 · Building the model sector by sector</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Model</th><th>Sectors</th><th>Flows added</th></tr>
+    <tr><td><b>Two-sector</b></td><td>Households and firms</td><td>Income (wages, rent, interest, profit) flows to households; consumption spending flows back to firms. No saving or investment, so the flow is steady.</td></tr>
+    <tr><td><b>With financial sector</b></td><td>Adds banks and financial markets</td><td>Saving (S) is a withdrawal; investment (I) is an injection funded by saving and borrowing</td></tr>
+    <tr><td><b>Three-sector</b></td><td>Adds the government</td><td>Taxes (T) are withdrawals; government spending (G) is an injection</td></tr>
+    <tr><td><b>Four-sector (open)</b></td><td>Adds the foreign sector</td><td>Imports (M) are withdrawals; exports (X) are injections</td></tr>
+  </table></div>
+
+  <h2>4 · Examples of changes and their effects</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Change</th><th>Injection or withdrawal?</th><th>Effect on national income</th></tr>
+    <tr><td>Firms build new factories (I rises)</td><td>Injection up</td><td>Rises</td></tr>
+    <tr><td>Government builds new roads (G rises)</td><td>Injection up</td><td>Rises</td></tr>
+    <tr><td>Foreign demand for exports rises (X rises)</td><td>Injection up</td><td>Rises</td></tr>
+    <tr><td>Households save more (S rises)</td><td>Withdrawal up</td><td>Falls (unless investment rises to match)</td></tr>
+    <tr><td>Taxes are raised (T rises)</td><td>Withdrawal up</td><td>Falls</td></tr>
+    <tr><td>Households buy more imports (M rises)</td><td>Withdrawal up</td><td>Falls</td></tr>
+  </table></div>
+  <ul>
+    <li>Note that <b>saving is not wasted</b>: it provides funds for investment through banks. It is a withdrawal only because it is not spent on current output.</li>
+    <li>Investment by <b>firms or government</b> is an injection. Taxes on the inputs to a project and spending on imported materials are leakages, which reduce the net effect.</li>
+  </ul>
+
+  <h2>5 · Worked example: is national income in equilibrium?</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Withdrawals ($bn)</th><th>Injections ($bn)</th></tr>
+    <tr><td>Saving 100</td><td>Investment 120</td></tr>
+    <tr><td>Taxes 150</td><td>Government spending 170</td></tr>
+    <tr><td>Imports 120</td><td>Exports 100</td></tr>
+    <tr><td><b>Total 370</b></td><td><b>Total 390</b></td></tr>
+  </table></div>
+  <ul>
+    <li>Injections (390) exceed withdrawals (370) by 20, so more is flowing in than leaking out. National income is <b>not</b> in equilibrium and will <b>rise</b>. As income rises, saving, taxes and imports rise too, until withdrawals equal injections again.</li>
+    <li>Check by sector: (S − I) = −20, (T − G) = −20 and (M − X) = +20. These sum to −20, which is the imbalance.</li>
+    <li>The budget deficit (G − T = 20) and the trade deficit (M − X = 20) are matched by the fact that investment exceeds saving (I − S = 20) in this example.</li>
+  </ul>
+
+  <h2>6 · Uses and limits of the model</h2>
+  <ul>
+    <li><b>Uses:</b> shows that national income, output and spending are linked; explains how a change in spending in one sector spreads; helps to explain why governments use injections (G, or policies to raise I and X) in a recession and withdrawals (taxes) to cool an economy.</li>
+    <li><b>Limits:</b> it is a <b>simplified</b> view of reality; it ignores timing (injections and withdrawals do not change at once); it does not say how <b>large</b> the effect is (the multiplier is not required); and real economies have many more flows, including transfer payments, retained profits and foreign investment.</li>
+    <li><b>Growth:</b> in the model, growth results from injections exceeding withdrawals; but sustained growth also needs more productive capacity (supply-side).</li>
+  </ul>
+  <div class="warn"><b class="h">Do not write this</b>Saving is not an injection: it is a withdrawal (leakage). Do not mix up the two: investment is an injection and imports are a withdrawal. Government spending is an injection, taxes a withdrawal.</div>
   <div class="tip"><b class="h">Exam tip</b>Draw the diagram with <b>both</b> sides: income and expenditure between households and firms, then <b>label injections and withdrawals</b>. State the equilibrium condition and say what happens to national income when they differ.</div>
 '''
 
@@ -68,7 +114,9 @@ real = RWNOTE + (
 rw("A rise in exports", "A car maker wins a big overseas order. Export spending is an injection, so firms hire more workers and pay more income; households spend more, and national income rises until withdrawals (saving, taxes and imports) have also risen to match.", "an injection raising national income.") +
 rw("Households save more", "In a downturn households save more and spend less. Saving is a withdrawal, so unless investment or government spending rises to offset it, national income falls.", "a withdrawal lowering national income.") +
 rw("A government infrastructure programme", "Spending on roads and rail is an injection (G). Firms and workers receive income and spend part of it, so national income rises, at least until higher taxes or imports leak out of the flow.", "government spending as an injection.") +
-rw("A trade deficit", "Imports are higher than exports, so more is leaking out than flowing in from abroad. Unless savings are low or investment and government spending are high, the economy's income will tend to fall.", "the equilibrium condition and the open economy.")
+rw("A trade deficit", "Imports are higher than exports, so more is leaking out than flowing in from abroad. Unless savings are low or investment and government spending are high, the economy's income will tend to fall.", "the equilibrium condition and the open economy.") +
+rw("An export boom", "A country wins large export orders. Exports are an injection, so firms pay more wages and profits, households spend more, and national income rises until withdrawals (including more imports and taxes) match the larger injection.", "an injection raising national income.") +
+rw("A rise in household saving", "After a downturn, households save more and spend less. Saving is a withdrawal, so unless investment or government spending rises, national income falls.", "withdrawals and the risk of a lower flow of income.")
 )
 
 mc_exam = [
@@ -107,7 +155,12 @@ exam = exam_page("the circular flow of income",
       "Analysis (up to 3): an explanation of injections (1), of leakages (1) and of how equilibrium is determined (1).",
       "Evaluation (up to 2): consideration of how a budget deficit or a trade deficit leads to disequilibrium (1) and of which is likely to cause lasting disequilibrium (1), with a justified conclusion."],
      "Diagram with X, M, G, T. Equilibrium: J = W. Budget or trade deficit: which lasts? Judge.",
-     [[("k", "A diagram shows households and firms exchanging income and expenditure, with the government taking taxes and spending, and the international sector adding exports and removing imports.")], [("n", "Injections are investment, government spending and exports, and withdrawals are saving, taxes and imports. Equilibrium national income is where I + G + X = S + T + M, since if injections are larger income rises and if smaller it falls.")], [("e", "A budget deficit (G above T) adds more injections than withdrawals, which can be offset by private saving, while a trade deficit (M above X) is a net withdrawal that must be financed from abroad. A persistent trade deficit is probably more likely to cause lasting disequilibrium, because a country cannot borrow from abroad indefinitely, but a large budget deficit can also persist if the government can finance it.")]])
+     [[("k", "A diagram shows households and firms exchanging income and expenditure, with the government taking taxes and spending, and the international sector adding exports and removing imports.")], [("n", "Injections are investment, government spending and exports, and withdrawals are saving, taxes and imports. Equilibrium national income is where I + G + X = S + T + M, since if injections are larger income rises and if smaller it falls.")], [("e", "A budget deficit (G above T) adds more injections than withdrawals, which can be offset by private saving, while a trade deficit (M above X) is a net withdrawal that must be financed from abroad. A persistent trade deficit is probably more likely to cause lasting disequilibrium, because a country cannot borrow from abroad indefinitely, but a large budget deficit can also persist if the government can finance it.")]]),
+  eq(P("s23_23", "4(b)"), "12 marks", "Assess whether an increase in investment in new infrastructure projects will always have a positive impact on the circular flow of income in an economy.",
+     ["Analysis (up to 8): increased investment, from firms or the government, is an injection into the circular flow; there are increased payments for factors of production; households supply labour, enterprise and capital; but leakages affect the total flow: taxation on inputs and spending on imported materials leak from the circular flow, and household savings are a leakage from factor income; equilibrium depends on the balance between injections and leakages. Maximum Level 2 for a one-sided response.",
+      "Evaluation (up to 4): the circular flow model is a simplified view; the impact depends on the net of injections and leakages; if leakages exceed injections the impact could be negative; most forms of new infrastructure have negative effects not taken into account by the model; consideration of whether all infrastructure always has a positive impact."],
+     "Injection: I raises incomes. Leakages: taxes, imports, saving. Net effect depends on injections minus leakages. Model is a simplification.",
+     [[("n", "Spending on new infrastructure, by firms or the government, is an injection into the circular flow. It creates payments to workers, owners of capital and enterprise, which raises incomes and spending, so national income rises. But some of the money leaks out: taxes on materials, imports of machinery and steel, and household saving from the extra income all reduce the net effect. If the project is funded by higher taxes or by reducing other spending, the withdrawals could cancel the injection.")], [("e", "The impact is likely to be positive when injections exceed leakages, but it is not always so. The model is a simplification: it does not show the size or timing of the effects, or negative effects such as environmental damage. So the impact depends on how much leaks out and how the project is funded.")]])
   ],
   )
 

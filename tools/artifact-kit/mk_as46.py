@@ -30,6 +30,53 @@ learn = '''
     <li>Approximately: <b>real growth ≈ nominal growth − inflation</b>.</li>
     <li>If nominal GDP rises by less than the rate of inflation, <b>real GDP falls</b>.</li>
   </ul>
+
+  <h2>3 · Worked examples</h2>
+  <p><b>Calculating real growth.</b> The table gives nominal GDP and a GDP deflator (price index, base year = 100).</p>
+  <div class="tw"><table class="t">
+    <tr><th>Year</th><th>Nominal GDP ($bn)</th><th>Price index</th><th>Real GDP ($bn)</th><th>Real growth</th></tr>
+    <tr><td>1</td><td>200</td><td>100</td><td>200</td><td>–</td></tr>
+    <tr><td>2</td><td>220</td><td>109</td><td>201.8</td><td>+0.9%</td></tr>
+    <tr><td>3</td><td>240</td><td>125</td><td>192.0</td><td>−4.9%</td></tr>
+    <tr><td>4</td><td>300</td><td>149</td><td>201.3</td><td>+4.9%</td></tr>
+  </table></div>
+  <ul>
+    <li>Nominal GDP rises every year, but real GDP <b>falls in year 3</b> because prices rose by 14.7% (109 to 125) while nominal GDP rose by only 9.1%. Always deflate before judging growth.</li>
+    <li><b>Real GDP = nominal GDP ÷ price index × 100.</b> Year 2: 220 ÷ 109 × 100 = 201.8. <b>Real growth</b> = (201.8 − 200) ÷ 200 = 0.9%.</li>
+    <li><b>Quick check:</b> real growth ≈ nominal growth − inflation. Year 2: nominal 10%, inflation 9%, so growth ≈ 1%.</li>
+  </ul>
+  <p><b>GDP per head.</b> If real GDP rises 3% and the population rises 1%, GDP per head rises by about 2%. If the population rises 4%, GDP per head falls by about 1%, even though total GDP is growing.</p>
+
+  <h2>4 · Actual and potential growth</h2>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Actual growth</th><th>Potential growth</th></tr>
+    <tr><td><b>Meaning</b></td><td>Increase in real GDP: output actually produced</td><td>Increase in the economy's productive capacity</td></tr>
+    <tr><td><b>Diagram</b></td><td>A move towards (or along) the PPC; AD shifts right along SRAS</td><td>Outward shift of the PPC; LRAS shifts right</td></tr>
+    <tr><td><b>Causes</b></td><td>Higher AD using spare capacity</td><td>More and better factors of production, technology</td></tr>
+    <tr><td><b>Limit</b></td><td>Cannot go beyond potential for long without inflation</td><td>Slow and costly to achieve</td></tr>
+  </table></div>
+  <ul>
+    <li>The <b>output gap</b> is the difference between actual and potential output. A negative gap means spare capacity; a positive gap means output above sustainable levels.</li>
+  </ul>
+
+  <h2>5 · The business cycle</h2>
+  <ul>
+    <li><b>Boom:</b> fast growth, falling unemployment, rising inflation and demand for imports.</li>
+    <li><b>Slowdown:</b> growth continues but more slowly.</li>
+    <li><b>Recession:</b> two or more consecutive quarters of falling real GDP; unemployment rises and inflation falls.</li>
+    <li><b>Recovery:</b> real GDP begins to rise again, initially using spare capacity.</li>
+    <li>Real GDP tends to follow a <b>trend of long-run growth</b> with cyclical fluctuations around it.</li>
+  </ul>
+
+  <h2>6 · Using GDP to compare living standards: limits</h2>
+  <ul>
+    <li><b>Population:</b> use per capita figures.</li>
+    <li><b>Prices:</b> use real figures; compare countries using purchasing power adjustments, since exchange rates do not reflect local prices.</li>
+    <li><b>Distribution:</b> an average hides inequality.</li>
+    <li><b>Unrecorded output:</b> informal activity and unpaid work are missed.</li>
+    <li><b>Quality of life:</b> health, leisure, education and the environment are not captured (indicators such as the Human Development Index try to include some).</li>
+    <li><b>Composition:</b> output of weapons or the cost of repairing disasters counts as GDP but does not raise welfare.</li>
+  </ul>
   <div class="tip"><b class="h">Exam tip</b>When asked to calculate growth, make sure you are using <b>real</b> figures. Show the formula and the steps: deflate first, then find the percentage change.</div>
 '''
 
@@ -69,7 +116,9 @@ real = RWNOTE + (
 rw("Prices up, output flat", "A country's nominal GDP rises 6% in a year, but prices also rise 6%. Real GDP is unchanged: the economy produced the same amount, and the extra money value only reflects higher prices.", "nominal versus real GDP.") +
 rw("A recession", "Real GDP falls for two successive quarters as spending drops. Firms cut output and jobs, and unemployment rises. Economists call this a recession, a period of negative growth.", "negative growth and its definition.") +
 rw("Fast GDP growth, fast population growth", "An economy grows 3% a year, but its population grows 3% as well. GDP per head does not rise, so average living standards are unchanged even though total output is larger.", "why per capita figures matter.") +
-rw("The informal economy", "In many developing countries much work is done for cash or at home and never recorded. Official GDP therefore understates output, which makes growth hard to measure accurately.", "limits of GDP as a measure.")
+rw("The informal economy", "In many developing countries much work is done for cash or at home and never recorded. Official GDP therefore understates output, which makes growth hard to measure accurately.", "limits of GDP as a measure.") +
+rw("Nominal growth that is only inflation", "A country reports a 15% rise in nominal GDP, but prices rose 14%. Real GDP grew by about 1%, so output hardly changed.", "real versus nominal GDP.") +
+rw("A recession", "During a recession real GDP falls for two or more quarters, firms cut jobs and investment, and unemployment rises. Governments often respond with expansionary policy.", "negative growth and its consequences.")
 )
 
 mc_exam = [
@@ -83,7 +132,7 @@ mc_exam = [
 
 exam = exam_page("economic growth and real GDP",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Growth measures appear in short data-response parts (2 marks) asking for a meaning or a calculation, and in Paper 1 as real GDP and index questions. Reworded past questions are below, with six Paper 1 multiple choice questions.",
-  [("Data response, 2 marks", "3", "May/June 2025 (24) Q1(b); Oct/Nov 2023 (23) Q1(a); Oct/Nov 2023 (21) Q1(a)"), ("Multiple choice (Paper 1)", "6 shown below", "2020 to 2025")],
+  [("Data response, 2 marks", "2", "May/June 2025 (24) Q1(b); Oct/Nov 2023 (23) Q1(a)"), ("Multiple choice (Paper 1)", "6 shown below", "2020 to 2025")],
   [
   eq(P("s25_24", "1(b)"), "2 marks", "Explain what is meant by 'real GDP'.",
      ["GDP is the total value of goods and services produced in an economy (1).", "Real GDP is GDP corrected for or taking account of the effects of inflation or price changes (1). Real GDP is nominal GDP less the rate of inflation (2). Maximum 2 marks."],

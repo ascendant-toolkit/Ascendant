@@ -29,6 +29,56 @@ learn = '''
     <tr><td><b>Examples of causes</b></td><td>Lower interest rates, tax cuts, higher government spending, export boom</td><td>Oil price shock, wage rises above productivity, depreciation, higher indirect taxes</td></tr>
     <tr><td><b>Which is worse?</b></td><td>Depends on capacity; usually shows a strong economy</td><td>Often worse: prices rise while output falls</td></tr>
   </table></div>
+
+  <h2>3 · Worked example: identifying the type of inflation</h2>
+  <p>Take AD as P = 120 − Y and SRAS as P = 20 + Y. Equilibrium is Y = 50, P = 70.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Event</th><th>Curve shift</th><th>New equilibrium</th><th>Type of inflation</th></tr>
+    <tr><td>Lower interest rates raise AD</td><td>AD: P = 140 − Y</td><td>Y = 60, P = 80</td><td><b>Demand-pull</b>: output up 10, prices up 10 (14%)</td></tr>
+    <tr><td>An oil price rise raises costs</td><td>SRAS: P = 40 + Y</td><td>Y = 40, P = 80</td><td><b>Cost-push</b>: output down 10, prices up 10 (14%)</td></tr>
+    <tr><td>Both happen together</td><td>AD: P = 140 − Y, SRAS: P = 40 + Y</td><td>Y = 50, P = 90</td><td>Both: output unchanged, prices up 20 (29%)</td></tr>
+  </table></div>
+  <ul>
+    <li>The price rise is the same in the first two rows, but <b>output moves in opposite directions</b>. Output and unemployment tell you which type it is.</li>
+    <li>Near full capacity (potential output), the AD rise in row 1 would raise prices by more and output by less.</li>
+  </ul>
+
+  <h2>4 · Causes in more detail</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Type</th><th>Cause</th><th>Why it raises prices</th></tr>
+    <tr><td><b>Demand-pull</b></td><td>Lower interest rates, easy credit</td><td>Spending rises faster than capacity</td></tr>
+    <tr><td><b>Demand-pull</b></td><td>Tax cuts, higher government spending</td><td>Households and the state demand more output</td></tr>
+    <tr><td><b>Demand-pull</b></td><td>Export boom or a depreciation</td><td>Net exports rise, adding to AD</td></tr>
+    <tr><td><b>Demand-pull</b></td><td>Rapid growth in the money supply</td><td>More money chasing the same goods</td></tr>
+    <tr><td><b>Cost-push</b></td><td>Wage rises above productivity</td><td>Unit labour costs rise</td></tr>
+    <tr><td><b>Cost-push</b></td><td>Raw material and energy prices</td><td>Production costs rise</td></tr>
+    <tr><td><b>Cost-push</b></td><td>Depreciation of the currency</td><td>Imported inputs and goods cost more</td></tr>
+    <tr><td><b>Cost-push</b></td><td>Higher indirect taxes or regulation</td><td>Firms' costs rise</td></tr>
+    <tr><td><b>Cost-push</b></td><td>Labour or supply shortages</td><td>Firms bid up wages and input prices</td></tr>
+  </table></div>
+
+  <h2>5 · How wages can cause both types</h2>
+  <ul>
+    <li><b>Cost-push:</b> a pay rise raises firms' costs, so SRAS shifts left.</li>
+    <li><b>Demand-pull:</b> workers with more pay spend more, so AD shifts right.</li>
+    <li>If wages rise faster than productivity, the result is a higher price level. If workers then demand more to keep up with prices, a <b>wage-price spiral</b> develops.</li>
+  </ul>
+
+  <h2>6 · Expectations and the role of the money supply</h2>
+  <ul>
+    <li><b>Inflation expectations:</b> if people expect prices to rise, they bring forward purchases (raising AD) and demand higher wages (raising costs), so expected inflation tends to become real.</li>
+    <li><b>Money supply:</b> if the money supply grows faster than output, there is more money chasing the same goods, which raises prices. Persistent high inflation is usually linked to rapid growth of the money supply.</li>
+    <li><b>Imported inflation:</b> higher world prices for oil or food raise costs. A weak currency makes it worse.</li>
+  </ul>
+
+  <h2>7 · Which type is more likely, and how should policy respond?</h2>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Demand-pull</th><th>Cost-push</th></tr>
+    <tr><td><b>More likely when</b></td><td>The economy is near full capacity and AD is strong</td><td>Costs rise sharply, as in an energy shock or after a depreciation</td></tr>
+    <tr><td><b>Best policy</b></td><td>Contractionary fiscal or monetary policy to reduce AD</td><td>Supply-side policy to lower costs; contractionary policy would also cut output</td></tr>
+    <tr><td><b>Cost of the policy</b></td><td>Lower growth and higher unemployment for a time</td><td>Slow results for supply-side policy; reducing AD may deepen a downturn</td></tr>
+  </table></div>
+  <div class="warn"><b class="h">Do not write this</b>Do not draw inflation with demand and supply for one good: use the price level and real output on the axes of an AD/AS diagram. Do not say a shift of AD to the left causes cost-push inflation. Do not forget that a single event can affect both AD and AS.</div>
   <div class="tip"><b class="h">Exam tip</b>Draw <b>AD/AS</b> diagrams with general price level and real output on the axes, and <b>not</b> supply and demand for one product. Give a specific cause, explain how it moves a curve, and state the effect on the price level.</div>
 '''
 
@@ -68,7 +118,9 @@ real = RWNOTE + (
 rw("An oil price spike", "A jump in world oil prices raises the cost of transport and production in an oil-importing country. SRAS shifts left, so prices rise while output and employment fall: cost-push inflation and stagflation.", "cost-push inflation from higher input prices.") +
 rw("A consumer boom", "Low interest rates and rising house prices make households confident and they spend more. AD rises faster than capacity, so firms raise prices: demand-pull inflation.", "demand-pull inflation from rising consumption.") +
 rw("A weak currency", "When the currency depreciates, imports cost more, raising the costs of firms that rely on imported inputs (cost-push), while exports become cheaper and demand rises (demand-pull). Both curves can shift.", "a depreciation causing both types of inflation.") +
-rw("Wage-price spiral", "Prices rise 6%, so unions demand 6% pay rises. Firms pass the higher costs on in higher prices, workers demand more, and inflation becomes embedded.", "a cost-push spiral.")
+rw("Wage-price spiral", "Prices rise 6%, so unions demand 6% pay rises. Firms pass the higher costs on in higher prices, workers demand more, and inflation becomes embedded.", "a cost-push spiral.") +
+rw("An energy price shock", "Oil and gas prices double. Transport and production costs rise across industries, SRAS shifts left, and consumers face both higher prices and weaker output: cost-push inflation.", "cost-push inflation and stagflation.") +
+rw("A consumer boom", "Cheap credit and tax cuts boost spending. Firms cannot raise output fast enough, so they raise prices instead: demand-pull inflation.", "demand-pull inflation near capacity.")
 )
 
 mc_exam = [
@@ -81,7 +133,7 @@ mc_exam = [
 
 exam = exam_page("the causes of inflation",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Demand-pull and cost-push inflation are an 8 mark Paper 2 part in most series (with diagrams) and short 6 mark data-response parts. Reworded past questions are below, with five Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "4", "May/June 2023 (21) Q4(a); Oct/Nov 2021 (22) Q4(a); Feb/March 2020 (22) Q4(a); May/June 2022 (23) Q3(a)"), ("Data response, 6 marks", "2", "May/June 2022 (21) Q1(d); May/June 2024 (22) Q1(b)"), ("Multiple choice (Paper 1)", "5 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "4", "May/June 2023 (21) Q4(a); Oct/Nov 2021 (22) Q4(a); Feb/March 2020 (22) Q4(a); May/June 2022 (23) Q3(a)"), ("Data response, 6 marks", "2", "May/June 2022 (21) Q1(d); Feb/March 2023 (22) Q1(d)"), ("Multiple choice (Paper 1)", "5 shown below", "2020 to 2025")],
   [
   eq(P("s23_21", "4(a)"), "8 marks", "With the help of an AD/AS diagram, explain cost-push inflation and demand-pull inflation in an economy and consider in what circumstances one may be more damaging than the other.",
      ["Knowledge (up to 3): an accurate diagram with correctly labelled axes of price level and real output (1), cost-push inflation shown by a leftward shift of AS (1) and demand-pull inflation shown by a rightward shift of AD (1).",
@@ -104,7 +156,17 @@ exam = exam_page("the causes of inflation",
      ["Demand-pull (up to 3): an analysis of demand-pull inflation from wage increases (1), such as greater consumer spending and confidence from higher incomes; an AD/AS diagram showing AD shifting right, labelled correctly (1) and the shift to the right with the rise in the price level (1).",
       "Cost-push (up to 3): an analysis of cost-push inflation from wage increases not linked to higher productivity (1); an AD/AS diagram showing AS shifting left (up to 2): correct labelling (1) and the shift left showing the rise in the price level (1)."],
      "Higher wages: more income and spending (AD right, demand-pull). Higher wages: higher costs (AS left, cost-push). Two diagrams.",
-     [[("n", "Higher wages raise households' incomes, so consumption increases and the AD curve shifts to the right, which raises the price level: demand-pull inflation. Higher wages also raise firms' costs of production, especially if not matched by productivity, so the SRAS curve shifts to the left, which raises the price level again: cost-push inflation. Each is shown on its own AD/AS diagram with the price level and real output on the axes.")]])
+     [[("n", "Higher wages raise households' incomes, so consumption increases and the AD curve shifts to the right, which raises the price level: demand-pull inflation. Higher wages also raise firms' costs of production, especially if not matched by productivity, so the SRAS curve shifts to the left, which raises the price level again: cost-push inflation. Each is shown on its own AD/AS diagram with the price level and real output on the axes.")]]),
+  eq(P("s22_23", "3(a)"), "8 marks", "Explain the difference between cost-push and demand-pull inflation.",
+     ["Knowledge (up to 2): inflation is a sustained or persistent rise (1) in the general or average price level (1).",
+      "Application (up to 6): what is meant by cost-push inflation (1), an appropriate example of a cause (1) and why it causes inflation (1); what is meant by demand-pull inflation (1), an appropriate example of a cause (1) and why this differs from cost-push (1)."],
+     "Define inflation. Cost-push: costs rise, SRAS left (wages, raw materials). Demand-pull: AD rises faster than AS (spending, tax cuts, exports).",
+     [[("k", "Inflation is a sustained rise in the general price level.")], [("n", "Cost-push inflation is caused by a rise in firms' costs of production, such as higher raw material prices or wages that rise faster than productivity. SRAS shifts left, so the price level rises while output falls. Demand-pull inflation is caused by a rise in aggregate demand that is not matched by a rise in aggregate supply, for example after a cut in taxes or an export boom. AD shifts right, so the price level and output both rise, particularly strongly if the economy is close to full employment.")]]),
+  eq(P("m23_22", "1(d)"), "6 marks", "With the help of an AD/AS diagram, assess whether a rising inflation rate has been caused by changes to the demand side or changes to the supply side of the economy.",
+     ["Analysis (up to 4): an AD/AS diagram with correctly labelled axes (price level and real GDP) (1) showing AD moving right and SRAS moving left with a rise in the price level (1); an explanation of how the rise in inflation may be caused by an increase in aggregate demand (1) and a decrease in aggregate supply (1).",
+      "Evaluation (up to 2): relevant evaluation that considers both AD and AS and weighs up the factors in each; a justified conclusion on the extent to which inflation has been caused by the demand side or the supply side, which may be a combination of both."],
+     "Diagram: AD right and SRAS left. Demand: stimulus, low rates. Supply: energy and supply costs. Judge: usually a combination; evidence needed.",
+     [[("n", "On an AD/AS diagram with the price level and real GDP on the axes, AD shifts right and SRAS shifts left, so the price level rises. Higher AD could come from government stimulus and low interest rates, which raise spending. A fall in SRAS could come from higher energy and shipping costs. Both raise the price level."), ("e", "Inflation is likely to have been caused by both. Which is more important depends on the evidence: if output has also fallen, supply-side causes are more likely; if output and spending have risen strongly, demand is more likely.")]])
   ],
   )
 

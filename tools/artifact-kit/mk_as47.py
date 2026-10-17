@@ -33,6 +33,51 @@ learn = '''
     <li><b>Evaluation:</b> growth is usually beneficial if it is <b>supply-led</b>, <b>sustainable</b> and its gains are <b>widely shared</b>; it is more harmful if it is demand-led near full capacity, based on depleting resources, or raises inequality.</li>
     <li>Compare <b>actual</b> growth (using spare capacity) with <b>potential</b> growth (more capacity), and look at <b>GDP per head</b> and the distribution of income.</li>
   </ul>
+
+  <h2>3 · Worked example: demand-led and supply-led growth</h2>
+  <p>Take AD as P = 120 − Y, SRAS as P = 20 + Y and potential output as 70, so equilibrium is Y = 50, P = 70.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Cause</th><th>Change</th><th>New equilibrium</th><th>Effect on growth and prices</th></tr>
+    <tr><td><b>Demand-led</b>: lower interest rates raise AD by 20</td><td>AD: P = 140 − Y</td><td>Y = 60, P = 80</td><td>Output +20%, prices +14%. Uses spare capacity; some inflation</td></tr>
+    <tr><td><b>Supply-led</b>: training and technology raise SRAS by 20 (and LRAS)</td><td>SRAS: P = Y</td><td>Y = 60, P = 60</td><td>Output +20%, prices −14%. Potential output rises: sustained growth</td></tr>
+    <tr><td><b>Both together</b></td><td>AD and SRAS shift right</td><td>Y = 70, P = 70</td><td>Output +40%, price level unchanged</td></tr>
+  </table></div>
+  <ul>
+    <li>Supply-led growth is better for the economy because it increases output <b>without</b> inflationary pressure and raises potential output.</li>
+    <li>Demand-led growth is faster and cheaper to achieve, but only works while there is spare capacity.</li>
+  </ul>
+
+  <h2>4 · Causes in more detail</h2>
+  <ul>
+    <li><b>Labour:</b> a larger workforce (more migration or participation) and better skills raise output. Education and health spending are investments in human capital.</li>
+    <li><b>Capital:</b> net investment in machinery, buildings and infrastructure raises productive capacity and productivity.</li>
+    <li><b>Technology and innovation:</b> new methods let the same inputs produce more.</li>
+    <li><b>Enterprise and competition:</b> encourages new firms and efficiency.</li>
+    <li><b>Institutions:</b> stable government, property rights and a good legal system encourage investment.</li>
+    <li><b>International trade and investment:</b> access to bigger markets, specialisation and inward foreign investment raise growth; rising commodity prices raise export income in some countries.</li>
+    <li><b>Which cause is more important?</b> It depends: in a recession, higher AD matters most; for long-run growth, investment, technology and skills are more important. The impact of each is hard to measure, because causes interact and some output is unrecorded.</li>
+  </ul>
+
+  <h2>5 · Consequences: how they arise</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Consequence</th><th>How it arises</th><th>For whom</th></tr>
+    <tr><td><b>Higher living standards</b></td><td>More output per person and higher incomes</td><td>Households</td></tr>
+    <tr><td><b>Lower unemployment</b></td><td>Firms need more workers to produce more</td><td>Workers; government (less welfare spending)</td></tr>
+    <tr><td><b>Higher tax revenue</b></td><td>Higher incomes and spending raise tax receipts at the same rates</td><td>Government: more for health, education and a smaller deficit</td></tr>
+    <tr><td><b>Inflation</b></td><td>AD grows faster than capacity, labour shortages raise wages</td><td>Savers, people on fixed incomes; competitiveness</td></tr>
+    <tr><td><b>Current account deficit</b></td><td>Higher incomes raise import spending</td><td>The external sector, the exchange rate</td></tr>
+    <tr><td><b>Environmental damage</b></td><td>More production and consumption raise pollution and use up resources</td><td>Future generations; people near polluted areas</td></tr>
+    <tr><td><b>Inequality</b></td><td>The gains may go mainly to those with skills or capital</td><td>Poorer households</td></tr>
+  </table></div>
+
+  <h2>6 · Is growth always beneficial?</h2>
+  <ul>
+    <li><b>Sustainable growth</b> meets present needs without reducing future capacity: it considers resource use and pollution.</li>
+    <li>Growth is more beneficial when it is <b>supply-led</b>, uses <b>clean</b> technology, creates <b>jobs</b> and is <b>widely shared</b>.</li>
+    <li>It is less beneficial when it is <b>demand-led near full capacity</b>, leads to <b>inequality</b>, or damages the <b>environment</b> faster than it raises living standards.</li>
+    <li><b>For the government,</b> growth raises revenue and cuts welfare costs, but increases demand for public services and infrastructure. <b>For the people,</b> the effect depends on jobs, prices and the distribution of income.</li>
+    <li><b>In developing countries,</b> growth is often essential to reduce poverty; in high-income countries, the costs (pollution, congestion) may weigh more.</li>
+  </ul>
   <div class="tip"><b class="h">Exam tip</b>For 'always positive' questions, give <b>both</b> sides and then say <b>when</b> growth is more or less beneficial: depending on its source, the economy's spare capacity and who benefits. Do not just list.</div>
 '''
 
@@ -72,7 +117,9 @@ real = RWNOTE + (
 rw("Investing in education and technology", "A country spends heavily on schools and research. Workers become more skilled and firms adopt better methods, so potential output rises. This is supply-side growth, which can last without causing inflation.", "supply-side causes and LRAS shifting right.") +
 rw("A consumer boom", "Low interest rates and confidence lead households to borrow and spend. If the economy has spare capacity, output and jobs rise. If it does not, prices rise and the extra spending sucks in imports.", "demand-led growth and its costs.") +
 rw("Rapid industrial growth", "A fast-growing economy raises incomes and cuts poverty, but factories and traffic raise air pollution and use up natural resources. The benefits are real, but so are the environmental costs.", "positive and negative consequences.") +
-rw("Growth in a few sectors", "If growth is concentrated in mining or finance, a small group may gain most. Average income rises, but inequality widens and workers in declining industries may become unemployed.", "growth and the distribution of income.")
+rw("Growth in a few sectors", "If growth is concentrated in mining or finance, a small group may gain most. Average income rises, but inequality widens and workers in declining industries may become unemployed.", "growth and the distribution of income.") +
+rw("Investment in education and technology", "A country invests heavily in schools, universities and research. Productivity rises over decades, shifting LRAS right and supporting sustained growth, though the cost is large and the payoff slow.", "supply-side causes of growth.") +
+rw("A boom in exports", "Strong foreign demand for a country's exports raises AD, so output and jobs grow. But rising incomes also pull in imports and may raise inflation if capacity is tight.", "an external demand-side cause, and its consequences.")
 )
 
 mc_exam = [
@@ -84,7 +131,7 @@ mc_exam = [
 
 exam = exam_page("the causes and consequences of economic growth",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Growth is one of the most common Paper 2 topics: an 8 mark part on causes and a 12 mark assessment of whether growth is always beneficial in most series, plus short data-response parts. Reworded past questions are below, with four Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "2", "May/June 2025 (23) Q4(a); Oct/Nov 2024 (21) Q4(a)"), ("Essay parts, 12 marks", "4", "Feb/March 2023 (22) Q4(b); Feb/March 2024 (22) Q5(b); May/June 2025 (23) Q4(b); May/June 2023 (22) Q5(b)"), ("Data response, 4 to 6 marks", "3", "Oct/Nov 2023 (21) Q1(b) and (e); Oct/Nov 2023 (23) Q1(c)"), ("Multiple choice (Paper 1)", "4 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "2", "May/June 2025 (23) Q4(a); Oct/Nov 2024 (21) Q4(a)"), ("Essay parts, 12 marks", "4", "Feb/March 2023 (22) Q4(b); Feb/March 2024 (22) Q5(b); May/June 2025 (23) Q4(b); May/June 2023 (22) Q3(b)"), ("Data response, 6 marks", "1", "Oct/Nov 2023 (21) Q1(e)"), ("Multiple choice (Paper 1)", "4 shown below", "2020 to 2025")],
   [
   eq(P("s25_23", "4(a)"), "8 marks", "Explain two causes of economic growth and consider the extent to which their impact can be measured.",
      ["Knowledge (up to 3): economic growth is the increase in the real value of goods and services produced in an economy over time (1); an explanation of two causes, such as an increase in AD (higher real wages, direct tax cuts, lower interest rates) or increases in LRAS (increased investment, increased productivity) (1 + 1).",
@@ -102,7 +149,27 @@ exam = exam_page("the causes and consequences of economic growth",
      ["Analysis (up to 8): the positive consequences, such as higher living standards, lower unemployment, higher tax revenue and more resources for public services (up to 4); the negative consequences, such as inflation, a current account deficit, environmental damage and inequality (up to 4).",
       "Evaluation (up to 4): a judgement on whether the consequences are always positive, depending on the type of growth, the economy's spare capacity and who benefits, with a conclusion."],
      "Positives: living standards, jobs, tax revenue. Negatives: inflation, imports, environment, inequality. Judge: depends on source, capacity and distribution.",
-     [[("n", "Economic growth raises real incomes and living standards, creates jobs and raises tax revenue, which the government can spend on health and education. But growth that comes from rising AD in an economy with little spare capacity pushes up prices, higher incomes raise spending on imports and may widen the current account deficit, and more output can mean pollution and depletion of resources. The benefits may also go mostly to higher earners, so inequality could rise.")], [("e", "Growth is not always positive. It is most beneficial when it comes from higher productive capacity, is sustainable and is widely shared. It is more likely to cause problems when it is driven by demand in a fully employed economy or by activities that damage the environment.")]])
+     [[("n", "Economic growth raises real incomes and living standards, creates jobs and raises tax revenue, which the government can spend on health and education. But growth that comes from rising AD in an economy with little spare capacity pushes up prices, higher incomes raise spending on imports and may widen the current account deficit, and more output can mean pollution and depletion of resources. The benefits may also go mostly to higher earners, so inequality could rise.")], [("e", "Growth is not always positive. It is most beneficial when it comes from higher productive capacity, is sustainable and is widely shared. It is more likely to cause problems when it is driven by demand in a fully employed economy or by activities that damage the environment.")]]),
+  eq(P("m24_22", "5(b)"), "12 marks", "Assess whether economic growth is always desirable for an economy.",
+     ["Analysis (up to 8): the meaning of economic growth; the potential benefits for an economy: higher incomes, a reduction in unemployment, improved government finances, increased international competitiveness, increases in consumer and business confidence, increased life expectancy; the costs of economic growth: inflation, current account deficits, inequality, pollution.",
+      "Evaluation (up to 4): consideration that fully assesses the relative perspectives of economic growth for an economy and arrives at a reasoned conclusion on which viewpoint is most likely."],
+     "Benefits: incomes, jobs, tax revenue, competitiveness. Costs: inflation, current account deficit, inequality, pollution. Judge: depends on source and how it is shared.",
+     [[("n", "Economic growth is an increase in real GDP. It usually raises incomes and living standards, creates jobs, and lifts tax revenue, which governments can use to improve health and education, and it may improve confidence and competitiveness. But growth can cause inflation if demand outpaces capacity, raise imports and a current account deficit, widen inequality if the gains go to a few, and cause pollution and resource depletion.")], [("e", "Growth is not always desirable. It is most beneficial when it is supply-led, sustainable and widely shared, and least beneficial when it is demand-led near full capacity or damages the environment. For low-income countries the benefits are likely to outweigh the costs.")]]),
+  eq(P("s25_23", "4(b)"), "12 marks", "Assess the extent to which economic growth is always beneficial for the people and government in an economy.",
+     ["Analysis (up to 8): potential benefits, for example higher real GDP per capita and a better quality of life, more jobs as firms need more workers, more tax revenue without raising tax rates so the government can invest in public services such as healthcare and education, and more investment and consumption as expectations about future income and profits rise; potential costs, for example growth that disproportionately benefits the wealthy and widens the gap between rich and poor, and higher pollution and depletion of natural resources.",
+      "Evaluation (up to 4): a judgement on the extent to which growth is beneficial to the people and the government, with a conclusion."],
+     "People: income, jobs, quality of life; inequality, pollution. Government: revenue, spending; costs of services, deficit. Judge: depends on distribution and sustainability.",
+     [[("n", "For the people, growth raises average incomes, creates jobs and widens choice, which can improve quality of life. For the government, higher incomes raise tax revenue without higher rates, which can fund public services and reduce borrowing. But the gains may go mainly to richer households, widening inequality, and extra production can cause pollution and use up resources. Rapid growth may also raise inflation and the demand for infrastructure.")], [("e", "Growth is usually beneficial, but not always for everyone. The extent depends on how it is shared, whether it is sustainable and whether it comes with inflation or environmental cost.")]]),
+  eq(P("s23_22", "3(b)"), "12 marks", "Entrepreneurs are vital in a modern economy to achieve long run economic growth. Assess whether encouraging entrepreneurship or increasing another of the factors of production will be a more effective way to achieve long run economic growth.",
+     ["Analysis (up to 8): the advantages of encouraging entrepreneurship: entrepreneurs organise the other three factors of production; they take risks and receive profit, which motivates success and stimulates growth; they must be creative and innovative, raising productive potential and so long-run growth, shown by a shift of the PPC to the right; modern economies are dynamic and need to respond quickly to change, which successful entrepreneurs can do; there may be a cost in training and educating future entrepreneurs; and the advantages and disadvantages of increasing another factor of production.",
+      "Evaluation (up to 4): a judgement on which approach is more effective, with a conclusion."],
+     "Enterprise: organises, takes risk, innovates; training cost. Another factor, such as labour or capital: skills, investment. Judge: factors complement each other.",
+     [[("n", "Encouraging entrepreneurship raises growth because entrepreneurs organise the other factors, take risks for profit and innovate, increasing the economy's productive potential and shifting the PPC outward. It may need training and support, and the results are uncertain. Increasing another factor, such as capital through investment or labour through education, also raises capacity, and may be easier to plan, but without entrepreneurs to organise and use them, extra capital or labour may be less productive.")], [("e", "Entrepreneurship is probably the most important in the long run because it drives innovation and the use of other factors, but it works best alongside investment in capital and skills. The most effective strategy combines factors.")]]),
+  eq(P("w23_21", "1(e)"), "6 marks", "Assess the possible consequences of a higher rate of economic growth for an economy such as Taiwan.",
+     ["Analysis (up to 4): positive consequences (up to 2): increased expenditure such as on education and health care, a higher standard of living, more jobs, higher incomes and less poverty; negative consequences (up to 2): more pressure on available resources with possible environmental effects such as congestion and pollution.",
+      "Evaluation (up to 2): weighing up the consequences on both sides (1) to reach a conclusion on the likely overall effect (1)."],
+     "Positive: spending on services, living standards, jobs, incomes. Negative: pressure on resources, congestion, pollution. Judge overall.",
+     [[("n", "Faster growth raises incomes and creates jobs, so living standards improve and poverty falls, and higher tax revenue allows more spending on education and health care. But it puts pressure on resources, causing congestion and pollution."), ("e", "On balance the consequences are likely to be positive, particularly for incomes and employment, but the environmental costs may become more serious if growth is rapid.")]])
   ],
   )
 

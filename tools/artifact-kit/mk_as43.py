@@ -29,6 +29,45 @@ learn = '''
     <li><b>Shift left (decrease):</b> higher interest rates, higher taxes, falling confidence, cuts in government spending, appreciation, a recession abroad, tighter credit.</li>
     <li>An <b>increase in AD</b> raises real output and the price level; how much of each depends on the shape of the AS curve.</li>
   </ul>
+
+  <h2>3 · Worked example: calculating AD</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Component</th><th>$bn</th><th>Change</th><th>New $bn</th></tr>
+    <tr><td>C</td><td>600</td><td>Consumers' confidence rises: +50</td><td>650</td></tr>
+    <tr><td>I</td><td>150</td><td>Interest rates fall: +20</td><td>170</td></tr>
+    <tr><td>G</td><td>200</td><td>No change</td><td>200</td></tr>
+    <tr><td>X</td><td>180</td><td>Currency falls: +10</td><td>190</td></tr>
+    <tr><td>M</td><td>160</td><td>Imports fall as currency falls: −10</td><td>150</td></tr>
+    <tr><td><b>AD = C + I + G + (X − M)</b></td><td><b>970</b></td><td></td><td><b>1,060</b></td></tr>
+  </table></div>
+  <ul>
+    <li>AD rises from 970 to 1,060 (a rise of 9.3%). The AD curve shifts to the right. Each change in a component has a cause: confidence (C), lower interest rates (I), and the exchange rate (X and M).</li>
+  </ul>
+
+  <h2>4 · Determinants of the components in more detail</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Factor</th><th>Component affected</th><th>Effect of a rise in the factor</th></tr>
+    <tr><td><b>Interest rates</b></td><td>C and I</td><td>Borrowing dearer and saving more attractive, so C and I fall; AD shifts left</td></tr>
+    <tr><td><b>Income taxes</b></td><td>C</td><td>Lower disposable income, so C falls; AD shifts left</td></tr>
+    <tr><td><b>Consumer and business confidence</b></td><td>C and I</td><td>More optimism: C and I rise; AD shifts right</td></tr>
+    <tr><td><b>Household wealth</b> (house and share prices)</td><td>C</td><td>Feeling richer, people spend more; AD shifts right</td></tr>
+    <tr><td><b>Availability of credit</b></td><td>C and I</td><td>Easier credit raises spending; AD shifts right</td></tr>
+    <tr><td><b>Government spending</b></td><td>G</td><td>Rises: AD shifts right</td></tr>
+    <tr><td><b>Exchange rate</b></td><td>X − M</td><td>A rise (appreciation) makes exports dearer and imports cheaper, so X − M falls; AD shifts left</td></tr>
+    <tr><td><b>Foreign incomes</b></td><td>X</td><td>Higher incomes abroad raise demand for exports; AD shifts right</td></tr>
+    <tr><td><b>Corporation tax and expected profits</b></td><td>I</td><td>Lower tax and higher expected profits raise I</td></tr>
+  </table></div>
+
+  <h2>5 · The effect of a change in AD on output and prices</h2>
+  <ul>
+    <li>The effect depends on the <b>shape of the AS curve</b>: if there is <b>spare capacity</b> (the flat part), a rise in AD mainly raises <b>real output and employment</b>; near <b>full capacity</b> (the steep part), it mainly raises the <b>price level</b>.</li>
+    <li><b>Benefits of higher AD:</b> economic growth, falling unemployment, higher incomes and tax revenue.</li>
+    <li><b>Problems:</b> inflationary pressure, a worsening current account (more imports), a larger budget deficit if driven by government spending, and possible overheating.</li>
+    <li><b>Lower AD</b> reduces inflation but may cause recession and unemployment.</li>
+  </ul>
+
+  <h2>6 · Common mistakes</h2>
+  <div class="warn"><b class="h">Do not write this</b>A change in the price level shifts the AD curve (it causes a movement along it). Do not include transfer payments in G. Do not say that AD slopes downward for the same reason as a micro demand curve: it slopes down because of the wealth, interest rate and international trade effects.</div>
   <div class="tip"><b class="h">Exam tip</b>Name the <b>component</b> that changes and say which way the AD curve <b>shifts</b>. Do not draw a change in the price level as a shift. For essays, say what then happens to real output and prices using the AS curve.</div>
 '''
 
@@ -68,7 +107,9 @@ real = RWNOTE + (
 rw("Lower interest rates", "A central bank cuts interest rates. Borrowing becomes cheaper, so households buy more on credit (C) and firms invest more (I). Aggregate demand shifts right, raising real output and, as the economy nears capacity, prices.", "interest rates affecting C and I.") +
 rw("A weaker currency", "If the exchange rate falls, exports become cheaper abroad and imports dearer at home, so net exports (X − M) rise and AD shifts right, other things equal.", "the exchange rate affecting net exports.") +
 rw("A fall in consumer confidence", "Households fear job losses, so they cut spending and save more. Consumption falls, AD shifts left, and output and employment tend to fall.", "confidence as a determinant of consumption.") +
-rw("Government road building", "State spending on infrastructure is part of G. It raises AD directly, and also supports the economy's capacity if it improves transport, so it may also shift AS in the long run.", "G as a component of AD.")
+rw("Government road building", "State spending on infrastructure is part of G. It raises AD directly, and also supports the economy's capacity if it improves transport, so it may also shift AS in the long run.", "G as a component of AD.") +
+rw("A cut in interest rates", "A central bank cuts interest rates. Borrowing becomes cheaper, so households spend more on credit and firms invest more, and a weaker currency helps exports. AD shifts right.", "interest rates changing C, I and net exports.") +
+rw("A fall in consumer confidence", "News of job losses makes households pessimistic. They cut back on big purchases and save more, so consumption falls and AD shifts left, even though prices and incomes have not yet changed.", "confidence as a determinant of AD.")
 )
 
 mc_exam = [
@@ -107,7 +148,17 @@ exam = exam_page("aggregate demand",
       "Analysis (up to 3): a valid cause of an increase in AD (1); a valid cause of an increase in AS (1); both increases shown by rightward shifts, with the resulting impact on the price level on an accurate diagram (1).",
       "Evaluation (up to 2): whether an increase in AD always leads to inflation depends on the increase in AS and the shape of or position on the AS curve."],
      "Define AD and AS. One cause each, shown as right shifts. AD rise leads to inflation only if AS does not rise or the economy is near capacity.",
-     [[("k", "Aggregate demand is total spending on a country's output at each price level, C + I + G + (X − M). Aggregate supply is the total output firms are willing and able to produce at each price level.")], [("n", "AD might increase because of lower interest rates, which raise consumption and investment, shifting AD to the right. AS might increase because of better technology, which lowers costs, shifting SRAS to the right. Together they raise real output, and the price level may rise only a little, or fall.")], [("e", "An increase in AD does not always lead to inflation. If there is spare capacity, or AS also increases, output rises with little change in the price level, but if the economy is near full capacity, inflation is more likely.")]])
+     [[("k", "Aggregate demand is total spending on a country's output at each price level, C + I + G + (X − M). Aggregate supply is the total output firms are willing and able to produce at each price level.")], [("n", "AD might increase because of lower interest rates, which raise consumption and investment, shifting AD to the right. AS might increase because of better technology, which lowers costs, shifting SRAS to the right. Together they raise real output, and the price level may rise only a little, or fall.")], [("e", "An increase in AD does not always lead to inflation. If there is spare capacity, or AS also increases, output rises with little change in the price level, but if the economy is near full capacity, inflation is more likely.")]]),
+  eq(P("s24_23", "4(b)"), "12 marks", "Assess whether increases in aggregate demand are the best way of reducing unemployment in a high-income country.",
+     ["Analysis (up to 8): what is meant by unemployment and its main types in a high-income economy; increases in AD arise from fiscal and monetary policy; policies such as lower taxes, higher government spending and lower interest rates may reduce cyclical unemployment but may not reduce structural unemployment; supply-side policy may reduce unemployment by influencing AS, through training, education and deregulation, but is a long-term approach, may be costly and does not address falls in AD behind cyclical unemployment.",
+      "Evaluation (up to 4): considers alternative policies and balances them; a judgement on whether AD is the best way, with a conclusion."],
+     "AD: cuts cyclical unemployment, quick, but not structural; inflation, deficit. Supply-side: structural, slow, costly. Judge by type of unemployment.",
+     [[("n", "Increasing AD through lower interest rates, tax cuts or more government spending raises output, so firms need more workers and cyclical unemployment falls, and this can work quickly. But if unemployment is structural, because workers' skills do not match vacancies, more spending creates little employment and may only raise prices. Higher AD can also worsen the budget deficit and the current account. Supply-side policy, such as training and education, tackles structural unemployment but takes years, costs money and does not help where the problem is weak demand.")], [("e", "Increasing AD is the best way when unemployment is mainly cyclical and there is spare capacity, but not when it is structural. A high-income country is likely to have both types, so a mix of demand-side and supply-side policies is likely to be most effective.")]]),
+  eq(P("s21_23", "3(b)"), "12 marks", "Discuss whether an increase in aggregate demand would be of overall benefit for an economy.",
+     ["Analysis (up to 8): the benefits of an increase in AD to the economy (up to 4), such as economic growth and higher employment, considering firms, government and consumers or workers; the possible problems (up to 4), such as inflation and a current account deficit.",
+      "Evaluation (up to 4): clearly compares the benefits and the problems resulting from an increase in AD, with one mark reserved for a reasoned conclusion. No KU marks for merely explaining terms in the question."],
+     "Benefits: growth, jobs, profits, tax revenue. Problems: inflation, current account deficit, overheating. Judge: depends on spare capacity.",
+     [[("n", "A rise in AD raises real output, which creates jobs for workers, higher profits for firms and more tax revenue for the government. But if the economy is near full capacity the extra demand mainly raises prices, causing inflation, and higher incomes raise spending on imports, worsening the current account.")], [("e", "The overall benefit is likely to be greatest when there is spare capacity and unemployment is high, and smallest when the economy is already near full capacity. So an increase in AD is beneficial overall, but not always, and its benefits depend on how much capacity is available.")]])
   ],
   )
 

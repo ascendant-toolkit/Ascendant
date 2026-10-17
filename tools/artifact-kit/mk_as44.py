@@ -28,6 +28,49 @@ learn = '''
     <li>The LRAS shifts <b>left</b> if capacity falls: war damage, emigration, resource depletion, or a lasting loss of skills.</li>
     <li><b>Short-run shifts</b> (costs) can be reversed quickly; <b>long-run shifts</b> change potential output.</li>
   </ul>
+
+  <h2>3 · Determinants of aggregate supply in detail</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Factor</th><th>Curve that shifts</th><th>Direction and reason</th></tr>
+    <tr><td><b>Wage rates</b></td><td>SRAS</td><td>Higher wages raise unit costs: left. A wage freeze or fall: right.</td></tr>
+    <tr><td><b>Raw material and energy prices</b></td><td>SRAS</td><td>Higher oil prices raise costs: left. Lower prices: right.</td></tr>
+    <tr><td><b>Business taxes and subsidies</b></td><td>SRAS</td><td>Higher taxes: left. Subsidies or lower taxes: right.</td></tr>
+    <tr><td><b>Exchange rate</b></td><td>SRAS</td><td>A fall in the currency makes imported inputs dearer: left; a rise makes them cheaper: right.</td></tr>
+    <tr><td><b>Productivity</b></td><td>SRAS and LRAS</td><td>Higher productivity lowers unit costs and raises capacity: right.</td></tr>
+    <tr><td><b>Labour force size and skills</b></td><td>LRAS</td><td>More workers, better training and education: right. Emigration or ageing: may shift left.</td></tr>
+    <tr><td><b>Capital stock and technology</b></td><td>LRAS</td><td>Net investment and new technology: right. Capital destroyed (war, disaster): left.</td></tr>
+    <tr><td><b>Natural resources</b></td><td>LRAS</td><td>A new discovery: right. Depletion: left.</td></tr>
+    <tr><td><b>Institutions and regulation</b></td><td>LRAS</td><td>Better infrastructure, competition and legal systems: right. Excessive regulation: may shift left.</td></tr>
+  </table></div>
+
+  <h2>4 · Explaining the shapes</h2>
+  <ul>
+    <li><b>SRAS upward-sloping:</b> input prices (especially wages) are fixed in the short run, so a higher price level raises profit per unit, and firms raise output. It gets steeper near capacity because firms must pay more for scarce inputs (overtime, less efficient machines).</li>
+    <li><b>Three-section LRAS:</b> (1) <b>spare capacity</b>: output can rise with little pressure on costs, so the curve is flat; (2) <b>nearing capacity</b>: bottlenecks push up costs, so output rises less and prices more; (3) <b>full capacity</b>: no more can be produced, so the curve is vertical.</li>
+    <li><b>Vertical LRAS:</b> the view that in the long run output depends on productive capacity, not on the price level, because wages and other costs adjust.</li>
+    <li><b>Potential output</b> is the maximum output the economy can sustain with full employment of resources and without rising inflation.</li>
+  </ul>
+
+  <h2>5 · Worked example: a cost shock and a capacity change</h2>
+  <p>Take AD as P = 120 − Y and SRAS as P = 20 + Y. Equilibrium is Y = 50, P = 70.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Event</th><th>New SRAS</th><th>New equilibrium</th><th>Effect</th></tr>
+    <tr><td><b>Oil price rise</b> raises costs</td><td>P = 40 + Y (shift left)</td><td>Y = 40, P = 80</td><td>Output falls, prices rise: cost-push inflation (stagflation)</td></tr>
+    <tr><td><b>Fall in raw material prices</b></td><td>P = Y (shift right)</td><td>Y = 60, P = 60</td><td>Output rises, prices fall</td></tr>
+  </table></div>
+  <ul>
+    <li>In the <b>long run</b>, an increase in training and technology shifts LRAS right: potential output rises, so the economy can grow without inflation. A cost shock does not change potential output by itself, but it can reduce actual output.</li>
+  </ul>
+
+  <h2>6 · Short run and long run</h2>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Short run</th><th>Long run</th></tr>
+    <tr><td><b>Definition</b></td><td>The period in which at least one factor (and some costs such as wages) is fixed</td><td>The period in which all factors can be changed</td></tr>
+    <tr><td><b>Key curve</b></td><td>SRAS</td><td>LRAS</td></tr>
+    <tr><td><b>Shifts caused by</b></td><td>Changes in costs</td><td>Changes in capacity and productivity</td></tr>
+    <tr><td><b>Reversibility</b></td><td>Often temporary (a price spike fades)</td><td>Permanent changes in potential output</td></tr>
+  </table></div>
+  <div class="warn"><b class="h">Do not write this</b>Do not confuse SRAS with the supply curve of one firm or market: AS is the total output of the economy at each price level. Do not draw a rise in the price level as a shift of AS. Do not say wages rising shift LRAS: higher wages raise costs, so they shift SRAS (unless they change the supply of labour).</div>
   <div class="tip"><b class="h">Exam tip</b>Separate <b>costs</b> (SRAS) from <b>capacity</b> (LRAS). Name a determinant, say which curve moves, and say <b>why</b>: lower costs shift SRAS right; more productive capacity shifts LRAS right.</div>
 '''
 
@@ -67,7 +110,9 @@ real = RWNOTE + (
 rw("An oil price shock", "Oil is an input for transport and many products. When its price jumps, firms' costs rise at every level of output, so SRAS shifts left. Prices rise while output falls, which is cost-push inflation with weaker growth.", "SRAS shifting left from higher costs.") +
 rw("A stronger currency", "A higher exchange rate makes imported raw materials and components cheaper, lowering costs. SRAS shifts right, helping to lower prices and raise output in the short run.", "the exchange rate as a cost determinant of SRAS.") +
 rw("Investing in education", "Better education and training raise the skills and productivity of workers, so the economy can produce more even at full employment. LRAS shifts right over time.", "a long-run supply-side shift in LRAS.") +
-rw("A recession with spare capacity", "After a deep recession many factories and workers are idle. Output can rise a lot without much pressure on prices, the flat part of the three-section LRAS. Later, as spare capacity disappears, extra demand mostly raises prices.", "the three-section LRAS.")
+rw("A recession with spare capacity", "After a deep recession many factories and workers are idle. Output can rise a lot without much pressure on prices, the flat part of the three-section LRAS. Later, as spare capacity disappears, extra demand mostly raises prices.", "the three-section LRAS.") +
+rw("An oil price shock", "A sharp rise in oil prices raises transport and production costs for firms across the economy. SRAS shifts left, so output falls and the price level rises at the same time.", "a leftward shift of SRAS and cost-push inflation.") +
+rw("A new technology", "Widespread broadband and automation allow firms to produce more with the same inputs. Productivity rises and both SRAS and LRAS shift right, raising potential output.", "capacity growth and LRAS.")
 )
 
 mc_exam = [

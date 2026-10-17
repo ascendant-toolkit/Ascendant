@@ -29,6 +29,54 @@ learn = '''
     <li><b>Cyclical</b> unemployment is linked to the <b>business cycle</b> and falls when AD recovers. <b>Structural and technological</b> unemployment can persist for years and may be long term.</li>
     <li><b>Other contributing factors:</b> inflexible wages or minimum wages above equilibrium, generous benefits (voluntary unemployment), geographical and occupational immobility.</li>
   </ul>
+
+  <h2>3 · Worked examples</h2>
+  <p><b>Calculating the unemployment rate.</b> An economy has 30 million people in work and 2 million unemployed.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Item</th><th>Working</th><th>Result</th></tr>
+    <tr><td>Labour force</td><td>30m + 2m</td><td>32 million</td></tr>
+    <tr><td>Unemployment rate</td><td>2 ÷ 32 × 100</td><td>6.25%</td></tr>
+    <tr><td>If 0.5m unemployed people stop looking for work (discouraged workers)</td><td>1.5 ÷ 31.5 × 100</td><td>4.76%: the rate falls although nobody found a job</td></tr>
+    <tr><td>If 1m new jobs are created and 0.4m of them are taken by people previously out of the labour force</td><td>Unemployed fall by 0.6m: 1.4 ÷ 32.4 × 100</td><td>4.3%</td></tr>
+  </table></div>
+  <ul>
+    <li>The unemployment rate can <b>fall without jobs being created</b> if people give up looking, which is why measures should be used with other data (participation and employment rates).</li>
+    <li><b>Participation rate</b> = labour force ÷ working-age population × 100. A low participation rate may hide discouraged workers.</li>
+  </ul>
+
+  <h2>4 · Comparing the two methods of measurement</h2>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Labour force survey</th><th>Claimant count</th></tr>
+    <tr><td><b>Source</b></td><td>Sample survey of households</td><td>Administrative records of benefit claims</td></tr>
+    <tr><td><b>Definition</b></td><td>Without work, seeking work and available (ILO)</td><td>Receiving unemployment benefit</td></tr>
+    <tr><td><b>Advantages</b></td><td>International comparisons; includes those not claiming</td><td>Quick, cheap, up to date, no sampling error</td></tr>
+    <tr><td><b>Disadvantages</b></td><td>Costly; sample error; relies on honest answers; less frequent</td><td>Misses those not eligible or not claiming; may include people not seeking work; changes with benefit rules</td></tr>
+    <tr><td><b>Usually gives</b></td><td>A higher figure where many do not claim</td><td>A lower figure in most cases</td></tr>
+  </table></div>
+  <ul>
+    <li>In a <b>developing economy</b>, measurement is harder: much work is informal, self-employment and subsistence farming are common, there is no unemployment benefit (so no claimant count) and surveys are difficult in rural areas.</li>
+    <li><b>Hidden unemployment</b> includes discouraged workers, people on training schemes and those in jobs with little real work (disguised unemployment).</li>
+  </ul>
+
+  <h2>5 · The types of unemployment in more detail</h2>
+  <ul>
+    <li><b>Frictional:</b> short-term and natural; it exists even when there are vacancies, because job search takes time. Better information reduces it.</li>
+    <li><b>Structural:</b> the demand for one kind of labour falls permanently (coal mining, textiles) while workers lack the skills or live far from new jobs. It is usually <b>long term</b> and concentrated in certain regions.</li>
+    <li><b>Cyclical (demand-deficient):</b> AD falls, so firms need less labour in every industry. It rises in recessions and falls in booms. It is the type that expansionary demand-side policy can reduce.</li>
+    <li><b>Seasonal:</b> predictable, for example harvest workers and holiday resorts; usually short term.</li>
+    <li><b>Technological:</b> automation and AI replace tasks. In the long run new industries may create jobs, but workers displaced in the short run may be unable to move into them.</li>
+    <li><b>Wage-related:</b> a minimum wage above equilibrium, or strong unions, can reduce demand for labour (sometimes called real-wage unemployment).</li>
+  </ul>
+
+  <h2>6 · Which type is most damaging, and what are the remedies?</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Type</th><th>Duration and size of damage</th><th>Best response</th></tr>
+    <tr><td><b>Cyclical</b></td><td>Can be large and widespread in a deep recession; falls with recovery</td><td>Demand-side policy: lower interest rates, tax cuts, government spending</td></tr>
+    <tr><td><b>Structural</b></td><td>Persistent and regional; skills decay; often the most damaging in the long run</td><td>Supply-side policy: retraining, relocation, regional investment</td></tr>
+    <tr><td><b>Technological</b></td><td>Can be long term for the workers affected</td><td>Retraining, education reform, investment in new sectors</td></tr>
+    <tr><td><b>Frictional and seasonal</b></td><td>Short term and less damaging</td><td>Job information, off-season work, flexible labour markets</td></tr>
+  </table></div>
+  <div class="warn"><b class="h">Do not write this</b>The unemployed are everyone without a job: they are only those who are able, available and actively seeking work. Do not describe the claimant count as the official measure in every country. Do not confuse structural unemployment (a lasting mismatch) with cyclical unemployment (a fall in demand).</div>
   <div class="tip"><b class="h">Exam tip</b>Do not mix up <b>types</b> with <b>methods of measurement</b>. For types, give the <b>cause</b> and an example for each. For measurement, give <b>two methods</b> and a <b>difficulty</b> of each.</div>
 '''
 
@@ -68,7 +116,9 @@ real = RWNOTE + (
 rw("A factory closes", "A car plant shuts and 3,000 workers lose their jobs. Local firms do not need their specialised skills, and few other employers are nearby. This is structural unemployment, which can last a long time unless workers retrain or move.", "structural unemployment.") +
 rw("A recession", "Spending falls across the economy, so firms cut output and staff in many industries at once. This is cyclical unemployment, and it tends to fall as demand recovers.", "cyclical (demand-deficient) unemployment.") +
 rw("Harvest and holiday jobs", "Fruit pickers are needed in autumn but not in winter, and hotels in a ski resort hire in the season. When the season ends many lose work: seasonal unemployment.", "seasonal unemployment.") +
-rw("Discouraged workers", "After months of searching, a worker stops looking. They are not counted as unemployed in the labour force survey, so the published rate understates the true level of joblessness.", "difficulties in measuring unemployment.")
+rw("Discouraged workers", "After months of searching, a worker stops looking. They are not counted as unemployed in the labour force survey, so the published rate understates the true level of joblessness.", "difficulties in measuring unemployment.") +
+rw("A town loses its main employer", "When a steelworks closes, local workers have skills that no employer nearby needs. Structural unemployment persists unless workers retrain or move, or new industries are attracted.", "structural unemployment.") +
+rw("Discouraged workers", "After a long search with no success, some jobless people stop looking. They no longer count as unemployed in the survey, so the unemployment rate can fall while real unemployment does not.", "difficulties in measuring unemployment.")
 )
 
 mc_exam = [
@@ -82,7 +132,7 @@ mc_exam = [
 
 exam = exam_page("unemployment: measurement and causes",
   "We searched the AS Level Economics papers in the folder (2020 to 2025). Unemployment is an 8 mark Paper 2 part in most years, usually on the causes or the measurement, and appears in short data-response parts and in Paper 1. Reworded past questions are below, with six Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "3", "Oct/Nov 2024 (22) Q4(a); May/June 2024 (21) Q5(a); Oct/Nov 2023 (23) Q4(a)"), ("Data response, 2 to 4 marks", "3", "May/June 2023 (21) Q1(b) and (c); Oct/Nov 2023 (22) Q1(d)"), ("Multiple choice (Paper 1)", "6 shown below", "2020 to 2025")],
+  [("Essay parts, 8 marks", "3", "Oct/Nov 2024 (22) Q4(a); May/June 2024 (21) Q5(a); Oct/Nov 2023 (23) Q4(a)"), ("Data response, 4 marks", "1", "May/June 2023 (21) Q1(c)"), ("Multiple choice (Paper 1)", "6 shown below", "2020 to 2025")],
   [
   eq(P("w24_22", "4(a)"), "8 marks", "Explain two methods of measuring unemployment and consider the extent of the possible difficulties in obtaining an accurate measurement of unemployment.",
      ["Knowledge (up to 3): identification of two methods of measuring unemployment (1), plus a brief explanation of each (1 each). The two most used are the claimant count, based on those claiming benefits, and the labour force survey, based on a survey of people actively seeking a job. Answers on types of unemployment rather than methods are not rewarded.",
