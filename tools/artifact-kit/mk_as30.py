@@ -140,7 +140,7 @@ explore = '''
     <div><svg id="labB" viewBox="0 0 420 220" role="img" aria-label="Bars comparing the cost, the benefit and the revenue a private firm could collect"></svg></div></div></div>
 
   <h2>Lab 3 · Price controls</h2>
-  <p>Demand: P = 90 − Q, supply: P = 10 + Q, so equilibrium is price 50, quantity 40. Move the control price.</p>
+  <p>Demand: P = 90 − 0.8Q, supply: P = 10 + 0.8Q, so equilibrium is price 50, quantity 50. Move the control price.</p>
   <div class="card"><div class="grid2"><div><div id="g5"></div>
     <div class="readout"><div><small>Quantity demanded</small><strong id="c1"></strong></div><div><small>Quantity supplied</small><strong id="c2"></strong></div><div><small>Shortage or surplus</small><strong id="c3"></strong></div></div>
     <div class="verdict" id="cv"></div></div>
@@ -375,7 +375,7 @@ chooser("h", [
   ["Maximum price", "A legal limit on how high a price can go"],
   ["Minimum price", "A legal limit on how low a price can go"]]) + CALC([
   {"q": "A street light system costs $2 000 000 a year to provide and has 40 000 users. What tax per user would fund it ($)?", "a": 50, "unit": "$", "tol": 0.5, "hint": "2 000 000 ÷ 40 000.", "sol": "<b>$50</b> per user."},
-  {"q": "Demand is P = 90 - Q and supply P = 10 + Q. A maximum price of 30 is set. What is the quantity demanded?", "a": 60, "unit": "", "tol": 0.5, "hint": "Q = 90 - 30.", "sol": "<b>60</b>."},
+  {"q": "Demand is P = 90 - Q and supply P = 10 + Q (a simpler model than the lab). A maximum price of 30 is set. What is the quantity demanded?", "a": 60, "unit": "", "tol": 0.5, "hint": "Q = 90 - 30.", "sol": "<b>60</b>."},
   {"q": "Using the same maximum price of 30, what is the quantity supplied?", "a": 20, "unit": "", "tol": 0.5, "hint": "Q = 30 - 10.", "sol": "<b>20</b>."},
   {"q": "What is the shortage?", "a": 40, "unit": "", "tol": 0.5, "hint": "60 - 20.", "sol": "<b>40 units</b>."},
   {"q": "A minimum price of 70 is set instead. What is the surplus?", "a": 40, "unit": "", "tol": 0.5, "hint": "Qs = 60, Qd = 20.", "sol": "<b>40 units</b>."},

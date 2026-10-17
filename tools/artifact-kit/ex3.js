@@ -1,147 +1,127 @@
-/* ---------- model: demand (MPB) P = 100 - Q, private marginal cost MPC = 20 + 0.5Q. External cost / benefit $15 a unit in the animations ---------- */
 const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
-const X = (q) => 70 + q * 6.8, Y = (p) => 330 - p * 3;
-const axes = () => SV.line(70, 330, 750, 330) + SV.line(70, 330, 70, 20) + SV.text(750, 358, "Quantity", "sm", { "text-anchor": "end" }) + SV.text(76, 24, "Price and cost ($)", "sm");
 const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
-/* ---------- Lab 1: tax ---------- */
-function lab1() {
-  if (!$("#me") || !$("#tx")) return;
-  const m = +$("#me").value, t = +$("#tx").value, q = (80 - t) / 1.5, qs = (80 - m) / 1.5, p = 100 - q;
-  const loss = q > qs ? 0.5 * (q - qs) * (1.5 * q - 80 + m) : 0.5 * (qs - q) * (80 - 1.5 * q - m);
-  $("#r1").textContent = Lib.fmtN(q, 1); $("#r2").textContent = Lib.fmtN(qs, 1); $("#r3").textContent = Lib.fmtN(Math.max(0, loss), 0); $("#r4").textContent = "$" + Lib.fmtN(t * q, 0);
-  $("#rv").textContent = m === 0 ? "There is no external cost, so the free market is already efficient. Any tax creates a welfare loss."
-    : Math.abs(t - m) < 0.5 ? "The tax equals the external cost: the externality is internalised, output is at the social optimum and the welfare loss is zero."
-    : t < m ? `The tax ($${t}) is below the external cost ($${m}). Output is still above the optimum, so some overproduction and welfare loss remain.`
-    : `The tax ($${t}) is above the external cost ($${m}). Output falls below the optimum, so there is now underproduction and a new welfare loss.`;
-  const x = (v) => 40 + v * 3.6, y = (v) => 270 - v * 2.4;
-  let o = SV.line(40, 270, 400, 270) + SV.line(40, 270, 40, 20) + SV.text(396, 292, "Quantity", "sm", { "text-anchor": "end" }) + SV.text(46, 24, "$", "sm");
-  o += SV.poly([[x(qs), y(100 - qs)], [x(q), y(100 - q)], [x(q), y(20 + 0.5 * q + m)]], "f2");
-  o += SV.line(x(0), y(100), x(100), y(0), "c1") + SV.line(x(0), y(20), x(100), y(70), "c3") + SV.line(x(0), y(20 + m), x(100), y(70 + m), "c2") + (t > 0 ? SV.line(x(0), y(20 + t), x(100), y(70 + t), "c4", { "stroke-dasharray": "6 5" }) : "");
-  o += SV.circle(x(q), y(100 - q), 6, "dot1") + SV.circle(x(qs), y(100 - qs), 5, "dot3") + SV.text(x(q), 288, "Q", "sm bd", { "text-anchor": "middle" });
-  $("#labA").innerHTML = o;
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
 }
-Lib.slider($("#g1"), { id: "me", label: "External cost per unit ($): ", min: 0, max: 30, step: 1, value: 15, fmt: (v) => v, onInput: lab1 });
-Lib.slider($("#g2"), { id: "tx", label: "Tax per unit ($): ", min: 0, max: 30, step: 1, value: 0, fmt: (v) => v, onInput: lab1 });
 
-/* ---------- Lab 2: subsidy ---------- */
-function lab2() {
-  if (!$("#mb") || !$("#sb")) return;
-  const m = +$("#mb").value, s = +$("#sb").value, q = (80 + s) / 1.5, qs = (80 + m) / 1.5;
-  const loss = q < qs ? 0.5 * (qs - q) * (80 + m - 1.5 * q) : 0.5 * (q - qs) * (1.5 * q - 80 - m);
-  $("#s1").textContent = Lib.fmtN(q, 1); $("#s2").textContent = Lib.fmtN(qs, 1); $("#s3").textContent = Lib.fmtN(Math.max(0, loss), 0); $("#s4").textContent = "$" + Lib.fmtN(s * q, 0);
-  $("#sv").textContent = m === 0 ? "There is no external benefit, so the free market is already efficient. A subsidy would cause overproduction."
-    : Math.abs(s - m) < 0.5 ? "The subsidy equals the external benefit: output is at the social optimum and the welfare loss is zero."
-    : s < m ? `The subsidy ($${s}) is below the external benefit ($${m}), so output is still too low.` : `The subsidy ($${s}) is above the external benefit ($${m}), so output overshoots the social optimum.`;
-  const x = (v) => 40 + v * 3.6, y = (v) => 270 - v * 2.2;
-  let o = SV.line(40, 270, 400, 270) + SV.line(40, 270, 40, 20) + SV.text(396, 292, "Quantity", "sm", { "text-anchor": "end" }) + SV.text(46, 24, "$", "sm");
-  o += SV.poly([[x(q), y(20 + 0.5 * q)], [x(q), y(100 + m - q)], [x(qs), y(20 + 0.5 * qs)]], "f2");
-  o += SV.line(x(0), y(100), x(100), y(0), "c1") + SV.line(x(0), y(100 + m), x(100), y(m), "c4") + SV.line(x(0), y(20), x(100), y(70), "c2") + (s > 0 ? SV.line(x(0), y(20 - s), x(100), y(70 - s), "c3", { "stroke-dasharray": "6 5" }) : "");
-  o += SV.circle(x(q), y(100 - q), 6, "dot1") + SV.circle(x(qs), y(20 + 0.5 * qs), 5, "dot3") + SV.text(x(q), 288, "Q", "sm bd", { "text-anchor": "middle" });
-  $("#labB").innerHTML = o;
-}
-Lib.slider($("#g3"), { id: "mb", label: "External benefit per unit ($): ", min: 0, max: 30, step: 1, value: 15, fmt: (v) => v, onInput: lab2 });
-Lib.slider($("#g4"), { id: "sb", label: "Subsidy per unit ($): ", min: 0, max: 30, step: 1, value: 0, fmt: (v) => v, onInput: lab2 });
-
-/* ---------- Watch: bargaining ---------- */
-const BB = 280, HB = (v) => v * 1.4;
-function barDraw(s) {
-  let o = SV.line(60, BB, 740, BB) + SV.text(62, 24, "$", "sm");
-  const grp = (x, dmg, k, lab) => {
-    let g = "";
-    if (k.a > 0) g += SV.rect(x, BB - HB(100) * k.a, 90, HB(100) * k.a, "f3", op(k.a)) + SV.text(x + 45, BB - HB(100) - 8, "$100", "lbl bd", { "text-anchor": "middle", ...op(k.a) }) + SV.text(x + 45, BB + 18, "Factory gain", "sm", { "text-anchor": "middle", ...op(k.a) }) +
-      SV.rect(x + 110, BB - HB(dmg) * k.a, 90, HB(dmg) * k.a, "f2", op(k.a)) + SV.text(x + 155, BB - HB(dmg) - 8, "$" + dmg, "lbl bd", { "text-anchor": "middle", ...op(k.a) }) + SV.text(x + 155, BB + 18, "Resident damage", "sm", { "text-anchor": "middle", ...op(k.a) }) + SV.text(x + 100, BB + 42, lab, "lbl bd", { "text-anchor": "middle", ...op(k.a) });
-    if (k.r > 0) g += SV.rect(x + 205, BB - HB(100), 14, HB(100) - HB(dmg), "f1", op(k.r)) + SV.text(x + 226, BB - HB(80) + 4, "payments between $" + dmg + " and $100", "sm bd t1", { ...halo, ...op(k.r) });
-    return g;
-  };
-  o += grp(70, 60, { a: s.a, r: s.r }, "Case A: damage $60");
-  o += grp(430, 150, { a: s.b, r: 0 }, "Case B: damage $150");
+function chainDraw(nodes, k) {
+  const H = 40, G = 16; let o = "";
+  nodes.forEach((t, i) => {
+    const v = Math.max(0, Math.min(1, k - i)); if (v <= 0) return;
+    const y = 8 + i * (H + G);
+    o += SV.rect(30, y, 700, H, ["f1", "f2", "f3"][i % 3], { rx: 8, ...op(0.55 * v) }) + SV.text(380, y + 25, t, "lbl bd", { "text-anchor": "middle", ...op(v) });
+    if (i > 0) o += SV.poly([[373, y - 10], [387, y - 10], [380, y - 2]], "dot4", op(v));
+  });
   return o;
 }
-Lib.stepper($("#stCo"), { w: 780, h: 340, label: "A factory and a resident bargaining over pollution when the damage is smaller or larger than the factory's gain", base: { a: 0, r: 0, b: 0 }, draw: barDraw, tween: 800, dwell: 5600, steps: [
-  { cap: "<b>Case A.</b> The factory gains <b>$100</b> from producing. The pollution does <b>$60</b> of damage to a resident. Production creates a net social gain of $40.", s: { a: 1 } },
-  { cap: "<b>The resident holds the right to clean air.</b> The factory must pay to pollute. It will pay up to $100 and the resident will accept anything above $60, so a deal at any amount in between leaves <b>both better off</b>. For example $80 gives each a gain of $20.", s: { a: 1, r: 1 } },
-  { cap: "<b>Case B.</b> Now the damage is <b>$150</b>, more than the factory's gain of $100. The resident would refuse any payment under $150, which the factory will not pay, so there is <b>no deal and the factory stops</b>. Again the outcome is efficient: production costs more than it is worth.", s: { a: 1, r: 1, b: 1 } },
-  { cap: "<b>The catch.</b> This needs clear property rights, few people involved and low transaction costs. For pollution that affects thousands of people, negotiating is impractical, which is why governments often step in with taxes or regulation.", s: { a: 1, r: 1, b: 1 } },
-] });
-
-/* ---------- Lab 3: bargaining ---------- */
-function lab8() {
-  if (!$("#dmg") || !$("#gn")) return;
-  const d = +$("#dmg").value, g = +$("#gn").value, deal = g > d;
-  $("#y1").textContent = "$" + g; $("#y2").textContent = "$" + d; $("#y3").textContent = deal ? "$" + d + " to $" + g : "none"; $("#y4").textContent = deal ? "Yes" : "No";
-  $("#yv").textContent = deal ? `The factory gains $${g} and the damage is $${d}, so there is room for a deal: any payment from $${d} to $${g} leaves both better off. Production goes ahead and the outcome is efficient (net gain $${g - d}).`
-    : `The damage ($${d}) is at least the factory's gain ($${g}), so no payment satisfies both sides. The factory stops. This is also efficient, because production costs society more than it is worth.`;
-  const H = (v) => 1.2 * v, base = 190;
-  let o = SV.line(30, base, 400, base);
-  [[60, g, "f3", "Factory gain"], [220, d, "f2", "Resident damage"]].forEach(([x, v, c, l]) => { o += SV.rect(x, base - H(v), 100, H(v), c) + SV.text(x + 50, base - H(v) - 8, "$" + v, "lbl bd", { "text-anchor": "middle" }) + SV.text(x + 50, 210, l, "sm", { "text-anchor": "middle" }); });
-  if (deal) o += SV.rect(165, base - H(g), 50, H(g) - H(d), "f1") + SV.text(190, base - H(g) - 24, "deal range", "sm bd t1", { "text-anchor": "middle" });
-  $("#labL").innerHTML = o;
+function chainStep(el, label, nodes, caps) {
+  Lib.stepper($(el), { w: 760, h: 16 + nodes.length * 56, label, base: { k: 0 }, draw: (s) => chainDraw(nodes, s.k), tween: 700, dwell: 5200, steps: nodes.map((n, i) => ({ cap: caps[i], s: { k: i + 1 } })) });
 }
-Lib.slider($("#g13"), { id: "gn", label: "Factory's gain from producing ($): ", min: 50, max: 150, step: 10, value: 100, fmt: (v) => v, onInput: lab8 });
-Lib.slider($("#g14"), { id: "dmg", label: "Damage to the resident ($): ", min: 0, max: 150, step: 10, value: 60, fmt: (v) => v, onInput: lab8 });
+function chooser(p, items, tmpl, lab = "Strength of the case") {
+  const show = (i) => {
+    const it = items[i]; $$("#" + p + "B button").forEach((b, k) => b.classList.toggle("pri", k === i));
+    $("#" + p + "1").textContent = it[1]; $("#" + p + "2").textContent = it[2]; $("#" + p + "3").textContent = it[3]; $("#" + p + "v").textContent = tmpl(it);
+    const w = (it[4] / 5) * 340;
+    $("#" + p + "S").innerHTML = SV.text(210, 60, it[0], "lbl bd", { "text-anchor": "middle", style: "font-size:20px" }) + SV.rect(40, 100, 340, 18, "f3", { rx: 9, ...op(0.2) }) + SV.rect(40, 100, w, 18, "f1", { rx: 9, ...op(0.7) }) + SV.text(210, 146, lab + ": " + it[4] + " out of 5", "sm", { "text-anchor": "middle" });
+  };
+  $("#" + p + "B").innerHTML = items.map((t, i) => `<button class="b" data-i="${i}">${t[0]}</button>`).join("");
+  $$("#" + p + "B button").forEach((b) => (b.onclick = () => show(+b.dataset.i)));
+  show(0);
+}
 
-/* ---------- Practise ---------- */
-Lib.classify($("#cl1"), {
-  prompt: "Which type of policy is each one?",
-  buckets: [{ label: "Tax or subsidy" }, { label: "Regulation or ban" }, { label: "Information or persuasion" }, { label: "Property rights and bargaining" }, { label: "Tradable permits" }],
-  items: [
-    { text: "A per-flight tax on air travel", b: 0 }, { text: "A subsidy for electric cars", b: 0 }, { text: "A congestion charge", b: 0 },
-    { text: "A limit on night flights", b: 1 }, { text: "Emission standards for factories", b: 1 }, { text: "A ban on smoking in public places", b: 1 },
-    { text: "Negative advertising about flying", b: 2 }, { text: "Health warnings on cigarette packs", b: 2 },
-    { text: "A resident and a factory agreeing a payment", b: 3 }, { text: "Giving a community ownership of a river", b: 3 },
-    { text: "A cap on emissions with permits firms can trade", b: 4 },
-  ], done: "Name the type, then weigh its costs and limits.",
-});
-Lib.match($("#m1"), { prompt: "Match each word to its meaning.", pairs: [
-  ["Internalise", "Make the decision-maker face the full social cost or benefit"],
-  ["Tax equal to the external cost", "Shifts MPC up to MSC so output moves to the social optimum"],
-  ["Subsidy equal to the external benefit", "Moves output up to the social optimum"],
-  ["Property rights", "Legal ownership that lets people exclude others and be paid for use"],
-  ["Transaction costs", "The costs of negotiating and enforcing an agreement"],
-  ["Regulation", "Legal limits or bans on harmful activity"],
-  ["Government failure", "Intervention that leaves resources less efficiently used"],
-], done: "Seven words for policy on externalities." });
-Lib.order($("#o1"), { prompt: "Put the analysis of a tax on air travel in order.", items: [
-  "Airlines and passengers ignore the external cost of emissions and noise",
-  "MSC is above MPC and the market overproduces flights at Qm",
-  "A tax equal to the external cost per flight shifts MPC up to MSC",
-  "The price rises and the number of flights falls to the social optimum Qs",
-  "The welfare loss is removed and the externality is internalised",
-  "Evaluate: the external cost is hard to measure, demand may be inelastic, and there may be effects on jobs and tourism",
-], done: "A reliable structure for a 20 mark policy answer." });
+$("#pic1").innerHTML = (() => {
+  const L = [["1 mark", "One simple comment", 15, "f3"], ["2 marks", "Comments + vague conclusion", 205, "f3"], ["3 marks", "One developed point + conclusion", 395, "f1"], ["4 marks", "Two developed points + justified conclusion", 585, "f2"]];
+  let o = ""; L.forEach(([n, d, x, c]) => { o += SV.rect(x, 12, 165, 80, c, { rx: 12, ...op(0.45) }) + SV.text(x + 82, 40, n, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" }); const w = d.split(" + "); w.forEach((p, i) => { o += SV.text(x + 82, 62 + i * 18, (i ? "+ " : "") + p, "sm", { "text-anchor": "middle" }); }); });
+  return `<svg viewBox="0 0 760 104" role="img" aria-label="Evaluation marks from one to four">${o}</svg>`;
+})();
+chainStep("#stA", "Building evaluation from 1 mark to 4 marks", ["1 mark: 'A minimum price may not work if demand is inelastic.'", "2 marks: add a second simple comment and a general conclusion ('overall quite good')", "3 marks: develop one point: if demand is inelastic, a 20% price rise cuts quantity by only 5%, so consumption barely falls", "4 marks: add a second condition (information failure remains) and a justified conclusion in the question's words"], [
+  "<b>One bare comment.</b>", "<b>Still Level 1:</b> nothing is supported and the conclusion is vague.", "<b>Level 2:</b> a condition, a reason and a consequence.", "<b>Top of Level 2:</b> two developed points and a conclusion that says which policy is best and why."]);
+chainStep("#stB", "The CIT method on one point", ["Condition: it depends on the price elasticity of demand among heavy drinkers", "If demand is inelastic: a 20% price rise cuts quantity by only 5%, so consumption barely falls", "If demand is elastic: consumption falls by more than the price rise", "Then: a minimum price is only effective where demand is elastic", "Weigh it: heavy drinkers are the target group and tend to be inelastic, so the policy is limited"], [
+  "<b>Condition</b> names the lever (elasticity) and the group.", "<b>If</b> shows the mechanism for one case.", "<b>The opposite case</b> shows you have considered both.", "<b>Then</b> connects the result to the claim in the question.", "<b>Weigh</b> which condition is more likely, with the reason."]);
+chainStep("#stC", "From a vague conclusion to a justified one", ["Vague: 'Overall a minimum price is quite good but has problems.'", "Say which: 'A minimum price is not the best policy on its own.'", "Use the question's words: '...to reduce consumption of a demerit good.'", "Add the reason: 'because demand is likely to be inelastic and information failure remains.'", "Add the condition: 'It would work better for cheap drinks where substitutes exist, or with information.'"], [
+  "<b>Level 1:</b> no judgement.", "<b>A judgement</b> that answers 'best'.", "<b>Addresses the specific requirements</b> of the question.", "<b>Justified:</b> a reason that links to the analysis.", "<b>Developed:</b> the condition under which the answer would change."]);
+
+function ev() {
+  const ids = ["pt", "sp", "cn", "sd"];
+  if (!ids.every((i) => $("#" + i))) return;
+  const [pts, sup, con, both] = ids.map((i) => +$("#" + i).value);
+  let m, why = "";
+  if (!both) { m = 0; why = " The analysis is one-sided, so no evaluation marks are available."; }
+  else {
+    const dev = Math.min(pts, 2) * (sup >= 1 ? 1 : 0.5) * (sup >= 2 ? 1.2 : 1), cc = con === 2 ? 1.5 : con === 1 ? 0.7 : 0;
+    m = Math.round(Math.min(4, dev * 1.1 + cc));
+    if (con < 2) m = Math.min(m, 3);
+    if (pts === 0 && con === 0) m = 0;
+    if (sup === 0) m = Math.min(m, 2);
+  }
+  const L = m >= 3 ? 2 : m >= 1 ? 1 : 0;
+  $("#r1").textContent = m + " / 4"; $("#r2").textContent = L ? "Level " + L : "No credit";
+  $("#r3").textContent = !both ? "Analyse the other side first" : m >= 4 ? "At the top" : con < 2 ? "Make the conclusion answer the question and give the reason" : sup < 2 ? "Support each point with a reason or figure" : pts < 2 ? "Add a second developed condition" : "Check the conclusion uses the question's words";
+  $("#rv").textContent = `${pts} evaluative point(s), support ${["none", "some", "strong"][sup]}, conclusion ${["absent", "vague", "justified and answers the question"][con]}, ${both ? "analysis two-sided" : "analysis one-sided"}: about ${m} out of 4 (${L ? "Level " + L : "no credit"}).` + why;
+  const W = 340, X = (v) => 40 + (v / 4) * W;
+  let o = SV.rect(X(0), 70, X(2) - X(0), 40, "f3", op(0.4)) + SV.rect(X(2), 70, X(4) - X(2), 40, "f2", op(0.4)) + SV.text(X(1), 95, "Level 1", "lbl bd", { "text-anchor": "middle" }) + SV.text(X(3), 95, "Level 2", "lbl bd", { "text-anchor": "middle" });
+  o += SV.line(X(m), 50, X(m), 130, "c4", { "stroke-width": 3 }) + SV.text(X(m), 44, m + "", "lbl bd", { "text-anchor": "middle" });
+  $("#labA").innerHTML = o;
+}
+Lib.slider($("#g1"), { id: "pt", label: "Evaluative points made (0 to 3) ", min: 0, max: 3, step: 1, value: 1, fmt: (v) => v, onInput: ev });
+Lib.slider($("#g2"), { id: "sp", label: "Support: 0 none, 1 some, 2 reasoned with evidence ", min: 0, max: 2, step: 1, value: 1, fmt: (v) => ["none", "some", "strong"][v], onInput: ev });
+Lib.slider($("#g3"), { id: "cn", label: "Conclusion: 0 none, 1 vague, 2 justified ", min: 0, max: 2, step: 1, value: 1, fmt: (v) => ["none", "vague", "justified"][v], onInput: ev });
+Lib.slider($("#g4"), { id: "sd", label: "Both sides analysed? (0 no, 1 yes) ", min: 0, max: 1, step: 1, value: 1, fmt: (v) => (v ? "yes" : "no"), onInput: ev });
+ev();
+
+chooser("h", [
+  ["Elasticity", "It depends on how people respond to price.", "It depends on the price elasticity of demand for cigarettes among long-term smokers: if it is inelastic, a 20% tax raises revenue but barely cuts consumption.", "Is an indirect tax the best way to reduce consumption of a demerit good?", 5],
+  ["Time", "In the long run it might be different.", "In the short run, spending on roads raises AD and may raise prices; in the long run, better roads raise capacity and lower prices.", "Will supply-side policy raise inflation?", 5],
+  ["Spare capacity", "It depends on the state of the economy.", "If the economy has spare capacity, extra AD raises output; near full capacity it mainly raises the price level, so the policy is less beneficial.", "Does expansionary fiscal policy always benefit an economy?", 5],
+  ["Context or type", "It is different in different countries.", "For a developing economy with infant industries, free trade may cause unemployment; for one with strong factor endowments, it is more likely to bring gains.", "Is free trade always better than protectionism?", 4],
+  ["Trade-off", "There are good and bad points.", "Higher interest rates reduce demand-pull inflation, but they also raise firms' costs and unemployment, so the benefit depends on how much slack there is.", "Is contractionary monetary policy the best way to reduce inflation?", 4],
+  ["Alternatives", "Other policies exist.", "Information tackles the cause of over-consumption, but is slow; a tax is quicker and raises revenue, so a combination is likely to work best.", "Is information the best way to reduce demerit goods?", 4]
+], (it) => `${it[0]}. Vague: "${it[1]}" Developed: "${it[2]}" Fits: ${it[3]}`, "How often this lever is useful");
+chooser("k", [
+  ["'Overall it has advantages and disadvantages.'", "It restates both sides but makes no judgement", "'Overall the policy is likely to work for goods with elastic demand, but not for addictive goods, so it is not the best policy on its own.'", "A judgement, a condition and a reason", 1],
+  ["'It depends.'", "No factor, mechanism or answer", "'It depends on whether demand is inelastic: if it is, the tax barely reduces consumption, so it is not the best policy.'", "A named condition and a result", 1],
+  ["'So the government should use this policy.'", "A claim with no reason and no weighing", "'The government should combine it with information, because price alone leaves the lack of knowledge in place.'", "A reason that links to the analysis", 2],
+  ["'In conclusion, as I said above, a minimum price raises the price.'", "Repeats the analysis", "'In conclusion, a minimum price is unlikely to be the best policy, because demand is likely to be inelastic and an alternative gives more revenue.'", "A judgement using the question's words", 2],
+  ["'Overall it is a good policy.'", "A vague judgement with no support", "'Overall it is a good policy for cheap, strong drinks with substitutes, because quantity demanded falls most there.'", "The condition and the group", 2]
+], (it) => `Weak: ${it[0]} Why it scores low: ${it[1].toLowerCase()}. Better: ${it[2]} It adds: ${it[3].toLowerCase()}.`, "Marks lost by the weak version (out of 4)");
+Lib.classify($("#cl1"), { prompt: "Not evaluation, vague evaluation or developed evaluation?", buckets: [{"label": "Not evaluation"}, {"label": "Vague (Level 1)"}, {"label": "Developed (Level 2)"}], items: [{"text": "A minimum price is set above the equilibrium price.", "b": 0}, {"text": "It depends on many things.", "b": 1}, {"text": "If demand is price inelastic, a 20% rise in price cuts quantity by only 5%, so consumption barely falls and the policy is not effective.", "b": 2}, {"text": "A tax shifts the supply curve left.", "b": 0}, {"text": "Overall there are good and bad points.", "b": 1}, {"text": "A tariff only helps if demand for imports is elastic; if trading partners retaliate, exporters lose, so the benefit depends on retaliation.", "b": 2}], done: "Analysis and facts are not evaluation. Vague comments name no factor. Developed evaluation gives the condition, the reason and the consequence." });
+Lib.classify($("#cl2"), { prompt: "Which evaluation lever is it?", buckets: [{"label": "Time"}, {"label": "Elasticity"}, {"label": "Spare capacity"}, {"label": "Trade-off"}], items: [{"text": "Training raises productivity only after several years.", "b": 0}, {"text": "A tax only cuts consumption if demand is elastic.", "b": 1}, {"text": "Extra AD mainly raises prices if the economy is near full capacity.", "b": 2}, {"text": "Higher interest rates cut inflation but may raise unemployment.", "b": 3}, {"text": "The short-run effect is bigger than the long-run effect.", "b": 0}, {"text": "Imports fall only if the sum of the price elasticities is above one.", "b": 1}], done: "Time, elasticity, spare capacity and trade-off are four common levers." });
+Lib.order($("#o1"), { prompt: "Put the sentence parts in order: Condition, If, Then.", items: ["It depends on the price elasticity of demand for cigarettes among long-term smokers", "If it is inelastic, a 20% tax raises revenue but barely reduces consumption", "Then the tax is not effective at reducing consumption of this demerit good", "So overall the tax is better at raising revenue than at cutting smoking"], done: "Condition, If, Then, and a weighing sentence." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["1 mark", "A simple evaluative comment"], ["2 marks", "Simple comments with a vague conclusion"], ["3 marks", "One developed point with a conclusion that addresses the question"], ["4 marks", "Two developed points with a justified conclusion"], ["No evaluation marks", "The analysis was one-sided"], ["Justified conclusion", "A judgement with the reason and the condition"]], done: "Learn these terms." });
 Lib.calc($("#c1"), { qs: [
-  { q: "The marginal external cost is $15 a unit. What per-unit tax would internalise it ($)?", a: 15, sol: "A tax equal to the marginal external cost: <b>$15</b>." },
-  { q: "Demand is P = 100 − Q and MPC = 20 + 0.5Q. A tax of $15 shifts supply to 35 + 0.5Q. What is the new output (units, 1 decimal place)?", a: 43.3, tol: 0.1, sol: "100 − Q = 35 + 0.5Q gives Q = <b>43.3</b>, the social optimum." },
-  { q: "What is the government's tax revenue ($, nearest whole number)?", a: 650, tol: 1, sol: "15 × 43.3 = <b>$650</b>." },
-  { q: "The tax is set too high at $30. What is the output (units, 1 decimal place)?", a: 33.3, tol: 0.1, sol: "100 − Q = 50 + 0.5Q gives Q = <b>33.3</b>, below the social optimum of 43.3." },
-  { q: "A positive externality of $15 and a subsidy of $15 raise output to 63.3 units. What is the subsidy cost ($, nearest whole number)?", a: 950, tol: 1, sol: "15 × 63.3 = <b>$950</b>." },
-  { q: "A factory gains $100 from producing and the damage is $60. What is the largest net gain available to be shared between them ($)?", a: 40, sol: "100 − 60 = <b>$40</b>." },
+  {"q": "A 12 mark question gives 4 marks for evaluation. What percentage of the marks is that?", "a": 33.3, "unit": "%", "tol": 0.3, "hint": "4 ÷ 12.", "sol": "<b>33.3%</b>."},
+  {"q": "An 8 mark part gives 2 marks for evaluation. What percentage is that?", "a": 25, "unit": "%", "tol": 0.1, "hint": "2 ÷ 8.", "sol": "<b>25%</b>."},
+  {"q": "A 6 mark data response part has 2 marks for evaluation. What percentage is that (1 decimal place)?", "a": 33.3, "unit": "%", "tol": 0.3, "hint": "2 ÷ 6.", "sol": "<b>33.3%</b>."},
+  {"q": "At 2 minutes a mark, how long should the evaluation of a 12 mark answer take (4 marks)?", "a": 8, "unit": "min", "tol": 0.1, "hint": "4 × 2.", "sol": "<b>8 minutes</b>, including planning."},
 ] });
 Lib.quiz($("#qz1"), { qs: [
-  { q: "A tax set equal to the marginal external cost will:", opts: ["raise output above the optimum", "internalise the externality", "remove all costs", "have no effect on price"], a: 1, why: "It makes the producer face the full social cost." },
-  { q: "Which makes bargaining without government more likely to work?", opts: ["Thousands of people affected", "Clear property rights and few parties", "High transaction costs", "No identifiable polluter"], a: 1, why: "Few parties, clear rights and low transaction costs make a deal easy." },
-  { q: "A tax is above the external cost. Output will be:", opts: ["above the social optimum", "at the social optimum", "below the social optimum", "unchanged"], a: 2, why: "It overcorrects and creates a new welfare loss." },
-  { q: "Which is a weakness of a tax on pollution?", opts: ["It raises revenue", "The external cost is hard to measure so the tax may be wrong", "It changes prices", "It affects incentives"], a: 1, why: "Setting the right level needs information the government may not have." },
-  { q: "Which policy gives the most precise control over emissions?", opts: ["Information campaign", "Regulation or a ban", "A small tax", "Nothing"], a: 1, why: "A legal limit sets the quantity directly, though enforcement costs money." },
+  { q: "A response says 'it depends on many factors' and nothing else. Which Table B level is the best fit?", opts: ["Level 1", "Level 2", "Level 0 only", "Level 3"], a: 0, why: "A vague comment with no development is Level 1." },
+  { q: "Which feature is required for Level 2 evaluation?", opts: ["A justified conclusion addressing the question and developed, supported comments", "A long introduction", "A repeat of the analysis", "A list of definitions"], a: 0, why: "These are the two Table B descriptors." },
+  { q: "A mark scheme says a one-sided response cannot gain evaluation marks. What should the student do?", opts: ["Analyse both sides before evaluating", "Write a longer conclusion", "Only evaluate", "Skip the analysis"], a: 0, why: "Evaluation requires a balanced analysis." },
+  { q: "Which conclusion is best for 'assess whether X is the best policy'?", opts: ["It says which policy is best, uses the question's words and gives a reason", "It lists pros and cons", "It repeats the analysis", "It introduces a new point"], a: 0, why: "That is a justified conclusion that addresses the question." },
+  { q: "Which is a developed evaluative comment?", opts: ["Demand may be inelastic.", "If demand is inelastic, the tax cuts consumption little, so the policy fails its aim.", "There are other policies.", "Elasticity is important."], a: 1, why: "Condition, if and then." },
 ] });
 Lib.cards($("#fc1"), { cards: [
-  ["Internalise an externality", "Make the decision-maker bear the full social cost or gain the full social benefit."],
-  ["Tax for a negative externality", "A per-unit tax equal to the marginal external cost shifts MPC up to MSC."],
-  ["Subsidy for a positive externality", "A per-unit subsidy equal to the marginal external benefit moves output to the social optimum."],
-  ["Regulation", "Legal limits, standards or bans."],
-  ["Tradable permits", "A cap on pollution with permits that can be traded."],
-  ["Property rights", "Legal ownership that lets owners control and charge for use."],
-  ["Bargaining", "Parties agree a payment instead of relying on the government."],
-  ["Transaction costs", "The costs of negotiating and enforcing an agreement."],
-  ["Information failure (policy)", "The external cost cannot be measured accurately, so a tax may be wrong."],
-  ["Government failure", "Intervention that makes the allocation of resources worse or no better."],
+  ["Table B", "Level 1: vague. Level 2: justified and developed."],
+  ["4 marks", "Two developed points + justified conclusion."],
+  ["Levers", "Magnitude, time, elasticity, capacity, context, trade-off."],
+  ["CIT", "Condition, If, Then."],
+  ["One-sided", "No evaluation marks."],
+  ["Conclusion", "Use the question's words and give the reason."],
+  ["8 mark part", "2 evaluation marks."],
+  ["Avoid", "'It depends' alone."],
 ] });
 Lib.quiz($("#qz2"), { qs: [
-  { q: "[May/June 2025 · 32 · Q8] The marginal social benefit of consuming a drink is less than the marginal private benefit. What would be the best policy to improve resource allocation in this market?", opts: ["give a subsidy to the producers of the drink", "increase competition in the drink industry", "impose a maximum price for the drink above the market equilibrium price", "impose a per unit tax on the drink"], a: 3, why: "MSB < MPB means a negative consumption externality: the drink is over-consumed. A tax raises the price and cuts consumption." },
-  { q: "[May/June 2025 · 31 · Q8] Good X is a popular product that creates a negative externality when it is consumed. The government wants to reduce the consumption of good X significantly. Under which circumstances is the government most likely to meet its aim?", opts: ["subsidy, price elasticity of demand more than 1", "subsidy, price elasticity of demand less than 1", "indirect tax, price elasticity of demand more than 1", "indirect tax, price elasticity of demand less than 1"], a: 2, why: "A tax raises price. Elastic demand (more than 1) means quantity falls by a larger percentage, so consumption falls significantly." },
-  { q: "[May/June 2025 · 34 · Q10] Which policy by a government would increase the negative externalities that result from cigarette smoking?", opts: ["a ban on cigarette advertising", "a ban on cigarette smoking in public places", "a ban on substitutes for cigarettes", "a ban on the sale of cigarettes"], a: 2, why: "Banning substitutes keeps smokers buying cigarettes. A, B and D all aim to reduce smoking." },
-  { q: "[May/June 2025 · 31 · Q10] To reduce traffic congestion, a government built a new highway. Some citizens responded by switching from public transport to private cars, which made car journeys take even longer. What can be concluded about government failure?", opts: ["It occurred because the government's opportunity costs were not considered.", "It occurred because the wishes of the majority of citizens were ignored.", "It occurred because the result was unintended.", "It occurred from over-reliance on the market system."], a: 2, why: "The extra traffic was an unintended consequence of the policy." },
-  { q: "[Oct/Nov 2022 · 31 · Q15] Too many flights cause unnecessary damage to the environment. Which measure is most likely to result in the socially optimal number of flights?", opts: ["a complete ban on flights removing all private and external costs", "greater deregulation of the global airline industry", "publishing information to highlight the negative effects of flying on the environment", "the payment of a subsidy per passenger equal to the difference between the private and social benefit"], a: 2, why: "Information raises awareness of the external cost and moves choices towards the social optimum. A ban removes all flights, deregulation may increase them, and a subsidy raises flying." },
-  { q: "[May/June 2025 · 32 · Q11] What is not an outcome of the existence of private property rights?", opts: ["They encourage private owners to conserve property when its value is expected to rise.", "They give private owners the incentive to manage their property carefully.", "They make private owners accountable for damage to others from property misuse.", "They prevent private owners gaining from using resources to benefit others."], a: 3, why: "Property rights let owners gain from using resources, including by benefiting others, so D is not an outcome." },
-  { q: "[May/June 2025 · 34 · Q3] Why does the lack of property rights cause an inefficient allocation of resources?", opts: ["Scarce resources are depleted because the owner has sold them too cheaply.", "Scarce resources are depleted because they had zero cost to the users.", "Scarce resources are under-allocated to the provision of demerit goods.", "Scarce resources are under-allocated to the provision of merit goods."], a: 1, why: "If no one owns a resource, users pay nothing and it may be overused." },
+  { q: "What would make a policy of raising interest rates less likely to be effective in reducing inflation? (Oct/Nov 2021 · 12 · Q29, reworded)", opts: ["Aggregate supply is increasing faster than aggregate demand", "Consumers expect prices to rise even faster in the future", "Consumers' spending is largely paid for on credit", "Interest rates are still higher abroad"], a: 1, why: "A condition that limits the policy: if consumers expect faster price rises, they bring forward spending." },
+  { q: "A government decides to use supply-side policy to increase long-run aggregate supply (LRAS). What is the most likely reason why this policy tool will not lead to a fall in the price level? (Feb/March 2025 · 12 · Q24, reworded)", opts: ["Aggregate demand will also increase.", "Labour productivity levels will increase.", "Workers will save any extra wages they earn.", "Workers will spend any extra wages on imports."], a: 0, why: "An evaluation point: supply-side spending also raises AD, offsetting the fall in prices." },
+  { q: "A government has a target to reduce the rate of inflation. Why might it not want to raise interest rates to achieve this target? (May/June 2025 · 13 · Q25, reworded)", opts: ["aggregate demand may fall", "aggregate supply may fall", "saving may fall", "the exchange rate may fall"], a: 1, why: "A cost of the policy: higher borrowing costs for firms can reduce capacity." },
+  { q: "A government decides to allow the country's currency to depreciate to remove the deficit on its current account. What is the most likely reason why this would not work? (Feb/March 2024 · 12 · Q25, reworded)", opts: ["The country gains a competitive advantage from the depreciation.", "The country has a surplus on its capital and financial accounts.", "The price elasticities of demand for the country's exports and imports are greater than one.", "There are high trade barriers with the country's main trading partners."], a: 3, why: "A limiting condition: trade barriers reduce the rise in exports." },
+  { q: "A country has a balance of trade deficit. When will this be least likely to be improved as a result of a depreciation of its currency? (May/June 2021 · 13 · Q25, reworded)", opts: ["if it is currently operating with a significant amount of unused resources", "if the sum of the price elasticities of demand for exports and imports is less than 1", "if in the long term, the price elasticity of demand for exports should increase", "if the country uses a relatively small proportion of imports in their production process"], a: 1, why: "The elasticity condition: if the sum is below one the trade balance may worsen." },
 ] });

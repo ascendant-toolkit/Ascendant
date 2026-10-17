@@ -1,143 +1,147 @@
-/* ---------- model: demand (MPB) P = 100 - Q, private marginal cost MPC = 20 + 0.5Q. External cost / benefit $15 a unit in the animations ---------- */
 const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
-const X = (q) => 70 + q * 6.8, Y = (p) => 330 - p * 3;
-const axes = () => SV.line(70, 330, 750, 330) + SV.line(70, 330, 70, 20) + SV.text(750, 358, "Quantity", "sm", { "text-anchor": "end" }) + SV.text(76, 24, "Price and cost ($)", "sm");
 const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
-/* ---------- Watch 3: cost-benefit analysis ---------- */
-const R = 0.05, f = (t) => 1 / (1 + R) ** t, PVA = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].reduce((a, t) => a + f(t), 0);
-const CX = (t) => 90 + t * 58, SC = 0.3, BASE = 150;
-function cbaDraw(s) {
-  let o = SV.line(60, BASE, 700, BASE) + SV.text(700, BASE - 8, "Years", "sm", { "text-anchor": "end" });
-  for (let t = 0; t <= 10; t++) o += SV.text(CX(t), 366, t, "sm", { "text-anchor": "middle" });
-  o += SV.rect(CX(0) - 18, BASE, 36, 600 * SC, "f2", op(s.c)) + SV.text(CX(0), BASE + 600 * SC + 16, "−600", "lbl bd t2", { "text-anchor": "middle", ...op(s.c) });
-  for (let t = 1; t <= 10; t++) {
-    const k = 1 - s.disc * (1 - f(t));
-    if (s.b > 0) o += SV.rect(CX(t) - 16, BASE - 120 * SC * k, 32, 120 * SC * k, "f1", op(s.b)) + (t === 10 ? SV.text(CX(t), BASE - 120 * SC * k - 8, s.disc > 0.5 ? "+" + Lib.fmtN(120 * f(10), 0) : "+120", "sm bd t1", { "text-anchor": "middle", ...op(s.b) }) : "");
-    if (s.e > 0) o += SV.rect(CX(t) - 16, BASE, 32, 36 * SC * k, "f2", { opacity: s.e * 0.85 });
-  }
-  if (s.b > 0) o += SV.text(CX(5), BASE - 120 * SC - 24, "private benefit $120 a year", "lbl bd t1", { "text-anchor": "middle", ...op(s.b) });
-  if (s.e > 0) o += SV.text(CX(5), BASE + 36 * SC + 22, "external cost $36 a year", "lbl bd t2", { "text-anchor": "middle", ...op(s.e) });
-  if (s.res > 0) o += SV.text(380, 290, `PV of private benefits ${Lib.fmtN(120 * PVA, 0)} − PV of external costs ${Lib.fmtN(36 * PVA, 0)} − cost 600`, "lbl bd", { "text-anchor": "middle", ...op(s.res) }) + SV.text(380, 316, `Private NPV = +${Lib.fmtN(120 * PVA - 600, 0)}   ·   Social NPV = +${Lib.fmtN(84 * PVA - 600, 0)}`, "lbl bd t3", { "text-anchor": "middle", ...op(s.res) });
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const SDX = (q) => 70 + q * 6.4, SDY = (p) => 270 - p * 2.4;
+const sdEq = (d, s) => { const q = 50 + 0.5 * (d + s); return { q, p: 10 + 0.8 * (q - s) }; };
+const sdSeg = (k, sh) => {
+  const f = (q) => (k === "D" ? 90 - 0.8 * (q - sh) : 10 + 0.8 * (q - sh)), inv = (p) => (k === "D" ? sh + (90 - p) / 0.8 : sh + (p - 10) / 0.8);
+  const qa = inv(k === "D" ? 95 : 12), qb = inv(k === "D" ? 12 : 95), lo = Math.max(0, Math.min(qa, qb)), hi = Math.min(100, Math.max(qa, qb));
+  return [lo, f(lo), hi, f(hi)];
+};
+const sdCurve = (k, sh, c, v, name) => { const [a, b, e, f] = sdSeg(k, sh); return SV.line(SDX(a), SDY(b), SDX(e), SDY(f), c, { "stroke-width": 3, ...op(v) }) + tag(SDX(e) + 6, SDY(f) + (k === "D" ? 14 : -4), name, c, v); };
+const sdGuide = (e, pn, qn, v) => SV.line(SDX(e.q), SDY(e.p), SDX(e.q), 270, "dash", op(v)) + SV.line(70, SDY(e.p), SDX(e.q), SDY(e.p), "dash", op(v)) + SV.text(62, SDY(e.p) + 4, pn, "sm", { "text-anchor": "end", ...op(v) }) + SV.text(SDX(e.q), 286, qn, "sm", { "text-anchor": "middle", ...op(v) });
+function sdPlot(st, lab = {}) {
+  const { d = 0, s = 0, g = 1, n = 1 } = st, mv = Math.abs(d) > 0.05 || Math.abs(s) > 0.05, e0 = sdEq(0, 0), e1 = sdEq(d, s);
+  let o = axes(70, 270, 720, 25, lab.x || "Quantity", lab.y || "Price");
+  o += sdCurve("D", 0, "c2", Math.abs(d) > 0.05 ? 0.4 : 1, lab.D1 || "D1") + sdCurve("S", 0, "c1", Math.abs(s) > 0.05 ? 0.4 : 1, lab.S1 || "S1");
+  if (Math.abs(d) > 0.05) o += sdCurve("D", d, "c2", n, lab.D2 || "D2");
+  if (Math.abs(s) > 0.05) o += sdCurve("S", s, "c1", n, lab.S2 || "S2");
+  o += SV.circle(SDX(e0.q), SDY(e0.p), 5, "dot1", op(mv ? 0.6 : 1)) + sdGuide(e0, lab.P1 || "P1", lab.Q1 || "Q1", g * (mv ? 0.5 : 1));
+  if (mv) o += SV.circle(SDX(e1.q), SDY(e1.p), 6, "dot3", op(n)) + sdGuide(e1, lab.P2 || "P2", lab.Q2 || "Q2", g * n);
   return o;
 }
-Lib.stepper($("#stC"), { w: 760, h: 380, label: "Cost benefit analysis with private benefits, external costs and discounting over ten years", base: { c: 0, b: 0, e: 0, disc: 0, res: 0 }, draw: cbaDraw, tween: 800, dwell: 5600, steps: [
-  { cap: "<b>The cost.</b> The project costs $600 now, in year 0.", s: { c: 1 } },
-  { cap: "<b>Private benefits.</b> It earns $120 a year for ten years: $1,200 in total, more than the cost.", s: { c: 1, b: 1 } },
-  { cap: "<b>External costs.</b> It also imposes $36 a year of external cost (pollution, noise). The net benefit per year is $84, or $840 in total.", s: { c: 1, b: 1, e: 1 } },
-  { cap: "<b>Discounting.</b> Money in the future is worth less than money now. At 5%, $120 in year 10 has a present value of about $74. Every bar shrinks, later years the most.", s: { c: 1, b: 1, e: 1, disc: 1 } },
-  { cap: `<b>The result.</b> Private NPV is +${Lib.fmtN(120 * PVA - 600, 0)}. Social NPV is +${Lib.fmtN(84 * PVA - 600, 0)}: still positive, so the project is worthwhile, but much less than the private figure suggests. If the external cost were $45 a year, the social NPV would be negative.`, s: { c: 1, b: 1, e: 1, disc: 1, res: 1 } },
-] });
-/* ---------- Lab 3: CBA ---------- */
-function lab3() {
-  if (!$("#ec") || !$("#dr")) return;
-  const e = +$("#ec").value, r = +$("#dr").value / 100; let A = 0; for (let t = 1; t <= 10; t++) A += 1 / (1 + r) ** t;
-  const pn = 120 * A - 600, sn = (120 - e) * A - 600;
-  $("#t1").textContent = (pn >= 0 ? "+$" : "−$") + Lib.fmtN(Math.abs(pn), 0); $("#t2").textContent = (sn >= 0 ? "+$" : "−$") + Lib.fmtN(Math.abs(sn), 0); $("#t3").textContent = sn > 0 ? "Yes" : "No";
-  $("#tv").textContent = sn > 0 ? `Social NPV is positive, so the benefits to society exceed the costs. External costs of $${e} a year cut the NPV from $${Lib.fmtN(pn, 0)} to $${Lib.fmtN(sn, 0)}.`
-    : `Social NPV is negative. The project looks profitable privately (NPV $${Lib.fmtN(pn, 0)}) but once the external costs are counted it should not go ahead. A higher discount rate or higher external cost makes this more likely.`;
-  const mx = Math.max(Math.abs(pn), Math.abs(sn), 100), H = (v) => 90 * (v / mx), base = 120, bw = 90;
-  let o = SV.line(30, base, 400, base);
-  [[80, pn, "Private NPV"], [230, sn, "Social NPV"]].forEach(([x, v, l]) => { o += SV.rect(x, v >= 0 ? base - H(v) : base, bw, Math.abs(H(v)), v >= 0 ? "f3" : "f2") + SV.text(x + bw / 2, v >= 0 ? base - H(v) - 8 : base + Math.abs(H(v)) + 16, (v >= 0 ? "+" : "−") + Lib.fmtN(Math.abs(v), 0), "lbl bd", { "text-anchor": "middle" }) + SV.text(x + bw / 2, 245, l, "sm", { "text-anchor": "middle" }); });
-  $("#labC").innerHTML = o;
-}
-Lib.slider($("#g5"), { id: "ec", label: "External cost per year ($): ", min: 0, max: 60, step: 1, value: 36, fmt: (v) => v, onInput: lab3 });
-Lib.slider($("#g6"), { id: "dr", label: "Discount rate: ", min: 0, max: 12, step: 1, value: 5, fmt: (v) => v + "%", onInput: lab3 });
 
-/* ---------- Watch 2: discount rate ---------- */
-const AF = (r) => { let a = 0; for (let t = 1; t <= 10; t++) a += 1 / (1 + r) ** t; return a; };
-function rateDraw(s) {
-  const base = 190, H = (v) => v * 0.8, bw = 90;
-  let o = SV.line(60, base, 740, base) + SV.text(62, 24, "Social NPV ($)", "sm");
-  [[0.02, 90], [0.05, 230], [0.08, 370], [0.1, 510]].forEach(([r, x], i) => {
-    const k = s["b" + i] || 0; if (k <= 0) return;
-    const v = 84 * AF(r) - 600, up = v >= 0, h = H(Math.abs(v)) * k;
-    o += SV.rect(x, up ? base - h : base, bw, h, up ? "f3" : "f2", op(k)) + SV.text(x + bw / 2, up ? base - h - 8 : base + h + 16, (up ? "+" : "−") + Lib.fmtN(Math.abs(v), 0), "lbl bd", { "text-anchor": "middle", ...op(k) }) + SV.text(x + bw / 2, 296, "r = " + Math.round(r * 100) + "%", "lbl bd", { "text-anchor": "middle", ...op(k) });
+function chainDraw(nodes, k) {
+  const H = 40, G = 16; let o = "";
+  nodes.forEach((t, i) => {
+    const v = Math.max(0, Math.min(1, k - i)); if (v <= 0) return;
+    const y = 8 + i * (H + G);
+    o += SV.rect(30, y, 700, H, ["f1", "f2", "f3"][i % 3], { rx: 8, ...op(0.55 * v) }) + SV.text(380, y + 25, t, "lbl bd", { "text-anchor": "middle", ...op(v) });
+    if (i > 0) o += SV.poly([[373, y - 10], [387, y - 10], [380, y - 2]], "dot4", op(v));
   });
   return o;
 }
-Lib.stepper($("#stR"), { w: 780, h: 320, label: "Social net present value of the same project at four discount rates", base: { b0: 0, b1: 0, b2: 0, b3: 0 }, draw: rateDraw, tween: 800, dwell: 5600, steps: [
-  { cap: "<b>The project.</b> Cost $600 now, benefits $120 a year for ten years, external cost $36 a year. The only thing that changes below is the <b>discount rate</b>.", s: {} },
-  { cap: "<b>At 2%</b> the future counts for a lot. Social NPV is about <b>+$155</b>: go ahead.", s: { b0: 1 } },
-  { cap: "<b>At 5%</b> social NPV falls to about <b>+$49</b>. Still positive, but only just.", s: { b0: 1, b1: 1 } },
-  { cap: "<b>At 8%</b> distant benefits shrink further and social NPV turns <b>negative, about −$36</b>. The project should not go ahead.", s: { b0: 1, b1: 1, b2: 1 } },
-  { cap: "<b>At 10%</b> the NPV is about <b>−$84</b>. The same project, the same costs and benefits, but the decision flips. This is why the choice of discount rate is a key criticism of CBA.", s: { b0: 1, b1: 1, b2: 1, b3: 1 } },
-] });
-
-/* ---------- Lab 2: present value ---------- */
-function labPV() {
-  if (!$("#pva") || !$("#pvt") || !$("#pvr")) return;
-  const a = +$("#pva").value, t = +$("#pvt").value, r = +$("#pvr").value / 100, pv = a / (1 + r) ** t;
-  $("#z1").textContent = "$" + Lib.fmtN(pv, 0); $("#z2").textContent = Math.round((1 - pv / a) * 100) + "%";
-  $("#zv").textContent = t === 0 || r === 0 ? "With no waiting or a zero rate, there is no discounting: the present value equals the amount."
-    : `$${a} received in ${t} years is worth $${Lib.fmtN(pv, 0)} today at ${Math.round(r * 100)}%. Waiting costs ${Math.round((1 - pv / a) * 100)}% of the value. The longer the wait and the higher the rate, the smaller the present value.`;
-  const x = (v) => 50 + v * 11.5, y = (v) => 235 - 200 * v / 1000;
-  let o = SV.line(50, 235, 395, 235) + SV.line(50, 235, 50, 20) + SV.text(392, 258, "Years", "sm", { "text-anchor": "end" }) + SV.text(56, 24, "Present value ($)", "sm");
-  const pts = []; for (let k = 0; k <= 30; k++) pts.push([x(k), y(a / (1 + r) ** k)]);
-  o += SV.path(ptsPath(pts), "c1") + SV.line(x(t), y(pv), x(t), 235, "gr") + SV.line(50, y(pv), x(t), y(pv), "gr") + SV.circle(x(t), y(pv), 6, "dot1") + SV.text(x(t) + 8, y(pv) - 8, "$" + Lib.fmtN(pv, 0), "lbl bd", { ...halo });
-  $("#labM").innerHTML = o;
+function chainStep(el, label, nodes, caps) {
+  Lib.stepper($(el), { w: 760, h: 16 + nodes.length * 56, label, base: { k: 0 }, draw: (s) => chainDraw(nodes, s.k), tween: 700, dwell: 5200, steps: nodes.map((n, i) => ({ cap: caps[i], s: { k: i + 1 } })) });
 }
-Lib.slider($("#g15"), { id: "pva", label: "Future amount ($): ", min: 200, max: 1000, step: 100, value: 1000, fmt: (v) => v, onInput: labPV });
-Lib.slider($("#g16"), { id: "pvt", label: "Years until it is received: ", min: 0, max: 30, step: 1, value: 10, fmt: (v) => v, onInput: labPV });
-Lib.slider($("#g17"), { id: "pvr", label: "Discount rate: ", min: 0, max: 12, step: 1, value: 5, fmt: (v) => v + "%", onInput: labPV });
+function chooser(p, items, tmpl, lab = "Strength of the case") {
+  const show = (i) => {
+    const it = items[i]; $$("#" + p + "B button").forEach((b, k) => b.classList.toggle("pri", k === i));
+    $("#" + p + "1").textContent = it[1]; $("#" + p + "2").textContent = it[2]; $("#" + p + "3").textContent = it[3]; $("#" + p + "v").textContent = tmpl(it);
+    const w = (it[4] / 5) * 340;
+    $("#" + p + "S").innerHTML = SV.text(210, 60, it[0], "lbl bd", { "text-anchor": "middle", style: "font-size:20px" }) + SV.rect(40, 100, 340, 18, "f3", { rx: 9, ...op(0.2) }) + SV.rect(40, 100, w, 18, "f1", { rx: 9, ...op(0.7) }) + SV.text(210, 146, lab + ": " + it[4] + " out of 5", "sm", { "text-anchor": "middle" });
+  };
+  $("#" + p + "B").innerHTML = items.map((t, i) => `<button class="b" data-i="${i}">${t[0]}</button>`).join("");
+  $$("#" + p + "B button").forEach((b) => (b.onclick = () => show(+b.dataset.i)));
+  show(0);
+}
 
-/* ---------- Practise ---------- */
-Lib.classify($("#cl1"), {
-  prompt: "In a CBA of a new airport, which items are easy to value in money and which are hard?",
-  buckets: [{ label: "Easier to value" }, { label: "Hard to value" }],
-  items: [
-    { text: "Construction cost of the terminal", b: 0 }, { text: "Landing fees and ticket revenue", b: 0 }, { text: "Wages of airport staff", b: 0 }, { text: "Cost of buying the land", b: 0 },
-    { text: "Noise for people living nearby", b: 1 }, { text: "Loss of countryside and wildlife", b: 1 }, { text: "Time saved by passengers", b: 1 }, { text: "Effect on local climate and health", b: 1 },
-  ], done: "Prices exist for market items. External effects need estimates, which is the main weakness of CBA.",
-});
-Lib.match($("#m1"), { prompt: "Match each word to its meaning.", pairs: [
-  ["Cost-benefit analysis", "Counting all private and external costs and benefits of a project in money terms"],
-  ["Discounting", "Converting future amounts to present value"],
-  ["Present value", "What a future amount is worth today"],
-  ["Net present value", "Discounted benefits minus discounted costs"],
-  ["Discount rate", "The rate used to reduce the value of future amounts"],
-  ["Social NPV", "NPV after including external costs and benefits"],
-  ["Opportunity cost of funds", "What else the money could have achieved"],
-], done: "Seven words for CBA." });
-Lib.order($("#o1"), { prompt: "Put the steps of a cost-benefit analysis in order.", items: [
-  "Identify the private costs and benefits of the project",
-  "Identify the external costs and benefits",
-  "Give each a money value, using estimates where needed",
-  "Discount future amounts to present values",
-  "Calculate the net present value",
-  "Decide, and evaluate the difficulties and the effect of the discount rate",
-], done: "A reliable structure for a CBA answer." });
+$("#pic1").innerHTML = (() => {
+  const B = [["First pass", "35 to 40 min", "Do the sure ones, tick the doubtful", 20, "f2", 330], ["Second pass", "15 to 20 min", "Calculations, diagrams, elimination", 360, "f1", 230], ["Check", "5 min", "No blanks; right row", 600, "f3", 140]];
+  let o = ""; B.forEach(([n, t, d, x, c, w]) => { o += SV.rect(x, 12, w, 90, c, { rx: 12, ...op(0.45) }) + SV.text(x + w / 2, 40, n, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" }) + SV.text(x + w / 2, 62, t, "sm", { "text-anchor": "middle" }) + SV.text(x + w / 2, 84, d, "sm", { "text-anchor": "middle" }); });
+  return `<svg viewBox="0 0 760 114" role="img" aria-label="Plan for the 60 minutes of Paper 1">${o}</svg>`;
+})();
+chainStep("#stA", "The four steps on a real question", ["Read: 'What is not an example of protectionism?' Underline 'not'", "Predict: three options restrict imports or help exporters; one does the opposite", "Test: export subsidies help exporters; quotas and tariffs restrict imports; import subsidies encourage imports", "Check: the odd one out is import subsidies"], [
+  "<b>Step 1:</b> the word 'not' reverses the usual question.", "<b>Step 2:</b> decide what the answer should look like.", "<b>Step 3:</b> test every option against the definition.", "<b>Step 4:</b> answer B (import subsidies)."]);
+chainStep("#stB", "A calculation question", ["Question: nominal GDP rose to $577.5bn and prices rose 5%. What is real GDP?", "Write the formula: real GDP = nominal GDP ÷ price index × 100", "Substitute: 577.5 ÷ 1.05", "Answer: $550bn; check the options for it", "Trap: multiplying by 0.95 or by 1.05 gives wrong options"], [
+  "<b>Read:</b> the data is nominal; the question asks for real.", "<b>Formula first.</b>", "<b>Substitute</b> carefully.", "<b>Check</b> that the answer is in the options.", "<b>Wrong options</b> come from the wrong operation."]);
+chainStep("#stC", "A two-part combination question", ["Question: a worse current account: effect on the exchange rate and on cost-push inflation?", "Part 1: more imports and fewer exports, so the currency falls (depreciate)", "Part 2: a weaker currency makes imports dearer, so costs rise (inflation increases)", "Find the option with both: depreciate and increase", "The other options each have one part wrong"], [
+  "<b>Split the question.</b>", "<b>Work out part 1.</b>", "<b>Work out part 2.</b>", "<b>Match both parts</b> to one option.", "<b>Half-right options</b> are the distractors."]);
+
+function tp() {
+  const ids = ["fp", "ex"];
+  if (!ids.every((i) => $("#" + i))) return;
+  const fp = +$("#fp").value, ex = +$("#ex").value, ck = 5, sp = 60 - fp - ck;
+  const per = fp / 30; $("#r1").textContent = Lib.fmtN(per, 1) + " min";
+  $("#r2").textContent = sp + " min"; $("#r3").textContent = ex + " (about " + Lib.fmtN(sp / Math.max(ex, 1), 1) + " min each)";
+  $("#rv").textContent = `With ${fp} minutes on the first pass (${Lib.fmtN(per, 1)} minutes per question) and ${ck} minutes to check, you have ${sp} minutes for the ${ex} questions you postponed: about ${Lib.fmtN(sp / Math.max(ex, 1), 1)} minutes each. ` + (per > 1.4 ? "The first pass is slow; leave long questions earlier." : per < 1 ? "The first pass is quick: check each answer as you go." : "A balanced plan.");
+  const W = 380, X = (v) => 20 + (v / 60) * W;
+  $("#labA").innerHTML = SV.rect(X(0), 70, X(fp) - X(0), 50, "f2", op(0.5)) + SV.rect(X(fp), 70, X(fp + sp) - X(fp), 50, "f1", op(0.5)) + SV.rect(X(fp + sp), 70, X(60) - X(fp + sp), 50, "f3", op(0.5)) + SV.text(X(fp / 2), 100, "Pass 1: " + fp, "sm", { "text-anchor": "middle" }) + SV.text(X(fp + sp / 2), 100, "Pass 2: " + sp, "sm", { "text-anchor": "middle" }) + SV.text(X(60) - 6, 160, "Check " + ck, "sm", { "text-anchor": "end" });
+}
+Lib.slider($("#g1"), { id: "fp", label: "Minutes on the first pass ", min: 25, max: 45, step: 1, value: 38, fmt: (v) => v, onInput: tp });
+Lib.slider($("#g2"), { id: "ex", label: "Questions postponed to the second pass ", min: 0, max: 15, step: 1, value: 6, fmt: (v) => v, onInput: tp });
+tp();
+
+chooser("h", [
+  ["'Which type of good is healthcare?'", "Recall and definition", "Answer before looking at the options", "Mixing merit and public goods", 5],
+  ["'What is the real GDP in year 2?'", "Calculation", "Write the formula and substitute", "Using nominal instead of real figures", 5],
+  ["'What is not an example of protectionism?'", "'Not' question", "Test each option; find the odd one", "Choosing the first option that is true", 5],
+  ["'How will this affect the exchange rate and inflation?'", "Two-part combination", "Work out each part separately", "Getting one part right and guessing the other", 4],
+  ["'What is the current account balance?' (table)", "Table or data", "Sum the balances with signs", "Forgetting a deficit is negative", 4],
+  ["'Which statement is normative?'", "Positive or normative", "Look for 'should' or a value judgement", "Choosing a prediction with 'definitely'", 3],
+  ["'Which area represents total revenue?' (diagram)", "Diagram", "Mark price × quantity on the diagram", "Using the wrong price or quantity", 4]
+], (it) => `${it[0]} Type: ${it[1].toLowerCase()}. First move: ${it[2].toLowerCase()}. Trap: ${it[3].toLowerCase()}.`, "How often this type appears");
+chooser("k", [
+  ["Real GDP from nominal GDP", "Nominal ÷ price index × 100", "Nominal × price index ÷ 100", "It inflates the figure instead of removing the price rise", 5],
+  ["Price elasticity of demand", "% change in quantity ÷ % change in price", "Change in quantity ÷ change in price (absolute)", "Elasticity uses percentages", 5],
+  ["Income per head when income +10% and population −10%", "1.10 ÷ 0.90 = 1.22 (up 22%)", "10% + 10% = 20%", "A fall in the denominator raises the ratio by more than 20%", 4],
+  ["Percentage change from 4% to 6%", "50% rise (2 ÷ 4)", "2% rise", "Two percentage points is not the same as 2%", 4],
+  ["Terms of trade index", "(Export price index ÷ import price index) × 100", "Import ÷ export", "It reverses the meaning of improvement", 4],
+  ["Current account balance from a table", "Sum the balances: goods, services, primary and secondary income, with signs", "Add exports only", "Ignores imports and payments", 4]
+], (it) => `${it[0]}: ${it[1]}. Trap: ${it[2]}. ${it[3]}.`, "How common the trap is");
+Lib.classify($("#cl1"), { prompt: "Which type of question is it?", buckets: [{"label": "Recall"}, {"label": "Calculation"}, {"label": "'Not' question"}, {"label": "Combination"}], items: [{"text": "Which type of good is healthcare?", "b": 0}, {"text": "What is the real GDP in year 2?", "b": 1}, {"text": "What is not an aim of protectionism?", "b": 2}, {"text": "How is this likely to affect the exchange rate and inflation?", "b": 3}, {"text": "What is the definition of long run?", "b": 0}, {"text": "What is the unemployment rate for these figures?", "b": 1}, {"text": "Which statement is least likely to be true?", "b": 2}, {"text": "Which combination correctly describes good X?", "b": 3}], done: "Recall questions ask for a fact; calculations need numbers; 'not' questions need the false option; combinations have two parts." });
+Lib.classify($("#cl2"), { prompt: "Which distractor is it?", buckets: [{"label": "Reversed relationship"}, {"label": "True but irrelevant"}, {"label": "Calculation slip"}], items: [{"text": "A depreciation makes imports cheaper", "b": 0}, {"text": "Nominal GDP is higher than real GDP when prices rise (a true statement in a question about growth)", "b": 1}, {"text": "Choosing 20% when the answer needs 1.10 ÷ 0.90", "b": 2}, {"text": "A rise in interest rates lowers the cost of borrowing", "b": 0}, {"text": "A correct fact about GNI in a question on GDP", "b": 1}, {"text": "Forgetting to deflate before comparing", "b": 2}], done: "Wrong options are built to catch particular mistakes." });
+Lib.order($("#o1"), { prompt: "Put the four steps in order.", items: ["Read the stem twice and underline the key words", "Predict the answer before looking at the options", "Test every option and cross out the wrong ones", "Check units, signs and direction, then answer"], done: "Read, predict, test, check." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Not, least likely", "Find the false option"], ["Always, only", "Usually makes a statement false"], ["Most likely", "Several options may be true; choose the best"], ["Percentage point", "A difference between two percentages"], ["Normative", "Contains a value judgement such as 'should'"], ["Real", "Adjusted for inflation"]], done: "Learn these terms." });
 Lib.calc($("#c1"), { qs: [
-  { q: "A benefit of $110 arrives in one year. The discount rate is 10%. What is its present value ($)?", a: 100, sol: "110 ÷ 1.10 = <b>$100</b>." },
-  { q: "A payment of $1,000 arrives in two years. The discount rate is 10%. What is its present value ($, nearest whole number)?", a: 826, tol: 1, sol: "1,000 ÷ 1.21 = <b>$826</b>." },
-  { q: "A project costs $500 now and has a present value of benefits of $540. What is the NPV ($)?", a: 40, sol: "540 − 500 = <b>+$40</b>: go ahead." },
-  { q: "The same project has external costs with a present value of $70. What is the social NPV ($)?", a: -30, sol: "40 − 70 = <b>−$30</b>: not worthwhile once external costs are counted." },
-  { q: "A project has private cost 400, private benefit 440, social cost 450 and social benefit 480. What is the net external cost ($ million)?", a: 10, hint: "External cost = social cost − private cost. External benefit = social benefit − private benefit.", sol: "External cost 50, external benefit 40, so net external cost is <b>$10 million</b>." },
-  { q: "Present value of benefits is $800 and of costs is $600. What is the ratio of discounted benefits to costs (1 decimal place)?", a: 1.3, tol: 0.05, sol: "800 ÷ 600 = <b>1.3</b>. Above 1 means NPV is positive." },
+  {"q": "Paper 1 has 30 questions in 60 minutes. How many minutes per question?", "a": 2, "unit": "min", "tol": 0.05, "hint": "60 ÷ 30.", "sol": "<b>2 minutes</b>."},
+  {"q": "Nominal GDP is $660bn and the price index is 120. What is real GDP ($bn)?", "a": 550, "unit": "$bn", "tol": 0.5, "hint": "660 ÷ 1.20.", "sol": "<b>$550bn</b>."},
+  {"q": "Price rises 20% and quantity demanded falls 30%. What is the price elasticity of demand (size)?", "a": 1.5, "unit": "", "tol": 0.05, "hint": "30 ÷ 20.", "sol": "<b>1.5</b>."},
+  {"q": "A rate rises from 4% to 6%. By what percentage has it risen?", "a": 50, "unit": "%", "tol": 0.5, "hint": "2 ÷ 4.", "sol": "<b>50%</b>, a rise of 2 percentage points."},
+  {"q": "Goods −30, services +10, primary income +15, secondary income −5 ($bn). What is the current account balance ($bn)?", "a": -10, "unit": "$bn", "tol": 0.5, "hint": "−30 + 10 + 15 − 5.", "sol": "<b>−$10bn</b>."},
 ] });
 Lib.quiz($("#qz1"), { qs: [
-  { q: "Why is cost-benefit analysis difficult?", opts: ["Future benefits do not need discounting", "External costs and benefits are hard to value in money", "Private costs are unknown", "It ignores externalities"], a: 1, why: "Putting a monetary value on pollution, time or health is difficult and uncertain." },
-  { q: "Why are future benefits discounted?", opts: ["Because they are certain", "Because money received later is worth less than money now", "Because costs always come first", "Because external costs are small"], a: 1, why: "A dollar now can be used or invested, so a dollar later has a lower present value." },
-  { q: "A higher discount rate will usually:", opts: ["raise the value of benefits many years away", "reduce the value of benefits many years away", "have no effect on NPV", "remove external costs"], a: 1, why: "Distant amounts are divided by a larger number." },
-  { q: "A project has a positive private NPV but a negative social NPV. What does this suggest?", opts: ["It is worth doing for everyone", "External costs outweigh the private gain", "The discount rate is zero", "Costs are underestimated"], a: 1, why: "Counting external costs turns the net benefit negative." },
-  { q: "Which is a limitation of CBA?", opts: ["It ignores externalities", "It cannot compare projects", "External effects are hard to value in money", "It shows who gains and loses"], a: 2, why: "Valuing noise, health or a view involves estimates and judgement." },
+  { q: "How many marks does Paper 1 carry at AS Level?", opts: ["20", "30", "40", "60"], a: 1, why: "30 questions, 1 mark each." },
+  { q: "According to the paper instructions, how is a correct answer rewarded?", opts: ["One mark, with no deduction mentioned for a wrong answer", "Two marks", "Half a mark", "One mark minus a penalty for errors"], a: 0, why: "Each correct answer will score one mark; no penalty is stated." },
+  { q: "A question says 'which is not...'. What should you do?", opts: ["Find the false option", "Find the true option", "Skip it", "Choose the longest option"], a: 0, why: "Three options will be true." },
+  { q: "Why predict the answer before reading the options?", opts: ["It stops you being pulled to a plausible distractor", "It saves paper", "It is compulsory", "Options are random"], a: 0, why: "A prediction guards against distractors." },
+  { q: "About how long is available for each question on average?", opts: ["1 minute", "2 minutes", "4 minutes", "5 minutes"], a: 1, why: "60 minutes for 30 questions." },
 ] });
 Lib.cards($("#fc1"), { cards: [
-  ["Cost-benefit analysis", "A method of valuing all private and external costs and benefits of a project over time."],
-  ["Discounting", "Converting future amounts to present value."],
-  ["Present value", "Future value ÷ (1 + r)^t."],
-  ["Net present value", "Present value of benefits minus present value of costs. Go ahead if positive."],
-  ["Social NPV", "NPV including external costs and benefits."],
-  ["Private NPV", "NPV counting only the costs and benefits to the owner."],
-  ["Discount rate", "The rate used to reduce the value of future amounts."],
-  ["Intangibles", "Effects with no market price, such as noise or a view."],
-  ["Distribution", "Who gains and who loses, which CBA totals can hide."],
-  ["Benefit-cost ratio", "Discounted benefits divided by discounted costs."],
+  ["Paper 1", "30 questions, 60 minutes, 30 marks."],
+  ["Four steps", "Read, predict, test, check."],
+  ["No penalty", "Answer every question."],
+  ["Distractors", "Reversed, wrong curve, true but irrelevant, slip."],
+  ["Not question", "Find the false option."],
+  ["Calculations", "Formula, percentages, signs."],
+  ["Time", "2 minutes each; leave and return."],
+  ["Normative", "'Should' = value judgement."],
 ] });
 Lib.quiz($("#qz2"), { qs: [
-  { q: "[Feb/March 2023 · 32 · Q9] The result of a cost-benefit analysis of a proposed government road-building project is that there will be a positive net social benefit of $50 million. Why might the government not proceed with the project?", opts: ["The project would not be profitable for a private firm.", "The project would cause negative externalities.", "There is limited capital available for government projects.", "There would be more who lost than gained."], a: 2, why: "A positive NPV does not guarantee funding: the government may have limited capital and better uses for it." },
-  { q: "[Oct/Nov 2020 · 31 · Q1] What is the main aim of cost-benefit analysis?", opts: ["to allow firms to maximise their private benefit and minimise the external cost", "to equate total social benefit to the total social cost of a project", "to find the correct level of direct tax to internalise the external cost of a project", "to find the highest positive difference between total benefit and total cost"], a: 3, why: "CBA looks for the net benefit (benefit minus cost) to society. B describes zero net benefit." },
-  { q: "[Oct/Nov 2022 · 32 · Q3] What could be included in a cost-benefit analysis of a project to build a road bridge connecting an island community to the mainland? (a fall in employment for ferry services, an increase in carbon emissions, a reduction in travel time for work, an increase in incomes for the community)", opts: ["yes, no, no, yes", "yes, yes, no, no", "yes, yes, yes, yes", "no, no, yes, yes"], a: 2, why: "CBA counts all costs and benefits, so all four effects are included." },
-  { q: "[Oct/Nov 2023 · 33 · Q9] Which conditions are most likely to reduce the accuracy of cost-benefit analysis in decision making?", opts: ["a high proportion of external costs and benefits, and a high share of total costs and benefits in the future", "a high proportion of external costs and benefits, and a low share in the future", "a low proportion of external costs and benefits, and a high share in the future", "a low proportion of external costs and benefits, and a low share in the future"], a: 0, why: "External effects are hard to value and distant amounts are uncertain and sensitive to the discount rate, so both together reduce accuracy." },
-  { q: "[May/June 2023 · 32 · Q12] A government hopes to build an athletics stadium to hold the World Games. The stadium would have high private and external costs, but it would increase national pride. Why would it be difficult to use cost-benefit analysis to decide whether to build the stadium?", opts: ["The materials needed to build the stadium will need to be imported.", "The external costs of clearing land for building will outweigh the private costs.", "The stadium will not be used much for athletics after the World Games.", "The valuation of national pride will be complex to assess."], a: 3, why: "National pride has no market price, so valuing it is hard." },
-  { q: "[Oct/Nov 2024 · 32 · Q11] What is not a valid comment economists may make regarding the need to subsidise a green energy market that uses solar and wind power?", opts: ["It is cheaper to use the plentiful supply of coal.", "Markets will become more efficient.", "The value of the positive externalities cannot be estimated.", "The value of the negative externalities cannot be estimated."], a: 1, why: "Claiming that markets will become more efficient is not a valid comment on the need for the subsidy. A, C and D are valid points about the cost of coal and the difficulty of measuring externalities." },
+  { q: "Which type of good is healthcare? (May/June 2020 · 13 · Q3, reworded)", opts: ["demerit", "free", "merit", "public"], a: 2, why: "Recall: healthcare is more beneficial than consumers realise." },
+  { q: "In year 1, a country's real GDP was $500 billion. In year 2, nominal GDP rose to $577.5 billion and the prices increased by 5%. What is the real GDP in year 2? (May/June 2023 · 13 · Q20, reworded)", opts: ["$4.76 billion", "$5 billion", "$476 billion", "$550 billion"], a: 3, why: "Calculation: 577.5 ÷ 1.05 = 550. The $476 billion option multiplies by 0.825 instead of dividing." },
+  { q: "Following the introduction of a 10% increase in charges for car parking in a city centre, the demand for bus journeys per day into the city rose from 800 to 1000. What was the cross elasticity of demand for bus journeys with respect to car parking charges? (May/June 2020 · 12 · Q8, reworded)", opts: ["-0.4", "+0.4", "+2.0", "+2.5"], a: 3, why: "Calculation: demand rose 25%; the price rose 10%; XED = 25 ÷ 10 = +2.5. Options -0.4 and +0.4 come from inverting the ratio." },
+  { q: "A government introduces a subsidy for product X and the market price of X falls by 5%. The cross elasticity of demand for product Y, with respect to the price of X, is +0.4. What will happen to the demand for product Y? (May/June 2021 · 11 · Q10, reworded)", opts: ["It will decrease by 2%.", "It will decrease by 12.5%.", "It will increase by 2%.", "It will increase by 12.5%."], a: 0, why: "Calculation with a sign: 0.4 × (−5%) = −2%." },
+  { q: "An extract from a country's balance of payments ($ billion): trade in goods, exports 150 and imports 200; trade in services, exports 70 and imports 50; primary income, receipts 120 and payments 100; secondary income, receipts 15 and payments 20. What is the current account balance? (Feb/March 2024 · 12 · Q27, reworded)", opts: ["-$10bn", "-$15bn", "-$30bn", "-$50bn"], a: 1, why: "Table: (150 − 200) + (70 − 50) + (120 − 100) + (15 − 20) = −50 + 20 + 20 − 5 = −15." },
+  { q: "A good has a price elasticity of supply of 2.0. The current quantity supplied is 300 units per week at a market price of $20 per unit. The firm raises the price to $25 per unit. What will the new quantity supplied be per week? (May/June 2020 · 12 · Q10, reworded)", opts: ["150 units", "375 units", "400 units", "450 units"], a: 3, why: "Calculation: price +25%, so quantity +50%: 300 × 1.5 = 450." },
+  { q: "A manufacturer progressively reduces the price of his product. The table shows total revenue of $750 (000s) at prices of $10, $9 and $8. What is the price elasticity of demand for the product? (May/June 2020 · 12 · Q6, reworded)", opts: ["perfectly inelastic", "relatively inelastic", "perfectly elastic", "unitary"], a: 3, why: "Table: revenue is constant as price falls, so demand is unitary." },
+  { q: "Which statement about a market economy is not correct? (Feb/March 2025 · 12 · Q1, reworded)", opts: ["Competition is promoted among firms which can increase productive efficiency", "Immobility of the factors of production can lead to allocative inefficiency", "Price always reflects all the costs and all the benefits associated with production", "The entrepreneur is encouraged to innovate and take risks, motivated by profit"], a: 2, why: "'Not correct': 'always' makes C false, since prices ignore external costs." },
+  { q: "What is not an aim of protectionism? (May/June 2021 · 13 · Q20, reworded)", opts: ["to improve balance of trade", "to increase price of exports", "to protect infant industries", "to reduce the volume of imports"], a: 1, why: "'Not an aim': protectionism aims to cut imports and protect industries, not to raise export prices." },
+  { q: "What does not happen when price acts as a means to allocate resources? (May/June 2022 · 12 · Q12, reworded)", opts: ["Price determines the supply of public goods", "Price operates in the markets for both goods and factors of production", "Price recognises consumers' ability to pay rather than their needs", "Price signals to producers which goods are most profitable"], a: 0, why: "Test each statement: public goods are not supplied through the price mechanism." },
+  { q: "Increased international competition leads to a worsening in a country's current account balance. In the absence of any offsetting factors, how is this likely to affect the exchange rate and domestic cost-push inflation? (exchange rate, cost-push inflation) (May/June 2021 · 12 · Q27, reworded)", opts: ["appreciate, decrease", "appreciate, increase", "depreciate, decrease", "depreciate, increase"], a: 3, why: "Two parts: worse current account lowers the rate; a lower rate raises import costs and cost-push inflation." },
+  { q: "The price elasticity of demand for good X is -2.4, its income elasticity of demand is -0.4 and the cross elasticity of demand for good X with respect to good Y is +0.8. What is the correct description of good X? (Feb/March 2024 · 12 · Q7, reworded)", opts: ["inferior good, price-elastic demand and substitute for good Y", "inferior good, price-inelastic demand and complement to good Y", "normal good, price-elastic demand and complement to good Y", "normal good, price-inelastic demand and substitute for good Y"], a: 0, why: "Three parts: YED negative: inferior; PED size 2.4: elastic; XED positive: substitute." },
+  { q: "Good X is related to good Y. Incomes increase and the price of good Y falls. Which combination would give the greatest increase in demand for good X? (nature of good X, relationship between X and Y) (Feb/March 2020 · 12 · Q8, reworded)", opts: ["inferior good, complements", "inferior good, substitutes", "normal good, complements", "normal good, substitutes"], a: 2, why: "Two parts: higher income raises demand for a normal good; a fall in the price of a complement raises demand for X." },
+  { q: "Which is a normative statement? (May/June 2020 · 13 · Q4, reworded)", opts: ["If interest rates fall consumption is likely to increase.", "If interest rates fall consumption will definitely increase.", "Interest rates and consumption are usually inversely related.", "The rate of interest should be reduced."], a: 3, why: "Normative: 'should' is a value judgement." },
+  { q: "A government decides to allow the country's currency to depreciate to remove the deficit on its current account. What is the most likely reason why this would not work? (Feb/March 2024 · 12 · Q25, reworded)", opts: ["The country gains a competitive advantage from the depreciation.", "The country has a surplus on its capital and financial accounts.", "The price elasticities of demand for the country's exports and imports are greater than one.", "There are high trade barriers with the country's main trading partners."], a: 3, why: "Cause and effect: options A and C would help; trade barriers limit export gains." },
+  { q: "The money income of a country rises by 10% whereas its population falls by 10% during a year. What is likely to happen to the national income per head? (Feb/March 2025 · 12 · Q19, reworded)", opts: ["It will remain unchanged", "It will rise by exactly 20%", "It will rise by less than 20%", "It will rise by more than 20%"], a: 3, why: "Calculation trap: 1.10 ÷ 0.90 = 1.22, which is more than 20%, not exactly 20%." },
 ] });

@@ -1121,6 +1121,22 @@ ARTIFACTS = [
     {"src": "as-mixed-economy", "role": "review", "at": "1.4.4", "title": "The Mixed Economy and the Role of Government", "kind": "Interactive",
      "desc": "1.4.4 · Roles of government, the spectrum, advantages and disadvantages. Animations, labs and past paper practice.",
      "places": [("a-econ", "as/s1-4")]},
+    # AS exam technique: skills and papers
+    {"src": "as-ao1-knowledge", "role": "review", "title": "AO1 Knowledge and Understanding: How the Marks Are Earned", "kind": "Interactive",
+     "desc": "What earns AO1 marks in Paper 1 and Paper 2: definitions, formulae, diagrams and calculations, and what Level 1, 2 and 3 knowledge looks like. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/exam-technique")]},
+    {"src": "as-ao2-analysis", "role": "review", "title": "AO2 Analysis: How Each Level Is Reached", "kind": "Interactive",
+     "desc": "Exactly what separates Level 1, 2 and 3 analysis: length, depth, application and balance, with examples at every level. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/exam-technique")]},
+    {"src": "as-ao3-evaluation", "role": "review", "title": "AO3 Evaluation: How Each Mark and Level Is Reached", "kind": "Interactive",
+     "desc": "What earns 1, 2, 3 and 4 evaluation marks: Table B, the levers and the Condition, If, Then method, with examples. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/exam-technique")]},
+    {"src": "as-paper1-technique", "role": "review", "title": "Paper 1 Multiple Choice: Technique and Practice", "kind": "Interactive",
+     "desc": "The 60 minute plan, four-step method, how wrong options are built, question types and sixteen real past questions. Animations, labs and practice.",
+     "places": [("a-econ", "as/exam-technique")]},
+    {"src": "as-paper2-technique", "role": "review", "title": "Paper 2 Data Response and Essays: Technique and Practice", "kind": "Interactive",
+     "desc": "The 120 minute plan, what each part is marked for, 8 mark and 12 mark structure, and one real paper worked part by part. Animations, labs and practice.",
+     "places": [("a-econ", "as/exam-technique")]},
 ]
 
 # Old textbook-numbered chapter paths for A-Level Economics -> syllabus-numbered paths. build.py writes a redirect page at each old path.

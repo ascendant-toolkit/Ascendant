@@ -71,3 +71,39 @@ function wfDraw(items, s) {
   return o;
 }
 '''
+
+
+import ast as _ast, glob as _glob, os as _os
+_GRAB = {}
+def grab(code, q):
+    """Return the eq(...) block already written for P(code, q) in another mk_as page (so exam-technique pages reuse the same reworded questions)."""
+    if not _GRAB:
+        here = _os.path.dirname(_os.path.abspath(__file__))
+        for f in sorted(_glob.glob(_os.path.join(here, "mk_as*.py"))):
+            if f.endswith("mk_asx.py"): continue
+            src = open(f).read()
+            try: tree = _ast.parse(src)
+            except SyntaxError: continue
+            for n in _ast.walk(tree):
+                if isinstance(n, _ast.Call) and getattr(n.func, "id", "") == "eq" and n.args and isinstance(n.args[0], _ast.Call) and getattr(n.args[0].func, "id", "") == "P":
+                    a = n.args[0].args
+                    if len(a) == 2 and all(isinstance(x, _ast.Constant) for x in a):
+                        _GRAB.setdefault((a[0].value, a[1].value), _ast.get_source_segment(src, n))
+    return eval(_GRAB[(code, q)], globals())
+
+
+def exam_rows(items, mc_codes=()):
+    """Header rows for exam_page built from the (code, part, marks) items actually shown, so counts and sources always match."""
+    M = {"m": "Feb/March", "s": "May/June", "w": "Oct/Nov"}
+    lab = lambda c, q: f"{M[c.split('_')[0][0]]} 20{c.split('_')[0][1:]} ({c.split('_')[1]}) Q{q}"
+    g = {}
+    for c, q, m in items: g.setdefault(int(m), []).append(lab(c, q))
+    rows = []
+    for m in (8, 12):
+        if m in g: rows.append((f"Essay parts, {m} marks", str(len(g[m])), "; ".join(g[m])))
+    for m in sorted(k for k in g if k not in (8, 12)):
+        rows.append((f"Data response, {m} marks", str(len(g[m])), "; ".join(g[m])))
+    if mc_codes:
+        ys = sorted(int("20" + c[1:3]) for c in mc_codes)
+        rows.append(("Multiple choice (Paper 1)", f"{len(mc_codes)} shown below", f"{ys[0]} to {ys[-1]}"))
+    return rows
