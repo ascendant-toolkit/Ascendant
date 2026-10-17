@@ -41,8 +41,40 @@ function sdPlot(st, lab = {}) {
   o += sdCurve("D", 0, "c2", Math.abs(d) > 0.05 ? 0.4 : 1, lab.D1 || "D1") + sdCurve("S", 0, "c1", Math.abs(s) > 0.05 ? 0.4 : 1, lab.S1 || "S1");
   if (Math.abs(d) > 0.05) o += sdCurve("D", d, "c2", n, lab.D2 || "D2");
   if (Math.abs(s) > 0.05) o += sdCurve("S", s, "c1", n, lab.S2 || "S2");
-  o += SV.circle(SDX(e0.q), SDY(e0.p), 5, "dot1", op(mv ? 0.6 : 1)) + sdGuide(e0, "P1", "Q1", g * (mv ? 0.5 : 1));
-  if (mv) o += SV.circle(SDX(e1.q), SDY(e1.p), 6, "dot3", op(n)) + sdGuide(e1, "P2", "Q2", g * n);
+  o += SV.circle(SDX(e0.q), SDY(e0.p), 5, "dot1", op(mv ? 0.6 : 1)) + sdGuide(e0, lab.P1 || "P1", lab.Q1 || "Q1", g * (mv ? 0.5 : 1));
+  if (mv) o += SV.circle(SDX(e1.q), SDY(e1.p), 6, "dot3", op(n)) + sdGuide(e1, lab.P2 || "P2", lab.Q2 || "Q2", g * n);
   return o;
+}
+'''
+
+# Tax and subsidy incidence diagram. Demand p = 50 + m(50 - q), supply p = 50 + n(q - 50) + t (t > 0 tax, t < 0 subsidy), start equilibrium (50, 50).
+INCJS = '''
+const incEq = (m, n, t) => { const q = 50 - t / (m + n), pc = 50 + m * (t / (m + n)); return { q, pc, pp: pc - t, sc: m / (m + n) }; };
+function incPlot(x0, w, m, n, t, k, name, o = {}) {
+  const X = (q) => x0 + q * (w / 110), Y = (p) => 250 - p * 1.7, e = incEq(m, n, t), ax = Math.abs(t) > 0.05, dEnd = Math.min(100, 50 + 45 / m);
+  let s = SV.line(x0, 250, x0 + w, 250) + SV.line(x0, 250, x0, 50) + SV.text(x0 + 6, 46, "Price", "sm") + SV.text(x0 + w, 270, "Quantity", "sm", { "text-anchor": "end" });
+  if (name) s += SV.text(x0 + w / 2, 30, name, "lbl bd", { "text-anchor": "middle" });
+  s += SV.line(X(0), Y(50 + 50 * m), X(dEnd), Y(50 + m * (50 - dEnd)), "c2", { "stroke-width": 3 }) + tag(X(dEnd) + 4, Y(50 + m * (50 - dEnd)) + 4, "D", "c2");
+  s += SV.line(X(0), Y(50 - 50 * n), X(100), Y(50 + 50 * n), "c1", { "stroke-width": 3, ...op(ax && k > 0 ? 0.4 : 1) }) + tag(X(100) + 4, Y(50 + 50 * n), "S", "c1", ax && k > 0 ? 0.4 : 1);
+  s += SV.circle(X(50), Y(50), 5, "dot1", op(ax && k > 0 ? 0.6 : 1)) + SV.line(x0, Y(50), X(50), Y(50), "dash", op(0.6)) + SV.line(X(50), Y(50), X(50), 250, "dash", op(0.6)) + SV.text(x0 - 6, Y(50) + 4, "50", "sm", { "text-anchor": "end" });
+  if (ax && k > 0) {
+    s += SV.line(X(0), Y(50 - 50 * n + t), X(100), Y(50 + 50 * n + t), "c3", { "stroke-width": 3, ...op(k) }) + tag(X(100) + 4, Y(50 + 50 * n + t), t > 0 ? "S + tax" : "S + subsidy", "c3", k);
+    const mid = 50;
+    s += SV.rect(X(0), Math.min(Y(e.pc), Y(mid)), X(e.q) - X(0), Math.abs(Y(mid) - Y(e.pc)), "f3", op(0.45 * k)) + SV.rect(X(0), Math.min(Y(e.pp), Y(mid)), X(e.q) - X(0), Math.abs(Y(e.pp) - Y(mid)), "f2", op(0.45 * k));
+    s += SV.circle(X(e.q), Y(e.pc), 6, "dot3", op(k)) + SV.circle(X(e.q), Y(e.pp), 5, "dot2", op(k)) + SV.line(x0, Y(e.pc), X(e.q), Y(e.pc), "dash", op(k)) + SV.line(x0, Y(e.pp), X(e.q), Y(e.pp), "dash", op(k)) + SV.line(X(e.q), Y(e.pc), X(e.q), 250, "dash", op(k));
+    s += SV.text(x0 - 6, Y(e.pc) + 4, Lib.fmtN(e.pc, 1), "sm", { "text-anchor": "end", ...op(k) }) + SV.text(x0 - 6, Y(e.pp) + 4, Lib.fmtN(e.pp, 1), "sm", { "text-anchor": "end", ...op(k) }) + SV.text(X(e.q), 268, Lib.fmtN(e.q, 1), "sm", { "text-anchor": "middle", ...op(k) });
+  }
+  return s;
+}
+'''
+
+# AD/AS plotting on top of the same linear geometry as sdPlot. AD p = 90 - 0.8(q - a); SRAS p = 10 + 0.8(q - s); LRAS vertical at 75 + l.
+ADASJS = '''
+const adLab = { x: "Real output (Y)", y: "Price level", D1: "AD1", D2: "AD2", S1: "SRAS1", S2: "SRAS2", P1: "P1", Q1: "Y1", P2: "P2", Q2: "Y2" };
+function adasPlot(st, o = {}) {
+  const l = st.l || 0, ln = o.lras !== false;
+  let s = sdPlot({ d: st.a || 0, s: st.s || 0, g: st.g === undefined ? 1 : st.g, n: st.n === undefined ? 1 : st.n }, adLab);
+  if (ln) s += SV.line(SDX(75 + l), SDY(0), SDX(75 + l), SDY(100), "c4", { "stroke-width": 3, "stroke-dasharray": "7 4" }) + tag(SDX(75 + l) + 6, SDY(98), "LRAS", "c4");
+  return s;
 }
 '''

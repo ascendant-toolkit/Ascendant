@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Subsidies: Impact and Incidence</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">AS Level Economics · 9708 · Syllabus 3.2.2</div>
+  <h1>Subsidies: Impact and Incidence</h1>
+  <p class="lead">3.2.2: how a subsidy shifts supply, who gains, the cost to the government and the role of elasticity, with the advantages and disadvantages. Animated diagrams, labs, drills and the past paper questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This part in four sentences</h3>
+  <p>A <b class="kw">subsidy</b> is a payment by the government to producers (or sometimes consumers) that <b>lowers the cost of production</b>, so the <b>supply curve shifts to the right (down)</b> by the amount of the subsidy per unit. The <b>price consumers pay falls</b>, the <b>price producers receive rises</b> (market price plus subsidy) and the <b>quantity increases</b>, so consumer surplus and producer surplus both rise. The <b>incidence</b> of the subsidy is shared between consumers and producers according to elasticity, and the <b>cost to the government</b> is the subsidy per unit times the quantity sold, which has an <b>opportunity cost</b> in other spending or higher taxes. Subsidies are used to <b>encourage merit goods</b>, support producers and keep prices of essentials low, but they can be costly, hard to target and difficult to remove.</p></div>
+
+  <h2>1 · The impact of a subsidy (3.2.2)</h2>
+  <div id="pic1" class="card"></div>
+  <ul>
+    <li>The vertical gap between the old and new supply curves is the <b>subsidy per unit</b>.</li>
+    <li><b>Price paid by consumers falls</b> (but by less than the subsidy); <b>price received by producers</b> rises above the old price; <b>quantity rises</b>.</li>
+    <li><b>Cost to the government = subsidy per unit × quantity sold after the subsidy.</b></li>
+    <li>It raises <b>consumer and producer surplus</b>, but the cost is more than the gain in private surplus, so unless there are external benefits there is a <b>welfare loss</b> from over-production.</li>
+  </ul>
+
+  <h2>2 · Incidence and the cost of a subsidy</h2>
+  <div id="pic2" class="card"></div>
+  <ul>
+    <li><b>Consumers gain more</b> from a subsidy the more <b>inelastic demand</b> is relative to supply; producers gain more the more inelastic supply is.</li>
+    <li>The <b>more elastic demand</b>, the more quantity responds, so the <b>larger the total cost</b> of the subsidy for the same rate per unit.</li>
+    <li><b>Subsidising a merit good</b> works best if demand is <b>price elastic</b>; if demand is inelastic, consumption barely rises.</li>
+  </ul>
+  <div class="tw"><table class="t">
+    <tr><th>Advantages</th><th>Disadvantages</th></tr>
+    <tr><td>Raises consumption of merit goods with external benefits</td><td>Opportunity cost: money could fund hospitals, schools or lower taxes</td></tr>
+    <tr><td>Lowers prices for low-income households</td><td>May go to people who would have bought anyway (poor targeting)</td></tr>
+    <tr><td>Supports domestic industries and jobs; encourages new technology (e.g. renewables)</td><td>Producers may become inefficient or dependent; hard to remove</td></tr>
+    <tr><td>Can offset other market failures</td><td>Does not address information failure on its own; may distort trade</td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Exam tip</b>Draw the new supply curve <b>below</b> the old one, label the price consumers pay and the price producers get, and shade the <b>cost</b>. Evaluate with <b>elasticity</b>, <b>opportunity cost</b> and whether other policies (information, regulation) might work better.</div>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · A subsidy shifts supply</h2>
+  <p>Press Play, or click the numbered steps.</p>
+  <div id="stS"></div>
+  <h2>2 · The cost of the subsidy and elasticity</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Set the subsidy</h2>
+  <p>Change the subsidy and the steepness of demand and supply. The blue box is the saving to consumers, the green box the gain to producers.</p>
+  <div class="card"><div class="grid2"><div><div id="g1"></div><div id="g2"></div><div id="g3"></div>
+    <div class="readout"><div><small>Consumers pay</small><strong id="r1"></strong></div><div><small>Producers receive</small><strong id="r2"></strong></div><div><small>Cost to government</small><strong id="r3"></strong></div></div>
+    <div class="verdict" id="rv"></div></div>
+    <div><svg id="labA" viewBox="0 0 760 300" role="img" aria-label="Supply and demand with a subsidy and the incidence shaded"></svg></div></div></div>
+
+  <h2>Lab 2 · How big should a subsidy be?</h2>
+  <p>A merit good brings an external benefit of $E per unit. Set the subsidy and see the net gain to society. The gain is greatest when the subsidy equals the external benefit.</p>
+  <div class="card"><div class="grid2"><div><div id="g4"></div><div id="g5"></div>
+    <div class="readout"><div><small>Extra units</small><strong id="t1"></strong></div><div><small>Subsidy cost</small><strong id="t2"></strong></div><div><small>Net gain to society</small><strong id="t3"></strong></div></div>
+    <div class="verdict" id="tv"></div></div>
+    <div><svg id="labB" viewBox="0 0 420 300" role="img" aria-label="A curve of net gain to society against the size of the subsidy with the chosen subsidy marked"></svg></div></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · What does a subsidy do?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>3 · Put the effects of a subsidy in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Calculations</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Subsidised public transport</h3><p>A government pays bus operators a fixed amount per journey. Fares fall, more people use buses and congestion may fall. The cost to taxpayers is large, and the opportunity cost is spending on other services.</p><div class="use"><b>Exam use:</b> a subsidy on a merit good and its opportunity cost.</div></div>
+  <div class="rw"><h3>Electric vehicle grants</h3><p>Grants lower the effective price of electric cars. Demand is fairly elastic, so sales rise by a lot, but some of the money goes to buyers who would have bought one anyway.</p><div class="use"><b>Exam use:</b> elastic demand raising the cost, and poor targeting.</div></div>
+  <div class="rw"><h3>Farm subsidies</h3><p>Payments to farmers raise their incomes and keep food cheap, but can lead to over-production and make farmers dependent on support. Removing them can cause hardship.</p><div class="use"><b>Exam use:</b> producer incidence and the difficulty of removing a subsidy.</div></div>
+  <div class="rw"><h3>Free school meals</h3><p>Meals are provided at no cost to the pupil. Some of the benefit is private, but better nutrition improves learning, an external benefit that justifies public spending.</p><div class="use"><b>Exam use:</b> a subsidy on a merit good with external benefits.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Past paper questions on subsidies</h2>
+  <p>We searched the AS Level Economics papers in the folder (2020 to 2025). Subsidies appear as 8 or 12 mark Paper 2 parts most years, often as the best way to raise consumption of a merit good, and in several short data-response parts. Reworded past questions are below, with seven Paper 1 multiple choice questions that do not need a diagram.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Type</th><th>Examples found</th><th>Where</th></tr>
+    <tr><td>Essay parts, 8 marks</td><td>2</td><td>May/June 2025 (21) Q3(a); May/June 2024 (22) Q3(a)</td></tr>
+    <tr><td>Essay parts, 12 marks</td><td>2</td><td>Feb/March 2025 (22) Q3(b); Oct/Nov 2023 (23) Q3(b)</td></tr>
+    <tr><td>Data response, 2 marks</td><td>1</td><td>Oct/Nov 2022 (23) Q1(a)</td></tr>
+    <tr><td>Multiple choice (Paper 1)</td><td>7 shown below</td><td>2020 to 2025</td></tr>
+  </table></div>
+  <h2>A · Written questions (reworded)</h2>
+  <p>The wording, context and figures are our own, so they are safe to set as practice. The source paper is named for reference. Mark scheme points are in our own words.</p>
+  <details class="eq"><summary>Based on May/June 2025 · 9708/21 · Q3(a) <span class="mark">8 marks</span> With the help of a diagram, explain how changes in a subsidy can influence the price and quantity sold of a product in a market and consider how expenditure on a subsidy is affected by the price elasticity of demand for the product.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Knowledge (up to 3): a correct diagram with labelled axes, demand and supply (1); an increase in a subsidy shifting supply to the right, lowering price and raising quantity, with new equilibrium positions shown (1); a decrease in a subsidy shifting supply to the left, raising price and lowering quantity (1).</li>
+        <li>Analysis (up to 3): a subsidy is a sum of money paid by a government to a producer (1); an increase lowers the price charged to consumers and raises quantity (1) and the explanation of how that affects the cost to the government.</li>
+        <li>Evaluation (up to 2): the cost of a subsidy depends on price elasticity of demand: the more elastic, the more quantity rises and the greater the expenditure, with a justified conclusion.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Diagram: subsidy shifts supply right, price down, quantity up. Cost = subsidy × quantity. Elastic demand: quantity rises more, so cost is higher.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">A subsidy is a payment by the government to producers per unit of output. On a diagram it shifts the supply curve to the right, by the amount of the subsidy, lowering the equilibrium price and increasing the quantity sold. A bigger subsidy shifts supply further, and removing it shifts supply back to the left, raising price and cutting quantity.</span></p>
+    <p><span class="mk n" data-t="N">Because the subsidy lowers firms' costs, they supply more at each price, and the price consumers pay falls. The government pays the subsidy on every unit sold, so the cost is the subsidy per unit multiplied by the quantity sold after the subsidy.</span></p>
+    <p><span class="mk e" data-t="E">The cost depends on the price elasticity of demand. If demand is elastic, the fall in price brings a large rise in quantity, so the total spent on the subsidy is larger. If demand is inelastic, quantity rises less, so the subsidy costs less but also does less to raise consumption.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on May/June 2024 · 9708/22 · Q3(a) <span class="mark">8 marks</span> With the help of an example of each, explain the difference between a merit good and a demerit good and consider whether a subsidy given to a merit good will always be effective in increasing its consumption.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Knowledge (up to 3): a merit good is desirable but under-provided or under-consumed because of information failure or a lack of awareness (1); a demerit good is undesirable but over-consumed because of information failure (1); valid examples of both (1).</li>
+        <li>Analysis (up to 3): a subsidy may encourage poorer households to consume more because it lowers the price (1); but demand may be price inelastic, so the rise in quantity demanded is less than the fall in price (1); the information failure may persist (1).</li>
+        <li>Evaluation (up to 2): a judgement on whether a subsidy will always be effective.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Merit: under-consumed. Demerit: over-consumed. Subsidy lowers price, but may not work if demand is inelastic or information is poor.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">A merit good, such as vaccination, is under-consumed because people do not fully appreciate its benefits. A demerit good, such as tobacco, is over-consumed because people underestimate the harm.</span></p>
+    <p><span class="mk n" data-t="N">A subsidy lowers the price of a merit good, so poorer households who could not afford it may consume more. But if demand is price inelastic, the rise in quantity will be smaller than the fall in price, and if the problem is a lack of awareness, a lower price may not change behaviour.</span></p>
+    <p><span class="mk e" data-t="E">So a subsidy will not always be effective. It is most likely to work where cost is the barrier and demand is elastic, and less likely where information failure is the main problem, so information campaigns could do better.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on Feb/March 2025 · 9708/22 · Q3(b) <span class="mark">12 marks</span> Assess the extent to which a subsidy is likely to be the best method to increase the consumption of a merit good.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Analysis (up to 8): the meaning of a subsidy and a merit good; how a subsidy reduces the costs of production, lowers the price and raises quantity demanded; potential problems such as the opportunity cost of government spending, dependency, incorrect targeting and when to remove provision; alternative methods, such as improved information, analysed for how they would increase consumption.</li>
+        <li>Evaluation (up to 4): an assessment of whether a subsidy is the best method, perhaps depending on price elasticity of demand, cost and the cause of under-consumption, with a justified conclusion.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Subsidy: lowers price, but cost and targeting. Alternatives: information, direct provision. Judge using elasticity and cause of under-consumption.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk n" data-t="N">A merit good, such as education, is under-consumed because consumers do not fully understand its benefits. A subsidy lowers production costs, so the price falls and quantity demanded rises, especially if demand is elastic. But it has an opportunity cost, because the money could be spent elsewhere, it may go to people who would have bought anyway, and it can be hard to remove. Alternative policies include information campaigns, which address the cause of the problem directly but work slowly, and direct provision by the state.</span></p>
+    <p><span class="mk e" data-t="E">A subsidy is probably most effective where the barrier is cost and demand is elastic, but if under-consumption is mainly due to a lack of information, an information campaign may be better. A combination of a subsidy and information is probably the most effective.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2022 · 9708/23 · Q1(a) <span class="mark">2 marks</span> Explain what might be the opportunity cost if a government agreed to pay larger subsidies to its farmers.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Opportunity cost is the cost in terms of the best alternative forgone (1).</li>
+        <li>Other areas of government funding, such as healthcare or education, would have less spending allocated to them (1).</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b>Opportunity cost defined. Name what the money could have been spent on.</div>
+    <div class="key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">Opportunity cost is the next best alternative given up. If the government pays more subsidies to farmers, it has less to spend on something else, such as health care or schools, which is the opportunity cost.</span></p>
+    </div>
+  </div></details>
+  <h2>B · Multiple choice questions (Paper 1)</h2>
+  <p>Choose an answer, then read the reason. Reworded from the paper and question number shown.</p>
+  <div id="qz2"></div>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Draw supply shifting down and right.</b> By the subsidy per unit.</li>
+    <li><b>Label both prices.</b> Paid by consumers, received by producers.</li>
+    <li><b>Cost = subsidy × new quantity.</b> Shade the rectangle.</li>
+    <li><b>Use elasticity.</b> Elastic demand: a bigger rise in quantity and a bigger cost.</li>
+    <li><b>Always mention opportunity cost.</b> What else could the money buy?</li>
+    <li><b>Consider targeting.</b> Some benefit goes to people who would have bought anyway.</li>
+    <li><b>Compare with other policies.</b> Information, regulation, direct provision.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Subsidy</td><td>"A subsidy is a payment by the government that lowers producers' costs."</td></tr>
+    <tr><td>Merit good</td><td>"A subsidy may increase consumption of a merit good."</td></tr>
+    <tr><td>Opportunity cost</td><td>"The cost of a subsidy is the other spending given up."</td></tr>
+    <tr><td>Incidence</td><td>"The benefit of a subsidy is shared between consumers and producers."</td></tr>
+    <tr><td>Assess</td><td>"A subsidy is likely to be effective where demand is elastic and cost is the barrier."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Define / State</td><td>Give the exact meaning, briefly. No explanation needed.</td></tr>
+    <tr><td>Explain</td><td>Give reasons, with a clear chain of cause and effect.</td></tr>
+    <tr><td>Consider</td><td>Look at the issue from several sides and judge how strong each is.</td></tr>
+    <tr><td>Assess</td><td>Judge how important or effective something is, with reasons.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const SDX = (q) => 70 + q * 6.4, SDY = (p) => 270 - p * 2.4;
+const sdEq = (d, s) => { const q = 50 + 0.5 * (d + s); return { q, p: 10 + 0.8 * (q - s) }; };
+const sdSeg = (k, sh) => {
+  const f = (q) => (k === "D" ? 90 - 0.8 * (q - sh) : 10 + 0.8 * (q - sh)), inv = (p) => (k === "D" ? sh + (90 - p) / 0.8 : sh + (p - 10) / 0.8);
+  const qa = inv(k === "D" ? 95 : 12), qb = inv(k === "D" ? 12 : 95), lo = Math.max(0, Math.min(qa, qb)), hi = Math.min(100, Math.max(qa, qb));
+  return [lo, f(lo), hi, f(hi)];
+};
+const sdCurve = (k, sh, c, v, name) => { const [a, b, e, f] = sdSeg(k, sh); return SV.line(SDX(a), SDY(b), SDX(e), SDY(f), c, { "stroke-width": 3, ...op(v) }) + tag(SDX(e) + 6, SDY(f) + (k === "D" ? 14 : -4), name, c, v); };
+const sdGuide = (e, pn, qn, v) => SV.line(SDX(e.q), SDY(e.p), SDX(e.q), 270, "dash", op(v)) + SV.line(70, SDY(e.p), SDX(e.q), SDY(e.p), "dash", op(v)) + SV.text(62, SDY(e.p) + 4, pn, "sm", { "text-anchor": "end", ...op(v) }) + SV.text(SDX(e.q), 286, qn, "sm", { "text-anchor": "middle", ...op(v) });
+function sdPlot(st, lab = {}) {
+  const { d = 0, s = 0, g = 1, n = 1 } = st, mv = Math.abs(d) > 0.05 || Math.abs(s) > 0.05, e0 = sdEq(0, 0), e1 = sdEq(d, s);
+  let o = axes(70, 270, 720, 25, lab.x || "Quantity", lab.y || "Price");
+  o += sdCurve("D", 0, "c2", Math.abs(d) > 0.05 ? 0.4 : 1, lab.D1 || "D1") + sdCurve("S", 0, "c1", Math.abs(s) > 0.05 ? 0.4 : 1, lab.S1 || "S1");
+  if (Math.abs(d) > 0.05) o += sdCurve("D", d, "c2", n, lab.D2 || "D2");
+  if (Math.abs(s) > 0.05) o += sdCurve("S", s, "c1", n, lab.S2 || "S2");
+  o += SV.circle(SDX(e0.q), SDY(e0.p), 5, "dot1", op(mv ? 0.6 : 1)) + sdGuide(e0, "P1", "Q1", g * (mv ? 0.5 : 1));
+  if (mv) o += SV.circle(SDX(e1.q), SDY(e1.p), 6, "dot3", op(n)) + sdGuide(e1, "P2", "Q2", g * n);
+  return o;
+}
+
+const incEq = (m, n, t) => { const q = 50 - t / (m + n), pc = 50 + m * (t / (m + n)); return { q, pc, pp: pc - t, sc: m / (m + n) }; };
+function incPlot(x0, w, m, n, t, k, name, o = {}) {
+  const X = (q) => x0 + q * (w / 110), Y = (p) => 250 - p * 1.7, e = incEq(m, n, t), ax = Math.abs(t) > 0.05, dEnd = Math.min(100, 50 + 45 / m);
+  let s = SV.line(x0, 250, x0 + w, 250) + SV.line(x0, 250, x0, 50) + SV.text(x0 + 6, 46, "Price", "sm") + SV.text(x0 + w, 270, "Quantity", "sm", { "text-anchor": "end" });
+  if (name) s += SV.text(x0 + w / 2, 30, name, "lbl bd", { "text-anchor": "middle" });
+  s += SV.line(X(0), Y(50 + 50 * m), X(dEnd), Y(50 + m * (50 - dEnd)), "c2", { "stroke-width": 3 }) + tag(X(dEnd) + 4, Y(50 + m * (50 - dEnd)) + 4, "D", "c2");
+  s += SV.line(X(0), Y(50 - 50 * n), X(100), Y(50 + 50 * n), "c1", { "stroke-width": 3, ...op(ax && k > 0 ? 0.4 : 1) }) + tag(X(100) + 4, Y(50 + 50 * n), "S", "c1", ax && k > 0 ? 0.4 : 1);
+  s += SV.circle(X(50), Y(50), 5, "dot1", op(ax && k > 0 ? 0.6 : 1)) + SV.line(x0, Y(50), X(50), Y(50), "dash", op(0.6)) + SV.line(X(50), Y(50), X(50), 250, "dash", op(0.6)) + SV.text(x0 - 6, Y(50) + 4, "50", "sm", { "text-anchor": "end" });
+  if (ax && k > 0) {
+    s += SV.line(X(0), Y(50 - 50 * n + t), X(100), Y(50 + 50 * n + t), "c3", { "stroke-width": 3, ...op(k) }) + tag(X(100) + 4, Y(50 + 50 * n + t), t > 0 ? "S + tax" : "S + subsidy", "c3", k);
+    const mid = 50;
+    s += SV.rect(X(0), Math.min(Y(e.pc), Y(mid)), X(e.q) - X(0), Math.abs(Y(mid) - Y(e.pc)), "f3", op(0.45 * k)) + SV.rect(X(0), Math.min(Y(e.pp), Y(mid)), X(e.q) - X(0), Math.abs(Y(e.pp) - Y(mid)), "f2", op(0.45 * k));
+    s += SV.circle(X(e.q), Y(e.pc), 6, "dot3", op(k)) + SV.circle(X(e.q), Y(e.pp), 5, "dot2", op(k)) + SV.line(x0, Y(e.pc), X(e.q), Y(e.pc), "dash", op(k)) + SV.line(x0, Y(e.pp), X(e.q), Y(e.pp), "dash", op(k)) + SV.line(X(e.q), Y(e.pc), X(e.q), 250, "dash", op(k));
+    s += SV.text(x0 - 6, Y(e.pc) + 4, Lib.fmtN(e.pc, 1), "sm", { "text-anchor": "end", ...op(k) }) + SV.text(x0 - 6, Y(e.pp) + 4, Lib.fmtN(e.pp, 1), "sm", { "text-anchor": "end", ...op(k) }) + SV.text(X(e.q), 268, Lib.fmtN(e.q, 1), "sm", { "text-anchor": "middle", ...op(k) });
+  }
+  return s;
+}
+
+$("#pic1").innerHTML = `<svg viewBox="0 0 760 300" role="img" aria-label="A subsidy shifts supply down, lowering the price consumers pay and raising the price producers receive">${incPlot(70, 640, 0.8, 0.8, -10, 1, "")}</svg>`;
+function s1Draw(s) { const e = incEq(0.8, 0.8, -10); return incPlot(70, 640, 0.8, 0.8, -10, s.k, "") + (s.v > 0 ? SV.text(380, 292, "Cost to government = $10 × " + Lib.fmtN(e.q, 1) + " = $" + Lib.fmtN(10 * e.q, 0), "lbl bd", { "text-anchor": "middle", ...op(s.v) }) : ""); }
+Lib.stepper($("#stS"), { w: 760, h: 300, label: "A subsidy of $10 per unit", base: { k: 0, v: 0 }, draw: s1Draw, tween: 900, dwell: 5800, steps: [
+  { cap: "<b>Before.</b> The market is in equilibrium at $50 and 50 units.", s: { k: 0, v: 0 } },
+  { cap: "<b>A subsidy of $10 per unit</b> lowers each firm's costs. The supply curve shifts down (right) by $10.", s: { k: 1, v: 0 } },
+  { cap: "<b>The new equilibrium.</b> Consumers pay $45 (down $5). Producers receive $45 + $10 = $55 (up $5). Quantity rises to 56.25. Here the benefit is shared equally.", s: { k: 1, v: 0 } },
+  { cap: "<b>The cost</b> to the government is the subsidy per unit times the quantity: the rectangle between the two prices, over the new quantity.", s: { k: 1, v: 1 } },
+] });
+function sTwo(s) { return incPlot(30, 330, 1.2, 0.6, -10, s.k, "Inelastic demand (steep)") + incPlot(400, 330, 0.4, 0.6, -10, s.k, "Elastic demand (flat)") + (s.k > 0.5 ? SV.text(195, 288, "Quantity " + Lib.fmtN(incEq(1.2, 0.6, -10).q, 1) + ", cost $" + Lib.fmtN(10 * incEq(1.2, 0.6, -10).q, 0), "lbl bd", { "text-anchor": "middle", ...op(s.k) }) + SV.text(565, 288, "Quantity " + Lib.fmtN(incEq(0.4, 0.6, -10).q, 1) + ", cost $" + Lib.fmtN(10 * incEq(0.4, 0.6, -10).q, 0), "lbl bd", { "text-anchor": "middle", ...op(s.k) }) : ""); }
+$("#pic2").innerHTML = `<svg viewBox="0 0 760 300" role="img" aria-label="The same subsidy with inelastic demand and with elastic demand, and the cost of each">${sTwo({ k: 1 })}</svg>`;
+Lib.stepper($("#stC"), { w: 760, h: 300, label: "The same subsidy with inelastic and with elastic demand", base: { k: 0 }, draw: sTwo, tween: 900, dwell: 5600, steps: [
+  { cap: "<b>Two markets</b> with the same supply curve. Demand is steep (inelastic) on the left and flat (elastic) on the right.", s: { k: 0 } },
+  { cap: "<b>The same $10 subsidy.</b> With <b>elastic</b> demand the price fall brings a bigger rise in quantity (60 units), so the subsidy costs more ($600) and does more to raise consumption. With <b>inelastic</b> demand quantity rises less (55.6 units), the cost is $556, and consumers gain more per unit.", s: { k: 1 } },
+] });
+
+function labS() {
+  if (!$("#sb") || !$("#dm") || !$("#sn")) return;
+  const t = -(+$("#sb").value), m = +$("#dm").value / 10, n = +$("#sn").value / 10, e = incEq(m, n, t), cost = -t * e.q;
+  $("#r1").textContent = "$" + Lib.fmtN(e.pc, 1) + " (" + Lib.fmtN(e.pc - 50, 1) + ")"; $("#r2").textContent = "$" + Lib.fmtN(e.pp, 1) + " (+" + Lib.fmtN(e.pp - 50, 1) + ")"; $("#r3").textContent = "$" + Lib.fmtN(cost, 0);
+  $("#rv").textContent = t === 0 ? "No subsidy, so nothing changes." : `Of the $${-t} subsidy per unit, consumers gain $${Lib.fmtN(50 - e.pc, 1)} (${Lib.fmtN(e.sc * 100, 0)}%) and producers $${Lib.fmtN(e.pp - 50, 1)} (${Lib.fmtN((1 - e.sc) * 100, 0)}%). Quantity rises from 50 to ${Lib.fmtN(e.q, 1)} and the government pays $${Lib.fmtN(cost, 0)}. ${m > n ? "Demand is steeper than supply, so consumers gain more." : m < n ? "Supply is steeper than demand, so producers gain more." : "The gain is shared equally."}`;
+  $("#labA").innerHTML = incPlot(70, 640, m, n, t, 1, "");
+}
+Lib.slider($("#g1"), { id: "sb", label: "Subsidy per unit, $ ", min: 0, max: 20, step: 2, value: 10, fmt: (v) => "$" + v, onInput: labS });
+Lib.slider($("#g2"), { id: "dm", label: "Steepness of demand (3 = flat and elastic, 12 = steep and inelastic) ", min: 3, max: 12, step: 1, value: 8, fmt: (v) => v, onInput: labS });
+Lib.slider($("#g3"), { id: "sn", label: "Steepness of supply (3 = flat and elastic, 10 = steep and inelastic) ", min: 3, max: 10, step: 1, value: 8, fmt: (v) => v, onInput: labS });
+labS();
+
+function labW() {
+  if (!$("#eb") || !$("#sx")) return;
+  const E = +$("#eb").value, s = +$("#sx").value, k = 1.6, dq = s / k, cost = s * (50 + dq), net = dq * (E - s / 2);
+  $("#t1").textContent = Lib.fmtN(dq, 1); $("#t2").textContent = "$" + Lib.fmtN(cost, 0); $("#t3").textContent = (net >= 0 ? "+$" : "−$") + Lib.fmtN(Math.abs(net), 1);
+  $("#tv").textContent = s === 0 ? "No subsidy, so there is no extra consumption and no gain. The best subsidy equals the external benefit, $" + E + "." : `The subsidy raises output by ${Lib.fmtN(dq, 1)} units. Each extra unit brings an external benefit of $${E}, but costs the government a subsidy of $${s} on top of private gains, so the net gain is ${Lib.fmtN(net, 1)}. ${s === E ? "The subsidy equals the external benefit, so the net gain is at its maximum." : s > E ? "The subsidy is larger than the external benefit, so too much is paid and the net gain falls." : "The subsidy is smaller than the external benefit, so it could be raised for a bigger net gain."}`;
+  const X = (v) => 40 + v * 17, Y = (v) => 250 - v * 1; let o = SV.line(40, 250, 400, 250) + SV.line(40, 250, 40, 40) + SV.text(400, 272, "Subsidy per unit", "sm", { "text-anchor": "end" }) + SV.text(46, 36, "Net gain", "sm"), pts = [];
+  for (let v = 0; v <= 20; v += 1) pts.push([X(v), Math.min(290, 250 - (v / k) * (E - v / 2) * 2)]);
+  o += SV.path("M" + pts.map((p) => p.join(",")).join(" L"), "c2", { fill: "none", "stroke-width": 3 }) + SV.circle(X(s), 250 - dq * (E - s / 2) * 2, 7, "dot3") + SV.line(X(E), 250, X(E), 250 - (E / k) * (E / 2) * 2, "dash") + SV.text(X(E), 268, "best = " + E, "sm", { "text-anchor": "middle" });
+  $("#labB").innerHTML = o;
+}
+Lib.slider($("#g4"), { id: "eb", label: "External benefit per unit, $ ", min: 4, max: 16, step: 2, value: 10, fmt: (v) => "$" + v, onInput: labW });
+Lib.slider($("#g5"), { id: "sx", label: "Subsidy per unit, $ ", min: 0, max: 20, step: 1, value: 6, fmt: (v) => "$" + v, onInput: labW });
+labW();
+
+/* ---------- Practise ---------- */
+Lib.classify($("#cl1"), { prompt: "What does a subsidy do?", buckets: [{"label": "Shifts supply right"}, {"label": "Shifts supply left"}, {"label": "Neither"}], items: [{"text": "A grant lowers farmers' costs", "b": 0}, {"text": "An indirect tax on the good", "b": 1}, {"text": "A government payment per unit to producers", "b": 0}, {"text": "A fall in the price of the good itself", "b": 2}, {"text": "Cheaper inputs for producers", "b": 0}, {"text": "A rise in wages", "b": 1}, {"text": "Removing an existing subsidy", "b": 1}, {"text": "Advertising by consumers' groups", "b": 2}], done: "A subsidy lowers costs and shifts supply right. Removing it shifts supply left." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Subsidy", "Payment to producers that lowers costs"], ["Cost of a subsidy", "Subsidy per unit × quantity sold"], ["Merit good", "Under-consumed good that a subsidy may help"], ["Opportunity cost", "Other spending given up to pay for the subsidy"], ["Poor targeting", "Benefits go to people who would have bought anyway"], ["Transfer payment", "Payment to individuals with no output in return"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the effects of a subsidy in order.", items: ["The government pays a subsidy per unit", "Producers' costs fall and supply shifts to the right", "The price paid by consumers falls", "Quantity sold rises", "Consumer and producer surplus rise but the government bears the cost"], done: "Subsidy, supply shifts right, price falls, quantity rises." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "A subsidy of $4 per unit lowers the price from $20 to $17 and quantity rises from 100 to 120. What is the cost to the government ($)?", "a": 480, "unit": "$", "tol": 1, "hint": "4 × 120.", "sol": "<b>$480</b>."},
+  {"q": "How much per unit do consumers gain?", "a": 3, "unit": "$", "tol": 0.05, "hint": "20 − 17.", "sol": "<b>$3</b>."},
+  {"q": "How much per unit do producers gain?", "a": 1, "unit": "$", "tol": 0.05, "hint": "Subsidy minus the consumers' gain: 4 − 3.", "sol": "<b>$1</b>."},
+  {"q": "What percentage of the subsidy goes to consumers?", "a": 75, "unit": "%", "tol": 0.5, "hint": "3 ÷ 4.", "sol": "<b>75%</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "A subsidy shifts the supply curve:", opts: ["To the right", "To the left", "Not at all", "Vertically upward only"], a: 0, why: "Costs fall." },
+  { q: "A subsidy to producers will usually:", opts: ["Lower the price and raise quantity", "Raise the price and lower quantity", "Raise both", "Lower both"], a: 0, why: "Supply moves right." },
+  { q: "The cost of a subsidy rises if demand is more:", opts: ["Elastic", "Inelastic", "Unit inelastic", "Fixed"], a: 0, why: "Quantity rises more." },
+  { q: "The opportunity cost of a subsidy is:", opts: ["The other spending or tax cuts forgone", "The price fall", "The rise in quantity", "The producer's profit"], a: 0, why: "Best alternative given up." },
+  { q: "A subsidy is most justified for a:", opts: ["Merit good with external benefits", "Demerit good", "Free good", "Good with no substitutes"], a: 0, why: "To correct under-consumption." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Subsidy", "Payment that lowers costs."],
+  ["Supply", "Shifts right."],
+  ["Price", "Consumers pay less."],
+  ["Quantity", "Rises."],
+  ["Cost", "Subsidy × quantity."],
+  ["Elastic demand", "Bigger rise and cost."],
+  ["Opportunity cost", "Other spending lost."],
+  ["Merit goods", "Main reason to subsidise."],
+] });
+Lib.quiz($("#qz2"), { qs: [
+  { q: "Why do some local governments subsidise the provision of bicycles to encourage their use? (Feb/March 2023 · 12 · Q13, reworded)", opts: ["Consumers are afraid of having car accidents", "Consumers are unable to afford bicycles", "Consumers are not aware of the external benefits of using bicycles", "Consumers ignore the external costs of using bicycles"], a: 2, why: "Cycling brings external benefits that consumers do not fully take into account, a merit good problem." },
+  { q: "Which measure would not be part of a government subsidy to protect domestic producers from competition? (May/June 2020 · 12 · Q17, reworded)", opts: ["import quotas", "interest-free loans provided by the government", "reductions in profits (business) taxes", "transfer payments"], a: 0, why: "Quotas restrict imports. They are a protectionist measure, not a subsidy." },
+  { q: "What is not a producer subsidy? (May/June 2022 · 13 · Q18, reworded)", opts: ["a grant given to cover losses in an essential industry, such as the rail industry", "a guaranteed minimum price paid to farmers to ensure the long run supply of food", "financial assistance given to a pharmaceutical company to develop a new vaccine", "a payment made to the unemployed to allow them to buy essential goods and services"], a: 3, why: "A payment to unemployed people is a transfer payment, not a subsidy to producers." },
+  { q: "What is most likely to increase the quantity of houses supplied? (May/June 2020 · 13 · Q6, reworded)", opts: ["a policy to help house buyers on modest incomes", "a restriction on the level of rent that can be charged", "a rise in the tax on materials used for building houses", "the removal of a subsidy to house builders"], a: 0, why: "Help to buyers raises demand and the price, so quantity supplied rises. A rent limit, a tax and removing a subsidy all cut supply." },
+  { q: "What will increase the producer surplus of farmers that grow carrots? (May/June 2022 · 11 · Q6, reworded)", opts: ["a decrease in the demand for carrots", "a decrease in the price of carrot seed", "a decrease in the price of cabbage", "a decrease in the subsidy on carrots"], a: 1, why: "Cheaper seed lowers costs, which raises supply and the producer surplus at a given price." },
+  { q: "A government wishes to raise the incomes of farmers without raising the price of food to consumers. Which policy should it use? (May/June 2024 · 11 · Q13, reworded)", opts: ["a maximum price below the market price for food", "a minimum price below the market price for food", "a payment of a subsidy to farmers to produce food", "a release of government food stocks onto the market"], a: 2, why: "A subsidy lifts what farmers receive while the price paid by consumers does not rise." },
+  { q: "Which combination of government measures is most likely to increase the consumption of a merit good? (May/June 2023 · 12 · Q16, reworded)", opts: ["effective maximum price and a subsidy to producers", "effective maximum price and an indirect tax on producers", "effective minimum price and a subsidy to producers", "effective minimum price and an indirect tax on producers"], a: 0, why: "A maximum price and a subsidy both push the price consumers pay down, raising consumption." },
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

@@ -921,7 +921,7 @@ ARTIFACTS = [
     {"src": "as-balance-of-payments", "role": "review", "title": "The Current Account of the Balance of Payments", "kind": "Interactive",
      "desc": "Credits and debits, the four components, calculations, causes and consequences of deficits and surpluses, with exam practice.",
      "places": [("a-econ", "as/s6-3")]},
-    {"src": "as-reasons-for-intervention", "role": "review", "title": "Reasons for Government Intervention in Markets", "kind": "Interactive",
+    {"src": "as-reasons-for-intervention", "role": "review", "at": "3.1.1", "title": "Reasons for Government Intervention in Markets", "kind": "Interactive",
      "desc": "Public goods and the free rider problem, merit and demerit goods, and why governments set price controls, with diagrams, labs and exam practice.",
      "places": [("a-econ", "as/s3-1")]},
     {"src": "as-elasticity-of-supply", "role": "review", "at": "2.3.1", "title": "Price Elasticity of Supply", "kind": "Interactive",
@@ -979,6 +979,29 @@ ARTIFACTS = [
     {"src": "as-surplus-changes-elasticity", "role": "review", "at": "2.5.3", "title": "Changes in Consumer and Producer Surplus", "kind": "Interactive",
      "desc": "2.5.3 to 2.5.4 · Causes of changes in surplus and the role of price elasticity of demand and supply. Animations, labs and past paper practice.",
      "places": [("a-econ", "as/s2-5")]},
+
+    # AS Topic 3
+    {"src": "as-indirect-taxes", "role": "review", "at": "3.2.1", "title": "Indirect Taxes: Impact and Incidence", "kind": "Interactive",
+     "desc": "3.2.1 · Specific and ad valorem taxes, effect on price and quantity, incidence and tax revenue. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s3-2")]},
+    {"src": "as-subsidies", "role": "review", "at": "3.2.2", "title": "Subsidies: Impact and Incidence", "kind": "Interactive",
+     "desc": "3.2.2 · How a subsidy shifts supply, who gains, the cost and the role of elasticity. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s3-2")]},
+    {"src": "as-direct-provision-information", "role": "review", "at": "3.2.3", "title": "Direct Provision and Provision of Information", "kind": "Interactive",
+     "desc": "3.2.3 and 3.2.6 · State provision of goods and services and information to correct market failure. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s3-2")]},
+    {"src": "as-maximum-minimum-prices", "role": "review", "at": "3.2.4", "title": "Maximum and Minimum Prices", "kind": "Interactive",
+     "desc": "3.1.3 and 3.2.4 · Why governments control prices and the effects of price ceilings and floors. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s3-2")]},
+    {"src": "as-buffer-stocks", "role": "review", "at": "3.2.5", "title": "Buffer Stock Schemes", "kind": "Interactive",
+     "desc": "3.2.5 · Price floors and ceilings to stabilise agricultural prices, with costs and risks. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s3-2")]},
+    {"src": "as-income-wealth-inequality", "role": "review", "at": "3.3.1", "title": "Income, Wealth and Inequality", "kind": "Interactive",
+     "desc": "3.3.1 to 3.3.3 · Flow and stock, Lorenz curve and Gini coefficient, and the causes of inequality. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s3-3")]},
+    {"src": "as-redistribution-policies", "role": "review", "at": "3.3.4", "title": "Policies to Redistribute Income and Wealth", "kind": "Interactive",
+     "desc": "3.3.4 · Progressive taxes, transfer payments, the minimum wage and state provision. Animations, labs and past paper practice.",
+     "places": [("a-econ", "as/s3-3")]},
 ]
 
 # Old textbook-numbered chapter paths for A-Level Economics -> syllabus-numbered paths. build.py writes a redirect page at each old path.
