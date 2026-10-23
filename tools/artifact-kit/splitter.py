@@ -11,9 +11,9 @@ class Src:
     def b(self, *r): return "".join("\n".join(self.h[a - 1:z]) + "\n" for a, z in r)
     def j_(self, *r): return "".join("\n".join(self.j[a - 1:z]) + "\n" for a, z in r)
 
-def page(eyebrow, h1, lead, learn_class="", explore_class="", **secs):
+def page(eyebrow, h1, lead, learn_class="", explore_class="", sub="", **secs):
     nav = "\n".join(f'  <button role="tab" data-p="{k}">{v}</button>' for k, v in TABS)
-    out = f'<div class="wrap">\n<header class="top">\n  <div class="eyebrow">{eyebrow}</div>\n  <h1>{h1}</h1>\n  <p class="lead">{lead}</p>\n</header>\n\n<nav class="tablist" role="tablist" aria-label="Sections">\n{nav}\n</nav>\n'
+    out = f'<div class="wrap">\n<header class="top">\n  <div class="eyebrow">{eyebrow}</div>\n  <h1>{h1}</h1>\n{('  <p class="cbook">' + sub + '</p>' + chr(10)) if sub else ''}  <p class="lead">{lead}</p>\n</header>\n\n<nav class="tablist" role="tablist" aria-label="Sections">\n{nav}\n</nav>\n'
     for i, (k, _) in enumerate(TABS):
         cls = learn_class if k == "learn" else explore_class if k == "explore" else ""
         out += f'\n<section id="{k}" role="tabpanel"{"" if i == 0 else " hidden"}{(" class=" + chr(34) + cls + chr(34)) if cls else ""}>\n{secs[k].strip(chr(10))}\n</section>\n'

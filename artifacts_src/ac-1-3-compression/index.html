@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Compression: Lossy, Lossless and Run-Length Encoding</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 1.3</div>
+  <h1>Compression: Lossy, Lossless and Run-Length Encoding</h1>
+  <p class="cbook">Coursebook: Chapter 1 · Information representation, section 1.3 Compression</p>
+  <p class="lead">Why files are compressed, lossy against lossless with a justified choice, run-length encoding step by step, how text, images and sound are compressed, and eleven questions from the 2021 to 2026 papers.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p><b>Compression</b> makes a file smaller so that it takes up less storage space and can be transmitted in less time using less bandwidth. <b>Lossless</b> compression keeps all the data, so the original can be rebuilt exactly; <b>lossy</b> compression permanently removes data that is judged unimportant, which gives a much smaller file but cannot be undone. <b>Run-length encoding (RLE)</b> is the lossless method the syllabus names: a run of identical values is replaced by one copy of the value and a count. Text must be compressed losslessly, whereas photographs, music and streamed video can usually be compressed lossily because the loss is hard to notice. A good answer says what is removed or replaced, what the effect on the file is, and why that suits the situation.</p></div>
+
+  <h2>1 · Why compress files?</h2>
+  <ul>
+    <li><b>Less storage:</b> the file takes up less space on a drive or server, so more files can be kept.</li>
+    <li><b>Faster transmission:</b> fewer bits to send, so the file is transmitted or downloaded in less time.</li>
+    <li><b>Less bandwidth:</b> it uses less of the connection, which matters for people with a slow or limited connection.</li>
+    <li><b>Fits a limit:</b> an email attachment or upload may have a maximum file size.</li>
+    <li><b>Less buffering:</b> a streamed video or a real-time call keeps up with the connection.</li>
+  </ul>
+  <p>Examples: photographs compressed before they are uploaded to a website; a sound file compressed before it is emailed; a text file compressed by an operating system utility; a video compressed before real-time streaming.</p>
+  <div class="tip"><b class="h">Exam tip</b>Read the last words of the question. A benefit "for storing" the file is less space; a benefit "for transmitting" it is less time or bandwidth. Both are true of compression, but only one answers the question asked.</div>
+
+  <h2>2 · Lossless and lossy compression</h2>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Lossless</th><th>Lossy</th></tr>
+    <tr><td>What happens to the data</td><td>None is lost. The file is stored more efficiently.</td><td>Some data is permanently removed.</td></tr>
+    <tr><td>The original</td><td>Can be rebuilt exactly after decompression.</td><td>Cannot be rebuilt; only an approximation remains.</td></tr>
+    <tr><td>Size reduction</td><td>Smaller, but not by as much.</td><td>Much smaller.</td></tr>
+    <tr><td>Quality</td><td>No loss in quality.</td><td>Some loss, often hard to notice.</td></tr>
+    <tr><td>Use when</td><td>Every bit matters: text, program code, spreadsheets, legal or medical records, files that will be edited again.</td><td>The loss will not be noticed or does not matter: photographs on a web page, streamed music and video, a quick preview.</td></tr>
+    <tr><td>Examples of methods</td><td>Run-length encoding; replacing repeated patterns with shorter codes</td><td>Reducing the colour depth or resolution of an image; reducing the sampling rate or resolution of sound; removing sounds humans cannot hear</td></tr>
+  </table></div>
+
+  <h2>3 · Run-length encoding (RLE)</h2>
+  <p>RLE finds <b>runs</b>: consecutive identical values. Each run is replaced with <b>one copy of the value and the number of times it repeats</b>.</p>
+  <div class="tw"><table class="t mono">
+    <tr><th>Original</th><th>RLE</th><th>Saved?</th></tr>
+    <tr><td>AAAABBBCC</td><td>4A3B2C</td><td>9 symbols to 6</td></tr>
+    <tr><td>BBBBBBBBBB (ten blue pixels)</td><td>10B</td><td>10 values to 2</td></tr>
+    <tr><td>EA F1 F1 F2 F2 F2 EA</td><td>1EA 2F1 3F2 1EA</td><td>7 values to 4 pairs</td></tr>
+    <tr><td>RGB (all different)</td><td>1R1G1B</td><td>3 symbols to 6: bigger</td></tr>
+  </table></div>
+  <ul>
+    <li><b>Lossless:</b> decoding repeats each value its count, so the original is rebuilt exactly.</li>
+    <li><b>Works best</b> with long runs: a logo, a diagram, a screenshot, a scanned page with large white areas, text with repeated characters.</li>
+    <li><b>May not shrink the file</b> when there are few runs, as in a photograph where neighbouring pixels differ slightly. Each value then needs a count of 1 stored beside it, which adds data. The mark scheme example is red, green, blue becoming red 1, green 1, blue 1.</li>
+    <li><b>Bitmap:</b> done row by row, or across the whole sequence of pixel codes. The first row of ten blue pixels is stored as blue and 10.</li>
+    <li><b>Sound:</b> consecutive samples with the same value can be run-length encoded. Silence is a long run.</li>
+  </ul>
+
+  <h2>4 · Compressing each type of file</h2>
+  <div class="tw"><table class="t">
+    <tr><th>File</th><th>Method</th><th>How it reduces the size</th></tr>
+    <tr><td><b>Text</b></td><td>Lossless (RLE, or replacing repeated sequences with shorter codes)</td><td>Repeated characters or words are replaced with one copy and a count, or a shorter code. Lossy is not suitable because any lost character corrupts the text.</td></tr>
+    <tr><td><b>Bitmap image</b></td><td>Lossless: RLE. Lossy: reduce the colour depth, the number of colours (palette) or the image resolution</td><td>Runs of the same colour become a colour and a count; or fewer bits per pixel or fewer pixels are stored.</td></tr>
+    <tr><td><b>Vector graphic</b></td><td>Lossless</td><td>The drawing list is already compact. There is little repeated data, so vector files compress poorly.</td></tr>
+    <tr><td><b>Sound</b></td><td>Lossless: RLE, or recording the change from one amplitude to the next instead of each full value. Lossy: lower the sampling rate or resolution, reduce the range of amplitudes, or remove sounds people cannot hear</td><td>Fewer bits per sample, fewer samples, or smaller values to store.</td></tr>
+  </table></div>
+
+  <h2>5 · Choosing a method</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Situation</th><th>Better choice</th><th>Reason that earns marks</th></tr>
+    <tr><td>A company report written in a word processor</td><td>Lossless</td><td>All the data is needed; lossy would remove characters and could change the meaning.</td></tr>
+    <tr><td>Photographs downloaded by customers from a website</td><td>Lossy</td><td>Much smaller files, so downloads take less time and use less bandwidth; the loss in detail will not be noticed on a screen.</td></tr>
+    <tr><td>A live video concert streamed to subscribers</td><td>Lossy</td><td>Smaller file means less bandwidth and less buffering; viewers on small screens will not notice the lost detail. (Lossless is accepted if justified: viewers who want no loss of quality.)</td></tr>
+    <tr><td>A scanned legal contract</td><td>Lossless</td><td>No data can be lost; text must stay readable and the document must be exact.</td></tr>
+    <tr><td>A voice message to email</td><td>Lossy or lossless</td><td>Lossy gives the smallest file; lossless keeps the exact recording. Justify the one you pick.</td></tr>
+  </table></div>
+
+  <h2>6 · Common ways to lose marks</h2>
+  <ul>
+    <li>Saying "lossy loses quality" without saying <b>data is permanently removed</b> and cannot be restored.</li>
+    <li>Saying "lossless makes the file the same size". It still reduces the size, by encoding the data more efficiently.</li>
+    <li>Writing that RLE "compresses repeated images". It compresses runs of identical consecutive values.</li>
+    <li>Giving a benefit that is not for the situation, such as faster transmission in a question about storing.</li>
+    <li>Suggesting lossy compression for a text file without noting that it would corrupt the text.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Run-length encoding a row of pixels</h2>
+  <p>Press Play, or click the numbered steps. Each run of the same colour becomes a count and a colour.</p>
+  <div id="stA"></div>
+  <h2>2 · When RLE works and when it does not</h2>
+  <div id="stB"></div>
+  <h2>3 · Lossless against lossy</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Run-length encode your own text</h2>
+  <p>Type up to 30 characters. The lab finds the runs and shows the encoded version. Try AAAABBBCC, then try ABCDEFG.</p>
+  <div class="card"><input id="rx" type="text" maxlength="30" value="AAAAAAABBBCCCCCCCCDD" style="width:100%;font:600 1.1rem var(--mono);padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)" aria-label="Text to compress">
+    <div id="rxT" style="margin-top:12px"></div>
+    <div class="readout"><div><small>Original</small><strong id="r1"></strong></div><div><small>RLE code</small><strong id="r2"></strong></div><div><small>Stored items</small><strong id="r3"></strong></div></div>
+    <div class="verdict" id="rv"></div></div>
+
+  <h2>Lab 2 · How much does RLE save on an image?</h2>
+  <p>Choose a picture. Each row is run-length encoded. Each run needs two items (a count and a colour), so RLE only saves space when there are long runs.</p>
+  <div class="card"><div class="grid2"><div><div id="gB" class="btnrow"></div>
+    <div class="readout"><div><small>Pixels</small><strong id="g1"></strong></div><div><small>Runs</small><strong id="g2"></strong></div><div><small>Items after RLE</small><strong id="g3"></strong></div><div><small>Change in size</small><strong id="g4"></strong></div></div>
+    <div class="verdict" id="gv"></div></div>
+    <div><svg id="gS" viewBox="0 0 352 176" role="img" aria-label="A sixteen by eight pixel image"></svg></div></div></div>
+
+  <h2>Lab 3 · Why compress? Download time</h2>
+  <p>Choose a file size and how much it is compressed. The download time shows the benefit for transmission.</p>
+  <div class="card"><div id="dz"></div><div id="dc"></div><div id="dB" class="btnrow"></div>
+    <div class="readout"><div><small>Compressed size</small><strong id="d1"></strong></div><div><small>Time before</small><strong id="d2"></strong></div><div><small>Time after</small><strong id="d3"></strong></div><div><small>Space saved</small><strong id="d4"></strong></div></div>
+    <div class="verdict" id="dv"></div></div>
+
+  <h2>Lab 4 · Lossy or lossless?</h2>
+  <p>Choose a situation. The table gives the better choice and the reasons that earn marks.</p>
+  <div class="card"><div id="lB" class="btnrow"></div><div id="lO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Lossy or lossless?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Which method suits each situation?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the steps for run-length encoding in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>5 · Calculations</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Photos on a website</h3><p>A photograph from a phone can be several megabytes. Websites usually store a lossy version a tenth of that size. Pages load faster, and few visitors notice the difference on a screen.</p><div class="use"><b>Exam use:</b> lossy for web photographs: smaller file, faster download, loss of detail not noticed.</div></div>
+  <div class="rw"><h3>Streaming video</h3><p>Services send compressed video so that it keeps up with the viewer's connection. If the connection is slow the quality is reduced further. Without lossy compression, most connections could not carry a live video call.</p><div class="use"><b>Exam use:</b> real-time streaming: lossy reduces bandwidth and buffering.</div></div>
+  <div class="rw"><h3>Zip files</h3><p>A zip file combines files and compresses them losslessly. The files that come out are identical to the ones that went in, which is why zip is used for documents, spreadsheets and programs.</p><div class="use"><b>Exam use:</b> lossless for text and program files: nothing may be lost.</div></div>
+  <div class="rw"><h3>Screenshots and logos</h3><p>An image with big areas of one colour, such as a logo or a screenshot of a web page, has long runs of identical pixels. Run-length encoding shrinks it a lot without changing a pixel.</p><div class="use"><b>Exam use:</b> RLE works on images with long runs of identical colours.</div></div>
+  <div class="rw"><h3>Why a photograph barely shrinks with RLE</h3><p>Neighbouring pixels in a photograph are almost never identical, so each run has length 1 or 2. RLE then adds a count for almost every pixel and the file can be bigger. Photographs are compressed with lossy methods instead.</p><div class="use"><b>Exam use:</b> RLE may not reduce a bitmap's size when there are few runs; the counts add data.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Past paper questions on compression</h2>
+  <p>Eleven questions from the 2021 to 2026 Paper 1 papers: why files are compressed, lossy against lossless with a justified choice, and how RLE and other methods work for text, bitmaps and sound. The scenarios and values are changed from the originals.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Type</th><th>Examples found</th><th>Where</th></tr>
+    <tr><td>Paper 1 written questions</td><td>11 shown below</td><td>May/June 2021 (11) Q1(b) [3]; Oct/Nov 2021 (11) Q7(b) [4]; Oct/Nov 2021 (12) Q5(b)(ii) [4]; May/June 2022 (13) Q1(a)(iii)-(iv) [4]; Oct/Nov 2022 (11) Q7(c) [3]; Oct/Nov 2022 (12) Q8(c) [4]; May/June 2023 (11) Q1(c) [6]; Oct/Nov 2023 (12) Q6(a) [3]; May/June 2025 (11) Q2(b) [7]; May/June 2026 (12) Q1(d)(ii) [3]; May/June 2026 (13) Q3(c)(i) [4]</td></tr>
+  </table></div>
+  <h2>Written questions (reworded)</h2>
+  <p>The wording, context and figures are our own, so they are safe to set as practice. The source paper is named for reference. Mark scheme points are in our own words. Open a question, plan an answer, then read the mark scheme points.</p>
+  <details class="eq"><summary>Based on May/June 2021 · 9618/11 · Q1(b) <span class="mark">[3]</span> A scanned bitmap image is compressed using lossless compression. Identify one method of lossless compression that can be used on the image and describe how the method will reduce the file size.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Run-length encoding (RLE).</li>
+        <li>Sequences of pixels of the same colour are replaced.</li>
+        <li>Each is replaced with the colour code and the number of identical pixels.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>Name the method, then say what is replaced and by what.</p></div>
+    <div class="key"><span class="k"><i></i>Technical knowledge (K)</span><span class="a"><i></i>Applied to the context (A)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">Run-length encoding. Each sequence of consecutive pixels of the same colour is replaced by one copy of the colour code and the number of identical pixels, so fewer values are stored.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2021 · 9618/11 · Q7(b) <span class="mark">[4]</span> A sound file is compressed before it is emailed. (i) Explain the reasons why the sound file is compressed. (ii) The compression is lossless. Describe how lossless compression can compress the sound file.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>(i) Reduces the file size; faster to transmit or download; the original may be too large for the email attachment limit (two).</li>
+        <li>(ii) Run-length encoding: where consecutive samples are the same, store the value and the number of repeats; or store the changes between samples instead of the actual values; or reduce amplitudes to the range actually used (two).</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>(i) benefits for sending. (ii) one method with its working described.</p></div>
+    <div class="key"><span class="k"><i></i>Technical knowledge (K)</span><span class="a"><i></i>Applied to the context (A)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">(i) Compressing reduces the file size, so it is faster to send and may fit under the attachment size limit. </span> <span class="mk a" data-t="A">(ii) Run-length encoding can be used: where several consecutive samples have the same value, the value is stored once with the number of times it repeats. Alternatively the change from each sample to the next is stored instead of the full value, which needs fewer bits.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2021 · 9618/12 · Q5(b)(ii) <span class="mark">[4]</span> A photograph is compressed before it is emailed. Describe two lossy methods that can be used to compress the image.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Each method is one mark for the method and one for how it reduces the size.</li>
+        <li>Reduce the colour depth, so each pixel needs fewer bits.</li>
+        <li>Reduce the number of colours (the palette), so fewer bits are needed for each colour.</li>
+        <li>Reduce the image resolution, so fewer pixels are stored.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>Two methods with two marks each: name it, then say why the file is smaller.</p></div>
+    <div class="key"><span class="k"><i></i>Technical knowledge (K)</span><span class="a"><i></i>Applied to the context (A)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">Method 1: reduce the colour depth. Each pixel is stored with fewer bits, so the file is smaller. Method 2: reduce the image resolution. There are fewer pixels per unit of the picture, so less binary has to be stored.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on May/June 2022 · 9618/13 · Q1(a)(iii)-(iv) <span class="mark">[4]</span> (i) Describe how lossless compression can be used to reduce the file size of a text file. (ii) Explain why lossy compression should not be used on a text file.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>(i) Run-length encoding; groups of repeated characters are identified; each is replaced with one copy of the character and the number of times it occurs (two).</li>
+        <li>(ii) None of the original data can be lost; the text file would be corrupted or could not be opened (two).</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>(i) name the method and what it replaces. (ii) say what is lost, then the consequence.</p></div>
+    <div class="key"><span class="k"><i></i>Technical knowledge (K)</span><span class="a"><i></i>Applied to the context (A)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">(i) Run-length encoding finds groups of repeated characters and replaces each with one copy of the character and the number of times it occurs. </span> <span class="mk a" data-t="A">(ii) Lossy compression permanently removes data, but all the characters in a text file are needed, so the file would be corrupted and the meaning could be lost.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2022 · 9618/11 · Q7(c) <span class="mark">[3]</span> An operating system includes a utility program to compress text files. Describe one appropriate method of compressing a text file.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Lossless compression.</li>
+        <li>Run-length encoding.</li>
+        <li>Repeated sequences of characters are replaced by a single copy of the character and a counter of how many times it repeats.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>Three marks: type, method, how it works.</p></div>
+    <div class="key"><span class="k"><i></i>Technical knowledge (K)</span><span class="a"><i></i>Applied to the context (A)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">Lossless compression using run-length encoding. Each sequence of repeated characters is replaced by one copy of the character and a counter showing how many times it occurs.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2022 · 9618/12 · Q8(c) <span class="mark">[4]</span> (i) A bitmap image uses 8 bits per pixel and is compressed with RLE. Each colour is a hexadecimal value. Complete the table. AB AB AB 4C 4C 1F 1F 1F 1F is compressed to ...; the compressed code 2D5 1E0 3C2 is uncompressed to .... (ii) Explain why lossless compression is more appropriate than lossy compression for a text file.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>3AB 24C 41F (each run as a count and a value).</li>
+        <li>D5 D5 E0 C2 C2 C2.</li>
+        <li>(ii) All the data is required, none can be lost; otherwise the text file would be corrupted or not make sense.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>Read each compressed item as count then value: 3 × AB, 2 × 4C, 4 × 1F. Decompress by repeating each value.</p></div>
+    <div class="key"><span class="k"><i></i>Technical knowledge (K)</span><span class="a"><i></i>Applied to the context (A)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">(i) 3AB 24C 41F, and D5 D5 E0 C2 C2 C2. (ii) Every character in a text file is needed, so no data can be lost; lossy compression would corrupt the file and it may not make sense.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on May/June 2023 · 9618/11 · Q1(c) <span class="mark">[6]</span> Photographs are compressed before they are uploaded to a web server, and customers download them. (i) Explain the reasons why compressing the photographs will benefit the customers. (ii) An image can be compressed using run-length encoding. Explain the reasons why RLE may not reduce the file size of a bitmap image. Give one example.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>(i) The photographs download in less time; they use less of the customer's bandwidth; they take up less space on the customer's device, so more can be stored (three).</li>
+        <li>(ii) RLE stores a colour and the number of times it occurs in a row; an image may not have many sequences of the same colour; it would store each colour with a count of 1, adding data; example: red, green, blue becomes red 1, green 1, blue 1.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>(i) three separate benefits for the customer. (ii) the reason, the consequence, and the example.</p></div>
+    <div class="key"><span class="k"><i></i>Technical knowledge (K)</span><span class="a"><i></i>Applied to the context (A)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">(i) The customer can download the photographs in less time and uses less bandwidth. The files also take less space on the customer's device, so more can be stored. </span> <span class="mk a" data-t="A">(ii) RLE stores each colour with the number of times it occurs consecutively. If there are few runs of the same colour, each colour is stored with a count of 1, which adds data. For example red, green, blue becomes red 1, green 1, blue 1, which is larger.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on Oct/Nov 2023 · 9618/12 · Q6(a) <span class="mark">[3]</span> A real-time video of a music concert is streamed to subscribers. Tick lossy or lossless as the most appropriate type of compression and justify your answer.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>No mark for the tick. Three marks for matching justification.</li>
+        <li>Lossy: loss of quality will not be noticed; less bandwidth because the file is smaller; less buffering so the video plays smoothly; viewers on different devices may not need high resolution.</li>
+        <li>Lossless: original may not have been recorded in high quality; viewers want no loss of quality; the reduction is enough for the receiving device.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>Choose one and give three reasons that all support it.</p></div>
+    <div class="key"><span class="k"><i></i>Technical knowledge (K)</span><span class="a"><i></i>Applied to the context (A)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">Lossy. </span> <span class="mk a" data-t="A">The video must be viewed in real time, and a lossy file is smaller so it needs less bandwidth. A smaller file also reduces buffering, so the concert plays smoothly, and the viewers will not notice the loss of fine detail.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on May/June 2025 · 9618/11 · Q2(b) <span class="mark">[7]</span> A video conference is compressed before it is transmitted as a real-time bit stream. (i) Explain the reasons why the video is compressed. (ii) Identify whether lossy or lossless compression is more appropriate, and justify your answer.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>(i) Video is data-intensive; the file size needs reducing to reduce bandwidth use and buffering; so people are not behind in the conversation and people with lower bandwidth can still take part (four).</li>
+        <li>(ii) Lossy (no mark for the choice). Reduces the file size more than lossless; significantly less bandwidth; less buffering; data that cannot be seen can be removed, for example reducing the resolution or the sample rate (three).</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>(i) four marks: size, bandwidth, buffering, effect on the conversation. (ii) lossy, and the reason it goes further than lossless.</p></div>
+    <div class="key"><span class="k"><i></i>Technical knowledge (K)</span><span class="a"><i></i>Applied to the context (A)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">(i) A video is a large amount of data, so compression reduces the file size and the bandwidth needed. This reduces buffering, so people are not behind in the conversation, and people with slower connections can still take part. </span> <span class="mk a" data-t="A">(ii) Lossy. It reduces the file size more than lossless, so even less bandwidth is needed and buffering is reduced further. Detail that viewers will not notice, such as some of the resolution, can be removed.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on May/June 2026 · 9618/12 · Q1(d)(ii) <span class="mark">[3]</span> A bitmap image has rows such as R R W W W W (R is red and W is white). Explain how the image can be compressed using lossless compression.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Run-length encoding can be used.</li>
+        <li>A sequence of consecutive pixels of the same colour is stored as one copy of the colour and the number of consecutive occurrences.</li>
+        <li>A reference to the image: for example the row R R W W W W is stored as R2 W4.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>Name the method, say what is stored, then use the example from the picture. Do not call pixels bits or characters.</p></div>
+    <div class="key"><span class="k"><i></i>Technical knowledge (K)</span><span class="a"><i></i>Applied to the context (A)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">Run-length encoding can be used. A run of consecutive pixels of the same colour is stored as a single copy of the colour and the number of times it occurs. </span> <span class="mk a" data-t="A">For example, the first row R R W W W W is stored as R2 W4.</span></p>
+    </div>
+  </div></details>
+  <details class="eq"><summary>Based on May/June 2026 · 9618/13 · Q3(c)(i) <span class="mark">[4]</span> An animation's images and sound are compressed independently using lossless compression. Explain the different ways that lossless compression can be used for the images and for the sound file.</summary><div class="body">
+    <div class="tip"><b class="h">What the mark scheme wants</b>
+      <ul>
+        <li>Images (max two): run-length encoding; store each colour and the number of times it appears consecutively.</li>
+        <li>Sound (max two): reduce the amplitude range to the values actually used, which reduces the sampling resolution without affecting the sound; or record the changes in amplitude instead of each amplitude, since each change needs fewer bits; RLE is accepted for sound but not for both parts.</li>
+      </ul></div>
+    <div class="tip"><b class="h">Plan</b><p>Two different methods, one for each file type. Do not use RLE for both.</p></div>
+    <div class="key"><span class="k"><i></i>Technical knowledge (K)</span><span class="a"><i></i>Applied to the context (A)</span></div>
+    <div class="ans">
+    <p><span class="mk k" data-t="K">Images: run-length encoding stores each colour with the number of times it appears in a row. </span> <span class="mk a" data-t="A">Sound: instead of storing every full amplitude, the change from one amplitude to the next is stored, and each change needs fewer bits than a whole new amplitude.</span></p>
+    </div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Say what is removed.</b> Lossy permanently removes data and the original cannot be rebuilt. Lossless keeps all the data.</li>
+    <li><b>Match the benefit to the question.</b> Storage means less space. Transmission means less time and bandwidth.</li>
+    <li><b>Describe RLE fully.</b> A run of identical values becomes one copy of the value and a count.</li>
+    <li><b>Use the example you are given.</b> If the question shows a row of pixels, write its RLE code.</li>
+    <li><b>Justify one side.</b> Pick lossy or lossless and keep every reason on that side.</li>
+    <li><b>RLE can make a file bigger.</b> When there are few runs, each value is stored with a count of 1.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>how RLE works</td><td>"A sequence of identical values is replaced by one copy of the value and the number of times it repeats."</td></tr>
+    <tr><td>why lossless for text</td><td>"All the data is needed, so lossy compression would corrupt the text and it might not make sense."</td></tr>
+    <tr><td>why lossy for streaming</td><td>"The file is smaller, so less bandwidth is needed and there is less buffering, and the loss of detail will not be noticed."</td></tr>
+    <tr><td>why RLE may not work</td><td>"There may be few runs of the same value, so each value is stored with a count of 1, which adds data."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Give</td><td>Short facts or an example.</td></tr>
+    <tr><td>Identify</td><td>Name the method or type.</td></tr>
+    <tr><td>Describe</td><td>Say what is replaced or removed and by what.</td></tr>
+    <tr><td>Explain</td><td>Reasons and effects: why it helps or why it fails.</td></tr>
+    <tr><td>Justify</td><td>A reason that matches the choice you made.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+const COL = { W: "#f4f4f0", R: "#c0392b", B: "#2f5fa8", G: "#2e8b57", Y: "#e3b505" };
+const rle = (s) => { const r = []; for (const ch of s) { if (r.length && r[r.length - 1][0] === ch) r[r.length - 1][1]++; else r.push([ch, 1]); } return r; };
+
+(function () {
+  const row = "WWWWRRRBBWWWWWWW", runs = rle(row), C = 42, X0 = 44;
+  let starts = [], p = 0; runs.forEach((r) => { starts.push(p); p += r[1]; });
+  const draw = (s) => {
+    let o = "";
+    row.split("").forEach((ch, i) => { o += SV.rect(X0 + i * C, 30, C - 3, 44, "f3", { rx: 5, style: `fill:${COL[ch]};opacity:1;stroke:var(--line)` }); });
+    runs.forEach((r, j) => {
+      const v = clamp01(s.k - j); if (v <= 0) return;
+      const x1 = X0 + starts[j] * C, w = r[1] * C - 3;
+      o += SV.line(x1, 88, x1 + w, 88, "c3", { "stroke-width": 3, ...op(v) }) + SV.text(x1 + w / 2, 118, r[1] + r[0], "lbl bd t3", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:20px", ...op(v) });
+    });
+    const f = clamp01(s.f);
+    if (f > 0) o += SV.text(380, 176, runs.map((r) => r[1] + r[0]).join("  "), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:24px", ...op(f) }) + SV.text(380, 204, "16 pixels become 4 runs: 8 values", "sm", { "text-anchor": "middle", ...op(f) });
+    return o;
+  };
+  const nm = { W: "white", R: "red", B: "blue" };
+  const steps = [{ cap: "A row of 16 pixels. W is white, R is red, B is blue. RLE looks for <b>runs</b>: pixels of the same colour next to each other.", s: {} }];
+  runs.forEach((r, j) => steps.push({ cap: `Run ${j + 1}: <b>${r[1]}</b> ${nm[r[0]]} pixel${r[1] > 1 ? "s" : ""} in a row, so store the count and the colour: <b>${r[1]}${r[0]}</b>.`, s: { k: j + 1 } }));
+  steps.push({ cap: "The compressed row is <b>4W 3R 2B 7W</b>. Nothing was lost: decoding repeats each colour its count, so the original row is rebuilt exactly. That is <b>lossless</b>.", s: { k: 4, f: 1 } });
+  Lib.stepper($("#stA"), { w: 760, h: 224, label: "Run-length encoding a row of pixels", base: { k: 0, f: 0 }, draw, tween: 600, dwell: 3800, steps });
+})();
+
+(function () {
+  const A = "WWWWWWBBBBBB", Bq = "RGBRGBRGBRGB", ra = rle(A), rb = rle(Bq), C = 28;
+  const strip = (s, y, v) => s.split("").map((ch, i) => SV.rect(40 + i * C, y, C - 2, 30, "f3", { rx: 4, style: `fill:${COL[ch] || COL.G};opacity:${v};stroke:var(--line)` })).join("");
+  const draw = (s) => {
+    const a = clamp01(s.a), b = clamp01(s.b);
+    let o = SV.text(40, 24, "Picture 1: two big blocks", "lbl bd t1", op(a || 1)) + strip(A, 34, 1);
+    if (a > 0) o += SV.text(40, 96, "RLE: " + ra.map((r) => r[1] + r[0]).join(" "), "lbl bd", { style: "font-family:var(--mono)", ...op(a) }) + SV.rect(420, 40, (12 / 24) * 300 * a, 20, "f3", { rx: 4, ...op(0.6) }) + SV.text(420, 78, "12 values before", "sm", op(a)) + SV.rect(420, 90, (4 / 24) * 300 * a, 20, "f2", { rx: 4, ...op(0.7) }) + SV.text(420, 126, "4 values after: smaller", "sm", op(a));
+    if (b > 0) {
+      o += SV.text(40, 150, "Picture 2: every pixel different from its neighbour", "lbl bd t3", op(b)) + strip(Bq, 160, b).replace(/fill:#2e8b57/g, "fill:#2e8b57");
+      o += SV.text(40, 222, "RLE: " + rb.slice(0, 6).map((r) => r[1] + r[0]).join(" ") + " ...", "lbl bd", { style: "font-family:var(--mono)", ...op(b) }) + SV.rect(420, 160, (12 / 24) * 300 * b, 20, "f3", { rx: 4, ...op(0.6) }) + SV.text(420, 198, "12 values before", "sm", op(b)) + SV.rect(420, 206, (24 / 24) * 300 * b, 20, "f1", { rx: 4, ...op(0.7) }) + SV.text(420, 244, "24 values after: bigger", "sm", op(b));
+    }
+    return o;
+  };
+  Lib.stepper($("#stB"), { w: 760, h: 256, label: "RLE on long runs and on no runs", base: { a: 0, b: 0 }, draw, tween: 700, dwell: 4400, steps: [
+    { cap: "Two pictures of 12 pixels. The first has two long runs.", s: {} },
+    { cap: "RLE stores <b>6W 6B</b>: 4 values instead of 12. A big saving.", s: { a: 1 } },
+    { cap: "The second picture changes colour at every pixel, so every run has length 1.", s: { a: 1, b: 1 } },
+    { cap: "RLE has to store a count of 1 beside every colour: <b>24</b> values instead of 12. The file is <b>bigger</b>. This is why RLE may not reduce the size of a photograph.", s: { a: 1, b: 1 } }] });
+})();
+
+(function () {
+  const orig = [52, 53, 55, 54, 52, 53, 55, 54], lossy = orig.map((v) => Math.round(v / 4) * 4);
+  const box = (x, y, w, t, c, v, fs = 18) => SV.rect(x, y, w, 40, c, { rx: 8, ...op(0.5 * v) }) + SV.text(x + w / 2, y + 26, t, "lbl bd", { "text-anchor": "middle", style: `font-family:var(--mono);font-size:${fs}px`, ...op(v) });
+  const draw = (s) => {
+    const a = clamp01(s.a), b = clamp01(s.b), c = clamp01(s.c), d = clamp01(s.d);
+    let o = SV.text(30, 28, "Original sample values", "lbl bd") + box(30, 36, 330, orig.join("  "), "f1", 1);
+    if (a > 0) o += SV.text(30, 112, "Lossless: store each run (here the pattern repeats)", "sm", op(a)) + box(30, 120, 330, "2 × (52 53 55 54)", "f2", a, 16);
+    if (b > 0) o += SV.text(400, 28, "Decompress", "lbl bd t2", op(b)) + box(400, 36, 330, orig.join("  "), "f2", b) + SV.text(400, 94, "Identical to the original: nothing lost", "sm", op(b));
+    if (c > 0) o += SV.text(30, 192, "Lossy: round to the nearest 4, a smaller range to store", "sm", op(c)) + box(30, 200, 330, lossy.join("  "), "f3", c);
+    if (d > 0) o += SV.text(400, 192, "Decompress", "lbl bd t3", op(d)) + box(400, 200, 330, lossy.join("  "), "f3", d) + SV.text(400, 258, "Different from the original: the detail is gone for good", "sm", op(d));
+    return o;
+  };
+  Lib.stepper($("#stC"), { w: 760, h: 276, label: "Lossless and lossy compression compared", base: { a: 0, b: 0, c: 0, d: 0 }, draw, tween: 600, dwell: 4200, steps: [
+    { cap: "Eight sound samples, as an example of data to compress.", s: {} },
+    { cap: "<b>Lossless</b>: the repeated pattern is stored once with a count. No value is removed.", s: { a: 1 } },
+    { cap: "Decompressing gives back <b>exactly</b> the original values. This is why lossless is used for text and programs.", s: { a: 1, b: 1 } },
+    { cap: "<b>Lossy</b>: the values are rounded to the nearest multiple of 4. There are fewer different values, so the file can be much smaller.", s: { a: 1, b: 1, c: 1 } },
+    { cap: "Decompressing gives only an approximation: 53 and 55 became 52 and 56 and cannot be recovered. The data was <b>permanently removed</b>.", s: { a: 1, b: 1, c: 1, d: 1 } }] });
+})();
+
+/* Lab 1 */
+(function () {
+  const inp = $("#rx");
+  const paint = () => {
+    const s = inp.value.toUpperCase().slice(0, 30), r = rle(s), enc = r.map((x) => x[1] + x[0]).join(""), items = r.length * 2;
+    $("#rxT").innerHTML = `<div class="tw"><table class="t mono"><tr><th>Run</th>${r.map((x, i) => `<td>${i + 1}</td>`).join("")}</tr><tr><th>Value</th>${r.map((x) => `<td>${esc(x[0])}</td>`).join("")}</tr><tr><th>Count</th>${r.map((x) => `<td>${x[1]}</td>`).join("")}</tr></table></div>`;
+    $("#r1").textContent = s.length + " characters"; $("#r2").textContent = enc || "-"; $("#r3").textContent = items + " (" + r.length + " runs × 2)";
+    $("#rv").textContent = !s.length ? "Type something." : items < s.length ? `${items} stored items instead of ${s.length}: RLE has saved space (lossless, so decoding gives back exactly ${s}).` : items === s.length ? "No change: the runs are short." : `${items} stored items for ${s.length} characters: the encoded version is bigger. RLE needs long runs.`;
+  };
+  inp.addEventListener("input", paint); paint();
+})();
+
+/* Lab 2 */
+(function () {
+  const W = 16, H = 8, mk = (f) => Array.from({ length: H }, (_, r) => Array.from({ length: W }, (_, c) => f(r, c)).join(""));
+  const seed = (r, c) => { const x = Math.sin(r * 12.9898 + c * 78.233) * 43758.5453; return x - Math.floor(x); };
+  const pics = [
+    ["Flat logo", mk((r, c) => (r >= 2 && r <= 5 && c >= 4 && c <= 11 ? (r >= 3 && r <= 4 && c >= 6 && c <= 9 ? "Y" : "R") : "W"))],
+    ["Stripes", mk((r, c) => "WRBG"[Math.floor(c / 4)])],
+    ["Gradient", mk((r, c) => "WRBGY"[Math.floor((c + r) / 4) % 5])],
+    ["Photo-like noise", mk((r, c) => "WRBGY"[Math.floor(seed(r, c) * 5)])]
+  ];
+  const show = (i) => {
+    $$("#gB button").forEach((b, k) => b.classList.toggle("pri", k === i));
+    const rows = pics[i][1], runs = rows.reduce((a, row) => a + rle(row).length, 0), items = runs * 2, px = W * H, ch = ((items - px) / px) * 100;
+    let o = ""; rows.forEach((row, r) => row.split("").forEach((c, k) => { o += SV.rect(k * 22, r * 22, 21, 21, "f3", { style: `fill:${COL[c]};opacity:1;stroke:var(--line)` }); }));
+    $("#gS").innerHTML = o;
+    $("#g1").textContent = px; $("#g2").textContent = runs; $("#g3").textContent = items; $("#g4").textContent = (ch > 0 ? "+" : "") + Lib.fmtN(ch, 0) + "%";
+    $("#gv").textContent = ch < -30 ? "Long runs: RLE saves a lot." : ch < 0 ? "Some saving, but the runs are short." : "Almost no runs: RLE makes the file bigger, as it stores a count for nearly every pixel.";
+  };
+  $("#gB").innerHTML = pics.map((p, i) => `<button class="b" data-i="${i}">${p[0]}</button>`).join("");
+  $$("#gB button").forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+})();
+
+/* Lab 3 */
+(function () {
+  let mb = 40, pct = 30, mbps = 8;
+  const speeds = [2, 8, 50];
+  const fmtT = (s) => (s < 90 ? Lib.fmtN(s, 1) + " s" : Lib.fmtN(s / 60, 1) + " min");
+  const paint = () => {
+    $$("#dB button").forEach((b, i) => b.classList.toggle("pri", speeds[i] === mbps));
+    const c = (mb * pct) / 100, t0 = (mb * 8) / mbps, t1 = (c * 8) / mbps;
+    $("#d1").textContent = Lib.fmtN(c, 1) + " MB"; $("#d2").textContent = fmtT(t0); $("#d3").textContent = fmtT(t1); $("#d4").textContent = Lib.fmtN(mb - c, 1) + " MB";
+    $("#dv").textContent = `${mb} MB at ${mbps} Mbit/s takes ${fmtT(t0)}. Compressed to ${pct}% (${Lib.fmtN(c, 1)} MB) it takes ${fmtT(t1)}, so it is transmitted in less time and uses less bandwidth and storage.`;
+  };
+  Lib.slider($("#dz"), { id: "dzs", label: "Original file size (MB) ", min: 1, max: 200, value: mb, fmt: (x) => x, onInput: (v) => { mb = v; paint(); } });
+  Lib.slider($("#dc"), { id: "dcs", label: "Compressed size (% of original) ", min: 5, max: 100, value: pct, fmt: (x) => x + "%", onInput: (v) => { pct = v; paint(); } });
+  $("#dB").innerHTML = speeds.map((x) => `<button class="b">${x} Mbit/s</button>`).join("");
+  $$("#dB button").forEach((b, i) => (b.onclick = () => { mbps = speeds[i]; paint(); }));
+})();
+
+btnTable("lB", "lO", [
+  ["Company report to be edited later", "Lossless", "Every character is needed and the file will be edited, so no data can be lost.", "Choosing lossy because the file is smaller"],
+  ["Holiday photographs downloaded from a website", "Lossy", "Much smaller files, so a shorter download and less bandwidth; the loss of detail will not be noticed on a screen.", "Giving a benefit for storage when the question is about customers downloading"],
+  ["A live video call", "Lossy", "Smaller file, so less bandwidth and less buffering; people stay in step in the conversation.", "Saying lossless because it keeps the quality"],
+  ["A source code file", "Lossless", "One lost character stops the program working, so the exact file must be rebuilt.", "Not saying what the lost data would cause"],
+  ["Music downloaded to a phone with little storage", "Lossy", "A much smaller file lets more songs be stored; most listeners will not notice the removed detail.", "Not linking to the storage limit"],
+  ["A scan of a legal document", "Lossless", "Every detail must be exact and readable; nothing can be permanently removed.", "Saying lossless 'keeps quality' without saying why it matters here"]
+], ["Situation", "Better choice", "Reasons that earn marks", "Trap"]);
+Lib.classify($("#cl1"), { prompt: "Is each method lossless or lossy?", buckets: [{"label": "Lossless"}, {"label": "Lossy"}], items: [{"text": "Run-length encoding", "b": 0}, {"text": "Reduce the colour depth of an image", "b": 1}, {"text": "Reduce the sampling rate of a sound", "b": 1}, {"text": "Store the change between samples instead of each sample", "b": 0}, {"text": "Reduce the image resolution", "b": 1}, {"text": "Remove sounds humans cannot hear", "b": 1}, {"text": "Replace repeated characters with a character and a count", "b": 0}, {"text": "Reduce the number of colours in the palette", "b": 1}], done: "Lossless methods keep every value. Lossy methods reduce the detail that is stored." });
+Lib.classify($("#cl2"), { prompt: "Which type of compression suits each file?", buckets: [{"label": "Lossless"}, {"label": "Lossy"}], items: [{"text": "A text report", "b": 0}, {"text": "A streamed live concert", "b": 1}, {"text": "A program file", "b": 0}, {"text": "A photograph on a news website", "b": 1}, {"text": "A spreadsheet of accounts", "b": 0}, {"text": "Music on a phone with little storage", "b": 1}], done: "Lossless where every bit matters; lossy where the loss will not be noticed." });
+Lib.order($("#o1"), { prompt: "Put the steps for run-length encoding AAAABBC in order.", items: ["Start at the first character", "Count how many identical characters follow in a row", "Write the count then one copy of the character", "Move to the next different character and repeat", "Finish with the code 4A2B1C"], done: "Count each run, write count and character, repeat." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Lossy", "Data is permanently removed to make the file smaller"], ["Lossless", "No data is lost; the original can be rebuilt exactly"], ["Run-length encoding", "A run of identical values becomes one copy and a count"], ["Run", "Identical values next to each other"], ["Compression", "Reducing the size of a file"]], done: "Learn these terms." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "Run-length encode AAAAABBBCCCC. Type the code with no spaces.", "t": ["5A3B4C"], "unit": "", "hint": "Count each run.", "sol": "<b>5A3B4C</b>."},
+  {"q": "Decode 3X2Y4Z. How many characters are in the original?", "a": 9, "unit": "", "tol": 0.01, "hint": "3 + 2 + 4.", "sol": "<b>9</b>: XXXYYZZZZ."},
+  {"q": "A row of 40 white pixels is stored as 40W. How many values were stored instead of the 40?", "a": 2, "unit": "", "tol": 0.01, "hint": "One count and one colour.", "sol": "<b>2</b>."},
+  {"q": "A file is 24 MB and is compressed to 6 MB. What fraction of the original is it (as a decimal)?", "a": 0.25, "unit": "", "tol": 0.01, "hint": "6 ÷ 24.", "sol": "<b>0.25</b>."},
+  {"q": "A 50 MB file is compressed by 80%. What is the compressed size in MB?", "a": 10, "unit": "MB", "tol": 0.01, "hint": "20% remains: 50 × 0.2.", "sol": "<b>10</b> MB."},
+  {"q": "A 40 MB file is downloaded at 8 Mbit/s. How many seconds does it take?", "a": 40, "unit": "s", "tol": 0.01, "hint": "40 × 8 = 320 megabits ÷ 8.", "sol": "<b>40</b> seconds."},
+  {"q": "The same file is compressed to 10 MB. How many seconds does it take at 8 Mbit/s?", "a": 10, "unit": "s", "tol": 0.01, "hint": "10 × 8 ÷ 8.", "sol": "<b>10</b> seconds."},
+  {"q": "RGB (three different pixels) is run-length encoded as a count and a colour for each. How many values are stored?", "a": 6, "unit": "", "tol": 0.01, "hint": "Three runs × 2.", "sol": "<b>6</b>, which is more than the 3 original values."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "What is lossless compression?", opts: ["Data is permanently removed", "No data is lost and the original can be rebuilt exactly", "The file always stays the same size", "Only sound can be compressed this way"], a: 1, why: "Lossless means the original can be rebuilt exactly." },
+  { q: "Why is lossy compression not suitable for a text file?", opts: ["It makes the file bigger", "Removed data cannot be recovered, so the text would be corrupted", "It only works on images", "It is slower than lossless"], a: 1, why: "Every character is needed, and lossy removes data permanently." },
+  { q: "What does run-length encoding store?", opts: ["The number of colours in the file", "One copy of a repeated value and the number of times it repeats", "The difference between two files", "The first pixel only"], a: 1, why: "RLE replaces a run with a value and a count." },
+  { q: "Why might RLE not reduce the size of a photograph?", opts: ["Photographs have few runs of identical pixels, so counts add data", "Photographs are vector graphics", "RLE is lossy", "RLE needs a longer header"], a: 0, why: "With short runs, each pixel is stored with a count." },
+  { q: "Which is a benefit of compressing a file for transmission?", opts: ["It uses more bandwidth", "It is transmitted in less time", "It becomes a vector graphic", "It needs a higher sampling rate"], a: 1, why: "A smaller file is transmitted in less time." },
+  { q: "Which method is lossy?", opts: ["Run-length encoding", "Reducing the colour depth of an image", "Storing the change between sound samples", "Replacing repeated characters with a count"], a: 1, why: "Reducing the colour depth discards colour detail." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Compression", "Reducing the size of a file."],
+  ["Lossless", "No data lost. Original rebuilt exactly. Text, code."],
+  ["Lossy", "Data permanently removed. Much smaller. Photos, video, music."],
+  ["Run-length encoding", "Replace a run with one copy and a count."],
+  ["RLE weakness", "Few runs: counts add data, file can grow."],
+  ["Lossy image methods", "Reduce colour depth, colours or resolution."],
+  ["Lossy sound methods", "Reduce sampling rate or resolution."],
+  ["Benefit of compression", "Less storage, less transmission time, less bandwidth."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

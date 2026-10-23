@@ -60,31 +60,41 @@ IG_ECON_SECTIONS = [
     ]},
 ]
 
-A_CS_AS = [
-    _ch(1, "Information representation and multimedia"),
-    _ch(2, "Communication"),
-    _ch(3, "Hardware"),
-    _ch(4, "Processor fundamentals"),
-    _ch(5, "System software"),
-    _ch(6, "Security, privacy and data integrity"),
-    _ch(7, "Ethics and ownership"),
-    _ch(8, "Databases"),
-    _ch(9, "Algorithm design and problem solving"),
-    _ch(10, "Data types and structures"),
-    _ch(11, "Programming"),
-    _ch(12, "Software development"),
-]
+def _sc(sec, sub, title, cbook, group):
+    """A-Level Computer Science sub-unit numbered as in the 9618 syllabus (19.1 Algorithms); cbook is the coursebook chapter it sits in."""
+    return {"id": f"s{sec}-{sub}", "n": sec + sub / 100, "label": f"{sec}.{sub}", "title": title, "group": group, "syl": True, "cb": f"Coursebook chapter {sec}: {cbook}"}
 
-A_CS_A2 = [
-    _ch(13, "Data representation"),
-    _ch(14, "Communication and internet technologies"),
-    _ch(15, "Hardware"),
-    _ch(16, "System software and virtual machines"),
-    _ch(17, "Security"),
-    _ch(18, "Artificial intelligence (AI)"),
-    _ch(19, "Computational thinking and problem solving"),
-    _ch(20, "Further programming"),
-]
+
+def _acs(sec, title, cbook, *subs):
+    group = f"{sec} · {title}"
+    return [_sc(sec, i + 1, t, cbook, group) for i, t in enumerate(subs)]
+
+
+A_CS_AS = (
+    _acs(1, "Information representation", "Information representation and multimedia", "Data representation", "Multimedia: graphics and sound", "Compression")
+    + _acs(2, "Communication", "Communication", "Networks including the internet")
+    + _acs(3, "Hardware", "Hardware", "Computers and their components", "Logic gates and logic circuits")
+    + _acs(4, "Processor fundamentals", "Processor fundamentals", "Central processing unit (CPU) architecture", "Assembly language", "Bit manipulation")
+    + _acs(5, "System software", "System software", "Operating systems", "Language translators")
+    + _acs(6, "Security, privacy and data integrity", "Security, privacy and data integrity", "Data security", "Data integrity")
+    + _acs(7, "Ethics and ownership", "Ethics and ownership", "Ethics and ownership")
+    + _acs(8, "Databases", "Databases", "Database concepts", "Database management systems (DBMS)", "Data definition language (DDL) and data manipulation language (DML)")
+    + _acs(9, "Algorithm design and problem-solving", "Algorithm design and problem solving", "Computational thinking skills", "Algorithms")
+    + _acs(10, "Data types and structures", "Data types and structures", "Data types and records", "Arrays", "Files", "Introduction to abstract data types (ADT)")
+    + _acs(11, "Programming", "Programming", "Programming basics", "Constructs", "Structured programming")
+    + _acs(12, "Software development", "Software development", "Program development life cycle", "Program design", "Program testing and maintenance")
+)
+
+A_CS_A2 = (
+    _acs(13, "Data representation", "Data representation", "User-defined data types", "File organisation and access", "Floating-point numbers, representation and manipulation")
+    + _acs(14, "Communication and internet technologies", "Communication and internet technologies", "Protocols", "Circuit switching and packet switching")
+    + _acs(15, "Hardware and virtual machines", "Hardware", "Processors, parallel processing and virtual machines", "Boolean algebra and logic circuits")
+    + _acs(16, "System software", "System software and virtual machines", "Purposes of an operating system (OS)", "Translation software")
+    + _acs(17, "Security", "Security", "Encryption, encryption protocols and digital certificates")
+    + _acs(18, "Artificial intelligence (AI)", "Artificial intelligence (AI)", "Artificial intelligence")
+    + _acs(19, "Computational thinking and problem-solving", "Computational thinking and problem solving", "Algorithms", "Recursion")
+    + _acs(20, "Further programming", "Further programming", "Programming paradigms", "File processing and exception handling")
+)
 
 _AE1 = "1 · Basic economic ideas and resource allocation"
 _AE2 = "2 · The price system and the microeconomy"
@@ -176,10 +186,10 @@ COURSES = {
     },
     "a-cs": {
         "nav": "A CS", "title": "A-Level Computer Science", "kind": "levels", "accent": "indigo",
-        "blurb": "Cambridge A-Level Computer Science (9618), split into AS and A Level content.",
+        "blurb": "Cambridge A-Level Computer Science (9618), numbered as in the syllabus: AS sections 1 to 12 and A Level sections 13 to 20, with the coursebook chapter shown under each.",
         "levels": [
-            {"id": "as", "title": "AS Level", "blurb": "Chapters 1 to 12", "chapters": A_CS_AS},
-            {"id": "a-level", "title": "A Level", "blurb": "Chapters 13 to 20", "chapters": A_CS_A2},
+            {"id": "as", "title": "AS Level", "blurb": "Sections 1 to 12", "chapters": A_CS_AS},
+            {"id": "a-level", "title": "A Level", "blurb": "Sections 13 to 20", "chapters": A_CS_A2},
         ],
     },
     "a-econ": {
@@ -596,39 +606,57 @@ ARTIFACTS = [
      "places": [("ig-econ", "ao3")]},
 
     # A-Level Computer Science
+    {"src": "ac-1-1-1-number-bases-bcd-hex", "role": "review", "at": "1.1.1", "title": "Binary Prefixes, Number Bases, BCD and Hexadecimal", "kind": "Interactive",
+     "desc": "1.1.1 Kibi and kilo prefixes, binary, denary and hexadecimal conversions, BCD and where BCD and hex are used, with animations, labs and 11 exam questions.",
+     "places": [("a-cs", "as/s1-1")]},
+    {"src": "ac-1-1-2-negative-numbers-binary-arithmetic", "role": "review", "at": "1.1.2", "title": "Negative Integers, Binary Addition and Subtraction, and Overflow", "kind": "Interactive",
+     "desc": "1.1.2 One's and two's complement, binary addition and subtraction with the working shown, overflow, labs and 11 exam questions.",
+     "places": [("a-cs", "as/s1-1")]},
+    {"src": "ac-1-1-3-character-sets", "role": "review", "at": "1.1.3", "title": "Character Sets: ASCII, Extended ASCII and Unicode", "kind": "Interactive",
+     "desc": "1.1.3 How characters are stored as codes, ASCII against extended ASCII against Unicode, text file sizes, labs and 7 exam questions.",
+     "places": [("a-cs", "as/s1-1")]},
+    {"src": "ac-1-2-1-bitmap-and-vector-graphics", "role": "review", "at": "1.2.1", "title": "Graphics: Bitmap Images and Vector Graphics", "kind": "Interactive",
+     "desc": "1.2.1 Pixels, resolution and colour depth, bitmap file size calculations, vector drawing lists, choosing bitmap or vector, labs and 13 exam questions.",
+     "places": [("a-cs", "as/s1-2")]},
+    {"src": "ac-1-2-2-sound-sampling", "role": "review", "at": "1.2.2", "title": "Sound: Sampling Rate and Sampling Resolution", "kind": "Interactive",
+     "desc": "1.2.2 Analogue and digital sound, sampling rate and resolution, effects on accuracy and file size, sound file calculations, labs and 9 exam questions.",
+     "places": [("a-cs", "as/s1-2")]},
+    {"src": "ac-1-3-compression", "role": "review", "at": "1.3", "title": "Compression: Lossy, Lossless and Run-Length Encoding", "kind": "Interactive",
+     "desc": "1.3 Why files are compressed, lossy against lossless, run-length encoding, compressing text, bitmaps, vector graphics and sound, labs and 11 exam questions.",
+     "places": [("a-cs", "as/s1-3")]},
     {"src": "searching-algorithms", "role": "review", "at": "19.1.1", "title": "Searching: Linear and Binary Search", "kind": "Interactive",
      "desc": "19.1.1 Animated traces with pseudocode and Python, comparison labs, a binary search game and exam questions.",
-     "places": [("a-cs", "a-level/ch-19")]},
+     "places": [("a-cs", "a-level/s19-1")]},
     {"src": "sorting-algorithms", "role": "review", "at": "19.1.2", "title": "Sorting: Bubble Sort and Insertion Sort", "kind": "Interactive",
      "desc": "19.1.2 Step-through sorts, a race on different lists, a bubble sort game and exam questions.",
-     "places": [("a-cs", "a-level/ch-19")]},
+     "places": [("a-cs", "a-level/s19-1")]},
     {"src": "abstract-data-types", "role": "review", "at": "19.1.3", "title": "Abstract Data Types: Stacks, Queues, Lists, Trees and Graphs", "kind": "Interactive",
      "desc": "19.1.3 Stacks, circular queues, array-based linked lists, binary trees and graphs: animated code, sandboxes and exam questions.",
-     "places": [("a-cs", "a-level/ch-19")]},
+     "places": [("a-cs", "a-level/s19-1")]},
     {"src": "linked-lists", "role": "review", "title": "Linked Lists", "kind": "Walkthrough",
      "desc": "Abstract data types: how a linked list stores, inserts and deletes nodes using pointers.",
-     "places": [("a-cs", "a-level/ch-19")]},
+     "places": [("a-cs", "a-level/s19-1")]},
     {"src": "graphs", "role": "review", "at": "19.1.3", "title": "Graphs: Representation and Shortest Paths", "kind": "Interactive",
      "desc": "19.1.3 and 19.2 Graph terms, adjacency matrices and lists, Dijkstra and A*, how graphs appear in exams, labs and 10 exam questions.",
-     "places": [("a-cs", "a-level/ch-19")]},
+     "places": [("a-cs", "a-level/s19-1")]},
     {"src": "implementing-adts", "role": "review", "at": "19.1.4", "title": "Implementing One ADT from Another", "kind": "Interactive",
      "desc": "19.1.4 Linked lists from arrays, dictionaries from linked lists, simulators and exam questions.",
-     "places": [("a-cs", "a-level/ch-19")]},
+     "places": [("a-cs", "a-level/s19-1")]},
     {"src": "insertion-sort", "title": "Insertion Sort, Step by Step", "kind": "Walkthrough",
      "desc": "Trace an insertion sort pass by pass and compare it with bubble sort.",
-     "places": [("a-cs", "a-level/ch-19")]},
+     "places": [("a-cs", "a-level/s19-1")]},
     {"src": "binary-search-tree", "title": "Binary Search Tree Walkthrough", "kind": "Walkthrough",
      "desc": "Insert, search and traverse a binary tree one step at a time.",
-     "places": [("a-cs", "a-level/ch-19")]},
+     "places": [("a-cs", "a-level/s19-1")]},
     {"src": "recursion", "role": "review", "at": "19.2", "title": "Recursion: Base Cases, the Call Stack and Unwinding", "kind": "Interactive",
      "desc": "19.2 Seven step-by-step call stack and call tree animations with pseudocode and Python, labs, practice and 20 exam-style questions.",
-     "places": [("a-cs", "a-level/ch-19")]},
+     "places": [("a-cs", "a-level/s19-2")]},
     {"src": "recursion-compound-interest", "at": "19.2", "title": "Recursion in Action: Compound Interest and Its Trace Table", "kind": "Interactive",
      "desc": "19.2 A compound interest function traced step by step: call stack and trace table animations, a check of Table 19.29, labs, practice and every past-paper recursion question 2021 to 2026.",
-     "places": [("a-cs", "a-level/ch-19")]},
+     "places": [("a-cs", "a-level/s19-2")]},
     {"src": "big-o-notation", "role": "review", "at": "19.1.5", "title": "Comparing Algorithms: Big O Notation", "kind": "Interactive",
      "desc": "19.1.5 Order of growth, comparing algorithms and a practice set.",
-     "places": [("a-cs", "a-level/ch-19")]},
+     "places": [("a-cs", "a-level/s19-1")]},
 
     # A-Level Economics
     {"src": "as-resit-exam-technique", "title": "AS Resit Exam Technique Pack", "kind": "Exam pack",
@@ -1214,3 +1242,8 @@ A_ECON_MOVED = {
     "a-level/ch-53": "a-level/s11-6",
     "a-level/ch-54": "a-level/exam-prep",
 }
+
+
+# Old coursebook-numbered chapter paths for A-Level Computer Science -> syllabus-numbered paths (redirects).
+A_CS_MOVED = {"as/ch-%02d" % n: "as/s%d-1" % n for n in range(1, 13)}
+A_CS_MOVED.update({"a-level/ch-%d" % n: "a-level/s%d-1" % n for n in range(13, 21)})

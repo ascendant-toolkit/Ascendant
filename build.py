@@ -14,7 +14,7 @@ import re
 import shutil
 from pathlib import Path
 
-from site_data import A_ECON_MOVED, ARTIFACTS, COURSES, INVESTING, LANDING_PAGE, SITE_TAGLINE, SITE_TITLE
+from site_data import A_CS_MOVED, A_ECON_MOVED, ARTIFACTS, COURSES, INVESTING, LANDING_PAGE, SITE_TAGLINE, SITE_TITLE
 
 ROOT = Path(__file__).parent
 OUT = ROOT / "docs"
@@ -249,11 +249,11 @@ def chapter_page(ckey, key):
             f'<button role="tab" data-t="res" class="{"on" if first == "res" else ""}">Resources (<span>{len(ress)}</span>)</button><button role="tab" data-t="del" hidden>Deleted (<span>0</span>)</button></div>'
             f'<div class="tabpanel" data-p="rev"{" hidden" if first != "rev" else ""}>{panel(revs, True)}</div>'
             f'<div class="tabpanel" data-p="res"{" hidden" if first != "res" else ""}>'
-            f'<p class="hint">Extra activities that deepen understanding or give more support. Shown in coursebook order.</p>{panel(ress, False)}</div>'
+            f'<p class="hint">Extra activities that deepen understanding or give more support. Shown in {"syllabus" if ch.get("syl") else "coursebook"} order.</p>{panel(ress, False)}</div>'
             '<div class="tabpanel" data-p="del" hidden><p class="hint">Deleted: hidden from students and progress. Only you can see this tab.</p><div class="grid arts"></div></div>')
     crumbs = [("Home", ""), (c["title"], f"{ckey}/")] + [(l, h) for l, h in info["parents"]] + [(f"{label}", None)]
     write(info["path"] + "index.html",
-          layout(f"{ch['title']}", head(ch["title"], "", f"{c['title']} · {label}") + body,
+          layout(f"{ch['title']}", head(ch["title"], ch.get("cb", ""), f"{c['title']} · {label}") + body,
                  info["path"], ckey, crumbs, c["accent"], auth=True, extra=f'<script src="{rel_root(info["path"])}assets/chapter.js"></script>'))
     return info
 
@@ -293,8 +293,8 @@ def build_courses():
                              f"{ckey}/{lv['id']}/", ckey, sub_crumbs, c["accent"]))
                 for ch in lv["chapters"]:
                     chapter_page(ckey, f"{lv['id']}/{ch['id']}")
-            if ckey == "a-econ":
-                for old_path, new_path in A_ECON_MOVED.items():
+            if ckey in ("a-econ", "a-cs"):
+                for old_path, new_path in (A_ECON_MOVED if ckey == "a-econ" else A_CS_MOVED).items():
                     target = "../" + new_path.split("/", 1)[1] + "/"
                     write(f"{ckey}/{old_path}/index.html",
                           '<!doctype html><meta charset="utf-8"><title>Moved</title>'
@@ -307,7 +307,7 @@ def build_courses():
 def chapter_grid_levels(ckey, lv, grouped):
     def one(ch):
         k = [(ckey, f"{lv['id']}/{ch['id']}")]
-        return card(f"{ch['id']}/", ch["label"], ch["title"], res=(count(k, True), count(k, False)))
+        return card(f"{ch['id']}/", ch["label"], ch["title"], sub=ch.get("cb", ""), res=(count(k, True), count(k, False)))
     if not grouped:
         return f'<div class="grid">{"".join(one(ch) for ch in lv["chapters"])}</div>'
     out, current, cards = [], object(), []
