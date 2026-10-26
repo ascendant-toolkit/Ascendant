@@ -1,0 +1,223 @@
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 10.4</div>
+  <h1>Abstract Data Types</h1>
+  <p class="cbook">Coursebook: Chapter 10 · Data types and structures · section 10.4 Abstract data types</p>
+  <p class="lead">Stacks, queues and linked lists: push and pop, circular queues, pointers, free lists and array implementation, with animations, labs and the real Paper 2 questions from 2021 to 2026.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>An <b>abstract data type (ADT)</b> is a collection of data together with the operations allowed on it, described without saying how it is stored. A <b>stack</b> is last in, first out (LIFO): PUSH adds to the top and POP removes from the top, using a <b>top of stack pointer</b>. A <b>queue</b> is first in, first out (FIFO): items are added at the <b>end</b> (rear) and removed from the <b>front</b>, each with its own pointer; a <b>circular</b> queue wraps round so empty locations are reused. A <b>linked list</b> stores each item in a <b>node</b> with a <b>pointer</b> to the next node, a <b>start pointer</b> to the first node, a <b>null pointer</b> at the end and a <b>free list</b> of unused nodes. All three are built from <b>arrays</b> (or records) and variables for the pointers.</p></div>
+
+  <h2>1 · Stack (LIFO)</h2>
+  <ul>
+    <li>PUSH: check the stack is not full, store the value where the pointer says, move the pointer; POP: check the stack is not empty, take the value, move the pointer back.</li>
+    <li>The value on the stack for the longest time is at the <b>bottom</b>; the next value out is at the <b>top</b>.</li>
+    <li>A stack can grow upwards (index 1, 2, 3 ...) or down through memory (207, 206 ...). Read the question to see which way, and whether the pointer is at the last value added or the next free place.</li>
+    <li>Uses: Back button history, undo, returning from procedure calls, evaluating expressions.</li>
+  </ul>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">// stack in ThisStack[1:60], SP = next free index, OnStack = items held</span><span class="ln">FUNCTION Push(ThisValue : REAL) RETURNS BOOLEAN</span><span class="ln">   IF OnStack = 60 THEN</span><span class="ln">      RETURN FALSE            // stack is full</span><span class="ln">   ENDIF</span><span class="ln">   ThisStack[SP] ← ThisValue</span><span class="ln">   SP ← SP + 1</span><span class="ln">   OnStack ← OnStack + 1</span><span class="ln">   RETURN TRUE</span><span class="ln">ENDFUNCTION</span></pre></div>
+
+  <p>Initially SP is 1 and OnStack is 0. The array elements need no initial values: an element cannot be popped until a value has been pushed (which overwrites it).</p>
+
+  <h2>2 · Queue (FIFO)</h2>
+  <ul>
+    <li>Front pointer: the next item to be removed. End pointer: the last item added.</li>
+    <li><b>Add:</b> check the queue is not full; move the end pointer on by 1 (back to 0 after the last location); store the item at the end pointer.</li>
+    <li><b>Remove:</b> check the queue is not empty; copy the item at the front pointer; move the front pointer on by 1 (wrapping round).</li>
+    <li>If the front and end pointers are equal there is <b>one</b> item in the queue.</li>
+    <li>Number of items in a circular queue: end − front + 1, and if that is not above zero add the number of locations.</li>
+  </ul>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">// adding to a circular queue held in an array of 8 (0 to 7)</span><span class="ln">IF Items = 8 THEN</span><span class="ln">   OUTPUT &quot;Queue full&quot;</span><span class="ln">ELSE</span><span class="ln">   EndPtr ← EndPtr + 1</span><span class="ln">   IF EndPtr &gt; 7 THEN</span><span class="ln">      EndPtr ← 0            // wrap round</span><span class="ln">   ENDIF</span><span class="ln">   Queue[EndPtr] ← NewItem</span><span class="ln">   Items ← Items + 1</span><span class="ln">ENDIF</span></pre></div>
+
+
+  <h2>3 · Linked list</h2>
+  <ul>
+    <li>A <b>node</b> holds a data item and a <b>pointer</b> to the next node. The <b>start pointer</b> points to the first node; the last node has a <b>null pointer</b> (written Ø).</li>
+    <li>Items are accessed in order by following the pointers. The order of the data is set by the pointers, so an item is added or deleted by changing pointers only; no data is moved (an array would have to shift items to keep the order).</li>
+    <li>Disadvantages: extra memory for the pointers, and more complex to set up and program.</li>
+    <li><b>Free list:</b> the unused nodes are linked together too. After initialisation the start pointer is null, the free list pointer points to the first node and <b>all</b> the nodes are on the free list.</li>
+    <li><b>Implementation:</b> two 1D arrays (one for data, one for pointers, the same index being one node) and two integer variables (start pointer, free list pointer); or one array of records with a data field and a pointer field. A value outside the array indices (such as 0) is the null pointer.</li>
+    <li><b>Insert:</b> take the first node from the free list (move the free pointer on), store the data in it, set its pointer to the node that should follow it, and set the pointer of the node before it to point to the new node. <b>Delete:</b> change the previous node's pointer to skip the deleted node and add that node to the free list.</li>
+  </ul>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Stack</th><th>Queue</th><th>Linked list</th></tr>
+    <tr><td><b>Order</b></td><td>LIFO</td><td>FIFO</td><td>Follow the pointers</td></tr>
+    <tr><td><b>Pointers</b></td><td>Top of stack</td><td>Front and end</td><td>Start, free list, one per node</td></tr>
+    <tr><td><b>Add</b></td><td>Push on top</td><td>At the end</td><td>Anywhere by changing pointers</td></tr>
+    <tr><td><b>Remove</b></td><td>Pop from top</td><td>From the front</td><td>Anywhere by changing pointers</td></tr>
+  </table></div>
+
+  <h2>Common ways to lose marks</h2>
+  <ul>
+    <li>Not checking for a full stack/queue before adding, or an empty one before removing.</li>
+    <li>Forgetting wrap-around in a circular queue.</li>
+    <li>Moving the pointer in the wrong direction (stack grows down in memory in some questions).</li>
+    <li>In a linked list, drawing arrows but leaving out the start pointer, the null pointer or the free list.</li>
+    <li>Saying "it is faster" for a linked list: the advantage is that only the pointers change.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Push and pop</h2>
+  <div id="stA"></div>
+  <h2>2 · A circular queue</h2>
+  <div id="stB"></div>
+  <h2>3 · Inserting into a linked list</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Stack</h2>
+  <p>Memory locations 200 to 207. The pointer shows the last value added. Push letters and pop them.</p>
+  <div class="card"><div class="btnrow"><button id="sk_push">PUSH next letter</button><button id="sk_pop">POP</button><button id="sk_reset">Reset</button></div><div id="skV"></div></div>
+  <h2>Lab 2 · Circular queue of 8</h2>
+  <div class="card"><div class="btnrow"><button id="qu_add">Add item</button><button id="qu_rem">Remove item</button><button id="qu_reset">Reset</button></div><div id="quV"></div></div>
+  <h2>Lab 3 · Linked list in two arrays</h2>
+  <p>Insert words in alphabetical order, or delete one. Watch the pointer array and the free list: no data moves.</p>
+  <div class="card"><div class="btnrow" id="llB"></div><div class="btnrow"><button id="ll_del">Delete the last word added</button><button id="ll_reset">Reset</button></div><div id="llV"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which ADT?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Pointer words</h2><div id="cl2" class="card"></div>
+  <h2>3 · Match the term</h2><div id="m1" class="card"></div>
+  <h2>4 · Put the add-to-queue steps in order</h2><div id="o1" class="card"></div>
+  <h2>5 · Working out</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A browser's Back and Forward buttons</h3><p>Two stacks hold the pages you have left: Back pops the most recent page, and the page you are leaving is pushed onto the Forward stack.</p><div class="use"><b>Exam use:</b> stack.</div></div>
+  <div class="rw"><h3>Undo in a document</h3><p>Each change is pushed on a stack; Undo pops the most recent change.</p><div class="use"><b>Exam use:</b> stack.</div></div>
+  <div class="rw"><h3>A printer queue</h3><p>Print jobs are added at the end and the printer takes the job at the front, so the first to arrive is printed first.</p><div class="use"><b>Exam use:</b> queue.</div></div>
+  <div class="rw"><h3>A keyboard buffer</h3><p>Key presses wait in a circular buffer until the program reads them in the order they were typed.</p><div class="use"><b>Exam use:</b> circular queue.</div></div>
+  <div class="rw"><h3>A music playlist</h3><p>Each track holds a pointer to the next one, so a track can be inserted anywhere without moving the others.</p><div class="use"><b>Exam use:</b> linked list.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on abstract data types (Paper 2), 2021 to 2026. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2021</td><td>22</td><td>3</td><td>6</td><td>Identify a linked list, its start and null pointers; draw it after sorting</td></tr>
+    <tr><td>O/N 2021</td><td>21</td><td>3</td><td>13</td><td>Add/remove in a circular queue; state when pointers are equal; the add algorithm</td></tr>
+    <tr><td>M/J 2022</td><td>21</td><td>4</td><td>6</td><td>A stack in locations 200 to 207: longest-held value, pointer after POPs, state after operations</td></tr>
+    <tr><td>O/N 2022</td><td>21</td><td>4</td><td>10</td><td>Ordered linked list after adds and deletes; advantages and disadvantages over an array; implementation</td></tr>
+    <tr><td>M/J 2023</td><td>22</td><td>3</td><td>10</td><td>Add two items to a circular queue; count items; FileToQueue() algorithm</td></tr>
+    <tr><td>O/N 2023</td><td>22</td><td>3</td><td>9</td><td>A linked list in two arrays; the steps to insert a node using the free list</td></tr>
+    <tr><td>M/J 2024</td><td>21</td><td>3</td><td>8</td><td>Linked list after initialisation; the variable and array design</td></tr>
+    <tr><td>O/N 2024</td><td>22</td><td>3</td><td>7</td><td>Initial values for SP and OnStack; Push() function</td></tr>
+    <tr><td>M/J 2026</td><td>22</td><td>4</td><td>9</td><td>Two stacks for a browser's Back/Forward buttons</td></tr>
+  </table></div>
+  <p class="note">The ADT question appears in most Paper 2 papers: a diagram to complete, a short explanation, and sometimes an algorithm. The diagrams below are re-drawn as tables; check the original paper for the printed layout.</p>
+  <details class="eq"><summary><span class="src">M/J 2021 · 9618/22 · Q3</span> <span class="cmd">Identify / Give / Complete</span> <span class="mark">6 marks</span> A diagram shows Dolphin, Cat, Fish and Elk as nodes, each with an arrow to the next, a pointer labelled A pointing at Dolphin and a null item labelled B after Elk. (a) Identify this type of ADT. (b) Give the technical term for A. (c) Give the technical term for B and explain the meaning of its value. (d) Complete the diagram to show the ADT after the data has been sorted in alphabetical order.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Linked list; start pointer; null pointer; reorder the arrows.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk a" data-t="1">Linked list</span> <b>(b)</b> <span class="mk a" data-t="1">Start pointer</span> <b>(c)</b> <span class="mk b" data-t="1">Name: Null pointer</span> <span class="mk b" data-t="2">Meaning: there are no further nodes in the list</span></p><p><b>(d)</b> <span class="mk b" data-t="1">Start pointer pointing to the Cat node</span> <span class="mk b" data-t="2">Remaining arrows: Cat → Dolphin → Elk → Fish</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Moving the data. In a linked list the nodes stay where they are; only the pointers are changed.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/21 · Q3</span> <span class="cmd">Describe / Complete</span> <span class="mark">5 + 5 + 3 marks</span> A queue ADT holds up to eight items in locations 0 to 7. The front of queue pointer points to the next item to be removed, the end of queue pointer to the last item added, and the queue is circular. The queue holds Frog (0), Cat (1), Fish (2), Elk (3) with front at 0 and end at 3. (a)(i) Describe how "Octopus" is added. (ii) Describe how the next item is removed and stored in AnimalName. (iii) Describe the state of the queue when the front and end pointers have the same value. (b)(i) Add Wasp, Bee and Mouse, then remove two items; show the queue. (ii) Another queue holds Frog, Cat, Fish, Elk (front, 3), Wasp, Bee, Mouse (end, 6), Ant (7); remove one item, then add Dolphin and Shark. (c) The queue is in a 1D array. Describe the algorithm to modify the end of queue pointer when adding, detecting any error conditions.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>End pointer moves on, store at it. Take the front, move front. One item. Wrap round.</div>
+    <div class="ans"><p><b>(a)(i)</b> <span class="mk a" data-t="1">The end of queue pointer moves on to location 4 (incremented by 1)</span> <span class="mk a" data-t="2">"Octopus" is stored in the location the end pointer refers to (location 4)</span></p><p><b>(ii)</b> <span class="mk a" data-t="1">"Frog" (the value at the front pointer, location 0) is assigned to AnimalName</span> <span class="mk a" data-t="2">The front pointer moves to location 1 ("Cat") (incremented by 1)</span></p><p><b>(iii)</b> <span class="mk a" data-t="1">There is only one data item in the queue</span></p><p><b>(b)(i)</b> Three marks: both pointers and the three new values.<div class="tw"><table class="t mono"><tr><th>Location</th><th>Value</th><th>Pointer</th></tr><tr><td>0</td><td>Frog</td><td></td></tr><tr><td>1</td><td>Cat</td><td></td></tr><tr><td>2</td><td>Fish</td><td>Front of queue pointer</td></tr><tr><td>3</td><td>Elk</td><td></td></tr><tr><td>4</td><td>Wasp</td><td></td></tr><tr><td>5</td><td>Bee</td><td></td></tr><tr><td>6</td><td>Mouse</td><td>End of queue pointer</td></tr><tr><td>7</td><td></td><td></td></tr></table></div></p><p><b>(ii)</b> One mark for both pointers and one for all the data values as shown.<div class="tw"><table class="t mono"><tr><th>Location</th><th>Value</th><th>Pointer</th></tr><tr><td>0</td><td>Shark</td><td>End of queue pointer</td></tr><tr><td>1</td><td>(Cat)</td><td></td></tr><tr><td>2</td><td>(Fish)</td><td></td></tr><tr><td>3</td><td>(Elk)</td><td></td></tr><tr><td>4</td><td>Wasp</td><td>Front of queue pointer</td></tr><tr><td>5</td><td>Bee</td><td></td></tr><tr><td>6</td><td>Mouse</td><td></td></tr><tr><td>7</td><td>Dolphin</td><td></td></tr></table></div><span class="note">Brackets show old values that are no longer part of the queue.</span></p><p><b>(c)</b> <span class="mk k" data-t="1">If incremented, the end pointer would equal the front pointer: the queue is full (error condition)</span> <span class="mk k" data-t="2">Otherwise increment the end of queue pointer</span> <span class="mk k" data-t="3">Manage wrap-around: if it goes past the last element of the array, set it to the first</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing a stack answer (LIFO) when the data structure is a queue.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/21 · Q4</span> <span class="cmd">Complete</span> <span class="mark">6 marks</span> A stack uses memory locations 200 to 207; TopOfStack points to the last value added. In the first stack, TopOfStack is at 203 with F (203), C (204), D (205), E (206), H (207). (a) State the value on the stack for the longest time, and the location TopOfStack points to after three POP operations. (b) A second stack has TopOfStack at 202 with W (202), Y (203), X (204), Z (205), N (206), P (207). The operations POP, POP, PUSH 'A', PUSH 'B', POP, PUSH 'C', PUSH 'D' are performed. Show the state of the stack.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Bottom is the oldest. The stack grows down memory, so POP moves the pointer up.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk b" data-t="1">'H'</span> <span class="mk b" data-t="2">206</span></p><p><b>(b)</b> <span class="mk b" data-t="1">TopOfStack pointing to 'D'</span> <span class="mk b" data-t="2">Value 'D' in 201</span> <span class="mk b" data-t="3">Values 'C' and 'A' in 202 and 203</span> <span class="mk b" data-t="4">Values 'X' to 'P' unchanged (204 to 207)</span><div class="tw"><table class="t mono"><tr><th>Location</th><th>Value</th><th>Pointer</th></tr><tr><td>200</td><td></td><td></td></tr><tr><td>201</td><td>'D'</td><td>TopOfStack</td></tr><tr><td>202</td><td>'C'</td><td></td></tr><tr><td>203</td><td>'A'</td><td></td></tr><tr><td>204</td><td>'X'</td><td></td></tr><tr><td>205</td><td>'Z'</td><td></td></tr><tr><td>206</td><td>'N'</td><td></td></tr><tr><td>207</td><td>'P'</td><td></td></tr></table></div><span class="note">Working: POP removes W, Y (TopOfStack → 204); PUSH A → 203; PUSH B → 202; POP removes B (→ 203); PUSH C → 202; PUSH D → 201.</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Moving the pointer up when pushing. Here the stack grows towards location 200, so a PUSH lowers the address.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/21 · Q4</span> <span class="cmd">Complete / Explain</span> <span class="mark">4 + 2 + 2 + 4 marks</span> An ordered linked list holds 'C', 'J', 'L' (single characters, accessed alphabetically). (a)(i) Nodes 'A' and 'K' are added and nodes 'J' and 'L' are deleted; the data must still be accessed in alphabetical order. Complete the diagram. (ii) Explain the advantages of making these changes with a linked list instead of a 1D array holding the characters. (iii) Explain the disadvantages. (b) Explain how the linked list can be implemented in a program.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A → C → K → Ø. Only pointers change. Needs pointer storage. Two arrays or an array of records.</div>
+    <div class="ans"><p><b>(a)(i)</b> <span class="mk k" data-t="1">'A' and 'K' stored in new or existing nodes</span> <span class="mk k" data-t="2">Start pointer points to node A</span> <span class="mk k" data-t="3">Node A points to node C, and node C points to node K</span> <span class="mk k" data-t="4">Node K contains a null pointer</span> Result: Start → A → C → K → Ø.</p><p><b>(ii)</b> <span class="mk a" data-t="1">The pointers determine the order of the data, so only pointers need to change when data changes</span> <span class="mk a" data-t="2">It is easier to add and delete data and keep the correct sequence (in an array items would have to be moved)</span></p><p><b>(iii)</b> <span class="mk a" data-t="1">Pointers must be stored as well as the data</span> <span class="mk a" data-t="2">It is more complex to set up and implement</span></p><p><b>(b)</b> Any four: <span class="mk b" data-t="1">Declare two 1D arrays</span> <span class="mk b" data-t="2">One for the data and one for the pointers</span> <span class="mk b" data-t="3">Elements with the same index represent one node</span> <span class="mk b" data-t="4">Declare an integer variable for the start pointer and explain its use</span> <span class="mk b" data-t="5">Define a null pointer value and explain its use</span> <span class="mk b" data-t="6">Declare an integer for the free list pointer and explain its use</span> <span class="mk b" data-t="7">Routines to add, delete and search</span> Alternatively declare a record type with a data field and a pointer field, and one array of that record type.</p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/22 · Q3</span> <span class="cmd">Describe</span> <span class="mark">4 + 1 + 5 marks</span> A queue of up to 10 items (locations 0 to 9, circular) holds Red (5, front), Green (6), Blue (7), Pink (8, end). (a)(i) Describe how Orange and Yellow are added. (ii) A second queue has front pointer at location 5 and end pointer at location 1, all locations used at least once: state the number of items. (b) A function AddToQueue() takes a string and returns TRUE if it was added. A procedure FileToQueue() adds each line of a file; it ends when all lines have been added or the queue is full. Describe its algorithm without pseudocode.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Check not full; EoQ to 9, store; wrap to 0, store. 5 to 9 and 0 to 1.</div>
+    <div class="ans"><p><b>(a)(i)</b> Any four: <span class="mk b" data-t="1">Check that the queue is not full</span> <span class="mk b" data-t="2">The end pointer moves to location 9</span> <span class="mk b" data-t="3">Orange is stored in the location the end pointer refers to</span> <span class="mk b" data-t="4">The end pointer moves to location 0</span> <span class="mk b" data-t="5">Yellow is stored in the location the end pointer refers to</span></p><p><b>(ii)</b> <span class="mk a" data-t="1">7</span> (locations 5 to 9 and 0 to 1).</p><p><b>(b)</b> <span class="mk k" data-t="1">Open the file in read mode</span> <span class="mk k" data-t="2">Loop until the end of the file, reading all the lines</span> <span class="mk k" data-t="3">The loop also ends when the return value from AddToQueue() is FALSE (queue full)</span> <span class="mk k" data-t="4">Read a line from the file in the loop</span> <span class="mk k" data-t="5">Pass the string to AddToQueue()</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/22 · Q3</span> <span class="cmd">Complete</span> <span class="mark">5 + 4 marks</span> A linked list has start pointer Ptr1 and free list pointer Ptr2. The list is D40 → D32 → D11 → D100 → Ø; the free list is F1 → F2 → F3 → F4 → Ø. It is implemented with two variables and two 1D arrays (Data and Pointer, indices 1 to 8). Given: Free_List_Pointer = 5, index 1 holds D32 with pointer 2, index 4 holds D40, index 6 holds F2 with pointer 7. (a) Complete the diagram to show the list as arrays. (b) A node D6 is inserted between D32 and D11. Complete the four steps.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Index 4 is D40, so Start_Pointer = 4. F1 is at 5. Take F1 off the free list.</div>
+    <div class="ans"><p><b>(a)</b> One mark for Start_Pointer and one mark for each group of rows (2; 3 and 4; 5; 7 and 8). The null pointer may be shown as 0 or Ø.<div class="tw"><table class="t mono"><tr><th>Index</th><th>Data array</th><th>Pointer array</th></tr><tr><td>1</td><td>D32</td><td>2</td></tr><tr><td>2</td><td>D11</td><td>3</td></tr><tr><td>3</td><td>D100</td><td>0 (null)</td></tr><tr><td>4</td><td>D40</td><td>1</td></tr><tr><td>5</td><td>F1</td><td>6</td></tr><tr><td>6</td><td>F2</td><td>7</td></tr><tr><td>7</td><td>F3</td><td>8</td></tr><tr><td>8</td><td>F4</td><td>0 (null)</td></tr></table></div>Start_Pointer = 4, Free_List_Pointer = 5.</p><p><b>(b)</b> <span class="mk k" data-t="1">Assign the data item D6 to F1</span> <span class="mk k" data-t="2">Set the pointer of this node to point to D11</span> <span class="mk k" data-t="3">Set Ptr2 to point to F2</span> <span class="mk k" data-t="4">Set the pointer of D32 to point to D6</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Starting the list at index 1. The start pointer is the index of the first item in order, here 4 (D40).</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/21 · Q3</span> <span class="cmd">Describe / Complete</span> <span class="mark">3 + 5 marks</span> A linked list has start pointer PS and free list pointer PF. (a) Describe the linked list immediately after initialisation, before any data items are added. (b) The list is to store alphanumeric user IDs using two variables and two 1D arrays, each element holding a single data type (not a record). Complete the statements describing the design.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Start null, free points to the first node, all nodes on the free list. Integers; String array; Integer array.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">The start pointer PS contains a null pointer</span> <span class="mk k" data-t="2">The free list pointer PF points to the first element on the free list</span> <span class="mk k" data-t="3">All the nodes are on the free list</span></p><p><b>(b)</b> <span class="mk k" data-t="1">The two variables will be of type Integer (max 2 marks for the variables)</span> <span class="mk k" data-t="2">They are used as pointers (indexes) to the arrays</span> <span class="mk k" data-t="3">Their values indicate the first element in each list</span> <span class="mk k" data-t="4">The first 1D array is of type String and stores the data items (the user IDs)</span> <span class="mk k" data-t="5">The second 1D array is of type Integer and stores the pointers to the next item</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/22 · Q3</span> <span class="cmd">Give / Explain / Complete</span> <span class="mark">1 + 2 + 4 marks</span> A stack holds up to 60 numeric values in DECLARE ThisStack : ARRAY[1:60] OF REAL. SP points to the next available location (an index), OnStack is the number of values held, and the stack grows upwards from index 1. (a)(i) Give the initial values for the two variables. (ii) Explain why the array elements need not be initialised before use. (b) Complete the function Push(ThisValue : REAL) RETURNS BOOLEAN: it returns TRUE if the value was added, otherwise FALSE.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>SP 1, OnStack 0. Check full first, then store, SP + 1, OnStack + 1.</div>
+    <div class="ans"><p><b>(a)(i)</b> <span class="mk a" data-t="1">SP = 1 and OnStack = 0</span></p><p><b>(ii)</b> <span class="mk a" data-t="1">Unused values cannot be popped off the stack</span> <span class="mk a" data-t="2">until a value has first been pushed, which overwrites the previous value</span></p><p><b>(b)</b> One mark per gap:</p><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">FUNCTION Push(ThisValue : REAL) RETURNS BOOLEAN</span><span class="ln">   DECLARE ReturnValue : BOOLEAN</span><span class="ln">   IF OnStack = 60 THEN</span><span class="ln">      RETURN FALSE</span><span class="ln">   ENDIF</span><span class="ln">   ThisStack[SP] ← ThisValue</span><span class="ln">   SP ← SP + 1</span><span class="ln">   OnStack ← OnStack + 1</span><span class="ln">   RETURN TRUE</span><span class="ln">ENDFUNCTION</span></pre></div>
+</div>
+    <div class="warn"><b class="h">Common mistake</b>Testing the pointer SP <= 60 after adding. Test whether the stack is full before storing, or you write outside the array.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/22 · Q4(a)</span> <span class="cmd">Complete</span> <span class="mark">6 marks</span> A browser uses two stacks. Back button: push the displayed address onto the forward stack, pop the back stack, load the popped address. Forward button: push the displayed address onto the back stack, pop the forward stack, load it. The back stack (bottom to top) is www.ccc.my, www.aaa.home, www.zzz.corp; the forward stack (bottom to top) is www.222.me, www.999.corp, www.111.home, www.333.corp; the page displayed is www.bbb.home. Group 1 is one back click, group 2 one forward click, group 3 three forward clicks. Show both stacks and the displayed page after each group.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Push the current page onto the other stack, pop this stack.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">After group 1: back stack with TOS at www.aaa.home, TOS on the forward stack</span> <span class="mk k" data-t="2">After group 1: forward stack www.bbb.home on top, and the current page www.zzz.corp</span> <span class="mk k" data-t="3">After group 2: both stacks and TOS, current page www.bbb.home</span> <span class="mk k" data-t="4">After group 3: back stack as shown, TOS at www.111.home</span> <span class="mk k" data-t="5">After group 3: forward stack with www.222.me only, TOS there</span> <span class="mk k" data-t="6">After group 3: current page www.999.corp</span></p><div class="tw"><table class="t"><tr><th>After</th><th>Back stack (bottom to top)</th><th>Forward stack (bottom to top)</th><th>Displayed</th></tr><tr><td>Start</td><td>ccc.my, aaa.home, zzz.corp</td><td>222.me, 999.corp, 111.home, 333.corp</td><td>bbb.home</td></tr><tr><td>Group 1</td><td>ccc.my, aaa.home</td><td>222.me, 999.corp, 111.home, 333.corp, bbb.home</td><td>zzz.corp</td></tr><tr><td>Group 2</td><td>ccc.my, aaa.home, zzz.corp</td><td>222.me, 999.corp, 111.home, 333.corp</td><td>bbb.home</td></tr><tr><td>Group 3</td><td>ccc.my, aaa.home, zzz.corp, bbb.home, 333.corp, 111.home</td><td>222.me</td><td>999.corp</td></tr></table></div></div>
+    <div class="warn"><b class="h">Common mistake</b>Not pushing the page being displayed onto the other stack before popping.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">3 marks</span> Describe how an item is removed from a circular queue held in an array.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Check, copy front, move front.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Check the queue is not empty</span> <span class="mk k" data-t="2">Copy the item at the front pointer</span> <span class="mk k" data-t="3">Increment the front pointer, wrapping to the first location if it passes the end</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">3 marks</span> A stack's array has 5 locations. State what must be checked before PUSH and before POP.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Full and empty.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Before PUSH: whether the stack is full</span> <span class="mk k" data-t="2">Before POP: whether the stack is empty</span> <span class="mk k" data-t="3">Otherwise an overflow or underflow error occurs</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State the contents of a stack after PUSH 4, PUSH 7, POP, PUSH 9, PUSH 2, POP.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work through.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">4 and 9 remain</span> <span class="mk k" data-t="2">with 9 on top</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain why a linked list may be better than an array for a list that is kept in order and changed often.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Pointers only.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Insertion or deletion only changes pointers</span> <span class="mk k" data-t="2">In an array all the items after the insertion point must be moved</span> <span class="mk k" data-t="3">so the order is kept without moving data</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">4 marks</span> Describe how the first node on the free list is used when a new item is added to a linked list.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Take node, store, link in, free pointer moves.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The data is stored in the node the free list pointer points to</span> <span class="mk k" data-t="2">The free list pointer moves to the next node on the free list</span> <span class="mk k" data-t="3">The pointer of the new node is set to the node that follows it</span> <span class="mk k" data-t="4">The pointer of the previous node (or the start pointer) is set to the new node</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Name the end of each structure.</b> Top of stack; front and end of queue; start, null and free pointers.</li>
+    <li><b>Check full and empty.</b> Before adding or removing.</li>
+    <li><b>Read how the stack grows.</b> Up or down memory; pointer at last value or next free.</li>
+    <li><b>Wrap round.</b> Circular queue pointers return to the first location.</li>
+    <li><b>Only pointers change.</b> Linked list inserts and deletes move no data.</li>
+    <li><b>Show every pointer.</b> A linked list diagram needs start and null.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>an ADT</td><td>"A data collection and its operations, described without saying how it is stored."</td></tr>
+    <tr><td>LIFO</td><td>"Last in, first out: a stack."</td></tr>
+    <tr><td>FIFO</td><td>"First in, first out: a queue."</td></tr>
+    <tr><td>a null pointer</td><td>"A pointer to nowhere that marks the end of a list."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Identify</td><td>Name it.</td></tr>
+    <tr><td>Describe</td><td>Steps or features.</td></tr>
+    <tr><td>Complete</td><td>Fill the diagram or code.</td></tr>
+    <tr><td>Explain</td><td>Reason with the structure.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>

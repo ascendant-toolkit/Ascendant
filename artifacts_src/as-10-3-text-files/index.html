@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Text Files</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
+
+table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
+.synd{margin:8px 0;overflow-x:auto}
+.gantt{display:flex;margin:6px 0 0;font-family:var(--mono)}.gantt .gb{border:1.5px solid var(--ink);margin-left:-1.5px;text-align:center;padding:6px 0;font-weight:700;font-size:.85rem;background:var(--surface);min-width:0}
+.gantt .gb.c0{background:var(--accent-soft)}.gantt .gb.c1{background:var(--bad-soft)}.gantt .gb.c2{background:var(--good-soft)}.gantt .gb.c3{background:var(--warn-soft)}.gantt .gb.c4{background:var(--soft)}
+.gticks{display:flex;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:2px 0 10px}.gticks span{text-align:right;min-width:0}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 10.3</div>
+  <h1>Text Files</h1>
+  <p class="cbook">Coursebook: Chapter 10 · Data types and structures · section 10.3 Files</p>
+  <p class="lead">Opening files in READ, WRITE and APPEND mode, reading to the end of file, searching, the last three lines, copying and creating files, with animations, file labs and the real Paper 2 questions from 2021 to 2026.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A <b>text file</b> stores data permanently as lines of text; a program must <b>open</b> it in a <b>mode</b>, <b>read</b> or <b>write</b> it, and <b>close</b> it. <b>READ</b> mode lets you read lines one at a time with <span class="mono">READFILE</span> until <span class="mono">EOF()</span> (end of file) is true; <b>WRITE</b> mode creates the file or <b>overwrites</b> everything in it; <b>APPEND</b> mode <b>adds to the end</b> and keeps the existing data. A file is a better store than an array when the data must survive after the computer is switched off, when it is more than an array can hold, or when another program must use it. A file can only hold text, so numbers and Booleans must be converted to strings before writing (and back after reading). Typical exam tasks: search a file for a value, output the last lines, copy and reformat lines, and create several files.</p></div>
+
+  <h2>1 · The file statements</h2>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;Stock.txt&quot; FOR READ          // READ, WRITE or APPEND</span><span class="ln">READFILE &quot;Stock.txt&quot;, ThisLine         // read the next line into a variable</span><span class="ln">WRITEFILE &quot;Result.txt&quot;, NewString      // write one line</span><span class="ln">CLOSEFILE &quot;Stock.txt&quot;</span><span class="ln"> </span><span class="ln">WHILE NOT EOF(&quot;Stock.txt&quot;)             // repeat until the end of the file</span><span class="ln">   READFILE &quot;Stock.txt&quot;, ThisLine</span><span class="ln">ENDWHILE</span></pre></div>
+
+  <div class="tw"><table class="t">
+    <tr><th>Mode</th><th>Effect</th><th>Use when</th></tr>
+    <tr><td><b>READ</b></td><td>Lines are read one at a time from the start</td><td>You only need the data</td></tr>
+    <tr><td><b>WRITE</b></td><td>Creates the file, or <b>overwrites</b> existing data</td><td>Making a new file</td></tr>
+    <tr><td><b>APPEND</b></td><td>Adds lines at the end; existing data is kept</td><td>Adding records to a file that already has data (AddItem(), adding names to a support list)</td></tr>
+  </table></div>
+  <p>Why use a file instead of an array: data is <b>saved after the computer is switched off</b> and need not be re-entered; the number of values can be larger than a fixed array; the data can be used by another program.</p>
+
+  <h2>2 · Common file algorithms</h2>
+  <ul>
+    <li><b>Search:</b> open for READ; loop until EOF <b>or</b> the value is found; read a line; extract the field (MID, LEFT, RIGHT with the field lengths); compare; if found, output; close; if not found, say so after the loop.</li>
+    <li><b>Last three lines:</b> keep three variables and <b>shuffle</b> them as each line is read: <span class="mono">LineX ← LineY</span>, <span class="mono">LineY ← LineZ</span>, <span class="mono">LineZ ← ThisLine</span>; after the loop output them in order.</li>
+    <li><b>Efficient search of a sorted file:</b> the search can stop as soon as the current value read is greater than the value being searched for.</li>
+    <li><b>Copy and reformat:</b> open the old file for READ and the new file for WRITE; read three lines; join them with a separator; write; repeat until EOF; close both.</li>
+    <li><b>Several files:</b> a loop creates a name (root, a dot, a three-digit suffix padded with zeros) and opens each file for WRITE, writes a line and closes it.</li>
+  </ul>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">PROCEDURE LastLines(ThisFile : STRING)</span><span class="ln">   DECLARE ThisLine, LineX, LineY, LineZ : STRING</span><span class="ln">   OPENFILE ThisFile FOR READ</span><span class="ln">   LineY ← &quot;&quot;</span><span class="ln">   LineZ ← &quot;&quot;</span><span class="ln">   WHILE NOT EOF(ThisFile)</span><span class="ln">      READFILE ThisFile, ThisLine</span><span class="ln">      LineX ← LineY</span><span class="ln">      LineY ← LineZ</span><span class="ln">      LineZ ← ThisLine</span><span class="ln">   ENDWHILE</span><span class="ln">   CLOSEFILE ThisFile</span><span class="ln">   OUTPUT LineX</span><span class="ln">   OUTPUT LineY</span><span class="ln">   OUTPUT LineZ</span><span class="ln">ENDPROCEDURE</span></pre></div>
+
+
+  <h2>Common ways to lose marks</h2>
+  <ul>
+    <li>Not opening the file, not closing it, or opening it in the wrong mode (WRITE when the data must be kept).</li>
+    <li>Reading with no loop, or a loop with no EOF test.</li>
+    <li>Reading the file inside the loop after the end condition (read, then test again).</li>
+    <li>Writing a number without converting it to a string.</li>
+    <li>Searching the whole file when the question says the file is sorted and asks for efficiency.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Reading a file line by line</h2>
+  <div id="stA"></div>
+  <h2>2 · Write and append</h2>
+  <div id="stB"></div>
+  <h2>3 · The last three lines</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Write or append?</h2>
+  <p>The file starts with three names. Choose a mode and add a new name.</p>
+  <div class="card"><div class="btnrow"><button id="wm_w">WRITE "Dee"</button><button id="wm_a">APPEND "Dee"</button><button id="wm_r">Reset</button></div><div id="wmV"></div></div>
+  <h2>Lab 2 · Search a file</h2>
+  <div class="card"><div id="sS"></div><div class="btnrow"><button id="fs_step">Read next line</button><button id="fs_reset">Reset</button></div><div id="fsV"></div></div>
+  <h2>Lab 3 · Which mode?</h2>
+  <div class="card"><div id="mB" class="btnrow"></div><div id="mO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which file mode?</h2><div id="cl1" class="card"></div>
+  <h2>2 · File or array?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Match the statement to its job</h2><div id="m1" class="card"></div>
+  <h2>4 · Put the file-search steps in order</h2><div id="o1" class="card"></div>
+  <h2>5 · Working out</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A game's high-score table</h3><p>Scores are saved in a file so they are still there tomorrow; each new score is appended.</p><div class="use"><b>Exam use:</b> append mode.</div></div>
+  <div class="rw"><h3>A teacher's mark list</h3><p>A program reads the class list from a file line by line to print each name, until the end of the file.</p><div class="use"><b>Exam use:</b> read until EOF.</div></div>
+  <div class="rw"><h3>A log file</h3><p>Programs add a line to a log every time something happens; old lines are never overwritten.</p><div class="use"><b>Exam use:</b> append.</div></div>
+  <div class="rw"><h3>Importing contacts</h3><p>An app reads each line of a file, splits it at the separator character and creates a contact.</p><div class="use"><b>Exam use:</b> extract fields from a line.</div></div>
+  <div class="rw"><h3>Saving a document</h3><p>Saving writes the whole document to a file, replacing the earlier version.</p><div class="use"><b>Exam use:</b> write mode.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on text files (Paper 2), 2021 to 2026. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2022</td><td>21</td><td>5</td><td>6</td><td>Describe the algorithm to search a file of fixed-length fields</td></tr>
+    <tr><td>M/J 2022</td><td>22</td><td>4</td><td>6 + 3</td><td>Write LastLines(); the changes needed to output any number of lines</td></tr>
+    <tr><td>O/N 2023</td><td>22</td><td>6</td><td>6 + 3</td><td>Write CreateFiles(); the module type, header and mode for CheckFiles()</td></tr>
+    <tr><td>M/J 2023</td><td>21</td><td>8</td><td>7 + 7 + 3 + 1 + 3</td><td>IsNewSupp(); an efficient CheckNewItem(); testing; the file mode for AddItem(); a sorted file</td></tr>
+    <tr><td>O/N 2024</td><td>21</td><td>3</td><td>4 + 1 + 4</td><td>Complete the steps to output the last three lines; their purpose; output from a given line</td></tr>
+    <tr><td>O/N 2025</td><td>22</td><td>3</td><td>6 + 1 + 3</td><td>Convert a three-line file into one line per member with a separator</td></tr>
+    <tr><td>M/J 2026</td><td>22</td><td>3</td><td>6</td><td>Describe an efficient algorithm to check that a word is in WordList.txt</td></tr>
+  </table></div>
+  <p class="note">File questions appear in every Paper 2 and are marked on the same points: open (right mode), loop to EOF, read a line, test or extract, output or write, close. Paper 2 questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/21 · Q5</span> <span class="cmd">Describe</span> <span class="mark">6 marks</span> Each line of a text file contains fixed-length fields <Field 1><Field 2><Field 3>. An algorithm is required to search for the first instance of a given value of Field 2 and, if found, to output the corresponding values of Field 1 and Field 3. Describe the algorithm. Do not include pseudocode statements.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open, loop to found or EOF, read, extract Field 2, compare, output, close.</div>
+    <div class="ans"><p>Any six: <span class="mk k" data-t="1">Open the file in read mode</span> <span class="mk k" data-t="2">A conditional loop, repeating until the value is found or the end of the file is reached</span> <span class="mk k" data-t="3">Read a line from the file in the loop</span> <span class="mk k" data-t="4">Extract Field 2</span> <span class="mk k" data-t="5">Describe how Field 2 is extracted (for example a substring function with the lengths of Fields 1 and 2)</span> <span class="mk k" data-t="6">Compare the extracted field with the search value</span> <span class="mk k" data-t="7">If found, extract Fields 1 and 3 and output them</span> <span class="mk k" data-t="8">Close the file after the loop has finished</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/22 · Q4</span> <span class="cmd">Write / Outline</span> <span class="mark">6 + 3 marks</span> (a) A procedure LastLines() takes the name of a text file as a parameter and outputs the last three lines in the order they appear. Use local variables LineX, LineY and LineZ. Assume the file exists and has at least three lines. Write pseudocode. (b) The calling program now also passes the number of lines to output (1 to 30). Outline three changes needed.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Read in a loop and shuffle LineX, LineY, LineZ. Parameter, array, shuffle.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Procedure heading with the parameter, and ending</span> <span class="mk k" data-t="2">Declare the local variables, open the file in READ mode and close it</span> <span class="mk k" data-t="3">A loop until EOF(ThisFile)</span> <span class="mk k" data-t="4">Read a line from the file in the loop</span> <span class="mk k" data-t="5">An attempt at a shuffle in the loop</span> <span class="mk k" data-t="6">Correctly shuffle LineX, LineY and LineZ in the loop</span> <span class="mk k" data-t="7">Output the three lines in the correct sequence</span></p><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">PROCEDURE LastLines(ThisFile : STRING)</span><span class="ln">   DECLARE ThisLine, LineX, LineY, LineZ : STRING</span><span class="ln">   OPENFILE ThisFile FOR READ</span><span class="ln">   LineY ← &quot;&quot;</span><span class="ln">   LineZ ← &quot;&quot;</span><span class="ln">   WHILE NOT EOF(ThisFile)</span><span class="ln">      READFILE ThisFile, ThisLine</span><span class="ln">      LineX ← LineY</span><span class="ln">      LineY ← LineZ</span><span class="ln">      LineZ ← ThisLine</span><span class="ln">   ENDWHILE</span><span class="ln">   CLOSEFILE ThisFile</span><span class="ln">   OUTPUT LineX</span><span class="ln">   OUTPUT LineY</span><span class="ln">   OUTPUT LineZ</span><span class="ln">ENDPROCEDURE</span></pre></div>
+<p><b>(b)</b> <span class="mk a" data-t="1">Change the procedure header to include a numeric parameter as well as the filename</span> <span class="mk a" data-t="2">Replace LineX, LineY and LineZ with an array</span> <span class="mk a" data-t="3">Amend the shuffle mechanism</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Opening the file in WRITE mode. That would erase the file you are trying to read.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/22 · Q6</span> <span class="cmd">Write</span> <span class="mark">6 + 3 marks</span> (a) A procedure CreateFiles() takes a string file name and an integer number of files. It creates that many text files; each name is the file name followed by a dot and a three-character suffix based on the file number (CreateFiles("TestData", 3) creates TestData.001, TestData.002 and TestData.003), and each file holds a single line such as "This is File TestData.002". Write pseudocode (the integer is between 1 and 999). (b) A module CheckFiles() takes a file name and returns the number of files found. (i) Identify the type of module. (ii) Write its header. (iii) State the file mode.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>FOR loop; NUM_TO_STR; pad with '0'; OPENFILE FOR WRITE; WRITEFILE; CLOSEFILE. Function; READ.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Procedure heading, including parameters, and ending</span> <span class="mk k" data-t="2">A loop for NumFiles iterations</span> <span class="mk k" data-t="3">An attempt to create the suffix using NUM_TO_STR() in the loop</span> <span class="mk k" data-t="4">The completely correct filename</span> <span class="mk k" data-t="5">OPENFILE in WRITE mode and the subsequent CLOSE in the loop</span> <span class="mk k" data-t="6">Write the first line to the file in the loop</span></p><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">PROCEDURE CreateFiles(NameRoot : STRING, NumFiles : INTEGER)</span><span class="ln">   DECLARE FileName, Suffix : STRING</span><span class="ln">   DECLARE Count : INTEGER</span><span class="ln">   FOR Count ← 1 TO NumFiles</span><span class="ln">      Suffix ← NUM_TO_STR(Count)</span><span class="ln">      WHILE LENGTH(Suffix) &lt;&gt; 3</span><span class="ln">         Suffix ← &#x27;0&#x27; &amp; Suffix</span><span class="ln">      ENDWHILE</span><span class="ln">      FileName ← NameRoot &amp; &#x27;.&#x27; &amp; Suffix</span><span class="ln">      OPENFILE FileName FOR WRITE</span><span class="ln">      WRITEFILE FileName, &quot;This is File &quot; &amp; FileName</span><span class="ln">      CLOSEFILE FileName</span><span class="ln">   NEXT Count</span><span class="ln">ENDPROCEDURE</span></pre></div>
+<p><b>(b)</b> <span class="mk a" data-t="1">(i) Function</span> <span class="mk a" data-t="2">(ii) FUNCTION CheckFiles(NameRoot : STRING) RETURNS INTEGER</span> <span class="mk a" data-t="3">(iii) Read</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/21 · Q8(b)(d)(e)</span> <span class="cmd">Write / State</span> <span class="mark">7 + 1 + 3 marks</span> Stock.txt has one line per item <ItemNum><SupplierCode><Description> (ItemNum is 4 numeric characters, "0001" to "5999"); the file is in ascending order of ItemNum and does not contain every value. (b) Write efficient pseudocode for CheckNewItem(NewLine : STRING), which returns TRUE if the item number of NewLine is not already in the file, otherwise FALSE. (d) AddItem() will add information to the file: state the file mode. (e) FindItem() searches the sorted file: describe how the organisation improves efficiency.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>LEFT(line, 4); loop until EOF or found or the current value is greater. Append. Stop early.</div>
+    <div class="ans"><p><b>(b)</b> <span class="mk k" data-t="1">Open Stock.txt in READ mode and close it</span> <span class="mk k" data-t="2">Extract NewItemNum from the parameter</span> <span class="mk k" data-t="3">A conditional loop until EOF</span> <span class="mk k" data-t="4">or until the number is found</span> <span class="mk k" data-t="5">or until ThisItemNum is greater than NewItemNum</span> <span class="mk k" data-t="6">Read a line and extract ThisItemNum in the loop</span> <span class="mk k" data-t="7">If ThisItemNum = NewItemNum terminate the loop or set a flag</span> <span class="mk k" data-t="8">Return a Boolean</span> (max 7)</p><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">FUNCTION CheckNewItem(NewLine : STRING) RETURNS BOOLEAN</span><span class="ln">   DECLARE NotFound : BOOLEAN</span><span class="ln">   DECLARE NewItemNum, ThisItemNum, ThisLine : STRING</span><span class="ln">   NotFound ← TRUE</span><span class="ln">   OPENFILE &quot;Stock.txt&quot; FOR READ</span><span class="ln">   NewItemNum ← LEFT(NewLine, 4)</span><span class="ln">   ThisItemNum ← &quot;0000&quot;</span><span class="ln">   WHILE NOT EOF(&quot;Stock.txt&quot;) AND NotFound = TRUE AND ThisItemNum &lt; NewItemNum</span><span class="ln">      READFILE &quot;Stock.txt&quot;, ThisLine</span><span class="ln">      ThisItemNum ← LEFT(ThisLine, 4)</span><span class="ln">      IF ThisItemNum = NewItemNum THEN</span><span class="ln">         NotFound ← FALSE</span><span class="ln">      ENDIF</span><span class="ln">   ENDWHILE</span><span class="ln">   CLOSEFILE &quot;Stock.txt&quot;</span><span class="ln">   RETURN NotFound</span><span class="ln">ENDFUNCTION</span></pre></div>
+<p><b>(d)</b> <span class="mk a" data-t="1">Append</span> <b>(e)</b> <span class="mk b" data-t="1">The search can stop (the iteration only continues)</span> <span class="mk b" data-t="2">if the current value read from the file is greater than the value being searched for</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Searching to the end of the file even when the current item number is already larger than the one wanted.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/21 · Q3</span> <span class="cmd">Complete / Explain / Describe</span> <span class="mark">4 + 1 + 4 marks</span> An algorithm outputs the last three lines of Result.txt in the order they appear (LineX, LineY and LineZ are empty strings). (a) Complete the eight steps: 1. ...; 2. ...; 3. ...; 4. Assign LineY to LineX; 5. Assign LineZ to LineY; 6. Assign ThisLine to LineZ; 7. ...; 8. Output LineX, LineY, LineZ. (b) Explain the purpose of steps 4, 5 and 6. (c) The algorithm becomes a function that is called with a line number, outputs three lines starting at that line and returns TRUE if three lines were output, or FALSE otherwise. Describe the changes to steps 2 to 8.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open, loop until EOF, read into ThisLine; close after. Output in order. Skip lines, three lines, EOF returns FALSE.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">1: open the file Result.txt in read mode</span> <span class="mk k" data-t="2">2: loop until EOF (end of file)</span> <span class="mk k" data-t="3">3: read the next line from the file and store it in ThisLine</span> <span class="mk k" data-t="4">7: after the loop, close the file</span></p><p><b>(b)</b> <span class="mk a" data-t="1">So that the last three lines of the file are output in the correct order</span></p><p><b>(c)</b> Any four: <span class="mk b" data-t="1">Loop until the given line number − 1 lines have been read</span> <span class="mk b" data-t="2">If the end of the file is reached return FALSE</span> <span class="mk b" data-t="3">Loop for three lines: read a line and output it</span> <span class="mk b" data-t="4">If the end of the file is reached return FALSE</span> <span class="mk b" data-t="5">After outputting the required lines return TRUE</span> <span class="mk b" data-t="6">The ordering of the lines is no longer needed</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/22 · Q3</span> <span class="cmd">Complete / Explain</span> <span class="mark">6 + 1 + 3 marks</span> OldFile.txt holds club members, three lines per member (ID "AB1234", name, email). It is to be reorganised into NewFile.txt with one line per member using '\' as a separator, for example "AB1234\Freddie Jones\FreddieJ909@Cambridge.org". LineX, LineY, LineZ and NewString are STRING variables. (a) Complete the numbered steps of the algorithm. (b) Explain why '\' is a suitable separator. (c) Two new encrypted items (any characters, up to 99 characters each) will also be stored for each member. Describe how this can be done so each item can be recovered from its line.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open both; read three lines; join with separators; write; repeat; close.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Open OldFile.txt in read mode and NewFile.txt in write mode</span> <span class="mk k" data-t="2">Read three lines from OldFile.txt and store them in LineX, LineY and LineZ</span> <span class="mk k" data-t="3">Set NewString to LineX & '\' & LineY & '\' & LineZ</span> <span class="mk k" data-t="4">Write NewString to NewFile.txt</span> <span class="mk k" data-t="5">Repeat from the read step until the end of OldFile.txt</span> <span class="mk k" data-t="6">Close both files</span></p><p><b>(b)</b> <span class="mk a" data-t="1">It does not appear in any of the data items (the ID, the name or the email address)</span></p><p><b>(c)</b> Any three: <span class="mk b" data-t="1">Add a new single separator at the end of the third (original) item</span> <span class="mk b" data-t="2">Calculate the length of both new data items</span> <span class="mk b" data-t="3">Store the length of each new item</span> <span class="mk b" data-t="4">as a fixed-length digit string, so each item can be extracted using its length</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Choosing a separator such as a space or comma that can appear in names or addresses.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/22 · Q3</span> <span class="cmd">Complete</span> <span class="mark">6 marks</span> A game uses WordList.txt containing 10 000 unique lower-case words, one per line. An efficient algorithm checks that a word input by the user is in the file: if found, output the line number; if not, output "Not Found". Complete the steps (no pseudocode). Steps 1 to 3 are: set line counter to 0; input a word; convert the word to lower case.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open in read mode; read the next line; increment the counter; compare; output the counter; not found after.</div>
+    <div class="ans"><p>Any six: <span class="mk k" data-t="1">Step 4: open WordList.txt in read mode (and close it afterwards), outside any loop</span> <span class="mk k" data-t="2">Step 5: read the next line from the file, in a loop</span> <span class="mk k" data-t="3">Step 6: increment the line counter</span> <span class="mk k" data-t="4">Step 7: check whether the line read equals the word input</span> <span class="mk k" data-t="5">Step 8: if it does, output the line counter</span> <span class="mk k" data-t="6">Step 9: if the word is not found after all iterations, output "Not Found"</span> <span class="mk k" data-t="7">Step 10: otherwise repeat from step 5 (with an end condition: found or end of file)</span></p></div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">5 marks</span> Write pseudocode for a procedure ShowNames() that outputs every line of the file Names.txt.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open, loop to EOF, close.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Procedure heading and ending, a declared variable</span> <span class="mk k" data-t="2">OPENFILE for READ</span> <span class="mk k" data-t="3">A loop until EOF</span> <span class="mk k" data-t="4">Read and output the line in the loop</span> <span class="mk k" data-t="5">CLOSEFILE</span></p><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">PROCEDURE ShowNames()</span><span class="ln">   DECLARE ThisLine : STRING</span><span class="ln">   OPENFILE &quot;Names.txt&quot; FOR READ</span><span class="ln">   WHILE NOT EOF(&quot;Names.txt&quot;)</span><span class="ln">      READFILE &quot;Names.txt&quot;, ThisLine</span><span class="ln">      OUTPUT ThisLine</span><span class="ln">   ENDWHILE</span><span class="ln">   CLOSEFILE &quot;Names.txt&quot;</span><span class="ln">ENDPROCEDURE</span></pre></div>
+</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">3 marks</span> Write pseudocode to add the string NewName to the end of Names.txt without losing the existing names.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>APPEND.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">OPENFILE in APPEND mode</span> <span class="mk k" data-t="2">WRITEFILE the string</span> <span class="mk k" data-t="3">CLOSEFILE</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State two reasons for storing scores in a file rather than an array.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Permanent, shared.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The scores are saved after the computer is switched off</span> <span class="mk k" data-t="2">The file can hold more values than a fixed array and another program can use it</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">3 marks</span> Describe how to count the lines in a file (no pseudocode).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Counter, loop, EOF.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Set a counter to zero and open the file for reading</span> <span class="mk k" data-t="2">Repeat until the end of the file: read a line and add 1 to the counter</span> <span class="mk k" data-t="3">Close the file and output the counter</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why the number 25 must be converted before it is written to a text file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Files hold text.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A text file stores strings</span> <span class="mk k" data-t="2">so the number is converted with NUM_TO_STR before writing</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Open, loop, close.</b> In READ, WRITE or APPEND.</li>
+    <li><b>Append keeps old data.</b> Write overwrites.</li>
+    <li><b>Loop until EOF.</b> And until found, if searching.</li>
+    <li><b>Extract fields with MID/LEFT/RIGHT.</b> Use the field lengths.</li>
+    <li><b>Sorted file: stop early.</b> When the line is greater.</li>
+    <li><b>Strings only.</b> Convert numbers before writing.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>a file mode</td><td>"READ, WRITE or APPEND: how the file is opened."</td></tr>
+    <tr><td>EOF</td><td>"A function that is true at the end of a file."</td></tr>
+    <tr><td>append</td><td>"Adding to the end of a file, keeping existing data."</td></tr>
+    <tr><td>a separator</td><td>"A character that splits items on a line."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Write</td><td>Write the pseudocode.</td></tr>
+    <tr><td>Describe</td><td>Steps in words.</td></tr>
+    <tr><td>Complete</td><td>Fill the missing steps.</td></tr>
+    <tr><td>State</td><td>Short answer.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+(function () {
+  const lines = ["Ann", "Ben", "Cy", "Di"]; const draw = (s) => { const k = Math.round(s.i); let o = SV.text(20, 14, "file", "sm"); lines.forEach((l, i) => o += SV.rect(20, 20 + i * 28, 140, 24, i === k - 1 ? "f3" : i < k - 1 ? "f1" : "cell", { rx: 4 }) + SV.text(28, 37 + i * 28, (i + 1) + "  " + l, "lbl", { style: "font-size:12px" })); o += SV.text(200, 50, k === 0 ? "OPENFILE ... FOR READ" : k <= 4 ? "READFILE: ThisLine = \"" + lines[k - 1] + "\"" : "EOF is TRUE: leave the loop, CLOSEFILE", "lbl bd t3", { style: "font-size:13px" }); return o; };
+  Lib.stepper($("#stA"), { w: 520, h: 140, label: "Reading", base: { i: 0 }, draw, tween: 100, dwell: 1800, steps: ["Open the file in read mode.", "Read line 1.", "Read line 2.", "Read line 3.", "Read line 4.", "No more lines: EOF is true."].map((c, i) => ({ cap: c, s: { i } })) });
+})();
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); const old = ["Ann", "Ben"]; let o = SV.text(20, 14, k === 0 ? "file before" : k === 1 ? "after WRITE \"Cy\"" : "after APPEND \"Cy\"", "lbl bd", { style: "font-size:13px" }); const L = k === 0 ? old : k === 1 ? ["Cy"] : [...old, "Cy"]; L.forEach((l, i) => o += SV.rect(20, 24 + i * 28, 160, 24, l === "Cy" ? "f3" : "cell", { rx: 4 }) + SV.text(28, 41 + i * 28, l, "lbl", { style: "font-size:12px" })); o += SV.text(220, 60, k === 1 ? "old data overwritten" : k === 2 ? "old data kept" : "", "lbl bd t3", { style: "font-size:13px" }); return o; };
+  Lib.stepper($("#stB"), { w: 440, h: 110, label: "Write and append", base: { i: 0 }, draw, tween: 100, dwell: 2600, steps: ["The file holds two names.", "<b>WRITE</b> replaces everything.", "<b>APPEND</b> adds to the end."].map((c, i) => ({ cap: c, s: { i } })) });
+})();
+(function () {
+  const L = ["l1", "l2", "l3", "l4", "l5"]; const draw = (s) => { const k = Math.round(s.i); const x = k >= 1 ? L[k - 1] : "", y = k >= 2 ? L[k - 2] : "", z = k >= 3 ? L[k - 3] : ""; const v = k >= 3 ? [L[k - 3], L[k - 2], L[k - 1]] : ["", "", k >= 1 ? L[k - 1] : ""]; let o = ""; ["LineX", "LineY", "LineZ"].forEach((n, i) => o += SV.rect(20 + i * 100, 20, 92, 36, "cell", { rx: 5 }) + SV.text(66 + i * 100, 34, n, "sm", { "text-anchor": "middle" }) + SV.text(66 + i * 100, 50, v[i], "lbl bd", { "text-anchor": "middle" }));
+    o += SV.text(20, 88, k === 0 ? "start: all empty" : "read " + L[k - 1] + ": shuffle LineX ← LineY, LineY ← LineZ, LineZ ← new line", "lbl bd t3", { style: "font-size:12px" }); return o; };
+  Lib.stepper($("#stC"), { w: 420, h: 105, label: "Shuffle", base: { i: 0 }, draw, tween: 100, dwell: 2000, steps: ["Three variables start empty.", "Line 1 read.", "Line 2 read.", "Line 3 read.", "Line 4 read: the earliest line drops out.", "Line 5 read: LineX, LineY, LineZ hold the last three, in order."].map((c, i) => ({ cap: c, s: { i } })) });
+})();
+
+(function () {
+  let st; const reset = () => { st = ["Ann", "Ben", "Cy"]; paint("The file holds Ann, Ben, Cy."); }; const paint = (m) => { $("#wmV").innerHTML = '<div class="tw"><table class="t mono"><tr><th>line</th><th>data</th></tr>' + st.map((l, i) => `<tr><td>${i + 1}</td><td>${l}</td></tr>`).join("") + `</table></div><div class="verdict">${m}</div>`; };
+  $("#wm_w").onclick = () => { st = ["Dee"]; paint("WRITE overwrote the file: Ann, Ben and Cy are lost."); }; $("#wm_a").onclick = () => { st.push("Dee"); paint("APPEND added Dee at the end: the old names are kept."); }; $("#wm_r").onclick = reset; reset();
+})();
+(function () {
+  const words = ["apple", "bread", "cheese", "dates", "eggs", "flour", "grapes"]; let target = "eggs", k = 0, found = 0; const paint = () => { $("#fsV").innerHTML = '<div class="tw"><table class="t mono"><tr><th>line</th><th>word</th></tr>' + words.slice(0, k).map((w, i) => `<tr><td>${i + 1}</td><td>${w}${w === target ? " ← found" : ""}</td></tr>`).join("") + `</table></div><div class="verdict">${found ? `Found "${target}" on line <b>${found}</b> after reading ${k} line(s). The loop stops at once.` : k >= words.length ? `End of file: output "Not Found".` : "Press Read next line."}</div>`; };
+  const bar = $("#sS"); words.forEach((w) => { const b = document.createElement("button"); b.textContent = w; b.onclick = () => { target = w; bar.querySelectorAll("button").forEach((x) => x.className = x === b ? "on" : ""); k = 0; found = 0; paint(); }; if (w === target) b.className = "on"; bar.appendChild(b); });
+  $("#fs_step").onclick = () => { if (found || k >= words.length) return; k++; if (words[k - 1] === target) found = k; paint(); }; $("#fs_reset").onclick = () => { k = 0; found = 0; paint(); }; paint();
+})();
+btnTable("mB", "mO", [
+  ["Read a stock file line by line", "READ", "Only looking"],
+  ["Create TestData.001", "WRITE", "A new file"],
+  ["AddItem() adds a line to Stock.txt", "APPEND", "Keep the old items"],
+  ["Add names to a support list that has earlier group tests", "APPEND", "WRITE would overwrite them"]
+], ["Task", "Mode", "Why"]);
+Lib.classify($("#cl1"), { prompt: "Which file mode is needed?", buckets: [{"label": "READ"}, {"label": "WRITE"}, {"label": "APPEND"}], items: [{"text": "Searching a file for a value", "b": 0}, {"text": "Creating a brand new file", "b": 1}, {"text": "Adding an item to the end of Stock.txt", "b": 2}, {"text": "Counting the lines in a file", "b": 0}, {"text": "Replacing all the data in a file", "b": 1}, {"text": "Adding names to a file that already has other group tests", "b": 2}], done: "Read: look. Write: replace. Append: add." });
+Lib.classify($("#cl2"), { prompt: "Is a file or an array the better store?", buckets: [{"label": "File"}, {"label": "Array"}], items: [{"text": "The data must be saved after the computer is switched off", "b": 0}, {"text": "A small, fixed number of values used while the program runs", "b": 1}, {"text": "The data must be used by another program", "b": 0}, {"text": "Fast access by index in a loop", "b": 1}, {"text": "The number of values is unknown and may be large", "b": 0}, {"text": "Temporary values that can be lost at the end", "b": 1}], done: "Permanent: file. Temporary: array." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["OPENFILE", "Opens a file in a mode"], ["READFILE", "Reads the next line"], ["WRITEFILE", "Writes a line"], ["EOF", "True at the end of the file"], ["CLOSEFILE", "Closes the file"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the file-search steps in order.", items: ["Open the file in read mode", "Repeat until the value is found or the end of the file", "Read a line and extract the field", "Compare it with the search value", "Close the file and report whether it was found"], done: "Open, loop, read, compare, close." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "A file has 10 000 lines. A linear search finds a word on line 4321. How many lines are read?", "a": 4321, "unit": "", "tol": 0.01, "hint": "Up to and including that line.", "sol": "<b>4321</b>."},
+  {"q": "A file has 12 lines. After APPEND of 3 lines, how many lines?", "a": 15, "unit": "", "tol": 0.01, "hint": "12 + 3.", "sol": "<b>15</b>."},
+  {"q": "A file has 12 lines. After WRITE of 3 lines (overwriting), how many lines?", "a": 3, "unit": "", "tol": 0.01, "hint": "The old lines are gone.", "sol": "<b>3</b>."},
+  {"q": "A suffix is always three characters. The file number 7 gives the suffix 007. How many zeros are added?", "a": 2, "unit": "", "tol": 0.01, "hint": "3 − 1.", "sol": "<b>2</b>."},
+  {"q": "The record is <Field1><Field2><Field3> with lengths 4, 5 and 12. Field 2 starts at which character?", "a": 5, "unit": "", "tol": 0.01, "hint": "4 + 1.", "sol": "<b>5</b> (MID(Line, 5, 5))."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "APPEND mode:", opts: ["Adds to the end and keeps old data", "Deletes old data", "Only reads", "Closes the file"], a: 0, why: "Adds." },
+  { q: "WRITE mode:", opts: ["Overwrites existing data", "Keeps old data", "Only reads", "Appends"], a: 0, why: "Overwrites." },
+  { q: "EOF is true at:", opts: ["The end of the file", "The start", "Line 1", "Never"], a: 0, why: "End." },
+  { q: "A file is better than an array when:", opts: ["Data must be kept after switch-off", "The data is tiny", "Speed only", "No data"], a: 0, why: "Permanent." },
+  { q: "Before writing a number to a file you:", opts: ["Convert it to a string", "Round it", "Close it", "Sort it"], a: 0, why: "Convert to string." },
+  { q: "Always:", opts: ["Close the file after use", "Leave it open", "Use WRITE", "Use EOF only"], a: 0, why: "Close." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["OPENFILE", "Mode: READ, WRITE or APPEND."],
+  ["READFILE", "Next line into a variable."],
+  ["WRITEFILE", "A line to the file."],
+  ["EOF", "True at the end."],
+  ["APPEND", "Add; keep old data."],
+  ["WRITE", "Overwrite."],
+  ["Search", "Loop until found or EOF."],
+  ["Why a file", "Permanent; shared; unlimited."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>
