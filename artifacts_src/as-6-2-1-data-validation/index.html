@@ -1,0 +1,798 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Data Validation</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
+
+table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
+.synd{margin:8px 0;overflow-x:auto}
+.gantt{display:flex;margin:6px 0 0;font-family:var(--mono)}.gantt .gb{border:1.5px solid var(--ink);margin-left:-1.5px;text-align:center;padding:6px 0;font-weight:700;font-size:.85rem;background:var(--surface);min-width:0}
+.gantt .gb.c0{background:var(--accent-soft)}.gantt .gb.c1{background:var(--bad-soft)}.gantt .gb.c2{background:var(--good-soft)}.gantt .gb.c3{background:var(--warn-soft)}.gantt .gb.c4{background:var(--soft)}
+.gticks{display:flex;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:2px 0 10px}.gticks span{text-align:right;min-width:0}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 6.2.1</div>
+  <h1>Data Validation</h1>
+  <p class="cbook">Coursebook: Chapter 6 · Security, privacy and data integrity · section 6.2 Data integrity</p>
+  <p class="lead">Range, limit, length, type, presence, format, existence and check digit validation applied to real data, and why valid data is not always correct, with animations, a date-of-birth checker and the real Paper 1 and Paper 2 questions from 2021 to 2026.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p><b>Data validation</b> is an automatic check that data entered is <b>reasonable and sensible</b>, within specified bounds, in the right format: it protects the <b>integrity</b> of data but does <b>not</b> prove the data is correct (a valid date of birth can still be the wrong date). The checks you need are <b>range</b>, <b>limit</b>, <b>length</b>, <b>type</b>, <b>presence</b>, <b>format</b>, <b>existence</b> (look-up) and <b>check digit</b>. For each check you must say <b>what it tests</b> and apply it to the data in the question, for example a date of birth. Validation is different from <b>verification</b> (checking that data matches the original): validation checks the data is sensible, verification checks it is the same as the source. A check digit is calculated from the other digits, appended to the number, and recalculated on entry to detect errors.</p></div>
+
+  <h2>1 · Validation checks</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Check</th><th>What it tests</th><th>Example: date of birth 05/07/2010</th></tr>
+    <tr><td><b>Presence</b></td><td>Data has been entered (not left blank)</td><td>The field cannot be left empty</td></tr>
+    <tr><td><b>Range</b></td><td>Value lies between a lower and an upper limit (both ends)</td><td>Between 1 January 1900 and today's date; month 1 to 12; day 1 to the month end</td></tr>
+    <tr><td><b>Limit</b></td><td>Value is above or below one limit only</td><td>Not after today's date</td></tr>
+    <tr><td><b>Length</b></td><td>The number of characters is correct (or within limits)</td><td>Exactly 10 characters (dd/mm/yyyy)</td></tr>
+    <tr><td><b>Format</b></td><td>Characters follow a pattern of letters, numbers and symbols</td><td>Must be dd/mm/yyyy</td></tr>
+    <tr><td><b>Type</b></td><td>Data is of the expected data type</td><td>The data type must be DATE (or numeric for a quantity)</td></tr>
+    <tr><td><b>Existence (look-up)</b></td><td>Data is one of a list of possible values (or exists in the system)</td><td>Must be one of "Red", "Yellow", "Blue"; a customer ID that exists</td></tr>
+    <tr><td><b>Check digit</b></td><td>An extra digit calculated from the others catches errors in data entry</td><td>See below</td></tr>
+  </table></div>
+
+  <h2>2 · A check digit</h2>
+  <p>In the method used in the exam, the check digit is the <b>remainder when the sum of the digits is divided by 10</b>. For 4162: 4 + 1 + 6 + 2 = 13, remainder 3, so the new number is <b>41623</b>. On entry the computer recalculates the digit from the other digits and rejects the input if it does not match. This method detects <b>single-digit errors</b>: 41633 is rejected. It does <b>not</b> catch errors that keep the sum the same: two digits that swap, or changes whose effect cancel out.</p>
+
+  <h2>3 · Validation does not mean correct</h2>
+  <p>Validation checks that data is <b>reasonable</b> and within bounds; it does not check that accurate data was entered. Verification checks that the data matches what was given; it does not check that the original data was accurate. So data can still be wrong after validating and verifying, for example when the original document itself was wrong.</p>
+
+  <h2>Common ways to lose marks</h2>
+  <ul>
+    <li>Describing a check without applying it to the data in the question. Say "the date of birth must be between 1900 and today", not "checks the range".</li>
+    <li>Mixing range and limit: range has two ends, limit has one.</li>
+    <li>Saying validation makes sure the data is correct. It makes sure it is sensible.</li>
+    <li>Confusing validation with verification: double entry and visual checks are verification.</li>
+    <li>Saying a check digit "makes sure the number is right". It detects most single-digit errors but not all errors.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · A range check</h2>
+  <div id="stA"></div>
+  <h2>2 · Several checks on one field</h2>
+  <div id="stB"></div>
+  <h2>3 · Generating and checking a check digit</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Check a date of birth</h2>
+  <p>Type a date and see which validation checks it passes.</p>
+  <div class="card"><input id="vIn" type="text" value="05/07/2010" style="font:inherit;padding:6px 10px;border:1px solid var(--border);border-radius:8px"><div id="vOut"></div></div>
+  <h2>Lab 2 · Check digit</h2>
+  <div class="card"><div id="cS"></div><div id="cV" class="verdict"></div></div>
+  <h2>Lab 3 · Which check?</h2>
+  <div class="card"><div id="wB" class="btnrow"></div><div id="wO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which validation check?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Validation or verification?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Match the check to its description</h2><div id="m1" class="card"></div>
+  <h2>4 · Put the check digit steps in order</h2><div id="o1" class="card"></div>
+  <h2>5 · Working out</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A sign-up form</h3><p>The form refuses to continue if the email is blank (presence), has no @ (format) or the password is too short (length).</p><div class="use"><b>Exam use:</b> validation protects integrity.</div></div>
+  <div class="rw"><h3>A bar code</h3><p>The last digit of a bar code is a check digit; a scanner recalculates it and beeps if a digit was misread.</p><div class="use"><b>Exam use:</b> check digit.</div></div>
+  <div class="rw"><h3>Entering a date of birth</h3><p>The system rejects 31/02/2010 (not a valid date) but cannot know whether 05/07/2010 is really your birthday.</p><div class="use"><b>Exam use:</b> validation does not prove accuracy.</div></div>
+  <div class="rw"><h3>A drop-down for country</h3><p>You can only choose from a list, so you cannot make a spelling mistake: an existence (look-up) check.</p><div class="use"><b>Exam use:</b> existence check.</div></div>
+  <div class="rw"><h3>A mark entry screen</h3><p>A teacher cannot type 150 for a test out of 100: a range check.</p><div class="use"><b>Exam use:</b> range check.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on data validation (Papers 1 and 2), 2021 to 2026. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2021</td><td>11, 13</td><td>6</td><td>3</td><td>Name the validation check performed by three algorithms</td></tr>
+    <tr><td>O/N 2021</td><td>11, 13</td><td>2(b)(i)</td><td>2</td><td>How data validation helps to protect integrity, with an example</td></tr>
+    <tr><td>O/N 2022</td><td>12</td><td>4(a), (c)</td><td>1 + 2</td><td>Verification against validation; two validation methods for non-numeric data</td></tr>
+    <tr><td>M/J 2022</td><td>13</td><td>5(b)(ii), (iii)</td><td>3 + 2</td><td>Range, presence and length checks for a date of birth; why data may still be wrong</td></tr>
+    <tr><td>O/N 2022</td><td>21</td><td>6</td><td>1 + 5 + 1</td><td>The condition in an email validation function; trace table; the returned value (Paper 2)</td></tr>
+    <tr><td>O/N 2023</td><td>13</td><td>8(a)</td><td>2</td><td>A method other than verification of protecting integrity</td></tr>
+    <tr><td>O/N 2025</td><td>21, 23</td><td>6</td><td>2 + 7</td><td>Why a check digit method accepts an incorrect number; write the module Generate() (Paper 2)</td></tr>
+    <tr><td>M/J 2026</td><td>12</td><td>2(b)</td><td>3</td><td>Two validation methods for a date of birth</td></tr>
+    <tr><td>M/J 2026</td><td>13</td><td>1</td><td>5</td><td>Complete a description of verification and validation methods</td></tr>
+  </table></div>
+  <p class="note">Validation checks are asked in Paper 1 every year in one of three forms: name the check from an algorithm, apply a named check to some data, or explain what validation can and cannot do. The Paper 2 questions need a trace and pseudocode. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+  <details class="eq"><summary><span class="src">M/J 2021 · 9618/11/13 · Q6</span> <span class="cmd">State</span> <span class="mark">3 marks</span> Each of the following algorithms performs data validation. State the type of validation check that each performs. (a) INPUT x; IF x < 0 OR x > 10 THEN OUTPUT "Invalid" ENDIF. (b) INPUT x; IF x = "" THEN OUTPUT "Invalid" ENDIF. (c) INPUT x; IF NOT(x = "Red" OR x = "Yellow" OR x = "Blue") THEN OUTPUT "Invalid" ENDIF.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two ends; blank; a list of allowed values.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">(a) Range (check)</span> <span class="mk k" data-t="2">(b) Presence (check)</span> <span class="mk k" data-t="3">(c) Existence (check)</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Calling (a) a limit check. It has two ends, so it is a range check.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/11/13 · Q2(b)(i)</span> <span class="cmd">Describe</span> <span class="mark">2 marks</span> Describe how data validation helps to protect the integrity of the data. Give an example in your answer.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Checks the data is reasonable; example.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Validation checks that data is reasonable or sensible</span> <span class="mk k" data-t="2">Example: checking the data is the right number or type of characters</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/12 · Q4(a)(c)</span> <span class="cmd">State / Describe</span> <span class="mark">1 + 2 marks</span> (a) State the difference between data verification and data validation. (c) One validation method is a presence check. Describe two other validation methods that can be used to validate non-numeric data.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Same as original against reasonable. Format, existence, length, type.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Verification checks that input data is the same as the original, whereas validation checks that the data is reasonable or sensible</span></p><p><b>(c)</b> Any two: <span class="mk a" data-t="1">To make sure data is in the required format (only expected characters allowed)</span> <span class="mk a" data-t="2">To make sure the data is already present in the system</span> <span class="mk a" data-t="3">To make sure the data contains the correct number of characters</span> <span class="mk a" data-t="4">To ensure that non-numeric data is entered</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/13 · Q5(b)(ii)(iii)</span> <span class="cmd">Give / Explain</span> <span class="mark">3 + 2 marks</span> The company transfers each employee's date of birth into the computer. (ii) Give one example of how each of the following validation rules can be used to validate the date of birth: range check, presence check, length check. (iii) Explain why the data in the system may not be correct even after validating and verifying the data.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Between two dates; not blank; right number of characters. Validation: reasonable only. Verification: matches the original only.</div>
+    <div class="ans"><p><b>(ii)</b> <span class="mk k" data-t="1">Range: it must be after and before specific dates, for example between 1900 and today's date, or the month between 1 and 12</span> <span class="mk k" data-t="2">Presence: make sure the date of birth has been entered</span> <span class="mk k" data-t="3">Length: make sure it has the right number of characters, for example 8 characters</span></p><p><b>(iii)</b> Any two: <span class="mk a" data-t="1">Validation checks the data is reasonable or within bounds; it does not check that accurate data has been entered</span> <span class="mk a" data-t="2">Verification checks the data matches the data given; it does not check that the original data is accurate</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Answering 'a range check is between two numbers' with no date of birth. Apply the check to the data.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/21 · Q6</span> <span class="cmd">State / Complete</span> <span class="mark">1 + 5 + 1 marks</span> The function IsValid(InString) checks whether a string is a valid email address. It counts Dots ('.'), Ats ('@') and Others in InString; if Ats becomes greater than 1, Valid becomes FALSE; and at the end IF NOT (Dots >= 1 AND Ats = 1 AND Others > 8) THEN Valid ← FALSE. (a) State the values that would result in the condition evaluating to TRUE. (b) Complete the trace table for IsValid("Liz.123@big@net") and state the value returned.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The bracket must evaluate to FALSE: one of the three tests fails.</div>
+    <div class="ans"><p><b>(a)</b> Any one: <span class="mk k" data-t="1">Dots is zero (less than one), or Ats is not equal to one, or Others is less than nine</span></p><p><b>(b)(i)</b> <span class="mk k" data-t="1">Initial values: Dots 0, Ats 0, Others 0, Valid TRUE</span> <span class="mk k" data-t="2">Others rises to 3 for L, i, z; Dots becomes 1 at '.'</span> <span class="mk k" data-t="3">Others rises to 6 for 1, 2, 3; Ats becomes 1 at the first '@'</span> <span class="mk k" data-t="4">Others rises to 9 for b, i, g</span> <span class="mk k" data-t="5">At the second '@' Ats becomes 2 and Valid becomes FALSE</span></p><div class="tw"><table class="t mono"><tr><th>Index</th><th>NextChar</th><th>Dots</th><th>Ats</th><th>Others</th><th>Valid</th></tr><tr><td> </td><td></td><td>0</td><td>0</td><td>0</td><td>TRUE</td></tr><tr><td>1</td><td>&#39;L&#39;</td><td></td><td></td><td>1</td><td></td></tr><tr><td>2</td><td>&#39;i&#39;</td><td></td><td></td><td>2</td><td></td></tr><tr><td>3</td><td>&#39;z&#39;</td><td></td><td></td><td>3</td><td></td></tr><tr><td>4</td><td>&#39;.&#39;</td><td>1</td><td></td><td></td><td></td></tr><tr><td>5</td><td>&#39;1&#39;</td><td></td><td></td><td>4</td><td></td></tr><tr><td>6</td><td>&#39;2&#39;</td><td></td><td></td><td>5</td><td></td></tr><tr><td>7</td><td>&#39;3&#39;</td><td></td><td></td><td>6</td><td></td></tr><tr><td>8</td><td>&#39;@&#39;</td><td></td><td>1</td><td></td><td></td></tr><tr><td>9</td><td>&#39;b&#39;</td><td></td><td></td><td>7</td><td></td></tr><tr><td>10</td><td>&#39;i&#39;</td><td></td><td></td><td>8</td><td></td></tr><tr><td>11</td><td>&#39;g&#39;</td><td></td><td></td><td>9</td><td></td></tr><tr><td>12</td><td>&#39;@&#39;</td><td></td><td>2</td><td></td><td>FALSE</td></tr></table></div><p><b>(ii)</b> <span class="mk k" data-t="1">FALSE</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/13 · Q8(a)</span> <span class="cmd">Describe</span> <span class="mark">2 marks</span> Data verification is one method of protecting the integrity of data. Describe one other method of protecting the integrity of data.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Validation: reasonable, within bounds.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Validation (a named or described validation method)</span> <span class="mk k" data-t="2">protects the data by ensuring it is reasonable or sensible and within specified bounds</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/21 · Q6</span> <span class="cmd">Identify / Write</span> <span class="mark">2 + 7 marks</span> A check digit method sums all the digits of the original number, uses integer division to find the remainder when the sum is divided by 10, uses the remainder as the check digit and appends it, so 4162 becomes 41623. (a) An incorrect attempt was made to enter 41623: the first two digits were entered incorrectly and the last three correctly. The check digit was found to be correct and the input was accepted. Identify an example of the incorrect attempt and explain why it was not rejected. (b) Write pseudocode for a module Generate() that takes an integer (at least three digits) and returns the new number including the check digit.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) The first two digits must still sum to 5 (or 15). (b) Sum the digits, MOD 10, append.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Number: any number where the first two digits sum to 5 or 15 and the last three digits are 623, for example 32623</span> <span class="mk k" data-t="2">Explanation: the remainder is the same, or the sum of the digits is the same</span></p><p><b>(b)</b> One answer:</p><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">FUNCTION Generate(Number : INTEGER) RETURNS INTEGER</span><span class="ln">   DECLARE Total, Index, CheckDigit : INTEGER</span><span class="ln">   DECLARE NumString : STRING</span><span class="ln">   Total ← 0</span><span class="ln">   NumString ← NUM_TO_STR(Number)</span><span class="ln">   FOR Index ← 1 TO LENGTH(NumString)</span><span class="ln">      Total ← Total + STR_TO_NUM(MID(NumString, Index, 1))</span><span class="ln">   NEXT Index</span><span class="ln">   CheckDigit ← Total MOD 10</span><span class="ln">   Number ← Number * 10 + CheckDigit</span><span class="ln">   RETURN Number</span><span class="ln">ENDFUNCTION</span></pre></div>
+<p><span class="mk k" data-t="1">Function heading, parameter, return type and ending</span> <span class="mk k" data-t="2">Initialise Total</span> <span class="mk k" data-t="3">Convert Number to a string and loop for its length</span> <span class="mk k" data-t="4">Attempt to sum the digits in a loop</span> <span class="mk k" data-t="5">Completely correct sum of digits</span> <span class="mk k" data-t="6">Calculate CheckDigit</span> <span class="mk k" data-t="7">Add CheckDigit to the original number multiplied by 10 and return it</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing a check digit method that cannot be failed. A digit swap or two errors that cancel out gives the same sum.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/12 · Q2(b)</span> <span class="cmd">Identify</span> <span class="mark">3 marks</span> The personal data includes the date of birth, for example 05/07/2010. Complete the table by identifying two methods of validation that can be used on the date of birth. State how each validation method will be used for the date of birth.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Presence, range, limit, format, length or type; apply to the date.</div>
+    <div class="ans"><p>One mark for two correct names and one for each matching use (max 2): <span class="mk k" data-t="1">Presence check: the date of birth cannot be left blank</span> <span class="mk k" data-t="2">Range check: it must be after one date and before another date (both ends)</span> <span class="mk k" data-t="3">Limit check: it must be before or after a specific date (one end only)</span> <span class="mk k" data-t="4">Format check: it must be dd/mm/yyyy</span> <span class="mk k" data-t="5">Length check: it must be exactly 10 characters</span> <span class="mk k" data-t="6">Type check: the data type must be DATE or DATE/TIME</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/13 · Q1</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> Complete the description by writing the missing terms. ... is a method of verification where the data is entered by a user and then manually compared to the original data. A verification method used during data transfer calculates a value from the data which is transferred with the data; the receiver performs the same calculation and compares the result. This method is ... . ... check compares the data entered to a list of possible values. ... check makes sure data has the correct combination of letters, numbers and symbols. ... check makes sure the correct quantity of characters has been entered.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Visual check; checksum; existence; format; length.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Visual check</span> <span class="mk k" data-t="2">checksum</span> <span class="mk k" data-t="3">Existence</span> <span class="mk k" data-t="4">Format</span> <span class="mk k" data-t="5">Length</span></p></div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Apply</span> <span class="mark">3 marks</span> A form asks for a student's year group, which must be 7 to 13. Describe a range check and a presence check for this field, and one validation check that is not suitable.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two ends; not blank.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Range check: the year group must be between 7 and 13 inclusive</span> <span class="mk k" data-t="2">Presence check: the field cannot be left blank</span> <span class="mk k" data-t="3">A format check on dd/mm/yyyy would not be suitable for a year group</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why a check digit cannot detect every error.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Same sum.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The check digit is calculated from the sum of the digits</span> <span class="mk k" data-t="2">so errors that keep the sum the same, such as swapped digits, are not detected</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State two differences between validation and verification.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Sensible against same as original.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Validation checks the data is reasonable; verification checks it is the same as the original</span> <span class="mk k" data-t="2">Validation is done by the computer using rules; verification compares two copies of the data</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Calculate</span> <span class="mark">2 marks</span> Calculate the check digit for 7281 using the sum-of-digits method and write the new number.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>7 + 2 + 8 + 1 = 18.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Sum 18, remainder 8 when divided by 10</span> <span class="mk k" data-t="2">New number 72818</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why a drop-down list is an example of an existence check.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>List of values.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The user can only choose from a list of possible values</span> <span class="mk k" data-t="2">so no value that is not on the list can be entered</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Apply the check to the data.</b> Not just 'checks the range'.</li>
+    <li><b>Range: two ends. Limit: one.</b> Know which one you mean.</li>
+    <li><b>Validation: reasonable.</b> Not correct.</li>
+    <li><b>Check digit: sum, MOD 10, append.</b> Detects single-digit errors.</li>
+    <li><b>Existence: a list of values.</b> Also called look-up.</li>
+    <li><b>Verification is a different mark.</b> Double entry, visual check.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>validation</td><td>"An automatic check that data is reasonable and in the right format."</td></tr>
+    <tr><td>a check digit</td><td>"A digit calculated from the other digits to detect errors."</td></tr>
+    <tr><td>an existence check</td><td>"Data must be one of a list of possible values."</td></tr>
+    <tr><td>a format check</td><td>"Data must follow a pattern."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State</td><td>Short answer.</td></tr>
+    <tr><td>Describe</td><td>Several points.</td></tr>
+    <tr><td>Explain</td><td>Reasons as well.</td></tr>
+    <tr><td>Write</td><td>Give the pseudocode.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); const v = [4, 12, 25][k]; const ok = v >= 5 && v <= 18; let o = SV.rect(30, 40, 360, 30, "cell", { rx: 4 }) + SV.rect(30 + (5 - 0) * 12, 40, 13 * 12, 30, "f1", { rx: 4 }) + SV.text(30 + 5 * 12, 34, "5", "sm", { "text-anchor": "middle" }) + SV.text(30 + 18 * 12, 34, "18", "sm", { "text-anchor": "middle" }) + SV.circle(30 + v * 12, 55, 8, ok ? "f2" : "f3");
+    o += SV.text(30, 105, ["age entered: 4", "age entered: 12", "age entered: 25"][k] + (ok ? " → accepted" : " → rejected: outside the range 5 to 18"), "lbl bd t3", { style: "font-size:13px" }); return o; };
+  Lib.stepper($("#stA"), { w: 440, h: 130, label: "Range check", base: { i: 0 }, draw, tween: 100, dwell: 2600, steps: ["A range check accepts ages from 5 to 18 inclusive. 4 is below the range: <b>rejected</b>.", "12 is inside the range: <b>accepted</b>.", "25 is above the range: <b>rejected</b>."].map((c, i) => ({ cap: c, s: { i } })) });
+})();
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); const checks = ["presence", "format", "length", "range", "type"]; let o = SV.rect(20, 20, 200, 30, "cell", { rx: 4 }) + SV.text(30, 40, "05/07/2010", "lbl bd"); checks.forEach((c, i) => { o += SV.rect(260, 14 + i * 28, 240, 24, i < k ? "f1" : "cell", { rx: 4 }) + SV.text(270, 31 + i * 28, c + " check" + (i < k ? " ✓" : ""), "lbl", { style: "font-size:12px" }); }); o += SV.text(20, 160, k >= 5 ? "Valid: reasonable and in the right format (not proof it is correct)" : "", "lbl bd t3", { style: "font-size:12px" }); return o; };
+  Lib.stepper($("#stB"), { w: 540, h: 175, label: "Several checks", base: { i: 0 }, draw, tween: 100, dwell: 1800, steps: ["The date of birth 05/07/2010 is entered.", "Presence: it is not blank.", "Format: it matches dd/mm/yyyy.", "Length: exactly 10 characters.", "Range: between 1900 and today.", "Type: it is a valid DATE."].map((c, i) => ({ cap: c, s: { i } })) });
+})();
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); const lines = ["4 1 6 2", "sum: 4 + 1 + 6 + 2 = 13", "13 MOD 10 = 3: check digit 3", "new number 41623", "entered as 41633: recalculated digit 4 ≠ 3: rejected"]; let o = ""; lines.slice(0, k + 1).forEach((l, i) => { o += SV.text(30, 30 + i * 28, l, i === k ? "lbl bd t3" : "lbl", { style: "font-size:14px" }); }); return o; };
+  Lib.stepper($("#stC"), { w: 480, h: 160, label: "Check digit", base: { i: 0 }, draw, tween: 100, dwell: 2400, steps: ["The original number is 4162.", "Sum the digits.", "Take the remainder when divided by 10.", "Append it to get the new number.", "A single-digit error changes the sum, so the number is rejected."].map((c, i) => ({ cap: c, s: { i } })) });
+})();
+
+(function () {
+  const inp = $("#vIn"); const paint = () => { const t = inp.value; const m = t.match(/^(\d\d)\/(\d\d)\/(\d{4})$/); const d = m ? new Date(+m[3], +m[2] - 1, +m[1]) : null; const real = d && d.getDate() === +m[1] && d.getMonth() === +m[2] - 1;
+    const rows = [["Presence", t.length > 0], ["Length (10 characters)", t.length === 10], ["Format (dd/mm/yyyy)", !!m], ["Type (a real date)", !!real], ["Range (1900 to today)", !!real && d.getFullYear() >= 1900 && d <= new Date()]];
+    $("#vOut").innerHTML = '<div class="tw"><table class="t"><tr><th>Check</th><th>Result</th></tr>' + rows.map(([n, ok]) => `<tr><td>${n}</td><td style="color:var(${ok ? "--good" : "--bad"})"><b>${ok ? "pass" : "fail"}</b></td></tr>`).join("") + "</table></div>" + `<div class="verdict">${rows.every((r) => r[1]) ? "Valid: it passes every check, but validation cannot tell whether it is the person's real date of birth." : "Rejected by at least one check."}</div>`; };
+  inp.oninput = paint; paint();
+})();
+(function () {
+  let n = 4162; const paint = () => { const dg = String(n).split("").map(Number), sum = dg.reduce((a, b) => a + b, 0), cd = sum % 10; $("#cV").innerHTML = `Original <b>${n}</b>: digits sum to <b>${dg.join(" + ")} = ${sum}</b>; ${sum} MOD 10 = <b>${cd}</b>, so the new number is <b>${n}${cd}</b>. If a single digit is mistyped the sum changes, so the recalculated check digit will not match and the entry is rejected.`; };
+  Lib.slider($("#cS"), { id: "c1", label: "Original number ", min: 100, max: 9999, value: n, fmt: (x) => x, onInput: (v) => { n = v; paint(); } }); paint();
+})();
+btnTable("wB", "wO", [
+  ["The password must be at least 8 characters", "Length check", "Counts characters"],
+  ["Percentage must be 0 to 100", "Range check", "Two limits"],
+  ["Email must contain @", "Format check", "Pattern of characters"],
+  ["A name must not be left empty", "Presence check", "Entered or not"],
+  ["Choose from Mon, Tue, Wed...", "Existence check", "List of allowed values"],
+  ["Last digit of a barcode", "Check digit", "Calculated from the others"]
+], ["Rule", "Check", "Why"]);
+Lib.classify($("#cl1"), { prompt: "Which validation check does it describe?", buckets: [{"label": "Range"}, {"label": "Presence"}, {"label": "Length"}, {"label": "Format"}, {"label": "Existence"}], items: [{"text": "The date of birth must be between 1900 and today", "b": 0}, {"text": "The name field cannot be left blank", "b": 1}, {"text": "The password must be exactly 8 characters", "b": 2}, {"text": "A code must be two letters, a number then a symbol", "b": 3}, {"text": "The colour must be Red, Yellow or Blue", "b": 4}, {"text": "A mark must be from 0 to 100", "b": 0}], done: "Range, presence, length, format, existence." });
+Lib.classify($("#cl2"), { prompt: "Validation or verification?", buckets: [{"label": "Validation"}, {"label": "Verification"}], items: [{"text": "Presence check", "b": 0}, {"text": "Double entry", "b": 1}, {"text": "Range check", "b": 0}, {"text": "Visual check", "b": 1}, {"text": "Format check", "b": 0}, {"text": "Comparing entered data with the original document", "b": 1}], done: "Validation: sensible. Verification: same as the original." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Range check", "Between a lower and an upper limit"], ["Limit check", "Above or below one limit only"], ["Length check", "Correct number of characters"], ["Presence check", "Data has been entered"], ["Check digit", "A digit calculated from the others"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the check digit steps in order.", items: ["Add the digits of the original number", "Divide the sum by 10 and take the remainder", "Append the remainder to the number", "On entry, recalculate from the original digits", "Reject the input if the digits do not match"], done: "Sum, remainder, append, recalculate, compare." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "Find the check digit for 5384 (sum of digits, remainder when divided by 10).", "a": 0, "unit": "", "tol": 0.01, "hint": "5 + 3 + 8 + 4 = 20.", "sol": "<b>0</b>: the new number is 53840."},
+  {"q": "Find the check digit for 4162 (the worked example).", "a": 3, "unit": "", "tol": 0.01, "hint": "13 mod 10.", "sol": "<b>3</b>."},
+  {"q": "A range check allows ages 5 to 18 inclusive. How many whole-number ages are allowed?", "a": 14, "unit": "", "tol": 0.01, "hint": "18 − 5 + 1.", "sol": "<b>14</b>."},
+  {"q": "A length check requires exactly 10 characters. How many of 'dd/mm/yyyy' characters is that?", "a": 10, "unit": "", "tol": 0.01, "hint": "2 + 1 + 2 + 1 + 4.", "sol": "<b>10</b>."},
+  {"q": "The number 41633 is entered. Its first four digits are 4163. What check digit should it have (and is 41633 accepted? Answer the correct check digit).", "a": 4, "unit": "", "tol": 0.01, "hint": "4 + 1 + 6 + 3 = 14.", "sol": "<b>4</b>: 41633 has 3, so it is rejected."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "A range check tests:", opts: ["Between two limits", "Blank fields", "Data type only", "Spelling"], a: 0, why: "Between limits." },
+  { q: "A presence check ensures:", opts: ["Data has been entered", "The data is correct", "The data matches the paper", "A back-up exists"], a: 0, why: "Entered." },
+  { q: "Validation checks the data is:", opts: ["Reasonable", "The same as the original", "Encrypted", "Copied"], a: 0, why: "Reasonable." },
+  { q: "A check digit detects:", opts: ["Single-digit errors", "All errors", "Viruses", "Copying"], a: 0, why: "Single-digit errors." },
+  { q: "A format check tests:", opts: ["The pattern of characters", "The number of rows", "The speed", "The author"], a: 0, why: "Pattern." },
+  { q: "Valid data can still be:", opts: ["Wrong", "Impossible", "Blank", "Encrypted"], a: 0, why: "Wrong." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Presence", "Not left blank."],
+  ["Range", "Between two limits."],
+  ["Limit", "One limit only."],
+  ["Length", "Number of characters."],
+  ["Format", "Pattern of characters."],
+  ["Type", "Right data type."],
+  ["Existence", "In a list of values."],
+  ["Check digit", "Sum of digits mod 10, appended."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>
