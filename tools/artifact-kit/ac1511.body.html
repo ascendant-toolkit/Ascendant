@@ -1,0 +1,227 @@
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 15.1.1</div>
+  <h1>RISC, CISC, Pipelining and Interrupts</h1>
+  <p class="cbook">Coursebook: Chapter 15 · Hardware and virtual machines, section 15.1 Processors, parallel processing and virtual machines</p>
+  <p class="lead">RISC and CISC processors compared, five-stage pipelining with pipeline tables, interrupt handling and how pipelining affects it; animations, a pipeline calculator and the real Paper 3 questions from 2022 to 2024.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A <b>RISC</b> (Reduced Instruction Set Computer) processor has a <b>small set of simple, fixed-length instructions</b>, each normally completing in <b>one clock cycle</b>, with <b>many general-purpose registers</b> and a hardwired control unit, so it suits <b>pipelining</b>. A <b>CISC</b> (Complex Instruction Set Computer) processor has a <b>large set of complex, variable-length instructions</b>, many addressing modes, <b>few registers</b> and a programmable (micro-coded) control unit, and an instruction may take several clock cycles. <b>Pipelining</b> splits the fetch-execute cycle into stages and overlaps the stages of different instructions so a new instruction can finish every clock cycle, which raises <b>instruction throughput</b>. When an <b>interrupt</b> arrives the processor stops the current program, saves the register contents on the stack, runs an interrupt service routine, then restores the registers and carries on. Pipelining makes interrupts harder to handle because several instructions are in progress at once.</p></div>
+
+  <h2>1 · RISC and CISC</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Feature</th><th>RISC</th><th>CISC</th></tr>
+    <tr><td>Instruction set</td><td><b>Small</b>: fewer, simpler instructions</td><td><b>Large</b>: many, complex instructions</td></tr>
+    <tr><td>Instruction length and format</td><td><b>Fixed length</b>, few formats</td><td><b>Variable length</b>, many formats</td></tr>
+    <tr><td>Clock cycles</td><td>Usually <b>one cycle</b> per instruction</td><td>Often <b>several cycles</b> (an instruction may be split into sub-instructions)</td></tr>
+    <tr><td>Addressing modes</td><td>Few (limited)</td><td>Many</td></tr>
+    <tr><td>Registers</td><td><b>Many</b> general-purpose registers</td><td><b>Few</b> registers</td></tr>
+    <tr><td>Control unit</td><td><b>Hardwired</b></td><td><b>Programmable</b> (micro-programmed / micro-coded); hardwired is also possible</td></tr>
+    <tr><td>Pipelining</td><td>Straightforward: well suited</td><td>Harder: poorer pipelineability</td></tr>
+    <tr><td>Memory access</td><td>Only <b>load and store</b> instructions address memory; more use of RAM</td><td>Many instruction types address memory; frequent use of cache</td></tr>
+    <tr><td>Circuits</td><td>Simpler; fewer transistors</td><td>More complex circuits</td></tr>
+    <tr><td>Design emphasis</td><td>On the <b>software</b>: the compiler does the work</td><td>On the <b>hardware</b>: it handles complex instructions</td></tr>
+    <tr><td>Cache</td><td>Cache is often split into separate data and instruction caches</td><td>Often a single cache</td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Remember</b>RISC: <b>R</b>educed means few, simple, one cycle, many registers, hardwired, pipelining. CISC: <b>C</b>omplex means many, long and varied, several cycles, few registers, programmable control unit.</div>
+
+  <h2>2 · Pipelining</h2>
+  <p>The fetch-execute cycle for one instruction is divided into <b>stages</b>. In a typical five-stage pipeline: <b>IF</b> instruction fetch, <b>ID</b> instruction decode, <b>OF</b> operand fetch, <b>IE</b> instruction execute, <b>WB</b> write back the result. Each stage uses a different part of the processor (and its own registers), so the stages of <b>different instructions can happen at the same time</b>.</p>
+  <ul>
+    <li>Each stage takes <b>one clock cycle</b>.</li>
+    <li>No two instructions can be in the <b>same stage</b> in the same clock cycle.</li>
+    <li>While one instruction is being decoded, the next is being fetched, and so on.</li>
+  </ul>
+  <p>Six instructions through a five-stage pipeline take <b>10</b> clock cycles (5 for the first, then one more for each of the other 5), instead of 30 without pipelining:</p>
+  <div class="tw"><table class="t mono"><tr><th>Stage</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th></tr><tr><td><b>IF</b></td><td>I1</td><td>I2</td><td>I3</td><td>I4</td><td>I5</td><td>I6</td><td></td><td></td><td></td><td></td></tr><tr><td><b>ID</b></td><td></td><td>I1</td><td>I2</td><td>I3</td><td>I4</td><td>I5</td><td>I6</td><td></td><td></td><td></td></tr><tr><td><b>OF</b></td><td></td><td></td><td>I1</td><td>I2</td><td>I3</td><td>I4</td><td>I5</td><td>I6</td><td></td><td></td></tr><tr><td><b>IE</b></td><td></td><td></td><td></td><td>I1</td><td>I2</td><td>I3</td><td>I4</td><td>I5</td><td>I6</td><td></td></tr><tr><td><b>WB</b></td><td></td><td></td><td></td><td></td><td>I1</td><td>I2</td><td>I3</td><td>I4</td><td>I5</td><td>I6</td></tr></table></div>
+  <div class="tw"><table class="t">
+    <tr><th>Instructions</th><th>Without pipelining</th><th>With a 5-stage pipeline</th></tr>
+    <tr><td>6</td><td>6 × 5 = 30 cycles</td><td>5 + (6 − 1) = 10 cycles</td></tr>
+    <tr><td>n</td><td>5n</td><td>5 + (n − 1)</td></tr>
+  </table></div>
+  <p>The benefit is <b>increased CPU instruction throughput</b>: the number of instructions completed per unit of time goes up, although each single instruction still needs all five cycles. Pipelining works best for RISC because the instructions are the same length and each stage takes one cycle.</p>
+
+  <h2>3 · Interrupt handling</h2>
+  <p>An <b>interrupt</b> is a signal that tells the processor something needs attention (an input, a timer, an error). The processor checks for interrupts at the <b>end of each fetch-execute cycle</b>.</p>
+  <ol>
+    <li>The processor <b>detects the interrupt</b> at the start or end of a fetch-execute cycle.</li>
+    <li>The current program is <b>temporarily stopped</b> and the <b>contents of the registers</b> (including the program counter) are <b>stored on the stack</b>.</li>
+    <li>The processor runs the <b>interrupt service routine (ISR)</b>.</li>
+    <li>When the ISR finishes, the <b>registers are restored</b> from the stack and the original program carries on from where it stopped.</li>
+  </ol>
+  <h3>Interrupts and pipelining</h3>
+  <p>With a pipeline, <b>several instructions are in progress</b> when an interrupt arrives, so there is added complexity. Usually the <b>instructions currently in the pipeline are discarded</b> (except the one at the last stage, which is allowed to finish), the interrupt handler is run, and when the interrupt has been serviced the processor <b>restarts with the next instruction in the sequence</b>.</p>
+
+  <h2>4 · Common ways to lose marks</h2>
+  <ul>
+    <li>Writing "RISC is faster". Give the reason: simple single-cycle instructions that pipeline well.</li>
+    <li>Mixing the features: <b>many registers</b> is RISC; <b>many instruction formats and addressing modes</b> is CISC.</li>
+    <li>Describing pipelining as "doing two things at once" without the stages of different instructions overlapping.</li>
+    <li>Forgetting to store the register contents on the <b>stack</b> in interrupt handling, or to restore them afterwards.</li>
+    <li>In a pipeline table, starting instruction 2 in the same cycle as instruction 1, or putting two instructions in one stage in the same cycle.</li>
+    <li>Saying CISC is "slower" without the reason: instructions need several cycles and are harder to pipeline.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · A pipeline fills up</h2>
+  <p>Press Play, or click the steps. Six instructions, five stages: IF, ID, OF, IE, WB.</p>
+  <div id="stA"></div>
+  <h2>2 · Handling an interrupt</h2>
+  <div id="stB"></div>
+  <h2>3 · An interrupt arrives while the pipeline is full</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Pipeline calculator</h2>
+  <p>Choose the number of instructions. The table shows each instruction moving through the stages, and the cycles needed with and without pipelining.</p>
+  <div class="card"><div id="pS"></div><div id="pT"></div><div class="readout"><div><small>Without pipelining</small><strong id="p1"></strong></div><div><small>With pipelining</small><strong id="p2"></strong></div><div><small>Speed-up</small><strong id="p3"></strong></div></div></div>
+
+  <h2>Lab 2 · An interrupt in a pipeline</h2>
+  <p>Choose the clock cycle in which an interrupt arrives. See which instructions are discarded and which finish.</p>
+  <div class="card"><div id="iS"></div><div id="iT"></div><div class="verdict" id="iV"></div></div>
+
+  <h2>Lab 3 · RISC or CISC?</h2>
+  <div class="card"><div id="eB" class="btnrow"></div><div id="eO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · RISC or CISC?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Which processor suits the statement?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the steps of interrupt handling in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>5 · Counting cycles</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Phones and tablets</h3><p>Most phone and tablet chips use a RISC design: simple instructions that are quick to carry out, using little power. That helps battery life.</p><div class="use"><b>Exam use:</b> RISC: fewer transistors, simple single-cycle instructions, low power.</div></div>
+  <div class="rw"><h3>Desktop and laptop processors</h3><p>Traditional PC processors have a very large instruction set built up over the years and break complex instructions into smaller internal steps.</p><div class="use"><b>Exam use:</b> CISC: a large instruction set with complex, variable-length instructions.</div></div>
+  <div class="rw"><h3>A pipelined assembly line</h3><p>Like a car factory, one stage of a pipeline is working on each car at once. Each car still takes the whole time, but a finished car leaves every cycle.</p><div class="use"><b>Exam use:</b> pipelining raises throughput, not the time for one instruction.</div></div>
+  <div class="rw"><h3>Pressing a key while a program runs</h3><p>The keyboard sends an interrupt. The processor saves where it was, runs the routine that reads the key, then picks the program up again.</p><div class="use"><b>Exam use:</b> interrupt handling uses the stack to save and restore the registers.</div></div>
+  <div class="rw"><h3>A branch in a program</h3><p>If a program jumps, the instructions already fetched into the pipeline may be the wrong ones and have to be discarded, which costs time.</p><div class="use"><b>Exam use:</b> pipelines add complexity when the sequence of instructions changes.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on RISC, CISC, pipelining and interrupts (Paper 3), 2022 to 2024. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2022</td><td>31, 33</td><td>4(a), 4(b)</td><td>4 + 2</td><td>Describe RISC and CISC; two differences</td></tr>
+    <tr><td>O/N 2022</td><td>31, 33</td><td>10(a), 10(b)</td><td>2 + 4</td><td>Tick RISC or CISC for five statements; describe pipelining in RISC</td></tr>
+    <tr><td>M/J 2023</td><td>32</td><td>8(a), 8(b)</td><td>2 + 4</td><td>Describe pipelining in RISC; complete a pipeline table for six instructions</td></tr>
+    <tr><td>M/J 2024</td><td>31, 33</td><td>11(a), (b), (c)</td><td>2 + 3 + 3</td><td>Two RISC features; interrupt handling; how pipelining affects interrupts</td></tr>
+    <tr><td>O/N 2024</td><td>31, 33</td><td>2</td><td>4</td><td>Four features of a RISC processor</td></tr>
+    <tr><td>O/N 2024</td><td>32</td><td>8</td><td>4</td><td>Four features of a CISC processor</td></tr>
+  </table></div>
+  <p class="note">RISC and CISC are tested in Paper 3 in most series from May/June 2022 to Oct/Nov 2024. Pipelining and interrupts are asked with them. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+
+  <h3>RISC and CISC</h3>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/31, 33 · Q4</span> <span class="cmd">Describe / Identify</span> <span class="mark">4 + 2 marks</span> Reduced Instruction Set Computers (RISC) and Complex Instruction Set Computers (CISC) are two types of processor. (a) Describe what is meant by RISC and CISC processors. (b) Identify two differences between RISC and CISC processors.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) two features of each. (b) a difference needs both sides: RISC has ..., CISC has ...</div>
+    <div class="ans"><p><b>(a)</b> RISC (max 2): <span class="mk k" data-t="1">Uses simple instructions</span> <span class="mk k" data-t="2">Uses fixed-length instructions</span> <span class="mk k" data-t="3">Instructions only require one clock cycle</span> <span class="mk k" data-t="4">Uses many registers</span> <span class="mk k" data-t="5">Makes use of pipelining</span> <span class="mk k" data-t="6">Hardwired control unit</span> CISC (max 2): <span class="mk a" data-t="1">Uses many instruction formats</span> <span class="mk a" data-t="2">Uses variable-length instructions</span> <span class="mk a" data-t="3">Makes use of different addressing modes</span> <span class="mk a" data-t="4">Uses few registers</span> <span class="mk a" data-t="5">Has a large instruction set</span> <span class="mk a" data-t="6">Programmable control unit</span> <span class="mk a" data-t="7">Instructions may need many clock cycles</span></p><p><b>(b)</b> Any two differences: <span class="mk k" data-t="1">RISC has fewer instructions; CISC has more</span> <span class="mk k" data-t="2">RISC has many registers; CISC has few</span> <span class="mk k" data-t="3">RISC instructions are simpler; CISC's are more complex</span> <span class="mk k" data-t="4">RISC usually uses single-cycle instructions; CISC uses multi-cycle</span> <span class="mk k" data-t="5">RISC uses fixed-length instructions; CISC uses variable-length</span> <span class="mk k" data-t="6">RISC has better pipelineability; CISC poorer</span> <span class="mk k" data-t="7">RISC has a hard-wired control unit; CISC a programmable one</span> <span class="mk k" data-t="8">RISC only uses load and store instructions to address memory</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving only one side of a difference, for example 'RISC has many registers', with nothing about CISC.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/31, 33 · Q2</span> <span class="cmd">Identify</span> <span class="mark">4 marks</span> Reduced Instruction Set Computers (RISC) is a type of processor. Identify four features of a RISC processor.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Choose four from the list.</div>
+    <div class="ans"><p>Any four: <span class="mk k" data-t="1">A low number of instruction formats / a small instruction set</span> <span class="mk k" data-t="2">Single-clock-cycle instructions</span> <span class="mk k" data-t="3">Fixed-length instructions</span> <span class="mk k" data-t="4">Many general-purpose registers</span> <span class="mk k" data-t="5">Works well with pipelining</span> <span class="mk k" data-t="6">A hard-wired control unit</span> <span class="mk k" data-t="7">Makes extensive use of RAM</span> <span class="mk k" data-t="8">A low number of addressing modes</span> <span class="mk k" data-t="9">The design emphasis is on the software</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/32 · Q8</span> <span class="cmd">Identify</span> <span class="mark">4 marks</span> Complex Instruction Set Computer (CISC) is a type of processor. Identify four features of a CISC processor.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The opposite of RISC.</div>
+    <div class="ans"><p>Any four: <span class="mk k" data-t="1">Many instruction formats are possible</span> <span class="mk k" data-t="2">A large instruction set</span> <span class="mk k" data-t="3">Many addressing modes are available</span> <span class="mk k" data-t="4">Variable-length / multi-operation instructions</span> <span class="mk k" data-t="5">Multi-clock-cycle instructions</span> <span class="mk k" data-t="6">Complex decoding of instructions</span> <span class="mk k" data-t="7">Uses complex circuits</span> <span class="mk k" data-t="8">Makes frequent use of cache memory</span> <span class="mk k" data-t="9">Uses a programmable (micro-programmed) control unit</span> <span class="mk k" data-t="10">The hardware has to handle complex instructions by converting them into sub-instructions; the design emphasis is on hardware</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/31, 33 · Q10(a)</span> <span class="cmd">Tick</span> <span class="mark">2 marks</span> Tick one box in each row to show whether the statement applies to RISC or CISC processors: (1) uses a smaller instruction set; (2) uses single-cycle instructions and limited addressing modes; (3) uses fewer general-purpose registers; (4) uses both hardwired and micro-coded control units; (5) uses a system where cache is split between data and instructions.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two marks for all five rows right, one mark for four right.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">(1) RISC</span> <span class="mk k" data-t="2">(2) RISC</span> <span class="mk k" data-t="3">(3) CISC</span> <span class="mk k" data-t="4">(4) CISC</span> <span class="mk k" data-t="5">(5) RISC</span> (two marks for all five, one for four)</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Ticking CISC for the split cache. A separate data cache and instruction cache is a RISC feature.</div>
+  </div></details>
+
+  <h3>Pipelining and interrupts</h3>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/31, 33 · Q10(b)</span> <span class="cmd">Describe</span> <span class="mark">4 marks</span> Describe the process of pipelining during the fetch-execute cycle in RISC processors.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Stages, one cycle each, overlapping instructions, no two in the same stage.</div>
+    <div class="ans"><p>Any four: <span class="mk k" data-t="1">Instructions are divided into subtasks / five stages</span> <span class="mk k" data-t="2">Instruction fetch (IF), instruction decode (ID), operand fetch (OF), instruction execute (IE), write back (WB)</span> <span class="mk k" data-t="3">Each subtask is completed during one clock cycle</span> <span class="mk k" data-t="4">No two instructions can execute the same stage in the same clock cycle</span> <span class="mk k" data-t="5">The second instruction begins in the second clock cycle while the first moves on to its second subtask</span> <span class="mk k" data-t="6">The third instruction begins in the third cycle while the first and second move on to their second and third subtasks, and so on</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/32 · Q8</span> <span class="cmd">Describe / Complete</span> <span class="mark">2 + 4 marks</span> (a) Describe the use of pipelining in Reduced Instruction Set Computers (RISC). (b) The processing of instructions is divided into five stages: instruction fetch (IF), instruction decode (ID), operand fetch (OF), instruction execute (IE), write back result (WB). Each stage is carried out using a different register when pipelining is used. Complete the table to show how a program consisting of six instructions would be completed using pipelining.<pre class="plain">Stage  1  2  3  4  5  6  7  8  9  10
+IF
+ID
+OF
+IE
+WB</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Instruction 1 starts in cycle 1; instruction 2 starts in cycle 2; and so on. Six instructions take ten cycles.</div>
+    <div class="ans"><p><b>(a)</b> Any two: <span class="mk k" data-t="1">Pipelining allows several instructions to be processed simultaneously / concurrently</span> <span class="mk k" data-t="2">so increasing CPU instruction throughput: more instructions completed per unit of time</span> <span class="mk k" data-t="3">Each stage is completed in one clock cycle and no two instructions use the same stage in the same cycle</span> <span class="mk k" data-t="4">While one instruction is being decoded the next can be fetched</span></p><p><b>(b)</b> Four marks: <span class="mk a" data-t="1">the first stage of the first instruction is in the first clock cycle</span> <span class="mk a" data-t="2">the first instruction is completed over five clock cycles</span> <span class="mk a" data-t="3">the remaining instructions are completed over ten clock cycles</span> <span class="mk a" data-t="4">with no extra instruction sections added on any row</span></p><div class="tw"><table class="t mono"><tr><th>Stage</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th></tr><tr><td><b>IF</b></td><td>I1</td><td>I2</td><td>I3</td><td>I4</td><td>I5</td><td>I6</td><td></td><td></td><td></td><td></td></tr><tr><td><b>ID</b></td><td></td><td>I1</td><td>I2</td><td>I3</td><td>I4</td><td>I5</td><td>I6</td><td></td><td></td><td></td></tr><tr><td><b>OF</b></td><td></td><td></td><td>I1</td><td>I2</td><td>I3</td><td>I4</td><td>I5</td><td>I6</td><td></td><td></td></tr><tr><td><b>IE</b></td><td></td><td></td><td></td><td>I1</td><td>I2</td><td>I3</td><td>I4</td><td>I5</td><td>I6</td><td></td></tr><tr><td><b>WB</b></td><td></td><td></td><td></td><td></td><td>I1</td><td>I2</td><td>I3</td><td>I4</td><td>I5</td><td>I6</td></tr></table></div></div>
+    <div class="warn"><b class="h">Common mistake</b>Putting two instructions in the same stage in one clock cycle, or ending after 30 cycles. With pipelining the six instructions finish in ten cycles.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/31, 33 · Q11</span> <span class="cmd">State / Outline / Explain</span> <span class="mark">2 + 3 + 3 marks</span> Reduced Instruction Set Computers (RISC) and Complex Instruction Set Computers (CISC) are two types of processor. (a) State two features of RISC processors. (b) Outline the process of interrupt handling as it could be applied to RISC or CISC processors. (c) Explain how pipelining affects interrupt handling for RISC processors.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(b) detect, save the registers on the stack, ISR, restore. (c) several instructions are in the pipeline.</div>
+    <div class="ans"><p><b>(a)</b> Any two: <span class="mk k" data-t="1">Uses hard-wired control units</span> <span class="mk k" data-t="2">Uses relatively few, simple instructions</span> <span class="mk k" data-t="3">Relatively few addressing modes</span> <span class="mk k" data-t="4">A single cycle for each instruction</span> <span class="mk k" data-t="5">Fixed-length instructions</span> <span class="mk k" data-t="6">General-purpose registers</span> <span class="mk k" data-t="7">Pipelining is straightforward to apply</span></p><p><b>(b)</b> Up to three: <span class="mk a" data-t="1">The processor detects an interrupt at the start or end of the fetch-execute cycle</span> <span class="mk a" data-t="2">The current program is temporarily stopped and the status of each register is stored on the stack</span> <span class="mk a" data-t="3">After the interrupt has been serviced (the interrupt service routine executed)</span> <span class="mk a" data-t="4">the registers are restored to their original status from the stack</span></p><p><b>(c)</b> Up to three: <span class="mk k" data-t="1">Pipelining adds complexity: there could be a number of instructions still in the pipeline when the interrupt is received</span> <span class="mk k" data-t="2">All the instructions currently in operation are usually discarded except for the last one (the one at write-back)</span> <span class="mk k" data-t="3">the interrupt handler routine is applied to the remaining instruction</span> <span class="mk k" data-t="4">Once the interrupt has been serviced the processor can restart with the next instruction in the sequence</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Describing what the interrupt is for, instead of what the processor does: save the registers, run the ISR, restore.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain why RISC processors are well suited to pipelining.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Think about instruction length and cycles.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">RISC instructions are all the same (fixed) length and have few formats, so each can be fetched and decoded in a predictable way.</span> <span class="mk k" data-t="2">Most instructions take a single clock cycle, so each pipeline stage takes one cycle.</span> <span class="mk k" data-t="3">So the stages of different instructions can overlap without waiting.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Calculate</span> <span class="mark">3 marks</span> A program of 20 instructions runs on a five-stage pipeline with one clock cycle per stage. How many clock cycles does it need with and without pipelining?</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>5 + (n − 1) against 5n.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Without pipelining: 20 × 5 = 100 cycles</span> <span class="mk k" data-t="2">With pipelining: 5 + 19 = 24 cycles</span> <span class="mk k" data-t="3">A speed-up of about 4.2 times</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State two reasons why CISC processors are harder to pipeline than RISC.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Length and cycles.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Instructions have variable lengths and many formats, so decoding takes different times.</span> <span class="mk k" data-t="2">Instructions need different numbers of clock cycles, so the stages do not line up.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">3 marks</span> A key is pressed while a program is running. Describe what the processor does with the registers.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Stack, ISR, restore.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">It stops the current program at the end of the fetch-execute cycle and stores the register contents on the stack.</span> <span class="mk k" data-t="2">It runs the interrupt service routine to deal with the key press.</span> <span class="mk k" data-t="3">It then restores the register contents from the stack and continues the program.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Distinguish</span> <span class="mark">2 marks</span> Distinguish between the control units of RISC and CISC processors.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>How they are built.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A RISC control unit is hardwired.</span> <span class="mk k" data-t="2">A CISC control unit is usually programmable (micro-programmed), so complex instructions are broken into micro-operations.</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Give both sides of a difference.</b> 'RISC has many registers whereas CISC has few.'</li>
+    <li><b>RISC: reduced and simple.</b> Small set, fixed length, one cycle, many registers, hardwired, pipelining.</li>
+    <li><b>CISC: complex.</b> Large set, variable length, many cycles, few registers, programmable control unit.</li>
+    <li><b>Pipeline tables: staircase.</b> Instruction n starts in cycle n. n instructions take n + 4 cycles for five stages.</li>
+    <li><b>Interrupts: stack.</b> Save the registers on the stack, run the ISR, restore them.</li>
+    <li><b>Pipelining and interrupts: the pipeline is full.</b> Several instructions are in progress, so most are discarded and the processor restarts at the next instruction.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>what pipelining does</td><td>"It overlaps the stages of different instructions so more instructions are completed per unit of time."</td></tr>
+    <tr><td>why RISC suits pipelining</td><td>"Its instructions are simple, fixed length and take one clock cycle."</td></tr>
+    <tr><td>how an interrupt is handled</td><td>"The registers are stored on the stack, the ISR is run, then the registers are restored."</td></tr>
+    <tr><td>how pipelining affects interrupts</td><td>"Several instructions are in the pipeline, so they are usually discarded and the processor restarts with the next instruction."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Identify</td><td>Give the features or answers only.</td></tr>
+    <tr><td>Describe</td><td>Say how it works, in several points.</td></tr>
+    <tr><td>Outline</td><td>Give the main steps.</td></tr>
+    <tr><td>Explain</td><td>Give the reason as well.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>

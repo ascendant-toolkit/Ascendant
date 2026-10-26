@@ -18,6 +18,8 @@ window.__chk = null; (async () => {
       const A = o.b;
       for (let j = i + 1; j < ts.length; j++) { const B = ts[j].b; if (A.x < B.x + B.width - 1 && B.x < A.x + A.width - 1 && A.y < B.y + B.height - 2 && B.y < A.y + A.height - 2) add(`${name}: text "${o.t.slice(0, 24)}" overlaps text "${ts[j].t.slice(0, 24)}"`); }
       ls.forEach((o2) => { if (hit(covered, A, o2.l, ...o2.c)) add(`${name}: text "${o.t.slice(0, 24)}" crossed by a line`); });
+      const cx = A.x + A.width / 2, cy = A.y + A.height / 2, rc = shapes.filter((e) => e.tagName === "rect" && cx > +e.getAttribute("x") && cx < +e.getAttribute("x") + +e.getAttribute("width") && cy > +e.getAttribute("y") && cy < +e.getAttribute("y") + +e.getAttribute("height")).sort((p, q) => +p.getAttribute("width") - +q.getAttribute("width"))[0];
+      if (rc && (A.x < +rc.getAttribute("x") - 1 || A.x + A.width > +rc.getAttribute("x") + +rc.getAttribute("width") + 1)) add(`${name}: text "${o.t.slice(0, 24)}" runs outside its box`);
       if (A.x < -2 || A.x + A.width > vb.width + 2 || A.y < 0 || A.y + A.height > vb.height + 2) add(`${name}: text "${o.t.slice(0, 24)}" off the canvas`);
     });
   };

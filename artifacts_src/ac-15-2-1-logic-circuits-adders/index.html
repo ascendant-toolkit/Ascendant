@@ -1,0 +1,877 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Logic Circuits and Adders</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 15.2.1</div>
+  <h1>Logic Circuits and Adders</h1>
+  <p class="cbook">Coursebook: Chapter 15 · Hardware and virtual machines, section 15.2 Boolean algebra and logic circuits</p>
+  <p class="lead">The six logic gates, how to write a truth table for a circuit, and the half adder and full adder; animations, adder labs and the real Paper 3 circuit questions from 2021 to 2025.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A <b>logic gate</b> turns one or more binary inputs into one output; the Cambridge syllabus uses <b>NOT, AND, OR, NAND, NOR and XOR</b>. A <b>logic circuit</b> joins gates together and you work out its <b>truth table</b> one gate at a time, left to right. A <b>half adder</b> adds two bits using an <b>XOR</b> gate for the sum and an <b>AND</b> gate for the carry. A <b>full adder</b> adds two bits <b>and a carry in</b>, and is built from two half adders and an OR gate. Full adders chained together add whole binary numbers, carrying from one column to the next.</p></div>
+
+  <h2>1 · The six gates</h2>
+  <div class="grid3"><div class="card" style="text-align:center"><b>NOT</b><div class="circ"><svg viewBox="0 0 254 72.0" style="width:305px;max-width:100%;display:block" role="img" aria-label="NOT gate"><path class="w" d="M58,32 H72 V32 H84"/><path class="w" d="M50,32 H58"/><path class="w" d="M138,32 H168"/><path class="ax" style="fill:var(--surface)" d="M84,16 L130,32 L84,48 Z"/><circle class="ax" style="fill:var(--surface)" cx="134" cy="32" r="4"/><text class="lbl bd" x="2" y="36">A</text><text class="lbl bd" x="174" y="36">X</text></svg></div><div class="bx">X = <span class="ob">A</span></div></div><div class="card" style="text-align:center"><b>AND</b><div class="circ"><svg viewBox="0 0 254 77.0" style="width:305px;max-width:100%;display:block" role="img" aria-label="AND gate"><path class="w" d="M58,22 H72 V21.0 H84"/><path class="w" d="M58,42 H67 V43.0 H84"/><path class="w" d="M50,22 H58"/><path class="w" d="M50,42 H58"/><path class="w" d="M138,32 H168"/><path class="ax" style="fill:var(--surface)" d="M84,11.0 H111.0 A27.0,21.0 0 0 1 111.0,53.0 H84 Z"/><text class="lbl bd" x="2" y="26">A</text><text class="lbl bd" x="2" y="46">B</text><text class="lbl bd" x="174" y="36">X</text></svg></div><div class="bx">X = A.B</div></div><div class="card" style="text-align:center"><b>OR</b><div class="circ"><svg viewBox="0 0 254 77.0" style="width:305px;max-width:100%;display:block" role="img" aria-label="OR gate"><path class="w" d="M58,22 H72 V21.0 H89.48571428571428"/><path class="w" d="M58,42 H67 V43.0 H89.48571428571428"/><path class="w" d="M50,22 H58"/><path class="w" d="M50,42 H58"/><path class="w" d="M138,32 H168"/><path class="ax" style="fill:var(--surface)" d="M84,11.0 Q116.4,11.0 138,32 Q116.4,53.0 84,53.0 Q99.12,32 84,11.0 Z"/><text class="lbl bd" x="2" y="26">A</text><text class="lbl bd" x="2" y="46">B</text><text class="lbl bd" x="174" y="36">X</text></svg></div><div class="bx">X = A+B</div></div><div class="card" style="text-align:center"><b>NAND</b><div class="circ"><svg viewBox="0 0 262 77.0" style="width:314px;max-width:100%;display:block" role="img" aria-label="NAND gate"><path class="w" d="M58,22 H72 V21.0 H84"/><path class="w" d="M58,42 H67 V43.0 H84"/><path class="w" d="M50,22 H58"/><path class="w" d="M50,42 H58"/><path class="w" d="M146,32 H176"/><path class="ax" style="fill:var(--surface)" d="M84,11.0 H111.0 A27.0,21.0 0 0 1 111.0,53.0 H84 Z"/><circle class="ax" style="fill:var(--surface)" cx="142" cy="32" r="4"/><text class="lbl bd" x="2" y="26">A</text><text class="lbl bd" x="2" y="46">B</text><text class="lbl bd" x="182" y="36">X</text></svg></div><div class="bx">X = <span class="ob">A.B</span></div></div><div class="card" style="text-align:center"><b>NOR</b><div class="circ"><svg viewBox="0 0 262 77.0" style="width:314px;max-width:100%;display:block" role="img" aria-label="NOR gate"><path class="w" d="M58,22 H72 V21.0 H89.48571428571428"/><path class="w" d="M58,42 H67 V43.0 H89.48571428571428"/><path class="w" d="M50,22 H58"/><path class="w" d="M50,42 H58"/><path class="w" d="M146,32 H176"/><path class="ax" style="fill:var(--surface)" d="M84,11.0 Q116.4,11.0 138,32 Q116.4,53.0 84,53.0 Q99.12,32 84,11.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="142" cy="32" r="4"/><text class="lbl bd" x="2" y="26">A</text><text class="lbl bd" x="2" y="46">B</text><text class="lbl bd" x="182" y="36">X</text></svg></div><div class="bx">X = <span class="ob">A+B</span></div></div><div class="card" style="text-align:center"><b>XOR</b><div class="circ"><svg viewBox="0 0 254 77.0" style="width:305px;max-width:100%;display:block" role="img" aria-label="XOR gate"><path class="w" d="M58,22 H72 V21.0 H82.48571428571428"/><path class="w" d="M58,42 H67 V43.0 H82.48571428571428"/><path class="w" d="M50,22 H58"/><path class="w" d="M50,42 H58"/><path class="w" d="M138,32 H168"/><path class="ax" style="fill:var(--surface)" d="M84,11.0 Q116.4,11.0 138,32 Q116.4,53.0 84,53.0 Q99.12,32 84,11.0 Z"/><path class="ax" d="M77,11.0 Q89,32 77,53.0"/><text class="lbl bd" x="2" y="26">A</text><text class="lbl bd" x="2" y="46">B</text><text class="lbl bd" x="174" y="36">X</text></svg></div><div class="bx">X = A.<span class="ob">B</span> + <span class="ob">A</span>.B</div></div></div>
+  <div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>AND</th><th>OR</th><th>NAND</th><th>NOR</th><th>XOR</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td></tr></table></div>
+  <p>NOT turns 0 into 1 and 1 into 0. AND is 1 only when <b>both</b> inputs are 1. OR is 1 when <b>at least one</b> input is 1. NAND and NOR are AND and OR followed by NOT. XOR is 1 when the inputs are <b>different</b>. A gate may have more than two inputs: a three-input AND is 1 only when all three are 1, and a three-input NOR is 1 only when all three are 0.</p>
+
+  <h2>2 · Writing a truth table for a circuit</h2>
+  <ol>
+    <li>List every combination of the inputs in binary order: 2 inputs give 4 rows, 3 give 8, 4 give 16.</li>
+    <li>Give every gate output a name (P, Q, R ...) and add a <b>working</b> column for each.</li>
+    <li>Fill the columns in order from left to right, so a gate is only worked out after the gates that feed it.</li>
+    <li>The last columns are the outputs. In the exam, one mark is usually for the working columns and the rest for the output column(s).</li>
+  </ol>
+  <p>A circuit with a NOT gate on an input behaves as if that input had been inverted first. A dot where wires meet means the signal is shared by both.</p>
+
+  <h2>3 · The half adder</h2>
+  <p>A half adder adds two single bits A and B and gives a <b>sum</b> S and a <b>carry</b> C:</p>
+  <div class="circ"><svg viewBox="0 0 264 141.0" style="width:317px;max-width:100%;display:block" role="img" aria-label="half adder"><path class="w" d="M58,24 H82 V23.0 H92.48571428571428"/><path class="w" d="M58,70 H77 V45.0 H92.48571428571428"/><path class="w" d="M58,24 H82 V85.0 H94"/><path class="w" d="M58,70 H77 V107.0 H94"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,70 H58"/><path class="w" d="M148,34 H178"/><path class="w" d="M148,96 H178"/><path class="ax" style="fill:var(--surface)" d="M94,13.0 Q126.4,13.0 148,34 Q126.4,55.0 94,55.0 Q109.12,34 94,13.0 Z"/><path class="ax" d="M87,13.0 Q99,34 87,55.0"/><path class="ax" style="fill:var(--surface)" d="M94,75.0 H121.0 A27.0,21.0 0 0 1 121.0,117.0 H94 Z"/><text class="lbl bd" x="2" y="28">A</text><text class="lbl bd" x="2" y="74">B</text><text class="lbl bd" x="184" y="38">S</text><text class="lbl bd" x="184" y="100">C</text></svg></div><div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>S</th><th>C</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td></tr></table></div>
+  <p>Sum: S = A XOR B. Carry: C = A AND B. In sum-of-products form, S = <span class="bx">~A.B + A.~B</span> and C = <span class="bx">A.B</span>. A half adder cannot accept a carry from a previous column, so it can only be used for the right-hand (least significant) column.</p>
+
+  <h2>4 · The full adder</h2>
+  <p>A full adder has three inputs: A, B and <b>Cin</b> (the carry from the previous column). It gives a <b>sum</b> and a <b>carry out</b> (Cout). It is two half adders and an OR gate: the first half adder adds A and B (P and Q), the second adds P to Cin (the sum and R), and the OR gate combines the two carries.</p>
+  <div class="circ"><svg viewBox="0 0 500 241.0" style="width:600px;max-width:100%;display:block" role="img" aria-label="full adder"><path class="w" d="M58,22 H82 V29.0 H92.48571428571428"/><path class="w" d="M58,62 H77 V51.0 H92.48571428571428"/><path class="w" d="M58,22 H82 V185.0 H94"/><path class="w" d="M58,62 H77 V207.0 H94"/><path class="w" d="M148,40 H200 V63.0 H210.4857142857143"/><circle class="dot" cx="200" cy="40" r="3.2"/><path class="w" d="M58,118 H195 V85.0 H210.4857142857143"/><path class="w" d="M148,40 H200 V129.0 H212"/><circle class="dot" cx="200" cy="40" r="3.2"/><path class="w" d="M58,118 H195 V151.0 H212"/><path class="w" d="M266,140 H318 V157.0 H335.48571428571427"/><path class="w" d="M148,196 H313 V179.0 H335.48571428571427"/><path class="w" d="M50,22 H58"/><path class="w" d="M50,62 H58"/><path class="w" d="M50,118 H58"/><path class="w" d="M266,74 H414"/><path class="w" d="M384,168 H414"/><path class="ax" style="fill:var(--surface)" d="M94,19.0 Q126.4,19.0 148,40 Q126.4,61.0 94,61.0 Q109.12,40 94,19.0 Z"/><path class="ax" d="M87,19.0 Q99,40 87,61.0"/><text class="sm" x="152" y="33">P</text><path class="ax" style="fill:var(--surface)" d="M94,175.0 H121.0 A27.0,21.0 0 0 1 121.0,217.0 H94 Z"/><text class="sm" x="152" y="189">Q</text><path class="ax" style="fill:var(--surface)" d="M212,53.0 Q244.4,53.0 266,74 Q244.4,95.0 212,95.0 Q227.12,74 212,53.0 Z"/><path class="ax" d="M205,53.0 Q217,74 205,95.0"/><path class="ax" style="fill:var(--surface)" d="M212,119.0 H239.0 A27.0,21.0 0 0 1 239.0,161.0 H212 Z"/><text class="sm" x="270" y="133">R</text><path class="ax" style="fill:var(--surface)" d="M330,147.0 Q362.4,147.0 384,168 Q362.4,189.0 330,189.0 Q345.12,168 330,147.0 Z"/><text class="lbl bd" x="2" y="26">A</text><text class="lbl bd" x="2" y="66">B</text><text class="lbl bd" x="2" y="122">Cin</text><text class="lbl bd" x="420" y="78">Sum</text><text class="lbl bd" x="420" y="172">Cout</text></svg></div><div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>Cin</th><th>P</th><th>Q</th><th>R</th><th>Sum</th><th>Cout</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td></tr></table></div>
+  <p>Sum = A XOR B XOR Cin, so Sum is 1 when an <b>odd number</b> of the three inputs are 1. Cout is 1 when <b>two or more</b> inputs are 1. As sum-of-products:</p>
+  <ul>
+    <li>Sum = <span class="bx"><span class="ob">A</span>.<span class="ob">B</span>.C + <span class="ob">A</span>.B.<span class="ob">C</span> + A.<span class="ob">B</span>.<span class="ob">C</span> + A.B.C</span></li>
+    <li>Cout = <span class="bx"><span class="ob">A</span>.B.C + A.<span class="ob">B</span>.C + A.B.<span class="ob">C</span> + A.B.C</span></li>
+  </ul>
+  <p>Here C stands for the carry in (Cin).</p>
+
+  <h2>5 · Adding binary numbers</h2>
+  <p>To add two binary numbers, use a half adder for the rightmost column and a full adder for every other column, passing each carry out to the next column's carry in. This is a <b>ripple-carry adder</b>. Adding 0110 (6) and 0111 (7):</p>
+  <div class="tw"><table class="t mono"><tr><th></th><th>bit 3</th><th>bit 2</th><th>bit 1</th><th>bit 0</th></tr>
+    <tr><td>carry</td><td>0</td><td>1</td><td>1</td><td>·</td></tr>
+    <tr><td>A</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+    <tr><td>B</td><td>0</td><td>1</td><td>1</td><td>1</td></tr>
+    <tr><td><b>sum</b></td><td><b>1</b></td><td><b>1</b></td><td><b>0</b></td><td><b>1</b></td></tr></table></div>
+  <p>1101 is 13. The carry out of the top bit signals overflow when the answer does not fit in the number of bits available.</p>
+
+  <h2>6 · Common ways to lose marks</h2>
+  <ul>
+    <li>Working out an output before the gates that feed it. Fill the working columns from left to right.</li>
+    <li>Confusing XOR with OR: XOR is 0 when both inputs are 1.</li>
+    <li>Forgetting that a NOT gate on a wire inverts it for every gate that wire feeds after the NOT.</li>
+    <li>Calling the full adder a "half adder" or the other way round. A half adder has two inputs and no carry in.</li>
+    <li>Not saying what each output <b>means</b> when asked for its purpose: the XOR output is the <b>sum</b>, the AND output is the <b>carry</b>.</li>
+    <li>Writing sum-of-products terms for the 0 rows instead of the 1 rows.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · The half adder, four cases</h2>
+  <p>Press Play or click the steps. Green wires carry a 1.</p>
+  <div id="stA"></div>
+  <h2>2 · The full adder, adding 1 + 1 + 1</h2>
+  <div id="stB"></div>
+  <h2>3 · A ripple-carry adder, 0110 + 0111</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Half adder</h2>
+  <p>Click A and B to flip the inputs. The table highlights the row you are on.</p>
+  <div class="card" id="labH"></div>
+  <h2>Lab 2 · Full adder</h2>
+  <div class="card" id="labF"></div>
+  <h2>Lab 3 · Gate explorer</h2>
+  <p>Choose a gate to see its truth table and when its output is 1.</p>
+  <div class="card"><div id="gB" class="btnrow"></div><div id="gO"></div></div>
+  <h2>Lab 4 · Four-bit ripple-carry adder</h2>
+  <div class="card"><div id="rA"></div><div id="rB"></div><div id="rT"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which gate?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Half adder or full adder?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Match the gate to its description</h2><div id="m1" class="card"></div>
+  <h2>4 · Put the steps for a circuit's truth table in order</h2><div id="o1" class="card"></div>
+  <h2>5 · Working out outputs</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>The calculator in your phone</h3><p>Inside the processor, an arithmetic logic unit adds numbers using adder circuits built from gates. Every addition you do on a screen is a chain of full adders.</p><div class="use"><b>Exam use:</b> full adders chained make a ripple-carry adder.</div></div>
+  <div class="rw"><h3>A light with two switches</h3><p>A landing light switched from the top and bottom of the stairs is on when exactly one switch is up. That is an XOR gate.</p><div class="use"><b>Exam use:</b> XOR is 1 when the inputs are different.</div></div>
+  <div class="rw"><h3>A car that will not start</h3><p>The engine starts only if the car is in park AND the brake is pressed. An AND gate makes a safe condition out of two inputs.</p><div class="use"><b>Exam use:</b> AND is 1 only when every input is 1.</div></div>
+  <div class="rw"><h3>A smoke alarm with a battery check</h3><p>The alarm sounds if smoke is detected OR the battery is low. OR gates combine conditions where either one is enough.</p><div class="use"><b>Exam use:</b> OR is 1 when at least one input is 1.</div></div>
+  <div class="rw"><h3>Checking data for errors</h3><p>Parity bits use XOR to count whether the number of 1s in a byte is odd or even, the same idea as the sum output of an adder.</p><div class="use"><b>Exam use:</b> XOR of several inputs is 1 for an odd number of 1s.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on reading logic circuits and the half and full adders (Paper 3), 2021 to 2025. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2021</td><td>31, 32, 33</td><td>7</td><td>3 + 1 + 4</td><td>Full adder circuit: truth table with working, its name, and sum-of-products for each output with its purpose</td></tr>
+    <tr><td>M/J 2022</td><td>32</td><td>6</td><td>2 + 1 + 2</td><td>Half adder circuit: truth table, name and purpose of each output</td></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>6(a)</td><td>3</td><td>Truth table with working for a NAND / AND / XOR circuit with four inputs</td></tr>
+    <tr><td>M/J 2024</td><td>31</td><td>6(a), (b)</td><td>3 + 2</td><td>Truth table with working for a circuit with NOT, AND, XOR and OR; sum-of-products</td></tr>
+    <tr><td>M/J 2024</td><td>32, 33</td><td>6</td><td>3 + 2</td><td>A different circuit each in 32 and 33, same format (truth table, sum-of-products), then a K-map (see 15.2.4)</td></tr>
+    <tr><td>M/J 2025</td><td>32</td><td>7(a), (b)</td><td>3 + 1</td><td>Truth table with working for a four-input circuit with NOT, NOR, AND and OR; sum-of-products</td></tr>
+    <tr><td>O/N 2025</td><td>31, 32</td><td>6(a)</td><td>3</td><td>Truth table with working for a given circuit</td></tr>
+  </table></div>
+  <p class="note">Circuit-reading questions appear in Paper 3 almost every series from May/June 2021 to Nov 2025. The circuits below are redrawn from the papers; the paper's own figure may look different but the gates and wiring are the same. Where the paper asks for a K-map next, that part is on the 15.2.4 page. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+  <details class="eq"><summary><span class="src">M/J 2021 · 9618/31/32/33 · Q7</span> <span class="cmd">Complete / State / Write</span> <span class="mark">3 + 1 + 4 marks</span> The diagram shows a logic circuit.<div class="circ"><svg viewBox="0 0 500 241.0" style="width:600px;max-width:100%;display:block" role="img" aria-label="M/J 2021 Q7"><path class="w" d="M58,22 H82 V29.0 H92.48571428571428"/><path class="w" d="M58,62 H77 V51.0 H92.48571428571428"/><path class="w" d="M58,22 H82 V185.0 H94"/><path class="w" d="M58,62 H77 V207.0 H94"/><path class="w" d="M148,40 H200 V63.0 H210.4857142857143"/><circle class="dot" cx="200" cy="40" r="3.2"/><path class="w" d="M58,118 H195 V85.0 H210.4857142857143"/><path class="w" d="M148,40 H200 V129.0 H212"/><circle class="dot" cx="200" cy="40" r="3.2"/><path class="w" d="M58,118 H195 V151.0 H212"/><path class="w" d="M266,140 H318 V157.0 H335.48571428571427"/><path class="w" d="M148,196 H313 V179.0 H335.48571428571427"/><path class="w" d="M50,22 H58"/><path class="w" d="M50,62 H58"/><path class="w" d="M50,118 H58"/><path class="w" d="M266,74 H414"/><path class="w" d="M384,168 H414"/><path class="ax" style="fill:var(--surface)" d="M94,19.0 Q126.4,19.0 148,40 Q126.4,61.0 94,61.0 Q109.12,40 94,19.0 Z"/><path class="ax" d="M87,19.0 Q99,40 87,61.0"/><text class="sm" x="152" y="33">P</text><path class="ax" style="fill:var(--surface)" d="M94,175.0 H121.0 A27.0,21.0 0 0 1 121.0,217.0 H94 Z"/><text class="sm" x="152" y="189">Q</text><path class="ax" style="fill:var(--surface)" d="M212,53.0 Q244.4,53.0 266,74 Q244.4,95.0 212,95.0 Q227.12,74 212,53.0 Z"/><path class="ax" d="M205,53.0 Q217,74 205,95.0"/><path class="ax" style="fill:var(--surface)" d="M212,119.0 H239.0 A27.0,21.0 0 0 1 239.0,161.0 H212 Z"/><text class="sm" x="270" y="133">R</text><path class="ax" style="fill:var(--surface)" d="M330,147.0 Q362.4,147.0 384,168 Q362.4,189.0 330,189.0 Q345.12,168 330,147.0 Z"/><text class="lbl bd" x="2" y="26">A</text><text class="lbl bd" x="2" y="66">B</text><text class="lbl bd" x="2" y="122">C</text><text class="lbl bd" x="420" y="78">Y</text><text class="lbl bd" x="420" y="172">Z</text></svg></div>(a) Complete the truth table for the given logic circuit. Show your working. (b) State the name of the logic circuit. (c) Write the Boolean expressions for the two outputs Y and Z in the truth table as sum-of-products and state the purpose of each output.<div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>P</th><th>Q</th><th>R</th><th>Y</th><th>Z</th></tr><tr><td>0</td><td>0</td><td>0</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>0</td><td>0</td><td>1</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>0</td><td>1</td><td>0</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>0</td><td>1</td><td>1</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>1</td><td>0</td><td>0</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>1</td><td>0</td><td>1</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>1</td><td>1</td><td>0</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>1</td><td>1</td><td>1</td><td></td><td></td><td></td><td></td><td></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out P, Q, R in turn, then Y and Z. Y is the sum and Z the carry out.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Working columns P, Q and R correct</span> <span class="mk k" data-t="2">Column Y correct</span> <span class="mk k" data-t="3">Column Z correct</span></p><div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>P</th><th>Q</th><th>R</th><th>Y</th><th>Z</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td></tr></table></div><p><b>(b)</b> <span class="mk a" data-t="1">Full adder</span></p><p><b>(c)</b> Y = <span class="bx"><span class="ob">A</span>.<span class="ob">B</span>.C + <span class="ob">A</span>.B.<span class="ob">C</span> + A.<span class="ob">B</span>.<span class="ob">C</span> + A.B.C</span> <span class="mk k" data-t="1">Y: sum-of-products from the four rows where Y = 1</span> <span class="mk k" data-t="2">Purpose of Y: the sum (of A, B and the carry in C)</span><br>Z = <span class="bx"><span class="ob">A</span>.B.C + A.<span class="ob">B</span>.C + A.B.<span class="ob">C</span> + A.B.C</span> <span class="mk k" data-t="1">Z: sum-of-products from the four rows where Z = 1</span> <span class="mk k" data-t="2">Purpose of Z: the carry out</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Naming it a half adder. A half adder has two inputs; this circuit has three (A, B and the carry in C).</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/32 · Q6</span> <span class="cmd">Complete / State</span> <span class="mark">2 + 1 + 2 marks</span> A logic circuit has two inputs A and B, and two outputs E and F.<div class="circ"><svg viewBox="0 0 264 141.0" style="width:317px;max-width:100%;display:block" role="img" aria-label="M/J 2022 Q6"><path class="w" d="M58,24 H82 V23.0 H92.48571428571428"/><path class="w" d="M58,70 H77 V45.0 H92.48571428571428"/><path class="w" d="M58,24 H82 V85.0 H94"/><path class="w" d="M58,70 H77 V107.0 H94"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,70 H58"/><path class="w" d="M148,34 H178"/><path class="w" d="M148,96 H178"/><path class="ax" style="fill:var(--surface)" d="M94,13.0 Q126.4,13.0 148,34 Q126.4,55.0 94,55.0 Q109.12,34 94,13.0 Z"/><path class="ax" d="M87,13.0 Q99,34 87,55.0"/><path class="ax" style="fill:var(--surface)" d="M94,75.0 H121.0 A27.0,21.0 0 0 1 121.0,117.0 H94 Z"/><text class="lbl bd" x="2" y="28">A</text><text class="lbl bd" x="2" y="74">B</text><text class="lbl bd" x="184" y="38">E</text><text class="lbl bd" x="184" y="100">F</text></svg></div>(a) Complete the truth table for this logic circuit. (b)(i) State the name of this logic circuit. (ii) State the purpose of each output E and F.<div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>E</th><th>F</th></tr><tr><td>0</td><td>0</td><td></td><td></td></tr><tr><td>0</td><td>1</td><td></td><td></td></tr><tr><td>1</td><td>0</td><td></td><td></td></tr><tr><td>1</td><td>1</td><td></td><td></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>XOR on top, AND underneath: that is the half adder.</div>
+    <div class="ans"><p><b>(a)</b> One mark per correct column: <span class="mk k" data-t="1">E: 0, 1, 1, 0</span> <span class="mk k" data-t="1">F: 0, 0, 0, 1</span></p><div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>E</th><th>F</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td></tr></table></div><p><b>(b)(i)</b> <span class="mk a" data-t="1">Half adder</span><br><b>(ii)</b> <span class="mk a" data-t="1">E is the sum</span> <span class="mk a" data-t="1">F is the carry</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Describing E as 'the answer' and F as 'the extra'. Use the words sum and carry.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31/33 · Q6(a)</span> <span class="cmd">Complete</span> <span class="mark">3 marks</span> This diagram represents a logic circuit.<div class="circ"><svg viewBox="0 0 500 184" style="width:600px;max-width:100%;display:block" role="img" aria-label="O/N 2023 Q6"><path class="w" d="M58,20 H82 V38.0 H94"/><path class="w" d="M58,56 H77 V56.0 H94"/><path class="w" d="M58,92 H72 V74.0 H94"/><path class="w" d="M156,56 H200 V117.0 H212"/><circle class="dot" cx="200" cy="56" r="3.2"/><path class="w" d="M58,160 H195 V139.0 H212"/><path class="w" d="M156,56 H318 V81.0 H328.48571428571427"/><circle class="dot" cx="318" cy="56" r="3.2"/><path class="w" d="M266,128 H313 V103.0 H328.48571428571427"/><path class="w" d="M50,20 H58"/><path class="w" d="M50,56 H58"/><path class="w" d="M50,92 H58"/><path class="w" d="M50,160 H58"/><path class="w" d="M384,92 H414"/><path class="ax" style="fill:var(--surface)" d="M94,28.0 H121.0 A27.0,28.0 0 0 1 121.0,84.0 H94 Z"/><circle class="ax" style="fill:var(--surface)" cx="152" cy="56" r="4"/><text class="sm" x="160" y="49">P</text><path class="ax" style="fill:var(--surface)" d="M212,107.0 H239.0 A27.0,21.0 0 0 1 239.0,149.0 H212 Z"/><text class="sm" x="270" y="121">Q</text><path class="ax" style="fill:var(--surface)" d="M330,71.0 Q362.4,71.0 384,92 Q362.4,113.0 330,113.0 Q345.12,92 330,71.0 Z"/><path class="ax" d="M323,71.0 Q335,92 323,113.0"/><text class="lbl bd" x="2" y="24">A</text><text class="lbl bd" x="2" y="60">B</text><text class="lbl bd" x="2" y="96">C</text><text class="lbl bd" x="2" y="164">D</text><text class="lbl bd" x="420" y="96">Z</text></svg></div>Complete the truth table for the given logic circuit. (The paper prints sixteen rows with a working-space column; the rows are shown in full here.)<div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>D</th><th>P</th><th>Q</th><th>Z</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td><td></td><td></td><td></td></tr><tr><td>0</td><td>0</td><td>0</td><td>1</td><td></td><td></td><td></td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td><td></td><td></td><td></td></tr><tr><td>0</td><td>0</td><td>1</td><td>1</td><td></td><td></td><td></td></tr><tr><td>0</td><td>1</td><td>0</td><td>0</td><td></td><td></td><td></td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td><td></td><td></td><td></td></tr><tr><td>0</td><td>1</td><td>1</td><td>0</td><td></td><td></td><td></td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td><td></td><td></td><td></td></tr><tr><td>1</td><td>0</td><td>0</td><td>0</td><td></td><td></td><td></td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td><td></td><td></td><td></td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td><td></td><td></td><td></td></tr><tr><td>1</td><td>0</td><td>1</td><td>1</td><td></td><td></td><td></td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td><td></td><td></td><td></td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td><td></td><td></td><td></td></tr><tr><td>1</td><td>1</td><td>1</td><td>0</td><td></td><td></td><td></td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td><td></td><td></td><td></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A four-input NAND, then an AND, then an XOR. Name the working columns P and Q.</div>
+    <div class="ans"><p>One mark for every shaded block of rows of column Z that is correct (max 3). Z is 1 for every row where D = 0 except the last (A = B = C = 1).</p><div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>D</th><th>P</th><th>Q</th><th>Z</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td></tr></table></div></div>
+    <div class="warn"><b class="h">Common mistake</b>Treating the first gate as AND. It has a bubble: it is NAND, so its output is 0 only when A, B and C are all 1.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/31 · Q6(a)(b)</span> <span class="cmd">Complete / Write</span> <span class="mark">3 + 2 marks</span> The diagram shows a logic circuit.<div class="circ"><svg viewBox="0 0 500 230.0" style="width:600px;max-width:100%;display:block" role="img" aria-label="M/J 2024 Q6"><path class="w" d="M58,100 H82 V100 H94"/><path class="w" d="M58,20 H200 V12.0 H212"/><path class="w" d="M58,100 H195 V30.0 H212"/><path class="w" d="M58,190 H190 V48.0 H212"/><path class="w" d="M58,20 H200 V92.0 H212"/><path class="w" d="M148,100 H195 V110.0 H212"/><circle class="dot" cx="195" cy="100" r="3.2"/><path class="w" d="M58,190 H190 V128.0 H212"/><path class="w" d="M58,20 H200 V174.0 H210.4857142857143"/><path class="w" d="M148,100 H195 V196.0 H210.4857142857143"/><circle class="dot" cx="195" cy="100" r="3.2"/><path class="w" d="M266,30 H318 V92.0 H334.4357142857143"/><path class="w" d="M266,110 H313 V110.0 H337.56"/><path class="w" d="M266,185 H308 V128.0 H334.4357142857143"/><path class="w" d="M50,20 H58"/><path class="w" d="M50,100 H58"/><path class="w" d="M50,190 H58"/><path class="w" d="M384,110 H414"/><path class="ax" style="fill:var(--surface)" d="M94,84 L140,100 L94,116 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="100" r="4"/><text class="sm" x="152" y="93">P</text><path class="ax" style="fill:var(--surface)" d="M212,2.0 H239.0 A27.0,28.0 0 0 1 239.0,58.0 H212 Z"/><text class="sm" x="270" y="23">Q</text><path class="ax" style="fill:var(--surface)" d="M212,82.0 H239.0 A27.0,28.0 0 0 1 239.0,138.0 H212 Z"/><text class="sm" x="270" y="103">R</text><path class="ax" style="fill:var(--surface)" d="M212,164.0 Q244.4,164.0 266,185 Q244.4,206.0 212,206.0 Q227.12,185 212,164.0 Z"/><path class="ax" d="M205,164.0 Q217,185 205,206.0"/><text class="sm" x="270" y="178">S</text><path class="ax" style="fill:var(--surface)" d="M330,82.0 Q362.4,82.0 384,110 Q362.4,138.0 330,138.0 Q345.12,110 330,82.0 Z"/><text class="lbl bd" x="2" y="24">A</text><text class="lbl bd" x="2" y="104">B</text><text class="lbl bd" x="2" y="194">C</text><text class="lbl bd" x="420" y="114">Z</text></svg></div>(a) Complete the truth table for the given logic circuit. Show your working. (b) Write the Boolean expression that corresponds to the logic circuit as a sum-of-products.<div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>P</th><th>Q</th><th>R</th><th>S</th><th>Z</th></tr><tr><td>0</td><td>0</td><td>0</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>0</td><td>0</td><td>1</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>0</td><td>1</td><td>0</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>0</td><td>1</td><td>1</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>1</td><td>0</td><td>0</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>1</td><td>0</td><td>1</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>1</td><td>1</td><td>0</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>1</td><td>1</td><td>1</td><td></td><td></td><td></td><td></td><td></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>P is the NOT of B. Q, R and S each use A, then Z is an OR of all three.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">All four working columns P, Q, R and S correct</span> <span class="mk k" data-t="2">First four rows of Z correct</span> <span class="mk k" data-t="3">Second four rows of Z correct</span></p><div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>P</th><th>Q</th><th>R</th><th>S</th><th>Z</th></tr><tr><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td></tr><tr><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td></tr><tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td></tr></table></div><p><b>(b)</b> Z = <span class="bx"><span class="ob">A</span>.<span class="ob">B</span>.<span class="ob">C</span> + <span class="ob">A</span>.<span class="ob">B</span>.C + A.<span class="ob">B</span>.C + A.B.<span class="ob">C</span> + A.B.C</span> <span class="mk k" data-t="1">Two marks for all five terms and no extras; one mark for any three terms</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing a term for the 0 rows. Sum-of-products uses the rows where Z is 1.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/32 · Q7(a)(b)</span> <span class="cmd">Complete / Write</span> <span class="mark">3 + 1 marks</span> The diagram shows a logic circuit.<div class="circ"><svg viewBox="0 0 626 274.0" style="width:751px;max-width:100%;display:block" role="img" aria-label="M/J 2025 Q7"><path class="w" d="M58,150 H82 V150 H94"/><path class="w" d="M58,20 H200 V24.0 H216.43571428571428"/><path class="w" d="M58,70 H195 V42.0 H219.56"/><path class="w" d="M148,150 H190 V60.0 H216.43571428571428"/><circle class="dot" cx="190" cy="150" r="3.2"/><path class="w" d="M58,70 H200 V204.0 H212"/><path class="w" d="M58,150 H195 V222.0 H212"/><path class="w" d="M58,232 H190 V240.0 H212"/><path class="w" d="M274,42 H318 V101.0 H335.48571428571427"/><path class="w" d="M148,150 H313 V123.0 H335.48571428571427"/><circle class="dot" cx="313" cy="150" r="3.2"/><path class="w" d="M384,112 H436 V157.0 H453.48571428571427"/><path class="w" d="M266,222 H431 V179.0 H453.48571428571427"/><path class="w" d="M50,20 H58"/><path class="w" d="M50,70 H58"/><path class="w" d="M50,150 H58"/><path class="w" d="M50,232 H58"/><path class="w" d="M510,168 H540"/><path class="ax" style="fill:var(--surface)" d="M94,134 L140,150 L94,166 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="150" r="4"/><text class="sm" x="152" y="143">P</text><path class="ax" style="fill:var(--surface)" d="M212,14.0 Q244.4,14.0 266,42 Q244.4,70.0 212,70.0 Q227.12,42 212,14.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="270" cy="42" r="4"/><text class="sm" x="278" y="35">Q</text><path class="ax" style="fill:var(--surface)" d="M212,194.0 H239.0 A27.0,28.0 0 0 1 239.0,250.0 H212 Z"/><text class="sm" x="270" y="215">R</text><path class="ax" style="fill:var(--surface)" d="M330,91.0 Q362.4,91.0 384,112 Q362.4,133.0 330,133.0 Q345.12,112 330,91.0 Z"/><text class="sm" x="388" y="105">S</text><path class="ax" style="fill:var(--surface)" d="M448,147.0 Q480.4,147.0 502,168 Q480.4,189.0 448,189.0 Q463.12,168 448,147.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="506" cy="168" r="4"/><text class="lbl bd" x="2" y="24">A</text><text class="lbl bd" x="2" y="74">B</text><text class="lbl bd" x="2" y="154">C</text><text class="lbl bd" x="2" y="236">D</text><text class="lbl bd" x="546" y="172">Z</text></svg></div>(a) Complete the truth table for the given logic circuit. Show your working. (b) Write the Boolean logic expression that corresponds to the given logic circuit as the sum-of-products.<div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>D</th><th>P</th><th>Q</th><th>R</th><th>S</th><th>Z</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>0</td><td>0</td><td>0</td><td>1</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>0</td><td>0</td><td>1</td><td>1</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>0</td><td>1</td><td>0</td><td>0</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>0</td><td>1</td><td>1</td><td>0</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>1</td><td>0</td><td>0</td><td>0</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>1</td><td>0</td><td>1</td><td>1</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>1</td><td>1</td><td>1</td><td>0</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td><td></td><td></td><td></td><td></td><td></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>P = NOT C. Q is a three-input NOR of A, B and P. R is an AND. S is an OR. Z is a NOR of S and R.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Working columns P, Q, R and S correct</span> <span class="mk k" data-t="2">First eight rows of Z correct</span> <span class="mk k" data-t="3">Second eight rows of Z correct</span></p><div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>D</th><th>P</th><th>Q</th><th>R</th><th>S</th><th>Z</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td></tr></table></div><p><b>(b)</b> Z = <span class="bx"><span class="ob">A</span>.B.C.<span class="ob">D</span> + A.<span class="ob">B</span>.C.<span class="ob">D</span> + A.<span class="ob">B</span>.C.D + A.B.C.<span class="ob">D</span></span> <span class="mk k" data-t="1">All four terms correct (any order)</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Missing the three-input NOR: it is 1 only when all of A, B and P are 0.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State the name of the logic gate whose output is 1 only when its inputs are different, and give its output when both inputs are 1.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>XOR.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">XOR (exclusive OR)</span> <span class="mk k" data-t="2">Output 0 when both inputs are 1</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Complete</span> <span class="mark">3 marks</span> A half adder adds the bits A = 1 and B = 1. State the sum and carry outputs, and the decimal value they represent.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Sum is XOR, carry is AND.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Sum = 1 XOR 1 = 0</span> <span class="mk k" data-t="2">Carry = 1 AND 1 = 1</span> <span class="mk k" data-t="3">The outputs 10 represent decimal 2</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">4 marks</span> Explain why a full adder is needed for every column of a binary addition except the first.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Think about the carry.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Each column after the first may receive a carry from the column to its right</span> <span class="mk k" data-t="2">A half adder only has two inputs, so it cannot accept that carry in</span> <span class="mk k" data-t="3">A full adder has a third input, the carry in, as well as A and B</span> <span class="mk k" data-t="4">Its carry out is passed to the next column (ripple carry)</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Show</span> <span class="mark">3 marks</span> A full adder has A = 1, B = 0 and Cin = 1. Show the values of P, Q and R in the circuit above, then the sum and carry out.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>P = A XOR B, Q = A AND B, R = P AND Cin.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">P = 1 XOR 0 = 1, Q = 1 AND 0 = 0</span> <span class="mk k" data-t="2">R = 1 AND 1 = 1; Sum = P XOR Cin = 0</span> <span class="mk k" data-t="3">Cout = R OR Q = 1</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Complete</span> <span class="mark">3 marks</span> A circuit has inputs A and B. X = (A NAND B) AND (A OR B). Complete its truth table and name the gate it behaves as.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out each bracket first.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A NAND B: 1, 1, 1, 0 for AB = 00, 01, 10, 11; A OR B: 0, 1, 1, 1</span> <span class="mk k" data-t="2">X: 0, 1, 1, 0</span> <span class="mk k" data-t="3">It behaves as an XOR gate</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Name the wires.</b> Give every gate output a letter and add a working column for it.</li>
+    <li><b>Work left to right.</b> Never fill an output column before the gates that feed it.</li>
+    <li><b>Look for bubbles.</b> A circle on a gate means NOT after it: NAND, NOR and XNOR.</li>
+    <li><b>Sum and carry.</b> XOR gives the sum, AND gives the carry. A full adder adds a carry in.</li>
+    <li><b>Sum-of-products uses the 1 rows.</b> One AND term per row where the output is 1, joined by OR.</li>
+    <li><b>Count the rows.</b> 2 inputs 4 rows, 3 inputs 8 rows, 4 inputs 16 rows.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>a half adder</td><td>"Two inputs: the sum is A XOR B and the carry is A AND B."</td></tr>
+    <tr><td>a full adder</td><td>"Three inputs A, B and carry in: the sum is the XOR of all three and the carry out is 1 when two or more inputs are 1."</td></tr>
+    <tr><td>a ripple-carry adder</td><td>"Full adders in a chain, each carry out feeding the next carry in."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Identify</td><td>Give the name or value only.</td></tr>
+    <tr><td>Complete</td><td>Fill in the table; show working columns.</td></tr>
+    <tr><td>Write</td><td>Give the expression in the form asked.</td></tr>
+    <tr><td>Explain</td><td>Give the reason as well.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+/* circuit drawer: geom comes from ak15.circuit(); vals colours the wires */
+function circEval(G, inp, st) {
+  const v = Object.assign({}, inp); G.net.forEach(([n]) => v[n] = (st && st[n]) || 0);
+  for (let k = 0; k < 8; k++) G.net.forEach(([n, t, s]) => {
+    const a = s.map((x) => v[x]); let base = t, neg = false;
+    if (t !== "NOT" && t[0] === "N") { base = t.slice(1); neg = true; }
+    let r = base === "AND" ? a.every((x) => x) : base === "OR" ? a.some((x) => x) : base === "XOR" ? a.reduce((p, x) => p + x, 0) % 2 === 1 : !a[0];
+    r = (neg ? !r : r) ? 1 : 0; v[n] = r;
+  });
+  return v;
+}
+function circInner(G, vals, opt) {
+  opt = opt || {};
+  const cl = (s) => (vals ? (vals[s] ? "w on" : "w off") : "w"); let o = "";
+  G.wires.forEach((w) => { o += `<path class="${cl(w.s)}" d="${w.d}"/>`; if (w.dot) o += `<circle class="dot" cx="${w.dot[0]}" cy="${w.dot[1]}" r="3.2"/>`; });
+  G.outs.forEach((w) => o += `<path class="${cl(w.s)}" d="${w.d}"/>`);
+  G.gates.forEach((g) => { o += g.svg; if (!G.outset.includes(g.n)) o += `<text class="sm" x="${g.ox + 4}" y="${g.cy - 7}">${g.n}${vals && opt.vals ? " = " + vals[g.n] : ""}</text>`; });
+  G.inputs.forEach((i) => o += `<text class="lbl bd" x="2" y="${i.y + 4}">${i.n}${vals ? " " + vals[i.n] : ""}</text>`);
+  G.outs.forEach((w) => o += `<text class="lbl bd" x="${w.x + 6}" y="${w.y + 4}">${w.s}${vals ? " = " + vals[w.s] : ""}</text>`);
+  return o;
+}
+function circFit(G, vals, W, opt) {
+  const k = Math.min(2.2, (W - 20) / G.w), dx = (W - G.w * k) / 2;
+  return `<g transform="translate(${dx.toFixed(1)},6) scale(${k.toFixed(3)})">` + circInner(G, vals, opt) + "</g>";
+}
+function circSvg(G, vals, opt) {
+  return `<svg viewBox="0 0 ${G.w} ${G.h}" style="width:${Math.round(G.w * 1.2)}px;max-width:100%;display:block">` + circInner(G, vals, opt) + "</svg>";
+}
+/* toggle lab: one button per input, live circuit and a table of every row with the current one highlighted */
+function circLab(el, G, work, outs) {
+  const ins = G.in; let cur = ins.map(() => 0);
+  const root = typeof el === "string" ? $(el) : el;
+  root.innerHTML = '<div class="btnrow" data-b></div><div data-s></div><div data-t></div>';
+  const bw = root.querySelector("[data-b]"), sw = root.querySelector("[data-s]"), tw = root.querySelector("[data-t]");
+  function paint() {
+    const inp = {}; ins.forEach((n, i) => inp[n] = cur[i]);
+    const v = circEval(G, inp);
+    sw.innerHTML = circSvg(G, v, { vals: true });
+    bw.querySelectorAll("button").forEach((b, i) => { b.textContent = ins[i] + " = " + cur[i]; b.className = cur[i] ? "on" : ""; });
+    const cols = ins.concat(work, outs); let h = '<div class="tw"><table class="t mono"><tr>' + cols.map((c) => `<th>${c}</th>`).join("") + "</tr>";
+    for (let m = 0; m < 1 << ins.length; m++) {
+      const b = ins.map((_, i) => (m >> (ins.length - 1 - i)) & 1), iv = {}; ins.forEach((n, i) => iv[n] = b[i]);
+      const r = circEval(G, iv), on = b.every((x, i) => x === cur[i]);
+      h += `<tr style="${on ? "background:var(--accent-soft);font-weight:700" : ""}">` + b.map((x) => `<td>${x}</td>`).join("") + work.concat(outs).map((n) => `<td>${r[n]}</td>`).join("") + "</tr>";
+    }
+    tw.innerHTML = h + "</table></div>";
+  }
+  ins.forEach((n, i) => { const b = document.createElement("button"); b.onclick = () => { cur[i] ^= 1; paint(); }; bw.appendChild(b); });
+  paint();
+}
+const GH = {"w": 264, "h": 141.0, "inputs": [{"n": "A", "y": 24}, {"n": "B", "y": 70}], "gates": [{"n": "S", "x": 94, "cy": 34, "h": 42, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M94,13.0 Q126.4,13.0 148,34 Q126.4,55.0 94,55.0 Q109.12,34 94,13.0 Z\"/><path class=\"ax\" d=\"M87,13.0 Q99,34 87,55.0\"/>", "ox": 148}, {"n": "C", "x": 94, "cy": 96, "h": 42, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M94,75.0 H121.0 A27.0,21.0 0 0 1 121.0,117.0 H94 Z\"/>", "ox": 148}], "wires": [{"d": "M58,24 H82 V23.0 H92.48571428571428", "s": "A", "dot": null}, {"d": "M58,70 H77 V45.0 H92.48571428571428", "s": "B", "dot": null}, {"d": "M58,24 H82 V85.0 H94", "s": "A", "dot": null}, {"d": "M58,70 H77 V107.0 H94", "s": "B", "dot": null}, {"d": "M50,24 H58", "s": "A", "dot": null}, {"d": "M50,70 H58", "s": "B", "dot": null}], "outs": [{"d": "M148,34 H178", "s": "S", "x": 178, "y": 34}, {"d": "M148,96 H178", "s": "C", "x": 178, "y": 96}], "outset": ["C", "S"], "net": [["S", "XOR", ["A", "B"]], ["C", "AND", ["A", "B"]]], "in": ["A", "B"]}, GF = {"w": 500, "h": 241.0, "inputs": [{"n": "A", "y": 22}, {"n": "B", "y": 62}, {"n": "Cin", "y": 118}], "gates": [{"n": "P", "x": 94, "cy": 40, "h": 42, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M94,19.0 Q126.4,19.0 148,40 Q126.4,61.0 94,61.0 Q109.12,40 94,19.0 Z\"/><path class=\"ax\" d=\"M87,19.0 Q99,40 87,61.0\"/>", "ox": 148}, {"n": "Q", "x": 94, "cy": 196, "h": 42, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M94,175.0 H121.0 A27.0,21.0 0 0 1 121.0,217.0 H94 Z\"/>", "ox": 148}, {"n": "Sum", "x": 212, "cy": 74, "h": 42, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M212,53.0 Q244.4,53.0 266,74 Q244.4,95.0 212,95.0 Q227.12,74 212,53.0 Z\"/><path class=\"ax\" d=\"M205,53.0 Q217,74 205,95.0\"/>", "ox": 266}, {"n": "R", "x": 212, "cy": 140, "h": 42, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M212,119.0 H239.0 A27.0,21.0 0 0 1 239.0,161.0 H212 Z\"/>", "ox": 266}, {"n": "Cout", "x": 330, "cy": 168, "h": 42, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M330,147.0 Q362.4,147.0 384,168 Q362.4,189.0 330,189.0 Q345.12,168 330,147.0 Z\"/>", "ox": 384}], "wires": [{"d": "M58,22 H82 V29.0 H92.48571428571428", "s": "A", "dot": null}, {"d": "M58,62 H77 V51.0 H92.48571428571428", "s": "B", "dot": null}, {"d": "M58,22 H82 V185.0 H94", "s": "A", "dot": null}, {"d": "M58,62 H77 V207.0 H94", "s": "B", "dot": null}, {"d": "M148,40 H200 V63.0 H210.4857142857143", "s": "P", "dot": [200, 40]}, {"d": "M58,118 H195 V85.0 H210.4857142857143", "s": "Cin", "dot": null}, {"d": "M148,40 H200 V129.0 H212", "s": "P", "dot": [200, 40]}, {"d": "M58,118 H195 V151.0 H212", "s": "Cin", "dot": null}, {"d": "M266,140 H318 V157.0 H335.48571428571427", "s": "R", "dot": null}, {"d": "M148,196 H313 V179.0 H335.48571428571427", "s": "Q", "dot": null}, {"d": "M50,22 H58", "s": "A", "dot": null}, {"d": "M50,62 H58", "s": "B", "dot": null}, {"d": "M50,118 H58", "s": "Cin", "dot": null}], "outs": [{"d": "M266,74 H414", "s": "Sum", "x": 414, "y": 74}, {"d": "M384,168 H414", "s": "Cout", "x": 414, "y": 168}], "outset": ["Cout", "Sum"], "net": [["P", "XOR", ["A", "B"]], ["Q", "AND", ["A", "B"]], ["Sum", "XOR", ["P", "Cin"]], ["R", "AND", ["P", "Cin"]], ["Cout", "OR", ["R", "Q"]]], "in": ["A", "B", "Cin"]};
+
+(function () {
+  const cases = [[0, 0], [0, 1], [1, 0], [1, 1]];
+  const draw = (s) => { const [a, b] = cases[Math.round(s.i)]; const v = circEval(GH, { A: a, B: b }); return circFit(GH, v, 560, { vals: true }); };
+  Lib.stepper($("#stA"), { w: 560, h: Math.round(GH.h * 2.2) + 12, label: "Half adder", base: { i: 0 }, draw, tween: 150, dwell: 2200, steps: cases.map(([a, b], i) => ({ cap: `A = ${a}, B = ${b}: sum = ${a} XOR ${b} = <b>${a ^ b}</b>, carry = ${a} AND ${b} = <b>${a & b}</b>. ` + (i === 3 ? "Binary 1 + 1 = 10: the sum bit is 0 and a 1 is carried." : i === 0 ? "Nothing to add, nothing to carry." : "Only one input is 1: sum 1, no carry."), s: { i } })) });
+})();
+(function () {
+  const draw = (s) => { const v = circEval(GF, { A: 1, B: 1, Cin: 1 }); const k = Math.round(s.i), show = {}; ["A", "B", "Cin"].forEach((n) => show[n] = 1);
+    const on = { 0: [], 1: ["P", "Q"], 2: ["P", "Q", "R", "Sum"], 3: ["P", "Q", "R", "Sum", "Cout"] }[k]; Object.keys(v).forEach((n) => { if (!["A", "B", "Cin"].includes(n) && !on.includes(n)) v[n] = 0; }); return circFit(GF, v, 620, { vals: true }); };
+  Lib.stepper($("#stB"), { w: 620, h: Math.round(GF.h * Math.min(2.2, 600 / GF.w)) + 12, label: "Full adder", base: { i: 0 }, draw, tween: 150, dwell: 2600, steps: [
+    { cap: "Inputs A = 1, B = 1 and carry in = 1.", s: { i: 0 } },
+    { cap: "The first half adder: P = 1 XOR 1 = <b>0</b>, Q = 1 AND 1 = <b>1</b>.", s: { i: 1 } },
+    { cap: "The second half adder adds P and the carry in: Sum = 0 XOR 1 = <b>1</b>, R = 0 AND 1 = <b>0</b>.", s: { i: 2 } },
+    { cap: "The OR gate combines the carries: carry out = R OR Q = 0 OR 1 = <b>1</b>. Result 11 (binary), which is 3: 1 + 1 + 1 = 3.", s: { i: 3 } }] });
+})();
+(function () {
+  const A = [0, 1, 1, 0], B = [0, 1, 1, 1];
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "", c = 0; const sums = [], cs = [];
+    for (let i = 3; i >= 0; i--) { const t = A[i] + B[i] + c; sums[i] = t % 2; c = t >> 1; cs[i] = c; }
+    const lab = ["bit 3", "bit 2", "bit 1", "bit 0"];
+    [0, 1, 2, 3].forEach((i) => { const x = 50 + i * 150; o += SV.text(x + 40, 18, lab[i], "sm", { "text-anchor": "middle" }); const col = 3 - i; const doneCol = k > col;
+      o += SV.rect(x, 30, 80, 38, "cell", { rx: 6 }) + SV.text(x + 40, 56, "A " + A[i], "lbl bd", { "text-anchor": "middle" });
+      o += SV.rect(x, 76, 80, 38, "cell", { rx: 6 }) + SV.text(x + 40, 102, "B " + B[i], "lbl bd", { "text-anchor": "middle" });
+      o += SV.rect(x, 130, 80, 40, doneCol ? "cell-ok" : (k === col ? "cell-warn" : "cell"), { rx: 6 }) + (doneCol || k === col ? SV.text(x + 40, 156, "sum " + sums[i], "lbl bd", { "text-anchor": "middle" }) : "");
+      if (doneCol || k === col) o += SV.text(x - 14, 150, cs[i] ? "carry " + cs[i] + " ←" : "", "sm t3", { "text-anchor": "end" });
+    });
+    o += SV.text(14, 56, "", "sm"); if (k > 3) o += SV.text(50, 205, "0110 + 0111 = 1101 (6 + 7 = 13)", "lbl bd t3");
+    return o;
+  };
+  Lib.stepper($("#stC"), { w: 700, h: 225, label: "Ripple-carry addition", base: { i: 0 }, draw, tween: 150, dwell: 2600, steps: [
+    { cap: "Add 0110 and 0111 one column at a time, starting on the right. Bit 0 uses a half adder.", s: { i: 0 } },
+    { cap: "Bit 0: 0 + 1 = 1, no carry.", s: { i: 1 } }, { cap: "Bit 1: 1 + 1 + carry 0 = 0, <b>carry 1</b> into bit 2.", s: { i: 2 } },
+    { cap: "Bit 2: 1 + 1 + carry 1 = 1, <b>carry 1</b> into bit 3.", s: { i: 3 } }, { cap: "Bit 3: 0 + 0 + carry 1 = 1, no further carry. The answer is 1101.", s: { i: 4 } }] });
+})();
+
+circLab("#labH", GH, [], ["S", "C"]);
+circLab("#labF", GF, ["P", "Q", "R"], ["Sum", "Cout"]);
+
+btnTable("gB", "gO", [
+  ["NOT", "1 when the input is 0", "0 0→1, 1→0", "One input only"],
+  ["AND", "1 only when both inputs are 1", "0 0 0 1", "Both"],
+  ["OR", "1 when at least one input is 1", "0 1 1 1", "Either"],
+  ["NAND", "0 only when both inputs are 1", "1 1 1 0", "AND then NOT"],
+  ["NOR", "1 only when both inputs are 0", "1 0 0 0", "OR then NOT"],
+  ["XOR", "1 when the inputs are different", "0 1 1 0", "Different"]
+], ["Gate", "Output is 1 when", "Output for AB = 00, 01, 10, 11", "Remember"]);
+
+(function () {
+  let a = 6, b = 7;
+  const paint = () => {
+    const ab = bin(a, 4), bb = bin(b, 4); let c = 0, h = '<div class="tw"><table class="t mono"><tr><th></th><th>bit 3</th><th>bit 2</th><th>bit 1</th><th>bit 0</th></tr>';
+    const sums = [], cs = [0, 0, 0, 0, 0];
+    for (let i = 3; i >= 0; i--) { const t = +ab[i] + +bb[i] + c; sums[i] = t % 2; c = t >> 1; cs[i] = c; }
+    h += "<tr><td>carry out</td>" + [0, 1, 2, 3].map((i) => `<td>${cs[i]}</td>`).join("") + "</tr>";
+    h += "<tr><td>A</td>" + ab.split("").map((x) => `<td>${x}</td>`).join("") + "</tr><tr><td>B</td>" + bb.split("").map((x) => `<td>${x}</td>`).join("") + "</tr>";
+    h += "<tr><td><b>sum</b></td>" + sums.map((x) => `<td><b>${x}</b></td>`).join("") + "</tr></table></div>";
+    $("#rT").innerHTML = h + `<div class="verdict">${a} + ${b} = ${a + b}. Four bits show ${sums.join("")} (${parseInt(sums.join(""), 2)})` + (a + b > 15 ? `. <b>Overflow</b>: the carry out of bit 3 is 1, so the true answer needs a fifth bit.` : ".") + "</div>";
+  };
+  Lib.slider($("#rA"), { id: "ra", label: "A ", min: 0, max: 15, value: a, fmt: (x) => x + " = " + bin(x, 4), onInput: (v) => { a = v; paint(); } });
+  Lib.slider($("#rB"), { id: "rb", label: "B ", min: 0, max: 15, value: b, fmt: (x) => x + " = " + bin(x, 4), onInput: (v) => { b = v; paint(); } }); paint();
+})();
+Lib.classify($("#cl1"), { prompt: "Which gate does the description give?", buckets: [{"label": "AND"}, {"label": "OR"}, {"label": "XOR"}, {"label": "NAND"}], items: [{"text": "Output is 1 only when both inputs are 1", "b": 0}, {"text": "Output is 1 when at least one input is 1", "b": 1}, {"text": "Output is 1 when the inputs are different", "b": 2}, {"text": "Output is 0 only when both inputs are 1", "b": 3}, {"text": "A light that is on when the car is in park and the brake is pressed", "b": 0}, {"text": "An alarm that sounds if either door is open", "b": 1}], done: "AND all, OR any, XOR different, NAND the opposite of AND." });
+Lib.classify($("#cl2"), { prompt: "Which circuit has this property?", buckets: [{"label": "Half adder"}, {"label": "Full adder"}], items: [{"text": "Has three inputs", "b": 1}, {"text": "Has two inputs", "b": 0}, {"text": "Is built from two half adders and an OR gate", "b": 1}, {"text": "Is built from an XOR gate and an AND gate", "b": 0}, {"text": "Has a carry in", "b": 1}, {"text": "Used for the least significant column only", "b": 0}], done: "A half adder has no carry in. A full adder does." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["XOR", "1 when the inputs are different"], ["NAND", "AND followed by NOT"], ["Half adder", "Sum is A XOR B, carry is A AND B"], ["Full adder", "Adds A, B and a carry in"], ["Ripple carry", "Each carry out feeds the next carry in"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the steps for finding a truth table in order.", items: ["List every combination of the inputs", "Name the output of each gate and add a working column", "Fill the working columns from left to right", "Read the output column(s) from the final gates"], done: "Rows, names, working, outputs." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "A full adder has A = 1, B = 1 and Cin = 0. What is the sum bit?", "a": 0, "unit": "", "tol": 0.01, "hint": "1 XOR 1 XOR 0.", "sol": "<b>0</b>."},
+  {"q": "The same inputs: what is the carry out?", "a": 1, "unit": "", "tol": 0.01, "hint": "Two inputs are 1.", "sol": "<b>1</b>."},
+  {"q": "A full adder has A = 1, B = 1 and Cin = 1. What is the sum bit?", "a": 1, "unit": "", "tol": 0.01, "hint": "Three 1s is an odd number.", "sol": "<b>1</b>."},
+  {"q": "How many rows does the truth table of a circuit with four inputs have?", "a": 16, "unit": "", "tol": 0.01, "hint": "2 to the power 4.", "sol": "<b>16</b>."},
+  {"q": "Adding 0111 and 0001 with a ripple-carry adder: how many columns produce a carry out?", "a": 3, "unit": "", "tol": 0.01, "hint": "Bits 0, 1 and 2 each carry.", "sol": "<b>3</b>: the answer is 1000."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "Which gate gives 1 for the inputs 0 and 1 but 0 for 1 and 1?", opts: ["OR", "XOR", "NAND", "AND"], a: 1, why: "XOR." },
+  { q: "What does the AND gate in a half adder produce?", opts: ["The sum", "The carry", "The inverse of the sum", "The overflow"], a: 1, why: "The carry." },
+  { q: "How many inputs does a full adder have?", opts: ["2", "3", "4", "1"], a: 1, why: "A, B and the carry in." },
+  { q: "A NOR gate outputs 1 when:", opts: ["Both inputs are 1", "At least one input is 1", "Both inputs are 0", "The inputs differ"], a: 2, why: "NOR is NOT (A OR B)." },
+  { q: "In a ripple-carry adder the carry out of one column goes to:", opts: ["The sum output", "The next column's carry in", "Memory", "The same column"], a: 1, why: "It ripples to the next column." },
+  { q: "In a truth table, a working column is used for:", opts: ["The final output only", "The output of a gate inside the circuit", "The input labels", "The number of rows"], a: 1, why: "Intermediate gate outputs." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["NOT", "Inverts the input."],
+  ["AND", "1 only when all inputs are 1."],
+  ["OR", "1 when at least one input is 1."],
+  ["XOR", "1 when the inputs are different."],
+  ["NAND / NOR", "AND / OR followed by NOT."],
+  ["Half adder", "Sum = A XOR B, carry = A AND B."],
+  ["Full adder", "Sum = A XOR B XOR Cin; carry out when two or more inputs are 1."],
+  ["Ripple carry", "Chain of full adders, carry out to carry in."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

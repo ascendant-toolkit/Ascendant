@@ -288,7 +288,7 @@ function encodeFp(x, mb, eb) {
     const boxes = (str, x0, cls) => str.split("").map((c, i) => SV.rect(x0 + i * 34, 30, 30, 36, cls, { rx: 4 }) + SV.text(x0 + i * 34 + 15, 55, c, "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:17px" })).join("");
     o += SV.text(30, 22, "Mantissa", "sm") + SV.text(430, 22, "Exponent", "sm") + boxes(M, 30, "f3") + boxes(E, 430, "f2");
     if (k >= 1) o += SV.text(430, 96, "exponent 000111 = 7", "lbl bd", { style: "font-family:var(--mono);font-size:15px" });
-    if (k >= 2) o += SV.text(30, 96, "mantissa 1.011000111   (point after the first bit)", "lbl bd", { style: "font-family:var(--mono);font-size:15px" });
+    if (k >= 2) o += SV.text(30, 96, "mantissa 1.011000111", "lbl bd", { style: "font-family:var(--mono);font-size:15px" }) + SV.text(30, 114, "(point after the first bit)", "lbl", { style: "font-family:var(--mono);font-size:12.5px" });
     if (k >= 3) o += SV.text(30, 132, "move the point 7 places right:   10110001.11", "lbl bd t3", { style: "font-family:var(--mono);font-size:16px" });
     if (k >= 4) o += SV.text(30, 168, "−128 + 32 + 16 + 1 + 0.5 + 0.25", "lbl", { style: "font-family:var(--mono);font-size:16px" });
     if (k >= 5) o += SV.text(30, 204, "value = −78.25", "lbl bd t3", { style: "font-family:var(--mono);font-size:22px" });

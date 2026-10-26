@@ -183,11 +183,11 @@ tips = tips_html([
 
 js = AKJS + AK20JS + r'''
 (function () {
-  const stops = ["Sender's email client", "Sender's mail server", "Recipient's mail server", "Recipient's email client"];
+  const stops = [["Sender's", "email client"], ["Sender's", "mail server"], ["Recipient's", "mail server"], ["Recipient's", "email client"]];
   const draw = (s) => {
     const k = Math.round(s.i); let o = "";
-    stops.forEach((t, i) => (o += SV.rect(20 + i * 185, 60, 160, 60, k >= i ? "f3" : "cell", { rx: 8, ...op(k >= i ? 1 : 0.5) }) + SV.text(100 + i * 185, 96, t, "lbl bd", { "text-anchor": "middle", style: "font-size:13px" })));
-    const labs = ["SMTP", "SMTP", "POP3 or IMAP"]; labs.forEach((t, i) => { const on = k > i; o += arrow(180 + i * 185, 90, 205 + i * 185, 90, i === 2 ? "l" : "r", on ? "c2" : "c1", on ? 1 : 0.2) + SV.text(192 + i * 185, 50, t, "lbl bd" + (on ? " t3" : ""), { "text-anchor": "middle", style: "font-size:12px", ...op(on ? 1 : 0.35) }); });
+    stops.forEach((t, i) => (o += SV.rect(20 + i * 185, 60, 140, 60, k >= i ? "f3" : "cell", { rx: 8, ...op(k >= i ? 1 : 0.5) }) + SV.text(90 + i * 185, 86, t[0], "lbl bd", { "text-anchor": "middle", style: "font-size:13px" }) + SV.text(90 + i * 185, 105, t[1], "lbl bd", { "text-anchor": "middle", style: "font-size:13px" })));
+    const labs = ["SMTP", "SMTP", "POP3 or IMAP"]; labs.forEach((t, i) => { const on = k > i; o += (i === 2 ? arrow(199 + i * 185, 90, 166 + i * 185, 90, "l", on ? "c2" : "c1", on ? 1 : 0.2) : arrow(166 + i * 185, 90, 199 + i * 185, 90, "r", on ? "c2" : "c1", on ? 1 : 0.2)) + SV.text(182 + i * 185, 50, t, "lbl bd" + (on ? " t3" : ""), { "text-anchor": "middle", style: "font-size:12px", ...op(on ? 1 : 0.35) }); });
     if (k >= 1) o += SV.text(30, 160, k === 1 ? "push: the client sends the message to its mail server" : k === 2 ? "push: servers pass the message towards its destination" : "pull: the recipient's client retrieves the message", "lbl bd", { style: "font-size:15px" });
     return o;
   };
@@ -201,9 +201,9 @@ js = AKJS + AK20JS + r'''
 (function () {
   const draw = (s) => {
     const k = Math.round(s.i); let o = SV.text(30, 22, "POP3", "lbl bd") + SV.text(400, 22, "IMAP", "lbl bd");
-    const box = (x, t, on, cls) => SV.rect(x, 34, 150, 44, on ? cls : "cell", { rx: 6 }) + SV.text(x + 75, 61, t, "lbl", { "text-anchor": "middle", style: "font-size:13px" });
+    const box = (x, t, on, cls, y = 34) => SV.rect(x, y, 150, 44, on ? cls : "cell", { rx: 6 }) + SV.text(x + 75, y + 27, t, "lbl", { "text-anchor": "middle", style: "font-size:13px" });
     o += box(30, "Mail server: 1 email", true, "f3") + box(400, "Mail server: 1 email", true, "f3");
-    o += box(30, k >= 1 ? "Laptop: downloaded" : "Laptop", k >= 1, "cell-ok") + box(400, k >= 1 ? "Laptop: shows a copy" : "Laptop", k >= 1, "cell-ok");
+    o += box(30, k >= 1 ? "Laptop: downloaded" : "Laptop", k >= 1, "cell-ok", 82) + box(400, k >= 1 ? "Laptop: shows a copy" : "Laptop", k >= 1, "cell-ok", 82);
     o += SV.rect(30, 130, 150, 44, k >= 2 ? "cell-no" : "cell", { rx: 6 }) + SV.text(105, 157, k >= 2 ? "Phone: nothing" : "Phone", "lbl", { "text-anchor": "middle", style: "font-size:13px" });
     o += SV.rect(400, 130, 150, 44, k >= 2 ? "cell-ok" : "cell", { rx: 6 }) + SV.text(475, 157, k >= 2 ? "Phone: shows a copy" : "Phone", "lbl", { "text-anchor": "middle", style: "font-size:13px" });
     if (k >= 1) { o += SV.rect(30 + 160, 34, 190, 44, k >= 1 ? "cell-no" : "cell", { rx: 6 }) + SV.text(285, 61, "removed from the server", "lbl", { "text-anchor": "middle", style: "font-size:12px" }); o += SV.text(560, 61, "stays on the server", "lbl bd t3", { style: "font-size:13px" }); }
