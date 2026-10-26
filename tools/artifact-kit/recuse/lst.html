@@ -1,0 +1,222 @@
+
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Chapter 19 · 19.2</div>
+  <h1>Recursion in Action: Lists and Strings, One Item at a Time</h1>
+  <p class="lead">Deal with the first item, then let a recursive call deal with the rest. This is the pattern behind the most common Paper 4 recursion questions: totalling an array, counting a value, counting vowels in a string, and rewriting a loop as a recursive function.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<!-- LEARN -->
+<section id="learn" role="tabpanel">
+  <div class="card big">
+    <h3>The pattern</h3>
+    <p>An array, a queue or a string is a list of items. Any job done by looping over a list can be described like this: <b>handle the first item, then do the same job on the rest of the list</b>. “The rest of the list” is a smaller list, so the job calls itself on it.</p>
+    <p>When there is nothing left, the job is finished. That is the base case, and the answer it gives is the <b>starting value</b> of the running total: 0 for a sum or a count.</p>
+  </div>
+
+  <h2>From loop to recursion</h2>
+  <p>Past papers ask you to <b>rewrite</b> a loop-based function as a recursive one, or to <b>write</b> a recursive function from a description. Each part of the loop has a matching part in the recursive version.</p>
+  <div class="tw"><table class="t">
+    <tr><th>In the loop version</th><th>In the recursive version</th></tr>
+    <tr><td>Running total starts at 0</td><td>The base case returns 0 (nothing left to add)</td></tr>
+    <tr><td>Loop stops when the data runs out</td><td>The base case test: the index has gone past the last item</td></tr>
+    <tr><td>Loop body: use the current item</td><td>The general case: use <code>Items[Index]</code>…</td></tr>
+    <tr><td>Index moves on by 1 each pass</td><td>…and call again with <code>Index + 1</code></td></tr>
+    <tr><td>Total ← Total + item</td><td><code>RETURN item + (the call for the rest)</code></td></tr>
+  </table></div>
+
+  <h2>Example 1: total of an array</h2>
+  <p>Indexes start at 0 here. <code>Index</code> says which item is being handled; everything from <code>Index</code> onward is “the rest”.</p>
+  <div id="codeSum"></div>
+  <ol class="step4">
+    <li><span><b>Base case: Index &gt; Last.</b> There is no item at this index, so there is nothing to add. Return 0.</span></li>
+    <li><span><b>General case.</b> Add the current item, <code>Numbers[Index]</code>, to the total for the rest, which is <code>Total(Numbers, Index + 1, Last)</code>. The index moves towards the end each call.</span></li>
+    <li><span><b>The addition waits.</b> As in compound interest, the + cannot be done until the call below has returned. The calls wind down to the end of the list, and the additions happen as they unwind.</span></li>
+  </ol>
+
+  <h2>Example 2: counting items that match</h2>
+  <p>Now a call may or may not add 1. If the current item matches, return 1 plus the count for the rest; if not, return the count for the rest unchanged. This is O/N 2025 Paper 4 (counting how many times a value is in an array).</p>
+  <div id="codeCnt"></div>
+
+  <h2>Example 3: strings</h2>
+  <p>A string is a list of characters, so the same shape works. Counting vowels (O/N 2023, Paper 4): look at the current character, add 1 if it is a vowel, and call again for the rest of the string. The base case is when the index reaches the length of the string. <code>IsVowel</code> here stands for a test that the character is a, e, i, o or u.</p>
+  <div id="codeVow"></div>
+  <div class="tip"><b class="h">Two ways to say “the rest”</b>Some questions pass a moving <b>index</b>, as here. Others pass a smaller copy of the data each time (a string with its first character removed, or an array with its first element dropped, plus a count of the elements left). Both work. The base case is then an empty string or zero elements.</div>
+
+  <h2>Cost</h2>
+  <p>A list of <i>n</i> items makes <i>n</i> + 1 calls (one for each item, plus the base case) and the stack gets <i>n</i> + 1 frames deep. A loop does the same work with no stack. For a very long list the recursive version could overflow the stack, so real programs would normally use a loop for this job. In an exam, recursion is used to show you can write and trace it.</p>
+</section>
+
+<!-- WATCH -->
+<section id="watch" role="tabpanel" hidden>
+  <p>Press Play, or click the numbered dots. In the diagrams below, the item being handled is highlighted. Items already handled are faded. The list under the array is the <b>call stack</b>, one row per call. The highlighted code line shows what is being run.</p>
+
+  <h2>1 · Total of the array 4, 7, 2, 9</h2>
+  <p>The calls go down one item at a time to the end of the list. The sums are worked out as the calls return, last item first.</p>
+  <div id="aSum"></div>
+
+  <h2>2 · The same call as a stack and a call tree</h2>
+  <p>A chain of five frames. The base case is at the bottom. Each frame returns its item plus the answer from the frame below it.</p>
+  <div id="aStack"></div>
+
+  <h2>3 · Counting the vowels in “imagine”</h2>
+  <p>Each call looks at one letter. Vowels add 1; other letters pass the count up unchanged.</p>
+  <div id="aVow"></div>
+  <div class="warn"><b class="h">Remember</b>A trace table for any of these functions has one row for each call going down (Result column holds the sum or count still waiting), then the same calls again going up with the Return value filled in. With <i>n</i> items there are 2<i>n</i> + 1 rows.</div>
+</section>
+
+<!-- EXPLORE -->
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Run a function on any data</h2>
+  <p>Choose a function and some data, then step through it with Next. The readout shows the calls, how deep the stack gets and what a loop would need.</p>
+  <div class="pick"><label for="lsT">Function and data</label><select id="lsT"></select></div>
+  <div class="readout" id="lsRO"></div>
+  <div id="lsAlgo"></div>
+  <div class="tip"><b class="h">Try this</b>Pick “rhythm” (no vowels): every call returns the count it was given, so the answer is 0 all the way up. Then try the array with 7 as the target: no matches, same result.</div>
+
+  <h2>Activity 1 · Order the events</h2>
+  <div id="o1"></div>
+
+  <h2>Activity 2 · Sort the code into its roles</h2>
+  <div id="cl1"></div>
+
+  <h2>Activity 3 · Loop piece or recursive piece?</h2>
+  <div id="cl2"></div>
+
+  <h2>Activity 4 · Match the terms</h2>
+  <div id="m1"></div>
+</section>
+
+<!-- PRACTISE -->
+<section id="practise" role="tabpanel" hidden>
+  <h2>Trace it yourself</h2>
+  <p>Questions use <code>Total(Numbers, 0, 3)</code> with <code>Numbers = 6, 1, 8, 5</code> unless stated. Use <b>Hint</b> before <b>Show working</b>.</p>
+  <div id="c1"></div>
+  <h2>Quick quiz</h2>
+  <div id="qz1"></div>
+  <h2>Flashcards</h2>
+  <div id="fc1"></div>
+</section>
+
+<!-- REAL WORLD -->
+<section id="real" role="tabpanel" hidden>
+  <p class="note">General descriptions of where the same pattern appears. Numbers are illustrative only.</p>
+  <div class="rw"><h3>Adding up a till roll</h3><p>Adding up a list of prices is “this price plus the total of the others”. That is the Total function, and the empty list totals 0.</p><div class="use"><b>Exam use:</b> a plain example of a recursive sum, with a base case that returns 0.</div></div>
+  <div class="rw"><h3>Counting words or characters</h3><p>Counting how many times a letter appears in a text, or how many words contain a given letter, follows the counting pattern: match adds 1, non-match adds nothing.</p><div class="use"><b>Exam use:</b> the counting function from O/N 2025, and the vowels function from O/N 2023.</div></div>
+  <div class="rw"><h3>Checking a palindrome</h3><p>A word reads the same both ways if its first and last letters match and the word between them is also a palindrome. Each call strips a letter from both ends. A word with 0 or 1 letters is the base case.</p><div class="use"><b>Exam use:</b> a good “write a recursive function” practice question using the same “smaller copy of the data” idea.</div></div>
+  <div class="rw"><h3>Reversing a string</h3><p>The reverse of a word is the reverse of everything after its first letter, followed by the first letter. The empty string reverses to itself.</p><div class="use"><b>Exam use:</b> shows recursion where the work is done on the way back up, since the first letter is added last.</div></div>
+  <div class="rw"><h3>Processing a queue or stack</h3><p>Totalling the items in a queue, as in O/N 2022, walks along the queue from one end. A linked list is processed the same way: handle the node, then follow the pointer to the rest.</p><div class="use"><b>Exam use:</b> links recursion to the ADTs in 19.1.</div></div>
+  <div class="rw"><h3>Why real programs often use a loop</h3><p>For a list of a million items the recursive version would need a million frames and could overflow the stack. A loop does the same job in constant memory. Recursion earns its place when the problem splits into <i>several</i> smaller problems, as with trees.</p><div class="use"><b>Exam use:</b> supports a “when is recursion beneficial?” answer: it is clearer for self-similar structures, not faster for flat lists.</div></div>
+</section>
+
+<!-- EXAM -->
+<section id="exam" role="tabpanel" hidden>
+  <h2>What 9618 has asked about lists and strings</h2>
+  <p>This pattern accounts for most of the Paper 4 recursion questions: totalling a queue, counting vowels, counting a value, a divisor total and a procedure that edits an array. Open each question for reminders, a model answer and common mistakes. Each coloured phrase earns one mark; the number shows which mark point it is. Past paper mark schemes list Python, VB.NET and Java; only Python is shown here.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span></div>
+
+  <h2>1. Past paper questions</h2>
+<!--PP: O/N 2022 · 9618/42 · Q3(d)-->
+<!--PP: O/N 2023 · 9618/41, 43 · Q1(b)(i)-->
+<!--PP: O/N 2023 · 9618/42 · Q2(b)-->
+<!--PP: O/N 2025 · 9618/43 · Q3(a)(i), (ii)-->
+<!--PP: M/J 2025 · 9618/33 · Q13-->
+
+  <h2>2. Review questions</h2>
+  <p>Written for practice, not taken from past papers.</p>
+
+  <details class="eq"><summary>Q1 <span class="cmd">State</span> <span class="mark">2 marks</span> A recursive function totals the values in an array from <code>Index</code> to <code>Last</code>. State the base case and the value it returns.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Say when it stops, and what it gives back. The value is the starting value of a sum.</div>
+    <div class="ans"><span class="mk k" data-t="1">The base case is when Index is greater than Last (there are no items left).</span> <span class="mk k" data-t="2">It returns 0 (no further call is made).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Returning the last item as the base case without allowing for an empty array. Returning 1 for a sum (1 is the starting value for multiplying, not adding).</div>
+  </div></details>
+
+  <details class="eq"><summary>Q2 <span class="cmd">Complete</span> <span class="mark">4 marks</span> <code>Total(Numbers, 0, 2)</code> is called with <code>Numbers = 3, 5, 2</code>. Complete the trace table.<pre class="plain">Call | Function call          | Index | Result | Return value
+ 1   | Total(Numbers, 0, 2)   | 0     | ...    | ...
+ ...</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Four calls: Index 0, 1, 2 and then 3 (the base case). Write the sum waiting on the way down, and the numbers on the way up.</div>
+    <div class="ans"><div class="tw"><table class="t mono"><tr><th>Call</th><th>Function call</th><th>Index</th><th>Result</th><th>Return value</th></tr>
+      <tr><td>1</td><td>Total(Numbers, 0, 2)</td><td>0</td><td>3 + Total(Numbers, 1, 2)</td><td></td></tr>
+      <tr><td>2</td><td>Total(Numbers, 1, 2)</td><td>1</td><td>5 + Total(Numbers, 2, 2)</td><td></td></tr>
+      <tr><td>3</td><td>Total(Numbers, 2, 2)</td><td>2</td><td>2 + Total(Numbers, 3, 2)</td><td></td></tr>
+      <tr><td>4</td><td>Total(Numbers, 3, 2)</td><td>3</td><td>0</td><td><b>0</b></td></tr>
+      <tr style="background:var(--good-soft)"><td>(3)</td><td>Total(Numbers, 2, 2)</td><td>2</td><td>2 + 0</td><td><b>2</b></td></tr>
+      <tr style="background:var(--good-soft)"><td>(2)</td><td>Total(Numbers, 1, 2)</td><td>1</td><td>5 + 2</td><td><b>7</b></td></tr>
+      <tr style="background:var(--good-soft)"><td>(1)</td><td>Total(Numbers, 0, 2)</td><td>0</td><td>3 + 7</td><td><b>10</b></td></tr></table></div>
+      <p><span class="mk k" data-t="1">Calls 1 to 3 with correct Index values and waiting sums.</span> <span class="mk k" data-t="2">Call 4 is the base case with Result and Return value 0.</span> <span class="mk k" data-t="3">Unwinding rows in reverse order (3, 2, 1) with the numbers substituted.</span> <span class="mk k" data-t="4">Return values 2, 7 and 10 correct.</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Leaving out the base-case call (Index 3), or filling the Return value column on calls 1 to 3 before they have returned.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q3 <span class="cmd">Write</span> <span class="mark">6 marks</span> Write a recursive function <code>CountItem(Numbers, Index, Last, Target)</code> that returns how many times <code>Target</code> appears in the array from <code>Index</code> to <code>Last</code>.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Base case first. Then two branches: a match (1 plus the rest) and a non-match (just the rest).</div>
+    <div class="ans"><span class="mk k" data-t="1">Function header with four parameters, returning an integer.</span> <span class="mk k" data-t="2">Base case: if Index is past Last, return 0.</span> <span class="mk k" data-t="3">Compares Numbers[Index] with Target.</span> <span class="mk k" data-t="4">On a match, returns 1 plus the recursive call with Index + 1.</span> <span class="mk k" data-t="5">Otherwise returns the recursive call with Index + 1, without adding.</span> <span class="mk k" data-t="6">All recursive calls pass the other parameters unchanged and use RETURN.</span>
+<pre class="plain">def count_item(numbers, index, last, target):
+    if index &gt; last:
+        return 0
+    elif numbers[index] == target:
+        return 1 + count_item(numbers, index + 1, last, target)
+    else:
+        return count_item(numbers, index + 1, last, target)</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting to move Index on in the non-match branch, so the function calls itself with the same arguments and never ends.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q4 <span class="cmd">Rewrite</span> <span class="mark">5 marks</span> The iterative function totals the values in an array. Rewrite it as a recursive function.<pre class="plain">FUNCTION IterativeTotal(Numbers, Last : INTEGER) RETURNS INTEGER
+   Total ← 0
+   FOR Index ← 0 TO Last
+      Total ← Total + Numbers[Index]
+   NEXT Index
+   RETURN Total
+ENDFUNCTION</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The FOR loop’s counter becomes a parameter. “Total ← 0” becomes the base case.</div>
+    <div class="ans"><span class="mk k" data-t="1">Header with an extra Index parameter.</span> <span class="mk k" data-t="2">Base case test: Index greater than Last.</span> <span class="mk k" data-t="3">Base case returns 0.</span> <span class="mk k" data-t="4">General case adds Numbers[Index] to a recursive call.</span> <span class="mk k" data-t="5">Recursive call uses Index + 1, and the function is called initially with Index 0.</span>
+<pre class="plain">def recursive_total(numbers, index, last):
+    if index &gt; last:
+        return 0
+    return numbers[index] + recursive_total(numbers, index + 1, last)
+
+print(recursive_total(numbers, 0, 3))</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Calling the recursive function from the main program with the wrong starting index (it must match where the loop started).</div>
+  </div></details>
+
+  <details class="eq"><summary>Q5 <span class="cmd">State</span> <span class="mark">2 marks</span> A recursive function is used to total a list of 500 items. State the number of calls made and the greatest number of frames on the stack.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One call per item, plus the base case. All of them are waiting at the deepest point.</div>
+    <div class="ans"><span class="mk k" data-t="1">501 calls (500 items plus the base case).</span> <span class="mk k" data-t="2">501 frames on the stack at the deepest point (each call waits for the one below it).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting the base-case call, and so answering 500.</div>
+  </div></details>
+</section>
+
+<!-- TIPS -->
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Base case = nothing left.</b> It returns the starting value: 0 for a sum or count.</li>
+    <li><b>Each call handles one item,</b> then calls itself for the rest with the index moved on by 1 (or the data made one item smaller).</li>
+    <li><b>Always move towards the base case.</b> A recursive call that repeats the same Index never stops.</li>
+    <li><b>Counting has two branches.</b> A match returns 1 + the call; a non-match returns the call alone. Both need a RETURN.</li>
+    <li><b>Rewriting a loop:</b> counter → parameter, starting total → base case, loop body → general case.</li>
+    <li><b>Check the first index.</b> The call from the main program must start where the loop started (0 or 1, or the head pointer).</li>
+    <li><b>In a trace table, write the waiting sum going down and the numbers coming up.</b> The base case row has a Return value; calls above it do not until unwinding.</li>
+    <li><b>n items → n + 1 calls and n + 1 frames.</b> The extra one is the base case.</li>
+    <li><b>Strings:</b> check whether the question uses MID with a start position of 0 or 1, and whether it passes an index or a shorter string.</li>
+    <li><b>Procedures return nothing.</b> A recursive PROCEDURE has no return column and no unwinding work, unless something is done after the call.</li>
+  </ul>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Identify</td><td>A short fact or the line of code. No explanation.</td></tr>
+    <tr><td>Describe</td><td>The steps in order, or how something works.</td></tr>
+    <tr><td>Explain</td><td>What happens and why.</td></tr>
+    <tr><td>Complete</td><td>Fill every gap or cell, with exact values or code.</td></tr>
+    <tr><td>Write / Rewrite</td><td>Full code with header, structure and end statements.</td></tr>
+  </table></div>
+</section>
+</div>

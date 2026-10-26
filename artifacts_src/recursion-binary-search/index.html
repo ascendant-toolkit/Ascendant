@@ -1,0 +1,986 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Recursion in Action: Binary Search</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<style>
+.pick{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:6px 0 10px}
+.pick select{font:600 .95rem var(--sans);padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.pick label{font-weight:600;font-size:.92rem}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .85rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+#ciChart svg{display:block;width:100%;height:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.callbox{font:700 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:8px 14px;border-radius:0 8px 8px 0;margin:8px 0;overflow-x:auto}
+.step4{counter-reset:s;list-style:none;padding:0;margin:8px 0}
+.step4 li{counter-increment:s;display:flex;gap:10px;padding:8px 12px;margin-bottom:6px;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
+.step4 li::before{content:counter(s);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+.algo{grid-template-columns:minmax(0,1fr)}
+table.t td,table.t th{white-space:normal}
+table.t.mono td,table.t.mono th{white-space:nowrap}
+</style>
+<div class="wrap">
+
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Chapter 19 · 19.2</div>
+  <h1>Recursion in Action: Binary Search</h1>
+  <p class="lead">Search a sorted array by looking at the middle and throwing half of it away, again and again. See the range shrink call by call, trace the function, count how many calls it needs, and practise the Paper 4 question that asked for it.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<!-- LEARN -->
+<section id="learn" role="tabpanel">
+  <div class="card big">
+    <h3>The problem</h3>
+    <p>You have a <b>sorted</b> array and want the position of a value in it. A linear search checks the items one at a time, which could mean checking all of them. A <span class="kw">binary search</span> uses the order: look at the middle item. If it is the one you want, stop. If the middle item is too big, the value can only be in the lower half. If it is too small, only the upper half. Either way, half of the array has been ruled out in one step.</p>
+    <p>Searching the remaining half is the same problem on a smaller array. That is recursion: <b>search this range = check the middle, then search a smaller range</b>.</p>
+  </div>
+
+  <h2>Two base cases and two general cases</h2>
+  <div class="grid2">
+    <div class="card"><h3>Base cases</h3><div class="formula">found · or · range empty</div><p><b>Found:</b> <code>DataArray[Middle] = DataToFind</code>, so return <code>Middle</code>. <b>Not found:</b> <code>Upper &lt; Lower</code>, so no items are left to look at: return −1.</p></div>
+    <div class="card"><h3>General cases</h3><div class="formula">search the lower half · or · the upper half</div><p>If the middle value is <b>greater</b> than the target, search <code>Lower</code> to <code>Middle − 1</code>. If it is <b>less</b>, search <code>Middle + 1</code> to <code>Upper</code>. The middle is excluded because it has just been checked.</p></div>
+  </div>
+  <div class="tip"><b class="h">The array must be sorted</b>The whole idea depends on knowing that everything on one side of the middle is smaller and everything on the other is larger. On an unsorted array a binary search can give the wrong answer.</div>
+
+  <h2>The function, line by line</h2>
+  <p>This is the function from the past paper question (O/N 2025, Paper 4). Switch between Pseudocode and Python.</p>
+  <div id="codeB"></div>
+  <ol class="step4">
+    <li><span><b>Header.</b> Four parameters: the array, the <code>Lower</code> and <code>Upper</code> index of the part still to search, and the value to find. It RETURNS an index, or −1.</span></li>
+    <li><span><b>IF Upper &gt;= Lower.</b> There is at least one item left. If this is false the range is empty, which is the “not found” base case at the bottom.</span></li>
+    <li><span><b>Middle ← Lower + (Upper − Lower) DIV 2.</b> The integer middle of the range. With indexes 0 to 10, Middle = 5.</span></li>
+    <li><span><b>Compare.</b> Equal: return Middle (found). Greater: recurse on <code>Lower … Middle − 1</code>. Otherwise: recurse on <code>Middle + 1 … Upper</code>. Each recursive call has a range at least one item smaller, so it must end.</span></li>
+    <li><span><b>RETURN in front of each recursive call.</b> The answer from the smaller search is passed straight back up. Nothing is added or calculated on the way up.</span></li>
+  </ol>
+
+  <h2>How many calls?</h2>
+  <p>Each call halves the range, so the number of calls is about log₂ of the array size. 1 000 items need at most 10 calls; a million items need at most 20. A linear search could need a million.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Items in the array</th><th>Most calls, binary search</th><th>Most checks, linear search</th></tr>
+    <tr><td>7</td><td>3</td><td>7</td></tr>
+    <tr><td>20</td><td>5</td><td>20</td></tr>
+    <tr><td>1 023</td><td>10</td><td>1 023</td></tr>
+    <tr><td>1 048 575</td><td>20</td><td>1 048 575</td></tr>
+  </table></div>
+
+  <h2>The same job with a loop</h2>
+  <p>Binary search is also easy to write with a loop: keep <code>Lower</code> and <code>Upper</code> as variables and move them instead of passing new values to a new call. It uses no stack.</p>
+  <pre class="plain">def binary_search(data_array, data_to_find):
+    lower, upper = 0, len(data_array) - 1
+    while upper &gt;= lower:
+        middle = lower + (upper - lower) // 2
+        if data_array[middle] == data_to_find:
+            return middle
+        elif data_array[middle] &gt; data_to_find:
+            upper = middle - 1
+        else:
+            lower = middle + 1
+    return -1</pre>
+  <div class="note">The two versions make the same comparisons. The loop avoids the stack frames; the recursive version matches the idea more directly.</div>
+</section>
+
+<!-- WATCH -->
+<section id="watch" role="tabpanel" hidden>
+  <p>The array below is <code>3, 8, 12, 17, 21, 26, 34, 40, 47, 55, 63</code> (indexes 0 to 10). Press Play, or click the numbered dots. The part of the array still being searched is bright; everything ruled out is faded. The highlighted code line shows what is being run.</p>
+
+  <h2>1 · Searching for 40 (found)</h2>
+  <div id="aFound"></div>
+
+  <h2>2 · Searching for 30 (not in the array)</h2>
+  <p>The range shrinks until it is empty: <code>Upper</code> falls below <code>Lower</code>, and the function returns −1.</p>
+  <div id="aMiss"></div>
+
+  <h2>3 · The same search for 40 on the call stack</h2>
+  <p>On the left is the call stack, on the right the call tree. It is a chain, because each call makes at most one further call. Nothing is calculated on the way back up: each frame just passes the answer on.</p>
+  <div id="aStack"></div>
+  <div class="warn"><b class="h">Remember</b>A trace table for this function has one column for each parameter (<code>Lower</code>, <code>Upper</code>), plus <code>Middle</code> and the value returned. The Return value stays blank on the way down; every row from the final call upwards carries the same answer.</div>
+</section>
+
+<!-- EXPLORE -->
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Search for any value</h2>
+  <p>Choose a value to look for. Step through the search with Next, and see how many calls it takes. Values marked “missing” are not in the array.</p>
+  <div class="pick"><label for="bsT">Search for</label><select id="bsT"></select></div>
+  <div class="readout" id="bsRO"></div>
+  <div id="bsAlgo"></div>
+
+  <h2>Lab 2 · How much work does halving save?</h2>
+  <p>The array has 2<sup>k</sup> − 1 items (a size that halves evenly). Change <i>k</i>.</p>
+  <div id="bsK"></div>
+  <div class="readout" id="bsRO2"></div>
+  <div id="bsBars"></div>
+  <div class="tip"><b class="h">Try this</b>Set k = 10. A linear search might need 1 023 checks; binary search needs at most 10 calls. Each time the array doubles in size, binary search needs only one more call.</div>
+
+  <h2>Activity 1 · Order the events</h2>
+  <div id="o1"></div>
+
+  <h2>Activity 2 · Sort the code into its roles</h2>
+  <div id="cl1"></div>
+
+  <h2>Activity 3 · Binary or linear?</h2>
+  <div id="cl2"></div>
+
+  <h2>Activity 4 · Match the terms</h2>
+  <div id="m1"></div>
+</section>
+
+<!-- PRACTISE -->
+<section id="practise" role="tabpanel" hidden>
+  <h2>Trace it yourself</h2>
+  <p>Questions use the array <code>3, 8, 12, 17, 21, 26, 34, 40, 47, 55, 63</code> at indexes 0 to 10 unless stated. Use <b>Hint</b> before <b>Show working</b>.</p>
+  <div id="c1"></div>
+  <h2>Quick quiz</h2>
+  <div id="qz1"></div>
+  <h2>Flashcards</h2>
+  <div id="fc1"></div>
+</section>
+
+<!-- REAL WORLD -->
+<section id="real" role="tabpanel" hidden>
+  <p class="note">General descriptions of where the halving idea is used. Numbers are illustrative only.</p>
+  <div class="rw"><h3>Looking up a word in a dictionary</h3><p>You open the book near the middle, see whether your word comes before or after the page you landed on, and repeat with the remaining half. That is binary search done by hand, and it only works because the words are in alphabetical order.</p><div class="use"><b>Exam use:</b> a clear example of why the data must be sorted.</div></div>
+  <div class="rw"><h3>The guessing game</h3><p>In “I’m thinking of a number between 1 and 100”, guessing the middle each time and being told higher or lower finds the number in at most 7 guesses.</p><div class="use"><b>Exam use:</b> shows the number of calls grows with log₂ of the size, not with the size itself.</div></div>
+  <div class="rw"><h3>Finding a fault in a long list of changes</h3><p>If a program worked last month and is broken now, testing the middle version tells you which half contains the change that broke it. Repeating this finds the problem in a handful of tests, even among thousands of changes. Developer tools can automate it.</p><div class="use"><b>Exam use:</b> a non-obvious use of the same idea, good for “give an example”.</div></div>
+  <div class="rw"><h3>Database indexes</h3><p>Databases keep an ordered index of a column so that a record can be located without reading every row. Many indexes are tree structures that work on the same halving principle, as you see on the binary tree page.</p><div class="use"><b>Exam use:</b> links searching to databases and to binary trees.</div></div>
+  <div class="rw"><h3>The cost of sorting first</h3><p>If the data arrives unsorted, it has to be sorted before a binary search can be used, and sorting costs time. Binary search pays off when the same data will be searched many times.</p><div class="use"><b>Exam use:</b> supports a “discuss” answer comparing binary and linear search.</div></div>
+  <div class="rw"><h3>Recursion or a loop?</h3><p>Because the answer is passed straight back with no calculation, binary search is just as easy with a loop, and the loop avoids stack frames. The recursive version is shorter to explain; a real program would often use the loop.</p><div class="use"><b>Exam use:</b> for “when is recursion beneficial?” the honest answer is: when the problem splits into smaller copies, and the code is clearer; not always when it is fastest.</div></div>
+</section>
+
+<!-- EXAM -->
+<section id="exam" role="tabpanel" hidden>
+  <h2>What 9618 has asked about recursive binary search</h2>
+  <p>A recursive binary search was a six-mark code-writing question in Paper 4 (O/N 2025). Open each question for reminders, a model answer and common mistakes. Each coloured phrase earns one mark; the number shows which mark point it is. Past paper mark schemes list Python, VB.NET and Java; only Python is shown here.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span></div>
+
+  <h2>1. Past paper question</h2>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/42 · Q2(e), (f)</span> <span class="cmd">Write</span> <span class="mark">6 + 3 marks</span> A sorted 1D array of 20 integers is stored in the main program. The recursive function <code>RecursiveBinarySearch()</code> takes four parameters: an integer array, the lower bound, the upper bound and the value to find. It performs a binary search and returns the index of the value if found, or −1 if not. (e) Write program code for the function. (f) Amend the main program to input an integer, call the function with the sorted array and appropriate bounds, and output “Not found”, or “Found at position” and the index.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Base case: the lower bound has passed the upper bound, return −1. Otherwise find the middle, compare, and recurse on the half that could hold the value. The array is searched by index, so it must already be sorted.</div>
+    <div class="ans"><p>(e) Six marks: <span class="mk k" data-t="1">function header taking four parameters, written recursively</span>; <span class="mk k" data-t="2">calculating the middle value</span>; <span class="mk k" data-t="3">comparing the middle value to the data and returning the index if equal</span>; <span class="mk k" data-t="4">if the middle is greater, recursive call with Middle − 1 as the upper bound</span>; <span class="mk k" data-t="5">if the middle is less, recursive call with Middle + 1 as the lower bound</span>; <span class="mk k" data-t="6">checking if not found and returning −1</span>.</p>
+<pre class="plain">def RecursiveBinarySearch(DataArray, Lower, Upper, DataToFind):
+    if Upper >= Lower:
+        Middle = Lower + (Upper - Lower) // 2
+        if DataArray[Middle] == DataToFind:
+            return Middle
+        elif DataArray[Middle] > DataToFind:
+            return RecursiveBinarySearch(DataArray, Lower, Middle - 1, DataToFind)
+        else:
+            return RecursiveBinarySearch(DataArray, Middle + 1, Upper, DataToFind)
+    else:
+        return -1</pre>
+    <p>(f) Three marks: <span class="mk a" data-t="1">prompt and input of an integer</span>; <span class="mk a" data-t="2">call with the sorted array, 0 and 19 and the input, storing or using the return value</span>; <span class="mk a" data-t="3">output “Not found” if −1 is returned, otherwise “Found at position” and the index</span>.</p>
+<pre class="plain">Number = int(input("Enter the number to find: "))
+Result = RecursiveBinarySearch(SortedArray, 0, 19, Number)
+if Result == -1:
+    print("Not found")
+else:
+    print("Found at position", Result)</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using 20 as the upper bound. Indexes run from 0 to 19. Also forgetting the −1 return, so the function returns nothing when the value is missing.</div>
+  </div></details>
+
+  <h2>2. Review questions</h2>
+  <p>Written for practice, not taken from past papers. Questions use the array <code>3, 8, 12, 17, 21, 26, 34, 40, 47, 55, 63</code> at indexes 0 to 10.</p>
+
+  <details class="eq"><summary>Q1 <span class="cmd">State</span> <span class="mark">2 marks</span> State the two base cases of a recursive binary search.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One where the value is found, one where it cannot be.</div>
+    <div class="ans"><span class="mk k" data-t="1">The value at the middle index equals the value being searched for (found, so return the index).</span> <span class="mk k" data-t="2">The upper bound is less than the lower bound / there are no items left to search (not found, so return −1).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting the not-found case. Without it, searching for a missing value would keep calling forever or index outside the array.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q2 <span class="cmd">Complete</span> <span class="mark">4 marks</span> The function is called as <code>RecursiveBinarySearch(DataArray, 0, 10, 40)</code>. Complete the trace table.<pre class="plain">Call | Lower | Upper | Middle | DataArray[Middle] | Return value
+ 1   |  0    | 10    | ...    | ...               | ...
+ 2   | ...
+ 3   | ...
+ 4   | ...</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Middle = Lower + (Upper − Lower) DIV 2. If the middle value is too small, the new Lower is Middle + 1. If it is too big, the new Upper is Middle − 1. Return values are blank until the base case.</div>
+    <div class="ans"><div class="tw"><table class="t mono"><tr><th>Call</th><th>Lower</th><th>Upper</th><th>Middle</th><th>DataArray[Middle]</th><th>Return value</th></tr>
+      <tr><td>1</td><td>0</td><td>10</td><td>5</td><td>26</td><td></td></tr>
+      <tr><td>2</td><td>6</td><td>10</td><td>8</td><td>47</td><td></td></tr>
+      <tr><td>3</td><td>6</td><td>7</td><td>6</td><td>34</td><td></td></tr>
+      <tr><td>4</td><td>7</td><td>7</td><td>7</td><td>40</td><td><b>7</b></td></tr></table></div>
+      <p><span class="mk k" data-t="1">Call 1 correct (Middle 5, value 26, so search the upper half).</span> <span class="mk k" data-t="2">Call 2 correct (Lower 6, Upper 10, Middle 8, value 47, too big, so Upper becomes 7).</span> <span class="mk k" data-t="3">Call 3 correct (Lower 6, Upper 7, Middle 6, value 34, too small, so Lower becomes 7).</span> <span class="mk k" data-t="4">Call 4 correct and returns 7 (the value 40 is at index 7).</span> The same 7 is passed back up through calls 3, 2 and 1.</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Using Middle instead of Middle − 1 or Middle + 1 for the new bound, or filling the Return value column on rows 1 to 3 before the base case has returned.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q3 <span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain why a binary search needs fewer comparisons than a linear search on a large sorted array.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Say what one comparison achieves, and give the effect on the number of comparisons.</div>
+    <div class="ans"><span class="mk k" data-t="1">Each comparison with the middle item rules out half of the remaining items, because the array is sorted.</span> <span class="mk k" data-t="2">So the number of items left halves each time, and the number of comparisons grows with log₂ of the size (e.g. 1 000 items need about 10).</span> <span class="mk k" data-t="3">A linear search removes only one item per comparison, so it may need to check every item.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying binary search “is faster” without saying why. Name the halving.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q4 <span class="cmd">Rewrite</span> <span class="mark">6 marks</span> Rewrite the recursive binary search as an iterative function using program code.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The recursive calls become changes to Lower or Upper, inside a loop that runs while there is something left to search.</div>
+    <div class="ans"><span class="mk k" data-t="1">Function header with the array and value to find as parameters (the bounds set up inside).</span> <span class="mk k" data-t="2">Lower and Upper initialised to the first and last index.</span> <span class="mk k" data-t="3">Loop that continues while Upper &gt;= Lower.</span> <span class="mk k" data-t="4">Middle calculated inside the loop.</span> <span class="mk k" data-t="5">If equal, the index is returned; if greater, Upper becomes Middle − 1; otherwise Lower becomes Middle + 1.</span> <span class="mk k" data-t="6">Returns −1 after the loop if not found.</span>
+<pre class="plain">def binary_search(data_array, data_to_find):
+    lower, upper = 0, len(data_array) - 1
+    while upper &gt;= lower:
+        middle = lower + (upper - lower) // 2
+        if data_array[middle] == data_to_find:
+            return middle
+        elif data_array[middle] &gt; data_to_find:
+            upper = middle - 1
+        else:
+            lower = middle + 1
+    return -1</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using <code>Upper &gt; Lower</code> in the loop condition, which skips the last single item.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q5 <span class="cmd">Discuss</span> <span class="mark">4 marks</span> Discuss whether a recursive or an iterative binary search is the better choice.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One advantage and one disadvantage of each, then a judgement.</div>
+    <div class="ans"><span class="mk k" data-t="1">Recursive: short code that follows the idea directly (search a smaller range).</span> <span class="mk k" data-t="2">Recursive: each call needs a stack frame, so it uses more memory, though only about log₂ n frames are needed.</span> <span class="mk k" data-t="3">Iterative: no stack frames, so it uses less memory and has no risk of stack overflow.</span> <span class="mk k" data-t="4">A judgement: for binary search the depth is small, so either works; the iterative version is slightly more efficient, the recursive version is often clearer.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying recursion is always slower or always uses too much memory. For binary search the stack depth is tiny.</div>
+  </div></details>
+</section>
+
+<!-- TIPS -->
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>The array must be sorted.</b> Say so in any binary search explanation.</li>
+    <li><b>Two base cases:</b> found (return the index) and <code>Upper &lt; Lower</code> (return −1).</li>
+    <li><b>Middle ← Lower + (Upper − Lower) DIV 2.</b> Use integer division. Check that the middle is always between Lower and Upper.</li>
+    <li><b>Exclude the middle.</b> The new bounds are <code>Middle − 1</code> and <code>Middle + 1</code>, not Middle, because that item has been checked.</li>
+    <li><b>Use RETURN on the recursive call.</b> <code>RETURN RecursiveBinarySearch(…)</code>. Without it the answer never reaches the original caller.</li>
+    <li><b>Indexes, not the number of items.</b> An array of 20 items has indexes 0 to 19, so the first call uses 0 and 19.</li>
+    <li><b>In a trace table</b> the Return value is blank on the way down. The same index is returned all the way up.</li>
+    <li><b>Count with powers of 2.</b> 7 items: 3 calls at most. 15: 4. 1 023: 10. Each doubling adds one call.</li>
+    <li><b>Handle “not found” in the main program.</b> Test the returned value for −1 before outputting a position.</li>
+    <li><b>Say “halves the search space”</b> when comparing with linear search.</li>
+  </ul>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Identify</td><td>A short fact or the line of code. No explanation.</td></tr>
+    <tr><td>Describe</td><td>The steps in order, or how something works.</td></tr>
+    <tr><td>Explain</td><td>What happens and why.</td></tr>
+    <tr><td>Complete</td><td>Fill every gap or cell, with exact values or code.</td></tr>
+    <tr><td>Write / Rewrite</td><td>Full code with header, structure and end statements.</td></tr>
+    <tr><td>Discuss</td><td>Both sides, applied to the scenario, with a judgement.</td></tr>
+  </table></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider (back / next buttons) ---------- */
+function slider(el, o) {
+  const id = o.id, step = o.step || 1;
+  let v = o.value;
+  el.innerHTML = `<div class="sl"><label>${o.label}<output id="${id}o"></output></label><div class="stp-ctl"><button class="b" data-a="prev">◀ Previous</button><button class="b" data-a="next">Next ▶</button></div></div>`;
+  const out = $("#" + id + "o", el), prev = $("[data-a=prev]", el), next = $("[data-a=next]", el);
+  const upd = () => { prev.disabled = v <= o.min; next.disabled = v >= o.max; out.textContent = (o.fmt || ((x) => x))(v); o.onInput && o.onInput(v); };
+  const set = (x) => { v = Math.max(o.min, Math.min(o.max, x)); upd(); };
+  prev.onclick = () => set(v - step);
+  next.onclick = () => set(v + step);
+  upd();
+  return { get: () => v, set };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+/* ===== 19.2 Recursion: trace engine ===== */
+const RW = 720, RH = 372;
+
+/* Records every call/return of a recursive function as snapshots, then draws stack + call tree. */
+function Trace(o = {}) {
+  const nodes = [], stack = [], snaps = [], out = [];
+  let phase = "down", pdata = null, alert = null;
+  const clonePanel = () => (pdata ? JSON.parse(JSON.stringify(pdata)) : null);
+  const snap = (cap, ps, py) => snaps.push({
+    cap, ps, py, phase, alert, out: [...out], n: nodes.length, panel: clonePanel(),
+    ns: nodes.map((n) => [n.st, n.val]),
+    stack: stack.map((f) => ({ label: f.label, ra: f.ra, status: f.status, st: f.st })),
+  });
+  const T = {
+    nodes, out, o,
+    setPanel(d) { pdata = d; },
+    print(t) { out.push(t); },
+    setStatus(nd, s) { nd.fr.status = s; },
+    call(label, short, parent, ra, cap, ps, py, status = "", st = "run") {
+      if (parent) { parent.st = "wait"; parent.fr.st = "wait"; }
+      const nd = { label, short, parent, kids: [], st: "act", val: null };
+      nodes.push(nd); parent && parent.kids.push(nd);
+      nd.fr = { label, ra, status, st }; stack.push(nd.fr);
+      phase = "down"; snap(cap, ps, py); return nd;
+    },
+    note(nd, status, cap, ps, py, st = "run") { nd.fr.status = status; nd.fr.st = st; nd.st = "act"; snap(cap, ps, py); },
+    ret(nd, val, cap, ps, py, outLine, status) {
+      nd.fr.status = status || (val === undefined || val === null ? "finished" : "returns " + val); nd.fr.st = "ret"; nd.st = "done"; nd.val = val ?? "";
+      if (outLine) out.push(outLine);
+      phase = "up"; snap(cap, ps, py); stack.pop();
+    },
+    finish(cap, ps, py, al) { alert = al || null; snap(cap, ps, py); },
+    alertNow(a) { alert = a; },
+  };
+  T.build = () => {
+    layout(nodes);
+    return snaps.map((s) => ({ cap: s.cap, ps: s.ps, py: s.py, svg: drawSnap(s, nodes, o) }));
+  };
+  T.maxDepth = () => 0;
+  return T;
+}
+
+/* tree layout: leaves spaced evenly, parents centred over children */
+function layout(nodes) {
+  if (!nodes.length) return;
+  let leaf = 0; const depthOf = (n) => (n.parent ? depthOf(n.parent) + 1 : 0);
+  const go = (n) => { if (!n.kids.length) n.lx = leaf++; else { n.kids.forEach(go); n.lx = (n.kids[0].lx + n.kids[n.kids.length - 1].lx) / 2; } };
+  go(nodes[0]); nodes.forEach((n) => (n.d = depthOf(n)));
+  nodes.leaves = leaf; nodes.depth = Math.max(...nodes.map((n) => n.d)) + 1;
+}
+
+function maxStack(snaps) { return Math.max(1, ...snaps.map((s) => s.stack.length)); }
+
+function drawSnap(s, nodes, o) {
+  const maxD = o.maxDepth || 5, fh = Math.max(34, Math.min(50, Math.floor(272 / maxD) - 5)), gap = 5, X = 14, FW = 340, base = 322;
+  let g = "";
+  // left: call stack
+  g += SV.text(X, 22, "CALL STACK", "sm bd", { "text-anchor": "start", style: "letter-spacing:.1em" });
+  g += SV.text(X + FW, 22, s.phase === "down" ? "▼ WINDING (calls)" : "▲ UNWINDING (returns)", "lbl bd " + (s.phase === "down" ? "t1" : "t3"), { "text-anchor": "end" });
+  g += SV.line(X - 4, base + 3, X + FW + 4, base + 3, "ax");
+  g += SV.text(X, base + 20, "bottom of stack: main program", "sm", { "text-anchor": "start" });
+  s.stack.forEach((f, i) => {
+    const y = base - fh - i * (fh + gap), c = { run: "cell-cur", wait: "", ret: "cell-ok", base: "cell-warn" }[f.st];
+    g += SV.rect(X, y, FW, fh, "cell " + c, { rx: 8 });
+    g += SV.text(X + 10, y + (fh > 40 ? 20 : 15), esc(f.label), "lbl bd", { "text-anchor": "start", style: "font-family:var(--mono);font-size:14px" });
+    g += SV.text(X + FW - 10, y + fh - (fh > 40 ? 10 : 6), "↩ " + esc(f.ra), "sm", { "text-anchor": "end" });
+    if (f.status) g += SV.text(X + 10, y + fh - (fh > 40 ? 10 : 6), esc(f.status), "lbl", { "text-anchor": "start", style: "font-size:12.5px" });
+  });
+  if (!s.stack.length) g += SV.text(X + FW / 2, base - 40, "stack is empty", "lbl", { "text-anchor": "middle", style: "font-style:italic;fill:var(--muted)" });
+  // right: call tree
+  const RX = 388, RWd = RW - RX - 10;
+  g += SV.text(RX, 22, "CALL TREE  " + (o.treeName || ""), "sm bd", { "text-anchor": "start", style: "letter-spacing:.1em" });
+  const lv = nodes.depth || 1, lvs = nodes.leaves || 1, r = nodes.length > 12 ? 14 : nodes.some((n) => String(n.short).length > 3) ? 22 : 17, dy = Math.min(52, 190 / Math.max(1, lv - 1 || 1)), sp = lvs > 1 ? Math.min(54, (RWd - 2 * r) / (lvs - 1)) : 0;
+  const tw = (lvs - 1) * sp, ox = RX + RWd / 2 - tw / 2, oy = 52;
+  const px = (n) => ox + n.lx * sp, py = (n) => oy + n.d * dy;
+  nodes.forEach((n, i) => { if (n.parent) { const live = i < s.n; g += SV.line(px(n.parent), py(n.parent), px(n), py(n), live ? "edge" : "edge", { opacity: live ? 1 : 0.18 }); } });
+  nodes.forEach((n, i) => {
+    const live = i < s.n, st = live ? s.ns[i][0] : "new", val = live ? s.ns[i][1] : null;
+    const cls = { new: "nd", wait: "nd", act: "nd nd-cur", done: "nd nd-ok" }[st];
+    g += `<g opacity="${live ? 1 : 0.22}">` + SV.circle(px(n), py(n), r, cls, st === "wait" ? { style: "stroke:var(--warn);stroke-width:3.5;fill:var(--warn-soft)" } : {}) + SV.text(px(n), py(n) + 5, esc(n.short), "lbl bd", { "text-anchor": "middle", style: "font-size:" + (String(n.short).length > 3 ? 10 : String(n.short).length > 2 ? 10.5 : r < 16 ? 11 : 13) + "px" });
+    if (st === "done" && val !== "" && val !== null) g += SV.text(px(n) + r + 3, py(n) + 4, esc(val), "sm bd t3", { "text-anchor": "start", style: "font-family:var(--mono);font-size:11.5px" });
+    g += "</g>";
+  });
+  // bottom right: output / returned values / custom panel
+  const BY = 268;
+  g += SV.rect(RX, BY, RWd, 90, "cell", { rx: 8 });
+  if (s.panel && o.panelFn) g += o.panelFn(s.panel, RX, BY, RWd);
+  else {
+    g += SV.text(RX + 10, BY + 16, (o.outTitle || "OUTPUT").toUpperCase(), "sm bd", { "text-anchor": "start", style: "letter-spacing:.1em" });
+    s.out.forEach((t, i) => { const col = i < 5 ? 0 : 1, row = i % 5; g += SV.text(RX + 10 + col * (RWd / 2), BY + 33 + row * 13.5, esc(t), "lbl", { "text-anchor": "start", style: "font-family:var(--mono);font-size:12px" }); });
+  }
+  if (s.alert) { g += SV.rect(RX, BY, RWd, 90, "cell cell-no", { rx: 8 }) + SV.text(RX + RWd / 2, BY + 52, esc(s.alert), "lbl bd t2", { "text-anchor": "middle", style: "font-size:17px" }); }
+  return g;
+}
+
+/* helper: run a simulation and hand the frames to Lib.algo */
+function showAlgo(sel, T, code, label, dwell = 2600) {
+  const frames = T.build();
+  Lib.algo($(sel), { w: RW, h: RH, label, pseudo: code.ps, py: code.py, dwell, frames });
+}
+
+/* ===== Recursive binary search ===== */
+const ARR = [3, 8, 12, 17, 21, 26, 34, 40, 47, 55, 63];
+const PS = ["FUNCTION RecursiveBinarySearch(DataArray, Lower, Upper, DataToFind) RETURNS INTEGER", "   IF Upper >= Lower THEN", "      Middle ← Lower + (Upper - Lower) DIV 2", "      IF DataArray[Middle] = DataToFind THEN", "         RETURN Middle", "      ELSEIF DataArray[Middle] > DataToFind THEN", "         RETURN RecursiveBinarySearch(DataArray, Lower, Middle - 1, DataToFind)", "      ELSE", "         RETURN RecursiveBinarySearch(DataArray, Middle + 1, Upper, DataToFind)", "      ENDIF", "   ELSE", "      RETURN -1", "   ENDIF", "ENDFUNCTION"];
+const PY = ["def recursive_binary_search(data_array, lower, upper, data_to_find):", "    if upper >= lower:", "        middle = lower + (upper - lower) // 2", "        if data_array[middle] == data_to_find:", "            return middle", "        elif data_array[middle] > data_to_find:", "            return recursive_binary_search(data_array, lower, middle - 1, data_to_find)", "        else:", "            return recursive_binary_search(data_array, middle + 1, upper, data_to_find)", "    else:", "        return -1"];
+const CODE = { ps: PS, py: PY };
+Lib.codePanel($("#codeB"), { pseudo: PS, py: PY });
+
+/* the search as a list of calls */
+function bsCalls(target, arr = ARR) {
+  const calls = []; let lo = 0, up = arr.length - 1;
+  for (;;) {
+    const c = { lo, up };
+    if (up < lo) { c.res = -1; calls.push(c); break; }
+    c.mid = lo + Math.floor((up - lo) / 2); c.v = arr[c.mid];
+    if (c.v === target) { c.res = c.mid; calls.push(c); break; }
+    c.dir = c.v > target ? "low" : "high";
+    calls.push(c);
+    if (c.dir === "low") up = c.mid - 1; else lo = c.mid + 1;
+  }
+  return calls;
+}
+
+/* array drawing: the live range is bright, the rest faded */
+function arrSvg(arr, st, hist) {
+  const W = 720, n = arr.length, cw = Math.min(58, (W - 40) / n), x0 = (W - n * cw) / 2, y = 40, ch = 40;
+  const cx = (i) => x0 + (Math.max(-0.5, Math.min(n - 0.5, i)) + 0.5) * cw;
+  let g = "";
+  for (let i = 0; i < n; i++) {
+    const live = st.lo !== undefined && i >= st.lo && i <= st.up, isMid = i === st.mid, ok = st.found === i;
+    const cls = ok ? "cell cell-ok" : isMid ? "cell cell-cur" : "cell";
+    g += SV.rect(x0 + i * cw + 1, y, cw - 2, ch, cls, { rx: 6, style: live || st.lo === undefined ? "" : "opacity:.28" });
+    g += SV.text(x0 + (i + 0.5) * cw, y + 26, arr[i], "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:14px" + (live || st.lo === undefined ? "" : ";opacity:.35") });
+    g += SV.text(x0 + (i + 0.5) * cw, y - 8, i, "sm", { "text-anchor": "middle", style: "font-family:var(--mono)" });
+  }
+  if (st.lo !== undefined) {
+    const mk = (i, t, row, c) => SV.text(cx(i), y + ch + 18 + row * 15, t, "sm bd " + c, { "text-anchor": "middle" });
+    g += mk(st.lo, "▲ Lower", 0, "t1");
+    if (st.mid !== undefined) g += mk(st.mid, "▲ Middle", 1, "t2");
+    g += mk(st.up, "▲ Upper", 2, "t3");
+    if (st.up < st.lo) g += SV.text(W / 2, y + ch + 78, "Upper is below Lower: no items left to search", "lbl bd t2", { "text-anchor": "middle" });
+  }
+  hist.forEach((h, k) => { g += SV.text(24, 176 + k * 16, h, "sm", { "text-anchor": "start", style: "font-family:var(--mono);font-size:12px" }); });
+  return g;
+}
+
+function bsFrames(target, arr = ARR) {
+  const calls = bsCalls(target, arr), fr = [], hist = [];
+  const call0 = `RecursiveBinarySearch(DataArray, 0, ${arr.length - 1}, ${target})`;
+  fr.push({ cap: `Looking for <b>${target}</b> in a sorted array of ${arr.length} values (indexes 0 to ${arr.length - 1}). The first call is <b>${call0}</b>. Press Next.`, ps: [0], py: [0], svg: arrSvg(arr, {}, []) });
+  calls.forEach((c, k) => {
+    const no = k + 1, head = `Call ${no}: Lower ${c.lo}, Upper ${c.up}`;
+    fr.push({ cap: `<b>Call ${no}.</b> Lower = ${c.lo}, Upper = ${c.up}. Is Upper &gt;= Lower? ${c.up >= c.lo ? "<b>Yes</b>: there is at least one item left to look at." : "<b>No</b>: the range is empty."}`, ps: [1], py: [1], svg: arrSvg(arr, { lo: c.lo, up: c.up }, [...hist]) });
+    if (c.up < c.lo) { hist.push(head + " → empty → returns -1"); fr.push({ cap: `Upper &lt; Lower, so the <b>not found</b> base case: RETURN −1. The −1 is passed back up through ${k} waiting call${k === 1 ? "" : "s"}, unchanged.`, ps: [1, 10, 11], py: [1, 9, 10], svg: arrSvg(arr, { lo: c.lo, up: c.up }, [...hist]) }); return; }
+    fr.push({ cap: `Middle = ${c.lo} + (${c.up} − ${c.lo}) DIV 2 = <b>${c.mid}</b>. DataArray[${c.mid}] is <b>${c.v}</b>.`, ps: [2], py: [2], svg: arrSvg(arr, { lo: c.lo, up: c.up, mid: c.mid }, [...hist]) });
+    if (c.res !== undefined) { hist.push(`${head}, Middle ${c.mid} → ${c.v} = ${target} → returns ${c.mid}`); fr.push({ cap: `${c.v} = ${target}: <b>found</b>. RETURN ${c.mid}. The ${c.mid} is passed back up through ${k} waiting call${k === 1 ? "" : "s"}, unchanged. The answer is index <b>${c.mid}</b>.`, ps: [3, 4], py: [3, 4], svg: arrSvg(arr, { lo: c.lo, up: c.up, mid: c.mid, found: c.mid }, [...hist]) }); return; }
+    const low = c.dir === "low";
+    hist.push(`${head}, Middle ${c.mid} → ${c.v} ${low ? ">" : "<"} ${target} → search ${low ? `${c.lo}..${c.mid - 1}` : `${c.mid + 1}..${c.up}`}`);
+    fr.push({ cap: `${c.v} is ${low ? "greater" : "less"} than ${target}, so the value can only be in the ${low ? "lower" : "upper"} half. The next call searches <b>${low ? `${c.lo} to ${c.mid - 1}` : `${c.mid + 1} to ${c.up}`}</b>. The middle itself is left out, because it has been checked.`, ps: low ? [5, 6] : [7, 8], py: low ? [5, 6] : [7, 8], svg: arrSvg(arr, { lo: c.lo, up: c.up, mid: c.mid }, [...hist]) });
+  });
+  return fr;
+}
+const arrAlgo = (sel, target, label) => Lib.algo($(sel), { w: 720, h: 270, label, pseudo: PS, py: PY, dwell: 3000, frames: bsFrames(target) });
+arrAlgo("#aFound", 40, "Binary search for 40 in a sorted array");
+arrAlgo("#aMiss", 30, "Binary search for 30, which is not in the array");
+
+/* stack and tree for the search for 40 */
+(() => {
+  const T = Trace({ treeName: "Lower..Upper", outTitle: "Values returned", maxDepth: 5 }), target = 40, calls = bsCalls(target);
+  let parent = null; const nds = [];
+  calls.forEach((c, k) => {
+    const nd = T.call(`Search(${c.lo}, ${c.up})`, `${c.lo}-${c.up}`, parent, k ? `line ${calls[k - 1].dir === "low" ? 7 : 9}` : "main", `<b>Call ${k + 1}: Lower = ${c.lo}, Upper = ${c.up}.</b> A new frame is pushed.`, [0], [0]);
+    nds.push(nd); parent = nd;
+    T.note(nd, `Middle = ${c.mid}: ${c.v}`, `Middle = ${c.mid}, DataArray[${c.mid}] = ${c.v}. ${c.res !== undefined ? "Equal to 40: <b>found</b>." : `${c.v} ${c.dir === "low" ? ">" : "<"} 40, so search the ${c.dir === "low" ? "lower" : "upper"} half.`}`, [2, 3], [2, 3], c.res !== undefined ? "base" : "run");
+    if (c.res === undefined) { T.setStatus(nd, "paused: waiting for the smaller search"); }
+  });
+  for (let k = calls.length - 1; k >= 0; k--) {
+    const r = calls[calls.length - 1].res;
+    T.ret(nds[k], String(r), k === calls.length - 1 ? `RETURN Middle sends <b>${r}</b> back to the waiting call. The frame is popped and <b>unwinding starts</b>.` : `This call just passes <b>${r}</b> up: nothing is added or changed on the way back.`, k === calls.length - 1 ? [4] : [up(calls[k])], k === calls.length - 1 ? [4] : [up(calls[k])]);
+  }
+  function up(c) { return c.dir === "low" ? 6 : 8; }
+  T.finish(`The stack is empty. The search for 40 returned <b>7</b> after only ${calls.length} calls, from an array of 11 values.`, [], []);
+  showAlgo("#aStack", T, CODE, "Animated call stack and call tree for the search for 40", 2600);
+})();
+
+/* ===== Explore ===== */
+(() => {
+  const sel = $("#bsT");
+  sel.innerHTML = ARR.map((v) => `<option value="${v}">${v}</option>`).join("") + [1, 30, 50, 70].map((v) => `<option value="${v}">${v} (missing)</option>`).join("");
+  sel.value = 40;
+  const go = () => {
+    const t = +sel.value, calls = bsCalls(t), last = calls[calls.length - 1];
+    $("#bsRO").innerHTML = `<div><small>Searching for</small><strong>${t}</strong></div><div><small>Calls made</small><strong>${calls.length}</strong></div><div><small>Returned</small><strong>${last.res}</strong></div><div><small>Linear search would check</small><strong>${last.res < 0 ? ARR.length : last.res + 1}</strong></div>`;
+    arrAlgo("#bsAlgo", t, `Binary search for ${t}`);
+  };
+  sel.addEventListener("change", go); go();
+
+  let S2;
+  const draw2 = () => {
+    if (!S2) return;
+    const k = S2.get(), n = 2 ** k - 1;
+    $("#bsRO2").innerHTML = `<div><small>Items in the array</small><strong>${n.toLocaleString()}</strong></div><div><small>Most calls: binary search</small><strong>${k}</strong></div><div><small>Most checks: linear search</small><strong>${n.toLocaleString()}</strong></div><div><small>Binary does it in</small><strong>${((k / n) * 100).toFixed(k > 7 ? 2 : 0)}%</strong></div>`;
+    const w1 = Math.max(0.8, (k / n) * 100);
+    $("#bsBars").innerHTML = `<div style="display:flex;gap:10px;align-items:center;margin:3px 0"><span style="font:600 .85rem var(--sans);width:70px">Binary</span><div style="flex:1;background:var(--soft);border-radius:4px"><div style="width:${w1}%;height:14px;border-radius:4px;background:var(--accent)"></div></div><b style="font:700 .85rem var(--mono);width:80px;text-align:right">${k}</b></div><div style="display:flex;gap:10px;align-items:center;margin:3px 0"><span style="font:600 .85rem var(--sans);width:70px">Linear</span><div style="flex:1;background:var(--soft);border-radius:4px"><div style="width:100%;height:14px;border-radius:4px;background:var(--warn)"></div></div><b style="font:700 .85rem var(--mono);width:80px;text-align:right">${n.toLocaleString()}</b></div>`;
+  };
+  S2 = Lib.slider($("#bsK"), { id: "bsk", label: "k (items = 2^k − 1): ", min: 1, max: 20, value: 1, onInput: draw2 });
+  draw2();
+})();
+
+/* ===== Activities ===== */
+Lib.order($("#o1"), { prompt: "Binary search for 40. Put the events in the order they happen.", items: ["Call 1 (Lower 0, Upper 10): Middle = 5, DataArray[5] = 26", "26 is less than 40, so Lower becomes Middle + 1 = 6", "Call 2 (Lower 6, Upper 10): Middle = 8, DataArray[8] = 47", "47 is greater than 40, so Upper becomes Middle − 1 = 7", "Call 3 (Lower 6, Upper 7): Middle = 6, DataArray[6] = 34, so Lower becomes 7", "Call 4 (Lower 7, Upper 7): Middle = 7, DataArray[7] = 40: found, returns 7", "The 7 is passed back up through calls 3, 2 and 1"], done: "The range halves each time, until the value is found or the range is empty." });
+
+Lib.classify($("#cl1"), { prompt: "Drag each piece of the function to the part of recursion it plays.", buckets: [{ label: "Base case" }, { label: "General case (calls itself)" }, { label: "Moves towards the base case" }], items: [
+  { text: "RETURN Middle when DataArray[Middle] = DataToFind", b: 0 }, { text: "RETURN -1 when Upper < Lower", b: 0 }, { text: "RETURN RecursiveBinarySearch(… Lower, Middle - 1 …)", b: 1 }, { text: "RETURN RecursiveBinarySearch(… Middle + 1, Upper …)", b: 1 }, { text: "Middle - 1 as the new upper bound", b: 2 }, { text: "Middle + 1 as the new lower bound", b: 2 }], done: "Every call makes the range smaller, so one of the base cases must be reached." });
+
+Lib.classify($("#cl2"), { prompt: "Which search is each statement true of?", buckets: [{ label: "Binary search" }, { label: "Linear search" }, { label: "Both" }], items: [
+  { text: "Needs the data to be sorted", b: 0 }, { text: "Works on unsorted data", b: 1 }, { text: "Rules out half of the remaining items with each comparison", b: 0 }, { text: "Needs about log₂ n checks for n items, at most", b: 0 }, { text: "May have to check every item", b: 1 }, { text: "Returns the position of the item, or a value meaning not found", b: 2 }], done: "Binary search is far quicker, but only on sorted data." });
+
+Lib.match($("#m1"), { prompt: "Match each term to what it means for binary search.", pairs: [
+  ["Lower", "the index of the first item still being searched"], ["Upper", "the index of the last item still being searched"], ["Middle", "Lower + (Upper − Lower) DIV 2: the item checked next"], ["Base case", "found, or no items left (Upper < Lower)"], ["Halving", "each call discards about half of the remaining items"], ["Sorted", "the pre-condition that makes the method work"]], done: "These six ideas are everything the function relies on." });
+
+/* ===== Practise ===== */
+Lib.calc($("#c1"), { qs: [
+  { q: "RecursiveBinarySearch(DataArray, 0, 10, 40) is called. What is Middle in the first call?", a: 5, tol: 0, hint: "Lower + (Upper − Lower) DIV 2 = 0 + 10 DIV 2.", sol: "0 + (10 − 0) DIV 2 = 5." },
+  { q: "DataArray[5] is 26. After the first call, what is the new Lower bound when searching for 40?", a: 6, tol: 0, hint: "26 is less than 40, so the value is in the upper half and the middle is excluded.", sol: "Lower = Middle + 1 = 6." },
+  { q: "What is Middle in the second call, with Lower 6 and Upper 10?", a: 8, tol: 0, hint: "6 + (10 − 6) DIV 2.", sol: "6 + 4 DIV 2 = 8." },
+  { q: "How many calls are made in total to find 40?", a: 4, tol: 0, hint: "Calls: (0,10), (6,10), (6,7), (7,7).", sol: "Four calls, the last one finds 40 at index 7." },
+  { q: "What does the search for 40 return?", a: 7, tol: 0, hint: "Which index holds 40?", sol: "DataArray[7] = 40, so 7 is returned." },
+  { q: "What does a search for 30 return? (30 is not in the array.)", a: -1, tol: 0, hint: "Upper falls below Lower.", sol: "The range becomes empty, so −1 is returned." },
+  { q: "RecursiveBinarySearch is called with Lower = 10 and Upper = 19. What is Middle?", a: 14, tol: 0, hint: "10 + (19 − 10) DIV 2. Use integer division.", sol: "10 + 9 DIV 2 = 10 + 4 = 14." },
+  { q: "Most calls needed to find an item in a sorted array of 1 023 items?", a: 10, tol: 0, hint: "Halving 1 023: 511, 255, 127, 63, 31, 15, 7, 3, 1, 0.", sol: "2¹⁰ − 1 = 1 023, so at most 10 calls." }] });
+
+Lib.quiz($("#qz1"), { qs: [
+  { q: "What must be true of the array before a binary search is used?", opts: ["It has no duplicates", "It is sorted", "It has an even number of items", "It is stored in a file"], a: 1, why: "The method relies on knowing that smaller values are on one side of the middle and larger values on the other." },
+  { q: "The middle value is greater than the value being searched for. Which call is made?", opts: ["Search Lower to Middle − 1", "Search Middle + 1 to Upper", "Search Lower to Middle", "Return Middle"], a: 0, why: "A greater middle value means the target can only be lower down. The middle is excluded as it has been checked." },
+  { q: "What is the base case for ‘not found’?", opts: ["Middle = 0", "Upper < Lower", "Lower = Upper", "DataArray is empty"], a: 1, why: "When the upper bound passes the lower, no items remain." },
+  { q: "The condition is mistakenly written as IF Upper > Lower. Which search fails?", opts: ["A search for the first item", "A search where the target is the only item left in the range (Lower = Upper)", "A search for a missing value", "None"], a: 1, why: "When Lower = Upper there is exactly one item left, and it would be skipped, so the function might wrongly return −1." },
+  { q: "The recursive calls use Middle instead of Middle − 1 and Middle + 1. What can happen?", opts: ["Nothing: it works the same", "The range may stop shrinking, so the function could call itself forever", "It returns −1 every time", "It finds the item faster"], a: 1, why: "For example with Lower = 7 and Upper = 7 the range never gets smaller, so the calls never end." },
+  { q: "RETURN is missing before each recursive call. What is returned when 40 is found by a deeper call?", opts: ["7", "−1", "Nothing is passed back to the first caller", "40"], a: 2, why: "The deepest call returns 7, but the call above it throws the result away, so the original caller gets no value." },
+  { q: "A binary search of 100 000 sorted items needs about how many calls at most?", opts: ["10", "17", "100", "1 000"], a: 1, why: "2¹⁷ = 131 072 > 100 000 > 2¹⁶, so at most 17 calls." }] });
+
+Lib.cards($("#fc1"), { cards: [
+  ["Binary search", "Searching a sorted array by repeatedly checking the middle item and discarding half of the remaining items."],
+  ["Lower / Upper", "The first and last index of the part of the array still being searched."],
+  ["Middle", "The index checked next: Lower + (Upper − Lower) DIV 2."],
+  ["Base case (found)", "DataArray[Middle] = DataToFind: return Middle."],
+  ["Base case (not found)", "Upper < Lower: nothing left to search: return −1."],
+  ["General case", "A recursive call on the lower half or the upper half, with the middle excluded."],
+  ["Sorted array", "The pre-condition for binary search: values in order, ascending here."],
+  ["Linear search", "Checking the items one at a time from the start. Works on unsorted data but may check every item."],
+  ["Winding / unwinding", "Calls being made down to the base case, then returning in reverse. Here the returned index is passed up unchanged."],
+  ["Stack frame", "The block pushed for each call: parameters (array, Lower, Upper, DataToFind) and the return address."],
+  ["Logarithmic", "The number of calls grows by one each time the array size doubles."]] });
+
+Lib.initTabs();
+</script>
+</body></html>

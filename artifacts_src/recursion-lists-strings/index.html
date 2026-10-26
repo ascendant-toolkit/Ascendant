@@ -1,0 +1,1113 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Recursion in Action: Lists and Strings, One Item at a Time</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<style>
+.pick{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:6px 0 10px}
+.pick select{font:600 .95rem var(--sans);padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.pick label{font-weight:600;font-size:.92rem}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .85rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+#ciChart svg{display:block;width:100%;height:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.callbox{font:700 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:8px 14px;border-radius:0 8px 8px 0;margin:8px 0;overflow-x:auto}
+.step4{counter-reset:s;list-style:none;padding:0;margin:8px 0}
+.step4 li{counter-increment:s;display:flex;gap:10px;padding:8px 12px;margin-bottom:6px;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
+.step4 li::before{content:counter(s);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+.algo{grid-template-columns:minmax(0,1fr)}
+table.t td,table.t th{white-space:normal}
+table.t.mono td,table.t.mono th{white-space:nowrap}
+</style>
+<div class="wrap">
+
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Chapter 19 · 19.2</div>
+  <h1>Recursion in Action: Lists and Strings, One Item at a Time</h1>
+  <p class="lead">Deal with the first item, then let a recursive call deal with the rest. This is the pattern behind the most common Paper 4 recursion questions: totalling an array, counting a value, counting vowels in a string, and rewriting a loop as a recursive function.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<!-- LEARN -->
+<section id="learn" role="tabpanel">
+  <div class="card big">
+    <h3>The pattern</h3>
+    <p>An array, a queue or a string is a list of items. Any job done by looping over a list can be described like this: <b>handle the first item, then do the same job on the rest of the list</b>. “The rest of the list” is a smaller list, so the job calls itself on it.</p>
+    <p>When there is nothing left, the job is finished. That is the base case, and the answer it gives is the <b>starting value</b> of the running total: 0 for a sum or a count.</p>
+  </div>
+
+  <h2>From loop to recursion</h2>
+  <p>Past papers ask you to <b>rewrite</b> a loop-based function as a recursive one, or to <b>write</b> a recursive function from a description. Each part of the loop has a matching part in the recursive version.</p>
+  <div class="tw"><table class="t">
+    <tr><th>In the loop version</th><th>In the recursive version</th></tr>
+    <tr><td>Running total starts at 0</td><td>The base case returns 0 (nothing left to add)</td></tr>
+    <tr><td>Loop stops when the data runs out</td><td>The base case test: the index has gone past the last item</td></tr>
+    <tr><td>Loop body: use the current item</td><td>The general case: use <code>Items[Index]</code>…</td></tr>
+    <tr><td>Index moves on by 1 each pass</td><td>…and call again with <code>Index + 1</code></td></tr>
+    <tr><td>Total ← Total + item</td><td><code>RETURN item + (the call for the rest)</code></td></tr>
+  </table></div>
+
+  <h2>Example 1: total of an array</h2>
+  <p>Indexes start at 0 here. <code>Index</code> says which item is being handled; everything from <code>Index</code> onward is “the rest”.</p>
+  <div id="codeSum"></div>
+  <ol class="step4">
+    <li><span><b>Base case: Index &gt; Last.</b> There is no item at this index, so there is nothing to add. Return 0.</span></li>
+    <li><span><b>General case.</b> Add the current item, <code>Numbers[Index]</code>, to the total for the rest, which is <code>Total(Numbers, Index + 1, Last)</code>. The index moves towards the end each call.</span></li>
+    <li><span><b>The addition waits.</b> As in compound interest, the + cannot be done until the call below has returned. The calls wind down to the end of the list, and the additions happen as they unwind.</span></li>
+  </ol>
+
+  <h2>Example 2: counting items that match</h2>
+  <p>Now a call may or may not add 1. If the current item matches, return 1 plus the count for the rest; if not, return the count for the rest unchanged. This is O/N 2025 Paper 4 (counting how many times a value is in an array).</p>
+  <div id="codeCnt"></div>
+
+  <h2>Example 3: strings</h2>
+  <p>A string is a list of characters, so the same shape works. Counting vowels (O/N 2023, Paper 4): look at the current character, add 1 if it is a vowel, and call again for the rest of the string. The base case is when the index reaches the length of the string. <code>IsVowel</code> here stands for a test that the character is a, e, i, o or u.</p>
+  <div id="codeVow"></div>
+  <div class="tip"><b class="h">Two ways to say “the rest”</b>Some questions pass a moving <b>index</b>, as here. Others pass a smaller copy of the data each time (a string with its first character removed, or an array with its first element dropped, plus a count of the elements left). Both work. The base case is then an empty string or zero elements.</div>
+
+  <h2>Cost</h2>
+  <p>A list of <i>n</i> items makes <i>n</i> + 1 calls (one for each item, plus the base case) and the stack gets <i>n</i> + 1 frames deep. A loop does the same work with no stack. For a very long list the recursive version could overflow the stack, so real programs would normally use a loop for this job. In an exam, recursion is used to show you can write and trace it.</p>
+</section>
+
+<!-- WATCH -->
+<section id="watch" role="tabpanel" hidden>
+  <p>Press Play, or click the numbered dots. In the diagrams below, the item being handled is highlighted. Items already handled are faded. The list under the array is the <b>call stack</b>, one row per call. The highlighted code line shows what is being run.</p>
+
+  <h2>1 · Total of the array 4, 7, 2, 9</h2>
+  <p>The calls go down one item at a time to the end of the list. The sums are worked out as the calls return, last item first.</p>
+  <div id="aSum"></div>
+
+  <h2>2 · The same call as a stack and a call tree</h2>
+  <p>A chain of five frames. The base case is at the bottom. Each frame returns its item plus the answer from the frame below it.</p>
+  <div id="aStack"></div>
+
+  <h2>3 · Counting the vowels in “imagine”</h2>
+  <p>Each call looks at one letter. Vowels add 1; other letters pass the count up unchanged.</p>
+  <div id="aVow"></div>
+  <div class="warn"><b class="h">Remember</b>A trace table for any of these functions has one row for each call going down (Result column holds the sum or count still waiting), then the same calls again going up with the Return value filled in. With <i>n</i> items there are 2<i>n</i> + 1 rows.</div>
+</section>
+
+<!-- EXPLORE -->
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Run a function on any data</h2>
+  <p>Choose a function and some data, then step through it with Next. The readout shows the calls, how deep the stack gets and what a loop would need.</p>
+  <div class="pick"><label for="lsT">Function and data</label><select id="lsT"></select></div>
+  <div class="readout" id="lsRO"></div>
+  <div id="lsAlgo"></div>
+  <div class="tip"><b class="h">Try this</b>Pick “rhythm” (no vowels): every call returns the count it was given, so the answer is 0 all the way up. Then try the array with 7 as the target: no matches, same result.</div>
+
+  <h2>Activity 1 · Order the events</h2>
+  <div id="o1"></div>
+
+  <h2>Activity 2 · Sort the code into its roles</h2>
+  <div id="cl1"></div>
+
+  <h2>Activity 3 · Loop piece or recursive piece?</h2>
+  <div id="cl2"></div>
+
+  <h2>Activity 4 · Match the terms</h2>
+  <div id="m1"></div>
+</section>
+
+<!-- PRACTISE -->
+<section id="practise" role="tabpanel" hidden>
+  <h2>Trace it yourself</h2>
+  <p>Questions use <code>Total(Numbers, 0, 3)</code> with <code>Numbers = 6, 1, 8, 5</code> unless stated. Use <b>Hint</b> before <b>Show working</b>.</p>
+  <div id="c1"></div>
+  <h2>Quick quiz</h2>
+  <div id="qz1"></div>
+  <h2>Flashcards</h2>
+  <div id="fc1"></div>
+</section>
+
+<!-- REAL WORLD -->
+<section id="real" role="tabpanel" hidden>
+  <p class="note">General descriptions of where the same pattern appears. Numbers are illustrative only.</p>
+  <div class="rw"><h3>Adding up a till roll</h3><p>Adding up a list of prices is “this price plus the total of the others”. That is the Total function, and the empty list totals 0.</p><div class="use"><b>Exam use:</b> a plain example of a recursive sum, with a base case that returns 0.</div></div>
+  <div class="rw"><h3>Counting words or characters</h3><p>Counting how many times a letter appears in a text, or how many words contain a given letter, follows the counting pattern: match adds 1, non-match adds nothing.</p><div class="use"><b>Exam use:</b> the counting function from O/N 2025, and the vowels function from O/N 2023.</div></div>
+  <div class="rw"><h3>Checking a palindrome</h3><p>A word reads the same both ways if its first and last letters match and the word between them is also a palindrome. Each call strips a letter from both ends. A word with 0 or 1 letters is the base case.</p><div class="use"><b>Exam use:</b> a good “write a recursive function” practice question using the same “smaller copy of the data” idea.</div></div>
+  <div class="rw"><h3>Reversing a string</h3><p>The reverse of a word is the reverse of everything after its first letter, followed by the first letter. The empty string reverses to itself.</p><div class="use"><b>Exam use:</b> shows recursion where the work is done on the way back up, since the first letter is added last.</div></div>
+  <div class="rw"><h3>Processing a queue or stack</h3><p>Totalling the items in a queue, as in O/N 2022, walks along the queue from one end. A linked list is processed the same way: handle the node, then follow the pointer to the rest.</p><div class="use"><b>Exam use:</b> links recursion to the ADTs in 19.1.</div></div>
+  <div class="rw"><h3>Why real programs often use a loop</h3><p>For a list of a million items the recursive version would need a million frames and could overflow the stack. A loop does the same job in constant memory. Recursion earns its place when the problem splits into <i>several</i> smaller problems, as with trees.</p><div class="use"><b>Exam use:</b> supports a “when is recursion beneficial?” answer: it is clearer for self-similar structures, not faster for flat lists.</div></div>
+</section>
+
+<!-- EXAM -->
+<section id="exam" role="tabpanel" hidden>
+  <h2>What 9618 has asked about lists and strings</h2>
+  <p>This pattern accounts for most of the Paper 4 recursion questions: totalling a queue, counting vowels, counting a value, a divisor total and a procedure that edits an array. Open each question for reminders, a model answer and common mistakes. Each coloured phrase earns one mark; the number shows which mark point it is. Past paper mark schemes list Python, VB.NET and Java; only Python is shown here.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span></div>
+
+  <h2>1. Past paper questions</h2>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/42 · Q3(d)</span> <span class="cmd">Rewrite</span> <span class="mark">6 marks</span> A 1D array <code>Queue</code> stores a queue; the head pointer points to the first number. The iterative function <code>IterativeOutput()</code> totals all the values in the queue. Rewrite it as a recursive function using program code, then call it from the main program and output the value returned.
+<pre class="plain">FUNCTION IterativeOutput(Start : INTEGER) RETURNS INTEGER
+   DECLARE Total : INTEGER
+   Total ← 0
+   FOR Count ← Start - 1 TO HeadPointer STEP -1
+      Total ← Total + Queue[Count]
+   NEXT Count
+   RETURN Total
+ENDFUNCTION</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A loop with a running total becomes: base case at the end of the data, then “this item + the recursive call for the rest”.</div>
+    <div class="ans"><p>Six marks: <span class="mk k" data-t="1">function header taking a parameter</span>; <span class="mk k" data-t="2">check whether at the start of the queue</span>; <span class="mk k" data-t="3">return the last value in the queue</span>; <span class="mk k" data-t="4">otherwise add the value to the result of the recursive call</span>; <span class="mk k" data-t="5">recursive call with the pointer reduced by 1</span>; <span class="mk k" data-t="6">return the final total</span>.</p>
+<pre class="plain">def RecursiveOutput(Start):
+    if Start == 0:
+        return Queue[Start]
+    else:
+        return Queue[Start] + RecursiveOutput(Start - 1)
+
+print(RecursiveOutput(TailPointer - 1))</pre>
+    <p>The call passes <code>TailPointer - 1</code>, the position of the last item, so the recursion works from the tail back to the head at position 0.</p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/41, 43 · Q1(b)(i)</span> <span class="cmd">Rewrite</span> <span class="mark">6 marks</span> The iterative function <code>IterativeVowels()</code> counts the lower-case vowels (a, e, i, o, u) in a string. MID(X, Y, Z) returns Z characters from string X starting at position Y (the first character is position 0); LENGTH(X) returns the number of characters. Rewrite it as a recursive function <code>RecursiveVowels()</code>, then call it with "imagine" and output the result.
+<pre class="plain">FUNCTION IterativeVowels(Value : STRING) RETURNS INTEGER
+   DECLARE Total : INTEGER
+   DECLARE LengthString : INTEGER
+   DECLARE FirstCharacter : CHAR
+   Total ← 0
+   LengthString ← LENGTH(Value)
+   FOR X ← 0 TO LengthString - 1
+      FirstCharacter ← MID(Value, 0, 1)
+      IF FirstCharacter = 'a' OR FirstCharacter = 'e' OR
+         FirstCharacter = 'i' OR FirstCharacter = 'o' OR
+         FirstCharacter = 'u' THEN
+         Total ← Total + 1
+      ENDIF
+      Value ← MID(Value, 1, LENGTH(Value) - 1)
+   NEXT X
+   RETURN Total
+ENDFUNCTION</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Base case: empty string returns 0. General case: look at the first character, then recurse on the rest of the string.</div>
+    <div class="ans"><p>Six marks: <span class="mk k" data-t="1">a recursive call</span>; <span class="mk k" data-t="2">function header taking a string, returning an integer</span>; <span class="mk k" data-t="3">base case: length is 0, return 0</span>; <span class="mk k" data-t="4">extract the first character and check whether it is a vowel</span>; <span class="mk k" data-t="5">vowel: return 1 + the recursive call on the string with one fewer character</span>; <span class="mk k" data-t="6">not a vowel: return the recursive call with one fewer character</span>.</p>
+<pre class="plain">def recursive_vowels(value):
+    if len(value) == 0:
+        return 0
+    if value[0] in "aeiou":
+        return 1 + recursive_vowels(value[1:])
+    return recursive_vowels(value[1:])
+
+print(recursive_vowels("imagine"))   # 4</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>A shorter string is the equivalent of years - 1: forget to shorten it and the base case is never reached.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/42 · Q2(b)</span> <span class="cmd">Complete</span> <span class="mark">7 + 1 marks</span> The iterative function <code>IterativeCalculate()</code> totals all the divisors of its parameter (for 10: 1 + 2 + 5 + 10 = 18). MODULUS gives the remainder after division.
+<pre class="plain">FUNCTION IterativeCalculate(Number : INTEGER) RETURNS INTEGER
+   DECLARE Total : INTEGER
+   DECLARE ToFind : INTEGER
+   ToFind ← Number
+   Total ← 0
+   WHILE Number &lt;&gt; 0
+      IF ToFind MODULUS Number = 0 THEN
+         Total ← Total + Number
+      ENDIF
+      Number ← Number - 1
+   ENDWHILE
+   RETURN Total
+ENDFUNCTION</pre>
+It has been rewritten as the recursive function <code>RecursiveValue()</code>, which is incomplete. Complete it as program code, then call it with 50 and 50.
+<pre class="plain">FUNCTION RecursiveValue(Number : INTEGER, ToFind : INTEGER) RETURNS INTEGER
+   IF Number = ............ THEN
+      RETURN 0
+   ELSE
+      IF ToFind ............ Number = 0 THEN
+         RETURN ............ + RecursiveValue(Number - 1, ............)
+      ELSE
+         ............ RecursiveValue(Number - 1, ............)
+      ENDIF
+   ENDIF
+ENDFUNCTION</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Use the loop to find the pieces. The loop stopped when Number reached 0, so that is the base case. The loop’s Total + Number becomes <code>Number + RecursiveValue(…)</code>, and Number ← Number − 1 becomes the argument. This is the same “accumulate on the way up” shape as compoundInt.</div>
+    <div class="ans"><pre class="plain">FUNCTION RecursiveValue(Number : INTEGER, ToFind : INTEGER) RETURNS INTEGER
+   IF Number = <span class="mk k">0</span> THEN
+      RETURN 0
+   ELSE
+      IF ToFind <span class="mk k">MODULUS</span> Number = 0 THEN
+         RETURN <span class="mk k">Number</span> + RecursiveValue(Number - 1, <span class="mk k">ToFind</span>)
+      ELSE
+         <span class="mk k">RETURN</span> RecursiveValue(Number - 1, <span class="mk k">ToFind</span>)
+      ENDIF
+   ENDIF
+ENDFUNCTION</pre>
+    <p>As program code (Python):</p>
+<pre class="plain">def RecursiveValue(Number, ToFind):
+    if Number == 0:
+        return 0
+    else:
+        if ToFind % Number == 0:
+            return Number + RecursiveValue(Number - 1, ToFind)
+        else:
+            return RecursiveValue(Number - 1, ToFind)
+
+print(RecursiveValue(50, 50))</pre>
+    <p>One mark for each of the five gaps, one for the recursive calls both accurate and in the right places, one for the rest of the function with nothing extra. <span class="mk a" data-t="8">RecursiveValue(50, 50) returns 93</span>, the total of the factors 1 + 2 + 5 + 10 + 25 + 50.</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Leaving out RETURN in the ELSE branch. Without it the answer from the call below is thrown away.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/43 · Q3(a)(i), (ii)</span> <span class="cmd">Write</span> <span class="mark">6 + 3 marks</span> A recursive function <code>RecursiveCount()</code> takes three parameters: <code>ArrayCopy</code> (an integer array), <code>NumberElements</code> (how many elements it holds) and <code>DataToFind</code>. It counts how many times DataToFind is in the array. It returns 0 if there are no elements. Otherwise it compares the first element with DataToFind: on a match it returns 1 plus a recursive call on the array without its first element; if not, it returns the recursive call on its own. (i) Write the function. (ii) The main program stores 0, 5, 1, 2, 5, 9, 9, 6, 5, 0 in a 1D array, calls RecursiveCount() with 0, 10 and the array, and outputs the return value. Write the main program.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The algorithm is given in the question: follow it step by step. Each call passes the array without its first element and NumberElements − 1.</div>
+    <div class="ans"><p>(i) Six marks: <span class="mk k" data-t="1">function header taking three parameters</span>; <span class="mk k" data-t="2">checking for 0 elements and returning 0</span>; <span class="mk k" data-t="3">comparing the first element to DataToFind</span>; <span class="mk k" data-t="4">on a match, returning 1 + the recursive call</span>; <span class="mk k" data-t="5">on no match, returning the recursive call without adding 1</span>; <span class="mk k" data-t="6">every recursive call passes the array without the first element, NumberElements − 1 and DataToFind</span>.</p>
+<pre class="plain">def RecursiveCount(DataToFind, ArrayCopy, NumberElements):
+    if NumberElements > 0:
+        NewArray = ArrayCopy[1:]
+        if ArrayCopy[0] == DataToFind:
+            return 1 + RecursiveCount(DataToFind, NewArray, NumberElements - 1)
+        else:
+            return RecursiveCount(DataToFind, NewArray, NumberElements - 1)
+    else:
+        return 0</pre>
+    <p>(ii) Three marks: <span class="mk a" data-t="1">storing the correct data in an array</span>; <span class="mk a" data-t="2">calling RecursiveCount() with the correct parameters</span>; <span class="mk a" data-t="3">outputting the return value</span>. The output is 2.</p>
+<pre class="plain">MyArray = [0, 5, 1, 2, 5, 9, 9, 6, 5, 0]
+print(RecursiveCount(0, MyArray, 10))</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Passing the same array each time, or not reducing NumberElements, so the base case is never reached.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/33 · Q13</span> <span class="cmd">Complete</span> <span class="mark">4 marks</span> The recursive procedure <code>Delete()</code> is called as <code>CALL Delete(1, 15)</code>. Complete the trace table.
+<pre class="plain">PROCEDURE Delete(Index, Target)
+   IF Numbers[Index] > 0 THEN
+      IF Numbers[Index] >= Target THEN
+         Numbers[Index] ← Numbers[Index + 1]
+      ENDIF
+      Index ← Index + 1
+      CALL Delete(Index, Target)
+   ENDIF
+ENDPROCEDURE</pre>
+Numbers[1] to Numbers[10] start as 2, 3, 7, 11, 15, 17, 19, 23, 0, 0.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>This procedure returns nothing, so there is no unwinding work and no Return column. The trace is just one row per call, with the array columns showing what changes. Only write a value in an array column when it changes. The calls stop at Index 9, where Numbers[9] is 0, so the IF fails.</div>
+    <div class="ans"><div class="tw"><table class="t mono">
+      <tr><th>Index</th><th>Target</th><th>[1]</th><th>[2]</th><th>[3]</th><th>[4]</th><th>[5]</th><th>[6]</th><th>[7]</th><th>[8]</th><th>[9]</th><th>[10]</th></tr>
+      <tr><td>1</td><td>15</td><td>2</td><td>3</td><td>7</td><td>11</td><td>15</td><td>17</td><td>19</td><td>23</td><td>0</td><td>0</td></tr>
+      <tr><td>2</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>3</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>4</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>5</td><td></td><td></td><td></td><td></td><td></td><td><b>17</b></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>6</td><td></td><td></td><td></td><td></td><td></td><td></td><td><b>19</b></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>7</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td><b>23</b></td><td></td><td></td><td></td></tr>
+      <tr><td>8</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td><b>0</b></td><td></td><td></td></tr>
+      <tr><td>9</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></table></div>
+      <p>Mark points, one each: <span class="mk k" data-t="1">Index and Target columns correct (Index 1 to 9, Target 15)</span>; <span class="mk k" data-t="2">Numbers[5] changes to 17</span>; <span class="mk k" data-t="3">Numbers[6] and Numbers[7] change to 19 and 23</span>; <span class="mk k" data-t="4">Numbers[8] changes to 0, and no incorrect data in any other column</span>.</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Changing Numbers[9] or Numbers[10], or continuing to Index 10. At Index 9, Numbers[9] is 0, so nothing happens and the calls stop. Each element from 15 onwards is overwritten with the one after it, so the 15 is deleted and the rest shift left.</div>
+  </div></details>
+
+  <h2>2. Review questions</h2>
+  <p>Written for practice, not taken from past papers.</p>
+
+  <details class="eq"><summary>Q1 <span class="cmd">State</span> <span class="mark">2 marks</span> A recursive function totals the values in an array from <code>Index</code> to <code>Last</code>. State the base case and the value it returns.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Say when it stops, and what it gives back. The value is the starting value of a sum.</div>
+    <div class="ans"><span class="mk k" data-t="1">The base case is when Index is greater than Last (there are no items left).</span> <span class="mk k" data-t="2">It returns 0 (no further call is made).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Returning the last item as the base case without allowing for an empty array. Returning 1 for a sum (1 is the starting value for multiplying, not adding).</div>
+  </div></details>
+
+  <details class="eq"><summary>Q2 <span class="cmd">Complete</span> <span class="mark">4 marks</span> <code>Total(Numbers, 0, 2)</code> is called with <code>Numbers = 3, 5, 2</code>. Complete the trace table.<pre class="plain">Call | Function call          | Index | Result | Return value
+ 1   | Total(Numbers, 0, 2)   | 0     | ...    | ...
+ ...</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Four calls: Index 0, 1, 2 and then 3 (the base case). Write the sum waiting on the way down, and the numbers on the way up.</div>
+    <div class="ans"><div class="tw"><table class="t mono"><tr><th>Call</th><th>Function call</th><th>Index</th><th>Result</th><th>Return value</th></tr>
+      <tr><td>1</td><td>Total(Numbers, 0, 2)</td><td>0</td><td>3 + Total(Numbers, 1, 2)</td><td></td></tr>
+      <tr><td>2</td><td>Total(Numbers, 1, 2)</td><td>1</td><td>5 + Total(Numbers, 2, 2)</td><td></td></tr>
+      <tr><td>3</td><td>Total(Numbers, 2, 2)</td><td>2</td><td>2 + Total(Numbers, 3, 2)</td><td></td></tr>
+      <tr><td>4</td><td>Total(Numbers, 3, 2)</td><td>3</td><td>0</td><td><b>0</b></td></tr>
+      <tr style="background:var(--good-soft)"><td>(3)</td><td>Total(Numbers, 2, 2)</td><td>2</td><td>2 + 0</td><td><b>2</b></td></tr>
+      <tr style="background:var(--good-soft)"><td>(2)</td><td>Total(Numbers, 1, 2)</td><td>1</td><td>5 + 2</td><td><b>7</b></td></tr>
+      <tr style="background:var(--good-soft)"><td>(1)</td><td>Total(Numbers, 0, 2)</td><td>0</td><td>3 + 7</td><td><b>10</b></td></tr></table></div>
+      <p><span class="mk k" data-t="1">Calls 1 to 3 with correct Index values and waiting sums.</span> <span class="mk k" data-t="2">Call 4 is the base case with Result and Return value 0.</span> <span class="mk k" data-t="3">Unwinding rows in reverse order (3, 2, 1) with the numbers substituted.</span> <span class="mk k" data-t="4">Return values 2, 7 and 10 correct.</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Leaving out the base-case call (Index 3), or filling the Return value column on calls 1 to 3 before they have returned.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q3 <span class="cmd">Write</span> <span class="mark">6 marks</span> Write a recursive function <code>CountItem(Numbers, Index, Last, Target)</code> that returns how many times <code>Target</code> appears in the array from <code>Index</code> to <code>Last</code>.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Base case first. Then two branches: a match (1 plus the rest) and a non-match (just the rest).</div>
+    <div class="ans"><span class="mk k" data-t="1">Function header with four parameters, returning an integer.</span> <span class="mk k" data-t="2">Base case: if Index is past Last, return 0.</span> <span class="mk k" data-t="3">Compares Numbers[Index] with Target.</span> <span class="mk k" data-t="4">On a match, returns 1 plus the recursive call with Index + 1.</span> <span class="mk k" data-t="5">Otherwise returns the recursive call with Index + 1, without adding.</span> <span class="mk k" data-t="6">All recursive calls pass the other parameters unchanged and use RETURN.</span>
+<pre class="plain">def count_item(numbers, index, last, target):
+    if index &gt; last:
+        return 0
+    elif numbers[index] == target:
+        return 1 + count_item(numbers, index + 1, last, target)
+    else:
+        return count_item(numbers, index + 1, last, target)</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting to move Index on in the non-match branch, so the function calls itself with the same arguments and never ends.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q4 <span class="cmd">Rewrite</span> <span class="mark">5 marks</span> The iterative function totals the values in an array. Rewrite it as a recursive function.<pre class="plain">FUNCTION IterativeTotal(Numbers, Last : INTEGER) RETURNS INTEGER
+   Total ← 0
+   FOR Index ← 0 TO Last
+      Total ← Total + Numbers[Index]
+   NEXT Index
+   RETURN Total
+ENDFUNCTION</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The FOR loop’s counter becomes a parameter. “Total ← 0” becomes the base case.</div>
+    <div class="ans"><span class="mk k" data-t="1">Header with an extra Index parameter.</span> <span class="mk k" data-t="2">Base case test: Index greater than Last.</span> <span class="mk k" data-t="3">Base case returns 0.</span> <span class="mk k" data-t="4">General case adds Numbers[Index] to a recursive call.</span> <span class="mk k" data-t="5">Recursive call uses Index + 1, and the function is called initially with Index 0.</span>
+<pre class="plain">def recursive_total(numbers, index, last):
+    if index &gt; last:
+        return 0
+    return numbers[index] + recursive_total(numbers, index + 1, last)
+
+print(recursive_total(numbers, 0, 3))</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Calling the recursive function from the main program with the wrong starting index (it must match where the loop started).</div>
+  </div></details>
+
+  <details class="eq"><summary>Q5 <span class="cmd">State</span> <span class="mark">2 marks</span> A recursive function is used to total a list of 500 items. State the number of calls made and the greatest number of frames on the stack.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One call per item, plus the base case. All of them are waiting at the deepest point.</div>
+    <div class="ans"><span class="mk k" data-t="1">501 calls (500 items plus the base case).</span> <span class="mk k" data-t="2">501 frames on the stack at the deepest point (each call waits for the one below it).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting the base-case call, and so answering 500.</div>
+  </div></details>
+</section>
+
+<!-- TIPS -->
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Base case = nothing left.</b> It returns the starting value: 0 for a sum or count.</li>
+    <li><b>Each call handles one item,</b> then calls itself for the rest with the index moved on by 1 (or the data made one item smaller).</li>
+    <li><b>Always move towards the base case.</b> A recursive call that repeats the same Index never stops.</li>
+    <li><b>Counting has two branches.</b> A match returns 1 + the call; a non-match returns the call alone. Both need a RETURN.</li>
+    <li><b>Rewriting a loop:</b> counter → parameter, starting total → base case, loop body → general case.</li>
+    <li><b>Check the first index.</b> The call from the main program must start where the loop started (0 or 1, or the head pointer).</li>
+    <li><b>In a trace table, write the waiting sum going down and the numbers coming up.</b> The base case row has a Return value; calls above it do not until unwinding.</li>
+    <li><b>n items → n + 1 calls and n + 1 frames.</b> The extra one is the base case.</li>
+    <li><b>Strings:</b> check whether the question uses MID with a start position of 0 or 1, and whether it passes an index or a shorter string.</li>
+    <li><b>Procedures return nothing.</b> A recursive PROCEDURE has no return column and no unwinding work, unless something is done after the call.</li>
+  </ul>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Identify</td><td>A short fact or the line of code. No explanation.</td></tr>
+    <tr><td>Describe</td><td>The steps in order, or how something works.</td></tr>
+    <tr><td>Explain</td><td>What happens and why.</td></tr>
+    <tr><td>Complete</td><td>Fill every gap or cell, with exact values or code.</td></tr>
+    <tr><td>Write / Rewrite</td><td>Full code with header, structure and end statements.</td></tr>
+  </table></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider (back / next buttons) ---------- */
+function slider(el, o) {
+  const id = o.id, step = o.step || 1;
+  let v = o.value;
+  el.innerHTML = `<div class="sl"><label>${o.label}<output id="${id}o"></output></label><div class="stp-ctl"><button class="b" data-a="prev">◀ Previous</button><button class="b" data-a="next">Next ▶</button></div></div>`;
+  const out = $("#" + id + "o", el), prev = $("[data-a=prev]", el), next = $("[data-a=next]", el);
+  const upd = () => { prev.disabled = v <= o.min; next.disabled = v >= o.max; out.textContent = (o.fmt || ((x) => x))(v); o.onInput && o.onInput(v); };
+  const set = (x) => { v = Math.max(o.min, Math.min(o.max, x)); upd(); };
+  prev.onclick = () => set(v - step);
+  next.onclick = () => set(v + step);
+  upd();
+  return { get: () => v, set };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+/* ===== 19.2 Recursion: trace engine ===== */
+const RW = 720, RH = 372;
+
+/* Records every call/return of a recursive function as snapshots, then draws stack + call tree. */
+function Trace(o = {}) {
+  const nodes = [], stack = [], snaps = [], out = [];
+  let phase = "down", pdata = null, alert = null;
+  const clonePanel = () => (pdata ? JSON.parse(JSON.stringify(pdata)) : null);
+  const snap = (cap, ps, py) => snaps.push({
+    cap, ps, py, phase, alert, out: [...out], n: nodes.length, panel: clonePanel(),
+    ns: nodes.map((n) => [n.st, n.val]),
+    stack: stack.map((f) => ({ label: f.label, ra: f.ra, status: f.status, st: f.st })),
+  });
+  const T = {
+    nodes, out, o,
+    setPanel(d) { pdata = d; },
+    print(t) { out.push(t); },
+    setStatus(nd, s) { nd.fr.status = s; },
+    call(label, short, parent, ra, cap, ps, py, status = "", st = "run") {
+      if (parent) { parent.st = "wait"; parent.fr.st = "wait"; }
+      const nd = { label, short, parent, kids: [], st: "act", val: null };
+      nodes.push(nd); parent && parent.kids.push(nd);
+      nd.fr = { label, ra, status, st }; stack.push(nd.fr);
+      phase = "down"; snap(cap, ps, py); return nd;
+    },
+    note(nd, status, cap, ps, py, st = "run") { nd.fr.status = status; nd.fr.st = st; nd.st = "act"; snap(cap, ps, py); },
+    ret(nd, val, cap, ps, py, outLine, status) {
+      nd.fr.status = status || (val === undefined || val === null ? "finished" : "returns " + val); nd.fr.st = "ret"; nd.st = "done"; nd.val = val ?? "";
+      if (outLine) out.push(outLine);
+      phase = "up"; snap(cap, ps, py); stack.pop();
+    },
+    finish(cap, ps, py, al) { alert = al || null; snap(cap, ps, py); },
+    alertNow(a) { alert = a; },
+  };
+  T.build = () => {
+    layout(nodes);
+    return snaps.map((s) => ({ cap: s.cap, ps: s.ps, py: s.py, svg: drawSnap(s, nodes, o) }));
+  };
+  T.maxDepth = () => 0;
+  return T;
+}
+
+/* tree layout: leaves spaced evenly, parents centred over children */
+function layout(nodes) {
+  if (!nodes.length) return;
+  let leaf = 0; const depthOf = (n) => (n.parent ? depthOf(n.parent) + 1 : 0);
+  const go = (n) => { if (!n.kids.length) n.lx = leaf++; else { n.kids.forEach(go); n.lx = (n.kids[0].lx + n.kids[n.kids.length - 1].lx) / 2; } };
+  go(nodes[0]); nodes.forEach((n) => (n.d = depthOf(n)));
+  nodes.leaves = leaf; nodes.depth = Math.max(...nodes.map((n) => n.d)) + 1;
+}
+
+function maxStack(snaps) { return Math.max(1, ...snaps.map((s) => s.stack.length)); }
+
+function drawSnap(s, nodes, o) {
+  const maxD = o.maxDepth || 5, fh = Math.max(34, Math.min(50, Math.floor(272 / maxD) - 5)), gap = 5, X = 14, FW = 340, base = 322;
+  let g = "";
+  // left: call stack
+  g += SV.text(X, 22, "CALL STACK", "sm bd", { "text-anchor": "start", style: "letter-spacing:.1em" });
+  g += SV.text(X + FW, 22, s.phase === "down" ? "▼ WINDING (calls)" : "▲ UNWINDING (returns)", "lbl bd " + (s.phase === "down" ? "t1" : "t3"), { "text-anchor": "end" });
+  g += SV.line(X - 4, base + 3, X + FW + 4, base + 3, "ax");
+  g += SV.text(X, base + 20, "bottom of stack: main program", "sm", { "text-anchor": "start" });
+  s.stack.forEach((f, i) => {
+    const y = base - fh - i * (fh + gap), c = { run: "cell-cur", wait: "", ret: "cell-ok", base: "cell-warn" }[f.st];
+    g += SV.rect(X, y, FW, fh, "cell " + c, { rx: 8 });
+    g += SV.text(X + 10, y + (fh > 40 ? 20 : 15), esc(f.label), "lbl bd", { "text-anchor": "start", style: "font-family:var(--mono);font-size:14px" });
+    g += SV.text(X + FW - 10, y + fh - (fh > 40 ? 10 : 6), "↩ " + esc(f.ra), "sm", { "text-anchor": "end" });
+    if (f.status) g += SV.text(X + 10, y + fh - (fh > 40 ? 10 : 6), esc(f.status), "lbl", { "text-anchor": "start", style: "font-size:12.5px" });
+  });
+  if (!s.stack.length) g += SV.text(X + FW / 2, base - 40, "stack is empty", "lbl", { "text-anchor": "middle", style: "font-style:italic;fill:var(--muted)" });
+  // right: call tree
+  const RX = 388, RWd = RW - RX - 10;
+  g += SV.text(RX, 22, "CALL TREE  " + (o.treeName || ""), "sm bd", { "text-anchor": "start", style: "letter-spacing:.1em" });
+  const lv = nodes.depth || 1, lvs = nodes.leaves || 1, r = nodes.length > 12 ? 14 : nodes.some((n) => String(n.short).length > 3) ? 22 : 17, dy = Math.min(52, 190 / Math.max(1, lv - 1 || 1)), sp = lvs > 1 ? Math.min(54, (RWd - 2 * r) / (lvs - 1)) : 0;
+  const tw = (lvs - 1) * sp, ox = RX + RWd / 2 - tw / 2, oy = 52;
+  const px = (n) => ox + n.lx * sp, py = (n) => oy + n.d * dy;
+  nodes.forEach((n, i) => { if (n.parent) { const live = i < s.n; g += SV.line(px(n.parent), py(n.parent), px(n), py(n), live ? "edge" : "edge", { opacity: live ? 1 : 0.18 }); } });
+  nodes.forEach((n, i) => {
+    const live = i < s.n, st = live ? s.ns[i][0] : "new", val = live ? s.ns[i][1] : null;
+    const cls = { new: "nd", wait: "nd", act: "nd nd-cur", done: "nd nd-ok" }[st];
+    g += `<g opacity="${live ? 1 : 0.22}">` + SV.circle(px(n), py(n), r, cls, st === "wait" ? { style: "stroke:var(--warn);stroke-width:3.5;fill:var(--warn-soft)" } : {}) + SV.text(px(n), py(n) + 5, esc(n.short), "lbl bd", { "text-anchor": "middle", style: "font-size:" + (String(n.short).length > 3 ? 10 : String(n.short).length > 2 ? 10.5 : r < 16 ? 11 : 13) + "px" });
+    if (st === "done" && val !== "" && val !== null) g += SV.text(px(n) + r + 3, py(n) + 4, esc(val), "sm bd t3", { "text-anchor": "start", style: "font-family:var(--mono);font-size:11.5px" });
+    g += "</g>";
+  });
+  // bottom right: output / returned values / custom panel
+  const BY = 268;
+  g += SV.rect(RX, BY, RWd, 90, "cell", { rx: 8 });
+  if (s.panel && o.panelFn) g += o.panelFn(s.panel, RX, BY, RWd);
+  else {
+    g += SV.text(RX + 10, BY + 16, (o.outTitle || "OUTPUT").toUpperCase(), "sm bd", { "text-anchor": "start", style: "letter-spacing:.1em" });
+    s.out.forEach((t, i) => { const col = i < 5 ? 0 : 1, row = i % 5; g += SV.text(RX + 10 + col * (RWd / 2), BY + 33 + row * 13.5, esc(t), "lbl", { "text-anchor": "start", style: "font-family:var(--mono);font-size:12px" }); });
+  }
+  if (s.alert) { g += SV.rect(RX, BY, RWd, 90, "cell cell-no", { rx: 8 }) + SV.text(RX + RWd / 2, BY + 52, esc(s.alert), "lbl bd t2", { "text-anchor": "middle", style: "font-size:17px" }); }
+  return g;
+}
+
+/* helper: run a simulation and hand the frames to Lib.algo */
+function showAlgo(sel, T, code, label, dwell = 2600) {
+  const frames = T.build();
+  Lib.algo($(sel), { w: RW, h: RH, label, pseudo: code.ps, py: code.py, dwell, frames });
+}
+
+/* ===== Lists and strings: first item, then the rest. Indexes start at 0. ===== */
+const KINDS = {
+  sum: {
+    name: "Total", ps: ["FUNCTION Total(Numbers, Index, Last : INTEGER) RETURNS INTEGER", "   IF Index > Last THEN", "      RETURN 0", "   ELSE", "      RETURN Numbers[Index] + Total(Numbers, Index + 1, Last)", "   ENDIF", "ENDFUNCTION"],
+    py: ["def total(numbers, index):", "    if index >= len(numbers):", "        return 0", "    else:", "        return numbers[index] + total(numbers, index + 1)"],
+    hl: { base: [[1, 2], [1, 2]], add: [[1, 4], [1, 4]], hit: [[1, 4], [1, 4]], miss: [[1, 4], [1, 4]], upadd: [[4], [4]], uphit: [[4], [4]], upmiss: [[4], [4]], upbase: [[2], [2]] },
+  },
+  cnt: {
+    name: "CountItem", ps: ["FUNCTION CountItem(Numbers, Index, Last, Target : INTEGER) RETURNS INTEGER", "   IF Index > Last THEN", "      RETURN 0", "   ELSEIF Numbers[Index] = Target THEN", "      RETURN 1 + CountItem(Numbers, Index + 1, Last, Target)", "   ELSE", "      RETURN CountItem(Numbers, Index + 1, Last, Target)", "   ENDIF", "ENDFUNCTION"],
+    py: ["def count_item(numbers, index, target):", "    if index >= len(numbers):", "        return 0", "    elif numbers[index] == target:", "        return 1 + count_item(numbers, index + 1, target)", "    else:", "        return count_item(numbers, index + 1, target)"],
+    hl: { base: [[1, 2], [1, 2]], hit: [[1, 3, 4], [1, 3, 4]], miss: [[3, 5, 6], [3, 5, 6]], upbase: [[2], [2]], uphit: [[4], [4]], upmiss: [[6], [6]] },
+  },
+  vow: {
+    name: "CountVowels", ps: ["FUNCTION CountVowels(Value : STRING, Index : INTEGER) RETURNS INTEGER", "   IF Index >= LENGTH(Value) THEN", "      RETURN 0", "   ELSEIF IsVowel(MID(Value, Index, 1)) THEN", "      RETURN 1 + CountVowels(Value, Index + 1)", "   ELSE", "      RETURN CountVowels(Value, Index + 1)", "   ENDIF", "ENDFUNCTION"],
+    py: ["def count_vowels(value, index):", "    if index >= len(value):", "        return 0", "    elif value[index] in \"aeiou\":", "        return 1 + count_vowels(value, index + 1)", "    else:", "        return count_vowels(value, index + 1)"],
+    hl: { base: [[1, 2], [1, 2]], hit: [[1, 3, 4], [1, 3, 4]], miss: [[3, 5, 6], [3, 5, 6]], upbase: [[2], [2]], uphit: [[4], [4]], upmiss: [[6], [6]] },
+  },
+};
+Lib.codePanel($("#codeSum"), { pseudo: KINDS.sum.ps, py: KINDS.sum.py });
+Lib.codePanel($("#codeCnt"), { pseudo: KINDS.cnt.ps, py: KINDS.cnt.py });
+Lib.codePanel($("#codeVow"), { pseudo: KINDS.vow.ps, py: KINDS.vow.py });
+
+const PRESETS = [
+  { k: "sum", label: "Total of 4, 7, 2, 9", items: [4, 7, 2, 9] },
+  { k: "sum", label: "Total of 6, 1, 8, 5", items: [6, 1, 8, 5] },
+  { k: "sum", label: "Total of 3, 3, 3, 3, 3, 3", items: [3, 3, 3, 3, 3, 3] },
+  { k: "cnt", label: "Count the 0s in 0, 5, 1, 2, 5, 9, 9, 6, 5, 0 (O/N 2025)", items: [0, 5, 1, 2, 5, 9, 9, 6, 5, 0], target: 0 },
+  { k: "cnt", label: "Count the 5s in 0, 5, 1, 2, 5, 9, 9, 6, 5, 0", items: [0, 5, 1, 2, 5, 9, 9, 6, 5, 0], target: 5 },
+  { k: "cnt", label: "Count the 7s in 0, 5, 1, 2, 5, 9, 9, 6, 5, 0", items: [0, 5, 1, 2, 5, 9, 9, 6, 5, 0], target: 7 },
+  ...["imagine", "recursion", "queue", "rhythm"].map((w) => ({ k: "vow", label: `Vowels in “${w}”` + (w === "imagine" ? " (O/N 2023)" : ""), items: [...w] })),
+];
+
+/* simulate one preset: per-call item, kind and returned value */
+function sim(p) {
+  const n = p.items.length, vowel = (c) => "aeiou".includes(c), calls = [], val = Array(n + 1).fill(0);
+  for (let j = n - 1; j >= 0; j--) { const it = p.items[j], m = p.k === "sum" ? true : p.k === "cnt" ? it === p.target : vowel(it); val[j] = p.k === "sum" ? it + val[j + 1] : (m ? 1 : 0) + val[j + 1]; }
+  for (let j = 0; j <= n; j++) { if (j === n) { calls.push({ kind: "base", val: 0 }); break; } const it = p.items[j]; calls.push({ item: it, kind: p.k === "sum" ? "add" : (p.k === "cnt" ? it === p.target : vowel(it)) ? "hit" : "miss", val: val[j] }); }
+  return { n, calls, val };
+}
+const callLabel = (p, j, n) => p.k === "sum" ? `Total(Numbers, ${j}, ${n - 1})` : p.k === "cnt" ? `CountItem(Numbers, ${j}, ${n - 1}, ${p.target})` : `CountVowels("${p.items.join("")}", ${j})`;
+const waitExpr = (p, c, j) => { const rest = `${KINDS[p.k].name}(…, ${j + 1})`; return c.kind === "base" ? "0" : c.kind === "add" ? `${c.item} + ${rest}` : c.kind === "hit" ? `1 + ${rest}` : rest; };
+const doneExpr = (p, c, s, j) => (c.kind === "base" ? "0" : c.kind === "add" ? `${c.item} + ${s.val[j + 1]}` : c.kind === "hit" ? `1 + ${s.val[j + 1]}` : `${s.val[j + 1]}`);
+
+function listSvg(p, s, st) {
+  const W = 720, n = s.n, cw = Math.min(58, (W - 40) / n), x0 = (W - n * cw) / 2, y = 40, ch = 38;
+  let g = "";
+  for (let j = 0; j < n; j++) {
+    const unw = st.unwinding, cur = j === st.cur;
+    const faded = st.cur >= 0 && (unw ? j > st.cur : j < st.cur);
+    const cls = cur ? (unw ? "cell cell-ok" : "cell cell-cur") : "cell";
+    g += SV.rect(x0 + j * cw + 1, y, cw - 2, ch, cls, { rx: 6, style: faded ? "opacity:.3" : "" });
+    g += SV.text(x0 + (j + 0.5) * cw, y + 25, p.items[j], "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:15px" + (faded ? ";opacity:.35" : "") });
+    g += SV.text(x0 + (j + 0.5) * cw, y - 8, j, "sm", { "text-anchor": "middle", style: "font-family:var(--mono)" });
+  }
+  g += SV.text(24, 116, "CALLS, IN THE ORDER THEY WERE MADE", "sm bd", { "text-anchor": "start", style: "letter-spacing:.08em" });
+  for (let j = 0; j < Math.min(st.k, n + 1); j++) {
+    const c = s.calls[j], yy = 124 + j * 24, ret = j >= st.k - st.r, cur = j === st.cur;
+    g += SV.rect(1, yy, 718, 22, cur ? "cell cell-cur" : ret ? "cell cell-ok" : c.kind === "base" ? "cell cell-warn" : "cell", { rx: 5, style: "stroke-width:" + (cur ? 2.2 : 1) });
+    g += SV.text(10, yy + 16, `${j + 1}  ${callLabel(p, j, n)}`, "lbl", { "text-anchor": "start", style: "font-family:var(--mono);font-size:12px" });
+    g += SV.text(430, yy + 16, "= " + (ret ? doneExpr(p, c, s, j) : waitExpr(p, c, j)), "lbl", { "text-anchor": "start", style: "font-family:var(--mono);font-size:12px" });
+    if (ret) g += SV.text(710, yy + 16, "→ " + c.val, "lbl bd t3", { "text-anchor": "end", style: "font-family:var(--mono);font-size:13px" });
+  }
+  return g;
+}
+
+function listFrames(p) {
+  const s = sim(p), n = s.n, K = KINDS[p.k], fr = [], nm = K.name;
+  const hl = (key) => K.hl[key];
+  const item = (c) => (p.k === "vow" ? `“${c.item}”` : c.item);
+  fr.push({ cap: `${p.label}. The function handles the item at Index, then calls itself for the rest. Press Next to make the first call.`, ps: [0], py: [0], svg: listSvg(p, s, { k: 0, r: 0, cur: -1 }) });
+  s.calls.forEach((c, j) => {
+    const h = hl(c.kind), where = `<b>Call ${j + 1}: ${callLabel(p, j, n)}.</b>`;
+    let cap;
+    if (c.kind === "base") cap = `${where} Index ${j} is past the last item: the <b>base case</b>. It returns 0, with no further call.`;
+    else if (p.k === "sum") cap = `${where} Index ${j} is not past the end, so the general case runs: item ${item(c)} is added to the total of the rest. That needs another call, so the + <b>waits</b>.`;
+    else if (c.kind === "hit") cap = `${where} ${item(c)} ${p.k === "cnt" ? `equals ${p.target}` : "is a vowel"}: a match, so this call will return <b>1 +</b> the count for the rest. It has to wait for that call.`;
+    else cap = `${where} ${item(c)} ${p.k === "cnt" ? `is not ${p.target}` : "is not a vowel"}: no match, so this call will return the count for the rest <b>unchanged</b>. It waits for that call.`;
+    fr.push({ cap, ps: h[0], py: h[1], svg: listSvg(p, s, { k: j + 1, r: 0, cur: j }) });
+  });
+  for (let j = n; j >= 0; j--) {
+    const c = s.calls[j], h = hl("up" + c.kind), r = n - j + 1;
+    const cap = c.kind === "base" ? `<b>Call ${j + 1} returns 0.</b> The frame is popped and <b>unwinding starts</b>.` : p.k === "sum" ? `<b>Call ${j + 1} resumes.</b> The call below returned ${s.val[j + 1]}, so ${c.item} + ${s.val[j + 1]} = <b>${c.val}</b>, which it returns.` : c.kind === "hit" ? `<b>Call ${j + 1} resumes.</b> It was a match, so 1 + ${s.val[j + 1]} = <b>${c.val}</b>.` : `<b>Call ${j + 1} resumes.</b> No match, so it passes ${s.val[j + 1]} up <b>unchanged</b>.`;
+    fr.push({ cap: cap + (j === 0 ? ` The answer is <b>${c.val}</b>.` : ""), ps: h[0], py: h[1], svg: listSvg(p, s, { k: n + 1, r, cur: j, unwinding: true }) });
+  }
+  return { frames: fr, sim: s };
+}
+const listAlgo = (sel, p, label) => { const { frames, sim: s } = listFrames(p); Lib.algo($(sel), { w: 720, h: 124 + (s.n + 1) * 24 + 8, label, pseudo: KINDS[p.k].ps, py: KINDS[p.k].py, dwell: 2800, frames }); return s; };
+
+listAlgo("#aSum", PRESETS[0], "Total of 4, 7, 2, 9, call by call");
+listAlgo("#aVow", PRESETS.find((p) => p.items.join("") === "imagine"), "Counting vowels in imagine, call by call");
+
+/* the same Total call as a stack and call tree */
+(() => {
+  const p = PRESETS[0], s = sim(p), n = s.n, T = Trace({ treeName: "Index", outTitle: "Values returned", maxDepth: n + 1 });
+  const run = (j, parent) => {
+    const nd = T.call(callLabel(p, j, n).replace("Numbers, ", ""), j, parent, j ? "line 5" : "main", `<b>${callLabel(p, j, n)} is called.</b> A new frame is pushed with Index = ${j}.`, [0], [0]);
+    if (j === n) { T.note(nd, "Index > Last: BASE CASE", `Is Index &gt; Last? ${j} &gt; ${n - 1}: <b>Yes</b>. Base case: RETURN 0.`, [1, 2], [1, 2], "base"); T.print("Index " + j + " returns 0"); T.ret(nd, "0", "RETURN 0 sends <b>0</b> back. The frame is popped and unwinding begins.", [2], [2]); return 0; }
+    T.note(nd, `adds ${p.items[j]}: must wait`, `Is Index &gt; Last? No. General case: Numbers[${j}] = ${p.items[j]}, plus <b>Total of the rest</b>. The addition cannot happen until that call returns.`, [1, 4], [1, 4]);
+    T.setStatus(nd, "paused: waiting for the rest");
+    const v = run(j + 1, nd), t = p.items[j] + v;
+    T.note(nd, `${p.items[j]} + ${v} = ${t}`, `The call below returned ${v}. This frame resumes: ${p.items[j]} + ${v} = <b>${t}</b>.`, [4], [4]);
+    T.print(`Index ${j} returns ${t}`);
+    T.ret(nd, String(t), `RETURN ${t}. The frame is popped.`, [4], [4]);
+    return t;
+  };
+  const r = run(0, null);
+  T.finish(`The stack is empty. The total is <b>${r}</b>. There were ${n + 1} calls: one per item plus the base case, and all ${n + 1} frames were on the stack at the deepest point.`, [], []);
+  showAlgo("#aStack", T, { ps: KINDS.sum.ps, py: KINDS.sum.py }, "Animated call stack and call tree for Total of 4, 7, 2, 9", 2600);
+})();
+
+/* ===== Explore ===== */
+(() => {
+  const sel = $("#lsT");
+  sel.innerHTML = PRESETS.map((p, i) => `<option value="${i}">${p.label}</option>`).join("");
+  const go = () => {
+    const p = PRESETS[+sel.value], s = listAlgo("#lsAlgo", p, p.label + ", call by call");
+    $("#lsRO").innerHTML = `<div><small>Answer</small><strong>${s.val[0]}</strong></div><div><small>Calls made</small><strong>${s.n + 1}</strong></div><div><small>Deepest stack (frames)</small><strong>${s.n + 1}</strong></div><div><small>Loop passes needed</small><strong>${s.n}</strong></div>`;
+  };
+  sel.addEventListener("change", go); go();
+})();
+
+/* ===== Activities ===== */
+Lib.order($("#o1"), { prompt: "Total(Numbers, 0, 2) is called with Numbers = 3, 5, 2. Put the events in the order they happen.", items: ["Total(Numbers, 0, 2) is called: it must add 3 to the total of the rest", "Total(Numbers, 1, 2) is called: it must add 5 to the total of the rest", "Total(Numbers, 2, 2) is called: it must add 2 to the total of the rest", "Total(Numbers, 3, 2) is called: Index is past Last, base case, returns 0", "Total(Numbers, 2, 2) works out 2 + 0 = 2 and returns it", "Total(Numbers, 1, 2) works out 5 + 2 = 7 and returns it", "Total(Numbers, 0, 2) works out 3 + 7 = 10 and returns it"], done: "All the calls go down to the end of the list first; the additions happen on the way back up." });
+
+Lib.classify($("#cl1"), { prompt: "Drag each piece of CountItem to the part of recursion it plays.", buckets: [{ label: "Base case" }, { label: "General case (calls itself)" }, { label: "Moves towards the base case" }, { label: "Runs during unwinding" }], items: [
+  { text: "IF Index > Last THEN RETURN 0", b: 0 }, { text: "CountItem(Numbers, Index + 1, Last, Target)", b: 1 }, { text: "Index + 1", b: 2 }, { text: "the 1 + added when there is a match", b: 3 }, { text: "RETURN 0", b: 0 }, { text: "ELSEIF Numbers[Index] = Target", b: 1 }], done: "One item is dealt with per call; the base case stops the chain at the end of the data." });
+
+Lib.classify($("#cl2"), { prompt: "Is each piece part of the loop version or the recursive version?", buckets: [{ label: "Loop version" }, { label: "Recursive version" }], items: [
+  { text: "Total ← 0 before the loop", b: 0 }, { text: "RETURN 0 when Index > Last", b: 1 }, { text: "FOR Index ← 0 TO Last", b: 0 }, { text: "Index + 1 passed to the next call", b: 1 }, { text: "Total ← Total + Numbers[Index]", b: 0 }, { text: "RETURN Numbers[Index] + Total(…)", b: 1 }, { text: "uses stack frames", b: 1 }, { text: "uses one variable that changes", b: 0 }], done: "Every part of the loop has a partner in the recursive version." });
+
+Lib.match($("#m1"), { prompt: "Match each term to what it means for these functions.", pairs: [
+  ["Base case", "no items left: the index is past the end, so return the starting value (0)"], ["General case", "handle the item at Index and call again with Index + 1"], ["Running total", "in the loop version a variable; in the recursive version the value passed back up the calls"], ["Index", "which item this call is dealing with: the parameter that moves towards the base case"], ["Winding", "calls going down the list, one item each"], ["Unwinding", "calls returning, with each sum or count worked out"]], done: "Those six ideas turn any loop over a list into a recursive function." });
+
+/* ===== Practise ===== */
+Lib.calc($("#c1"), { qs: [
+  { q: "At what value of Index is the base case reached in Total(Numbers, 0, 3)?", a: 4, tol: 0, hint: "Base case: Index is greater than Last (3).", sol: "Index goes 0, 1, 2, 3 and then 4, which is greater than 3." },
+  { q: "How many calls to Total are made in total, counting the first and the base case?", a: 5, tol: 0, hint: "One per item, plus the base case.", sol: "4 items + 1 = 5 calls." },
+  { q: "What does the base-case call return?", a: 0, tol: 0, hint: "Nothing left to add.", sol: "It returns 0." },
+  { q: "What does Total(Numbers, 3, 3) return? (Numbers = 6, 1, 8, 5)", a: 5, tol: 0, hint: "Numbers[3] plus the base case.", sol: "5 + 0 = 5." },
+  { q: "What does Total(Numbers, 2, 3) return?", a: 13, tol: 0, hint: "Numbers[2] plus the answer you just found.", sol: "8 + 5 = 13." },
+  { q: "What does Total(Numbers, 1, 3) return?", a: 14, tol: 0, hint: "Numbers[1] plus the previous answer.", sol: "1 + 13 = 14." },
+  { q: "What does the original call Total(Numbers, 0, 3) return?", a: 20, tol: 0, hint: "Numbers[0] plus the previous answer.", sol: "6 + 14 = 20." },
+  { q: "What is the greatest number of frames on the stack at one time?", a: 5, tol: 0, hint: "Every call waits for the one below it.", sol: "All 5 calls are waiting at the deepest point." }] });
+
+Lib.quiz($("#qz1"), { qs: [
+  { q: "What should the base case of a recursive total return?", opts: ["1", "0", "the last item", "−1"], a: 1, why: "Zero is the starting value for adding. With nothing left to add, the total of the rest is 0." },
+  { q: "What should the base case of a recursive product (multiplying all the items) return?", opts: ["0", "1", "the first item", "−1"], a: 1, why: "1 is the starting value for multiplying. Returning 0 would make every product 0." },
+  { q: "In CountItem, what does a call return when Numbers[Index] is not equal to Target?", opts: ["0", "1", "the count for the rest, unchanged", "Index"], a: 2, why: "No match means nothing is added, so the result of the call for the rest is passed straight up." },
+  { q: "The recursive call is written as Total(Numbers, Index, Last) without + 1. What happens?", opts: ["The total is wrong", "It never reaches the base case and the stack overflows", "It returns 0", "It works but slowly"], a: 1, why: "Index never changes, so the call is identical each time and there is no end." },
+  { q: "A string of 12 characters is passed to CountVowels. How many calls are made?", opts: ["11", "12", "13", "24"], a: 2, why: "12 characters plus the base-case call at Index 12." },
+  { q: "In a loop version, the line Total ← 0 before the loop becomes what in the recursive version?", opts: ["The parameter list", "The base case return value", "The recursive call", "Nothing: it is dropped"], a: 1, why: "The starting value is what you get when there is nothing to process, which is the base case." },
+  { q: "Why might a loop be preferred to recursion for totalling a list of one million values?", opts: ["Recursion cannot add", "A million frames on the stack could cause a stack overflow", "Loops are shorter to write", "Recursion gives a different answer"], a: 1, why: "Each item adds a stack frame. The loop needs no stack." }] });
+
+Lib.cards($("#fc1"), { cards: [
+  ["First and rest", "Handle the item at Index, then let a recursive call handle everything after it."],
+  ["Base case", "No items left (Index past the last item, or an empty string). Returns the starting value: 0 for a sum or a count."],
+  ["General case", "The branch that uses the current item and calls the function for the rest."],
+  ["Index parameter", "Which item the call is dealing with. It becomes Index + 1 in the recursive call."],
+  ["Running total", "A value built up one item at a time. In recursion it is built as the calls return."],
+  ["Counting pattern", "A match returns 1 + the call for the rest; a non-match returns the call for the rest unchanged."],
+  ["MID(Value, Start, Length)", "Returns Length characters of Value from position Start (the first position is 0 in 9618 string questions)."],
+  ["Winding", "Calls going down the list to the base case."],
+  ["Unwinding", "Calls returning, in reverse order, with results combined."],
+  ["Loop to recursion", "Counter → parameter. Starting total → base case. Loop body → general case."],
+  ["Stack depth", "For n items, n + 1 frames at the deepest point."]] });
+
+Lib.initTabs();
+</script>
+</body></html>
