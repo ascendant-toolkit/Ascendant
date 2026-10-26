@@ -435,7 +435,7 @@ function classBox(x, y, w, title, rows, v = 1, cls = "f1", lh = 20) {
 (function () {
   const L = ["MyPet = Pet(\"Rex\", 2021)", "", "def __init__(self, NewName, NewYear):", "    self.__PetName = NewName", "    self.__YearBorn = NewYear"];
   const draw = (s) => {
-    const k = Math.round(s.i); let o = codeList(20, 20, [L[0], L[2], L[3], L[4]], k === 0 ? 0 : k === 1 ? 1 : k === 2 ? 2 : k === 3 ? 3 : -1, 1, 34, 310);
+    const k = Math.round(s.i); let o = codeList(20, 20, [L[0], L[2], L[3], L[4]], k === 0 ? 0 : k === 1 ? 1 : k === 2 ? 2 : k === 3 ? 3 : -1, 1, 34, 350);
     if (k >= 1) o += classBox(420, 20, 300, k >= 5 ? "object stored in MyPet" : "self (a new, empty object)", ["__PetName: " + (k >= 3 ? "\"Rex\"" : "?"), "__YearBorn: " + (k >= 4 ? "2021" : "?")], 1, k >= 5 ? "f3" : "f1", 24);
     if (k >= 2) o += SV.text(20, 175, "parameters: NewName = \"Rex\", NewYear = 2021", "sm", { style: "font-family:var(--mono)" });
     if (k >= 5) o += SV.text(420, 165, "MyPet now refers to the object", "lbl bd t3");

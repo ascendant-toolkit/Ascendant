@@ -44,11 +44,11 @@ function asyChart(s) {
   o += box(540, 30, 190, 150, "Jane", GOOD, k === 4 ? [["Ciphertext", "sm"], ["↓ decrypt with", "t4"], ["her PRIVATE key", "t2"], ["Document ✓", "t3"]] : []);
   o += chip(560, 190, 150, "PUBLIC KEY", GOOD) + chip(560, 224, 150, "PRIVATE KEY (secret)", BAD);
   if (k >= 1) o += chip(60, 190, 150, "Jane's PUBLIC key", GOOD);
-  o += SV.rect(290, 250, 180, 70, "", { rx: 12, style: "fill:var(--surface);stroke:var(--muted);stroke-width:3" }) + note(380, 272, "Eavesdropper", "");
+  o += SV.rect(215, 250, 330, 78, "", { rx: 12, style: "fill:var(--surface);stroke:var(--muted);stroke-width:3" }) + note(380, 272, "Eavesdropper", "");
   if (k === 0) o += note(380, 100, "Jane makes a linked pair of keys", "t1") + note(380, 126, "one cannot be worked out from the other", "sm");
   if (k === 1) o += arr(540, 90, 230, 90, GOOD) + note(380, 70, "Jane sends her PUBLIC key", "t3") + SV.line(380, 100, 380, 250, "", { style: "stroke:var(--muted);stroke-width:2;stroke-dasharray:5 5" }) + chip(305, 190, 150, "copy of the PUBLIC key", GOOD) + note(380, 308, "anyone, even an eavesdropper, may have it", "sm");
   if (k === 2) o += note(380, 100, "Jane's public key encrypts it", "t3");
-  if (k === 3) o += arr(220, 100, 540, 100, ACC) + note(380, 80, "ciphertext", "t2") + SV.line(380, 110, 380, 250, "", { style: "stroke:var(--muted);stroke-width:2;stroke-dasharray:5 5" }) + chip(305, 190, 150, "copy of the PUBLIC key", GOOD) + note(380, 308, "has the ciphertext and the public key, but cannot decrypt", "t2");
+  if (k === 3) o += arr(220, 100, 540, 100, ACC) + note(380, 80, "ciphertext", "t2") + SV.line(380, 110, 380, 250, "", { style: "stroke:var(--muted);stroke-width:2;stroke-dasharray:5 5" }) + chip(305, 190, 150, "copy of the PUBLIC key", GOOD) + note(380, 300, "has the ciphertext and the public key,", "t2") + note(380, 318, "but cannot decrypt", "t2");
   if (k === 4) o += note(380, 100, "Only Jane's private key unlocks it", "t3");
   return o;
 }

@@ -59,7 +59,7 @@ function labShare() {
   $("#rv").textContent = gb >= avg ? `The bottom 40% gain ${Lib.fmtN(gb, 1)}%, at least as fast as the ${Lib.fmtN(avg, 1)}% average, so their share rises. This growth is inclusive.` : `The bottom 40% gain ${Lib.fmtN(gb, 1)}%, slower than the ${Lib.fmtN(avg, 1)}% average, so their share falls from 15% to ${Lib.fmtN(shareB, 1)}%. Incomes rise for all but inequality widens: growth is not inclusive.`;
   const mx = Math.max(gb, gm, gt, avg, 1) * 1.15, y = (v) => 250 - v / mx * 210;
   const bars = [["Bottom 40%", gb, "f3", "t3"], ["Middle 50%", gm, "f1", "t1"], ["Top 10%", gt, "f4", "t4"]];
-  let o = SV.line(40, 250, 400, 250) + SV.line(40, y(avg), 400, y(avg), "c2 dash") + tag(396, y(avg) - 6, "average " + Lib.fmtN(avg, 1) + "%", "t2", 1, "end");
+  let o = SV.line(40, 250, 400, 250) + SV.line(40, y(avg), 400, y(avg), "c2 dash") + tag(46, y(avg) - 6, "average " + Lib.fmtN(avg, 1) + "%", "t2", 1, "start");
   bars.forEach((b, i) => { const x = 70 + i * 110; o += SV.rect(x, y(b[1]), 80, 250 - y(b[1]), b[2]) + tag(x + 40, y(b[1]) - 6, Lib.fmtN(b[1], 1) + "%", b[3], 1, "middle") + SV.text(x + 40, 270, b[0], "sm bd", { "text-anchor": "middle" }); });
   $("#labA").innerHTML = o;
 }

@@ -1,5 +1,5 @@
 /* Runs on every published page (build.py injects it). Keeps SVG diagram labels readable whatever the page's own drawing code did:
-   1. text wider than the box it sits in shrinks to fit the box (down to 50%)
+   1. text wider than the box it sits in shrinks to fit the box (down to 75%)
    2. text that overlaps other text is nudged down until the overlap is gone
    3. text crossed by a visible line gets a background-coloured halo
    4. text outside the canvas grows the viewBox so nothing is cut off
@@ -13,17 +13,17 @@
   function fix(sv) {
     const vb = sv.viewBox && sv.viewBox.baseVal;
     if (!vb || !vb.width || !sv.getClientRects().length) return;
-    const all = [...sv.querySelectorAll("text")].filter((t) => t.textContent.trim() && op(t) > 0.15 && !t.closest("[transform]") && !t.getAttribute("transform"));
+    const all = [...sv.querySelectorAll("text")].filter((t) => t.textContent.trim() && op(t) > 0.15 && !t.closest("[transform],[style*=transform]") && !t.getAttribute("transform"));
     if (!all.length) return;
-    const shapes = [...sv.querySelectorAll("circle,rect")].filter((e) => op(e) > 0.95 && getComputedStyle(e).fill !== "none" && !/^rgba\(.*, 0\)$/.test(getComputedStyle(e).fill));
+    const shapes = [...sv.querySelectorAll("circle,rect")].filter((e) => !e.closest("[transform],[style*=transform]") && op(e) > 0.95 && getComputedStyle(e).fill !== "none" && !/^rgba\(.*, 0\)$/.test(getComputedStyle(e).fill));
     const box = (e) => (e.tagName === "circle" ? { x: num(e, "cx") - num(e, "r"), y: num(e, "cy") - num(e, "r"), w: 2 * num(e, "r"), h: 2 * num(e, "r") } : { x: num(e, "x"), y: num(e, "y"), w: num(e, "width"), h: num(e, "height") });
     // 1. fit text inside its box
     all.forEach((t) => {
       if (t.dataset.fx) return;
       let b = t.getBBox(); const cx = b.x + b.width / 2, cy = b.y + b.height / 2;
       const rc = shapes.filter((e) => e.tagName === "rect" && (e.compareDocumentPosition(t) & Node.DOCUMENT_POSITION_FOLLOWING)).map(box).filter((r) => cx > r.x && cx < r.x + r.w && cy > r.y && cy < r.y + r.h).sort((p, q) => p.w - q.w)[0];
-      if (rc && rc.w > 20 && (b.x < rc.x + 1 || b.x + b.width > rc.x + rc.w - 1)) {
-        const fs = parseFloat(getComputedStyle(t).fontSize) || 12, k = Math.max(0.5, (rc.w - 8) / b.width);
+      if (rc && rc.w > 20 && b.width < 1.5 * rc.w && (b.x < rc.x + 1 || b.x + b.width > rc.x + rc.w - 1)) {
+        const fs = parseFloat(getComputedStyle(t).fontSize) || 12, k = Math.max(0.75, (rc.w - 8) / b.width);
         if (k < 1) { t.style.fontSize = (fs * k).toFixed(2) + "px"; t.dataset.fx = "1"; }
       }
     });

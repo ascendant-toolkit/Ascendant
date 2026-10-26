@@ -31,7 +31,7 @@ function gfLab2() {
   $("#v2").textContent = msg.length ? msg.join("; ") + "." : "This is the starting budget line: M = $120, PX = $3, PY = $2.";
   const F = frame(480, 360, 50, 460, 20, 320, 120, 0, 120);
   let s = axes(F, "Good X", "Good Y");
-  s += SV.line(F.X(0), F.Y(40 * 1.5), F.X(40), F.Y(0), "gr", { style: "stroke-width:2.5" }) + SV.text(F.X(40) + 4, F.Y(0) - 8, "original", "sm", { "text-anchor": "start" });
+  s += SV.line(F.X(0), F.Y(40 * 1.5), F.X(40), F.Y(0), "gr", { style: "stroke-width:2.5" }) + SV.text(F.X(20) + 8, F.Y(30) - 6, "original", "sm", { "text-anchor": "start" });
   s += SV.line(F.X(0), F.Y(Math.min(my, 120)), F.X(Math.min(mx, 120)), F.Y(0), "c1") + SV.circle(F.X(mx), F.Y(0), 5, "dot1") + SV.circle(F.X(0), F.Y(my), 5, "dot1");
   s += SV.text(F.X(mx) + (mx > 100 ? -6 : 8), F.Y(0) - 12, Lib.fmtN(mx, 1), "lbl bd t1", { "text-anchor": mx > 100 ? "end" : "start" }) + SV.text(F.X(0) + 10, F.Y(my) + 4, Lib.fmtN(my, 1), "lbl bd t1", { "text-anchor": "start" });
   $("#lab2").innerHTML = s;

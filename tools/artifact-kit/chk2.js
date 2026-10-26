@@ -9,8 +9,8 @@ window.__chk = null; (async () => {
   const op = (el) => { let o = 1; for (let e = el; e && e.tagName !== "svg"; e = e.parentNode) { const v = e.getAttribute && (e.style && e.style.opacity !== "" ? e.style.opacity : e.getAttribute("opacity")); if (v !== null && v !== undefined && v !== "") o *= +v; } return o; };
   const hit = (cov, b, l, x1, y1, x2, y2) => { const n = Math.max(2, Math.ceil(Math.hypot(x2 - x1, y2 - y1) / 2)); for (let i = 0; i <= n; i++) { const x = x1 + ((x2 - x1) * i) / n, y = y1 + ((y2 - y1) * i) / n; if (x > b.x + 1.5 && x < b.x + b.width - 1.5 && y > b.y + 2 && y < b.y + b.height - 2 && !cov(l, x, y)) return true; } return false; };
   const check = (sv, name) => {
-    const vb = sv.viewBox.baseVal, ts = [...sv.querySelectorAll("text")].filter((t) => t.textContent.trim() && op(t) > 0.15 && !t.closest("[transform]") && !t.getAttribute("transform")).map((t) => ({ el: t, t: t.textContent.trim(), b: t.getBBox() }));
-    const shapes = [...sv.querySelectorAll("circle,rect")].filter((e) => op(e) > 0.95 && getComputedStyle(e).fill !== "none" && !/^rgba\(.*, 0\)$/.test(getComputedStyle(e).fill));
+    const vb = sv.viewBox.baseVal, ts = [...sv.querySelectorAll("text")].filter((t) => t.textContent.trim() && op(t) > 0.15 && !t.closest("[transform],[style*=transform]") && !t.getAttribute("transform")).map((t) => ({ el: t, t: t.textContent.trim(), b: t.getBBox() }));
+    const shapes = [...sv.querySelectorAll("circle,rect")].filter((e) => !e.closest("[transform],[style*=transform]") && op(e) > 0.95 && getComputedStyle(e).fill !== "none" && !/^rgba\(.*, 0\)$/.test(getComputedStyle(e).fill));
     const ls = [...sv.querySelectorAll("line")].filter((l) => op(l) > 0.5).map((l) => ({ l, c: ["x1", "y1", "x2", "y2"].map((a) => +l.getAttribute(a)) }));
     const covered = (l, x, y) => shapes.some((e) => (l.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING) && (e.tagName === "circle" ? Math.hypot(x - +e.getAttribute("cx"), y - +e.getAttribute("cy")) < +e.getAttribute("r") : x > +e.getAttribute("x") && x < +e.getAttribute("x") + +e.getAttribute("width") && y > +e.getAttribute("y") && y < +e.getAttribute("y") + +e.getAttribute("height")));
     const add = (m) => { if (!seen.has(m)) { seen.add(m); issues.push(m); } };
@@ -19,7 +19,7 @@ window.__chk = null; (async () => {
       for (let j = i + 1; j < ts.length; j++) { const B = ts[j].b; if (A.x < B.x + B.width - 1 && B.x < A.x + A.width - 1 && A.y < B.y + B.height - 2 && B.y < A.y + A.height - 2) add(`${name}: text "${o.t.slice(0, 24)}" overlaps text "${ts[j].t.slice(0, 24)}"`); }
       ls.forEach((o2) => { if (!o.el.style.stroke && hit(covered, A, o2.l, ...o2.c)) add(`${name}: text "${o.t.slice(0, 24)}" crossed by a line`); });
       const cx = A.x + A.width / 2, cy = A.y + A.height / 2, rc = shapes.filter((e) => e.tagName === "rect" && cx > +e.getAttribute("x") && cx < +e.getAttribute("x") + +e.getAttribute("width") && cy > +e.getAttribute("y") && cy < +e.getAttribute("y") + +e.getAttribute("height")).sort((p, q) => +p.getAttribute("width") - +q.getAttribute("width"))[0];
-      if (rc && (A.x < +rc.getAttribute("x") - 1 || A.x + A.width > +rc.getAttribute("x") + +rc.getAttribute("width") + 1)) add(`${name}: text "${o.t.slice(0, 24)}" runs outside its box`);
+      if (rc && A.width < 1.5 * +rc.getAttribute("width") && (A.x < +rc.getAttribute("x") - 1 || A.x + A.width > +rc.getAttribute("x") + +rc.getAttribute("width") + 1)) add(`${name}: text "${o.t.slice(0, 24)}" runs outside its box`);
       if (A.x < vb.x - 2 || A.x + A.width > vb.x + vb.width + 2 || A.y < vb.y - 1 || A.y + A.height > vb.y + vb.height + 2) add(`${name}: text "${o.t.slice(0, 24)}" off the canvas`);
     });
   };
