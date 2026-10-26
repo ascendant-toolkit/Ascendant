@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Graphs in Artificial Intelligence</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
+
+table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
+.synd{margin:8px 0;overflow-x:auto}
+.gantt{display:flex;margin:6px 0 0;font-family:var(--mono)}.gantt .gb{border:1.5px solid var(--ink);margin-left:-1.5px;text-align:center;padding:6px 0;font-weight:700;font-size:.85rem;background:var(--surface);min-width:0}
+.gantt .gb.c0{background:var(--accent-soft)}.gantt .gb.c1{background:var(--bad-soft)}.gantt .gb.c2{background:var(--good-soft)}.gantt .gb.c3{background:var(--warn-soft)}.gantt .gb.c4{background:var(--soft)}
+.gticks{display:flex;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:2px 0 10px}.gticks span{text-align:right;min-width:0}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 18.1.1</div>
+  <h1>Graphs in Artificial Intelligence</h1>
+  <p class="cbook">Coursebook: Chapter 18 · Artificial Intelligence, section 18.1 Artificial Intelligence</p>
+  <p class="lead">The purpose and structure of a graph: nodes, edges, weights, paths and cycles, and why graphs aid AI; animations, a path explorer and the real Paper 3 questions from 2021 and 2025.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A <b>graph</b> is a data structure (an abstract data type) made of <b>vertices</b> (also called nodes) that represent things, joined by <b>edges</b> that represent the relationships or connections between them. In artificial intelligence a graph is used to <b>record relationships between entities</b>, for example places on a map and the distances between them, so that an algorithm can search it for the <b>best path</b>. Edges (and sometimes nodes) can carry a <b>weight</b> such as a distance, cost or time. A <b>path</b> is a list of nodes connected by edges from one node to another; a <b>cycle</b> is a path that returns to the node it started from. Many AI problems can be defined as finding a path in a graph, and neural networks can themselves be drawn as graphs.</p></div>
+
+  <h2>1 · Structure of a graph</h2>
+  <div class="synd"><svg viewBox="0 0 390 210" style="width:429px;max-width:100%;display:block" role="img" aria-label="a small weighted graph"><line x1="60" y1="60" x2="240" y2="40" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="60" y1="60" x2="150" y2="160" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="240" y1="40" x2="150" y2="160" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="240" y1="40" x2="330" y2="150" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="150" y1="160" x2="330" y2="150" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><rect x="139.0" y="40.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="150.0" y="55.0" text-anchor="middle" style="font-size:13px">4</text><rect x="94.0" y="100.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="105.0" y="115.0" text-anchor="middle" style="font-size:13px">2</text><rect x="184.0" y="90.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="195.0" y="105.0" text-anchor="middle" style="font-size:13px">1</text><rect x="274.0" y="85.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="285.0" y="100.0" text-anchor="middle" style="font-size:13px">5</text><rect x="229.0" y="145.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="240.0" y="160.0" text-anchor="middle" style="font-size:13px">8</text><rect x="37.0" y="43.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="60" y="65" text-anchor="middle" style="font-size:12.5px">A</text><rect x="217.0" y="23.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="240" y="45" text-anchor="middle" style="font-size:12.5px">B</text><rect x="127.0" y="143.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="150" y="165" text-anchor="middle" style="font-size:12.5px">C</text><rect x="307.0" y="133.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="330" y="155" text-anchor="middle" style="font-size:12.5px">D</text></svg></div>
+  <div class="tw"><table class="t">
+    <tr><th>Term</th><th>Meaning</th><th>In the graph above</th></tr>
+    <tr><td><b>Vertex / node</b></td><td>An entity: a place, a person, a state</td><td>A, B, C, D</td></tr>
+    <tr><td><b>Edge</b></td><td>A connection between two nodes (an arc)</td><td>A–B, A–C, B–C, B–D, C–D</td></tr>
+    <tr><td><b>Weight</b></td><td>A value on an edge: distance, cost, time</td><td>The numbers 4, 2, 1, 5, 8</td></tr>
+    <tr><td><b>Path</b></td><td>The list of nodes connected by edges between two given nodes</td><td>A, C, B, D (cost 2 + 1 + 5 = 8)</td></tr>
+    <tr><td><b>Cycle</b></td><td>A list of nodes that returns to the same node</td><td>A, B, C, A</td></tr>
+    <tr><td><b>Neighbours</b></td><td>Nodes joined to a node by an edge</td><td>The neighbours of C are A, B and D</td></tr>
+  </table></div>
+  <p>The graph above is <b>undirected</b>: an edge can be used in either direction. A <b>directed</b> graph has arrows, so an edge can only be followed one way, as in a one-way street. A graph with weights is a <b>weighted</b> graph; the shortest path between two nodes is the path whose weights add up to the least. Which path has the fewest edges is not always the cheapest: from A to D, A–B–D has 2 edges and costs 9, but A–C–B–D has 3 edges and costs 8.</p>
+
+  <h2>2 · Storing a graph</h2>
+  <p>A graph can be stored in a program as an <b>adjacency matrix</b> (a table with a row and a column for every node, holding the weight where there is an edge) or an <b>adjacency list</b> (each node with a list of its neighbours and weights). You will not be asked to write code for a graph.</p>
+  <div class="tw"><table class="t mono"><tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th></tr><tr><th>A</th><td>–</td><td>4</td><td>2</td><td>–</td></tr><tr><th>B</th><td>4</td><td>–</td><td>1</td><td>5</td></tr><tr><th>C</th><td>2</td><td>1</td><td>–</td><td>8</td></tr><tr><th>D</th><td>–</td><td>5</td><td>8</td><td>–</td></tr></table></div><pre class="plain">A: B(4), C(2)
+B: A(4), C(1), D(5)
+C: A(2), B(1), D(8)
+D: B(5), C(8)</pre>
+
+  <h2>3 · Why graphs are used in AI</h2>
+  <ul>
+    <li>They <b>record relationships</b> between entities in a way algorithms can use: places and the distances between them, people in a social network, web pages and links.</li>
+    <li>Many AI problems can be defined as <b>finding a path in a graph</b>: the best route for a delivery van or a satnav, the shortest route a game character takes, or the sequence of moves that reaches a goal.</li>
+    <li>Graphs can be analysed by a range of algorithms, for example <b>Dijkstra's algorithm</b> and the <b>A* algorithm</b> (next page), which are used in machine learning and path-finding.</li>
+    <li><b>Artificial neural networks</b> can be represented as graphs: neurons are nodes and the weighted connections are edges.</li>
+  </ul>
+  <p>To justify using a graph for a situation, say what the nodes are, what the edges and weights are, and what question the graph will answer. For example, for a delivery company: nodes are towns, edges are roads, weights are distances, and the graph is searched for the shortest route.</p>
+
+  <h2>4 · Common ways to lose marks</h2>
+  <ul>
+    <li>Describing a graph as a chart or a bar graph. In AI a graph is a set of nodes and edges.</li>
+    <li>Mixing up nodes and edges: nodes are the entities, edges are the connections.</li>
+    <li>Not saying what the weights mean when a question gives a situation.</li>
+    <li>Writing that a graph "finds" the route. The graph stores the data; an algorithm such as Dijkstra's finds the route.</li>
+    <li>Choosing the path with the fewest nodes instead of the lowest total weight.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Building a graph</h2>
+  <p>Press Play. Nodes are entities, edges connect them, weights add meaning.</p>
+  <div id="stA"></div>
+  <h2>2 · Fewest edges is not the cheapest path</h2>
+  <div id="stB"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Paths between two towns</h2>
+  <p>The graph is the one from the M/J 2021 question. Choose two towns and see every simple path between them, with its cost.</p>
+  <div class="card"><div class="btnrow"><select id="gF" style="font:inherit;padding:6px"></select> to <select id="gT" style="font:inherit;padding:6px"></select></div><div id="gG"></div><div id="gP"></div></div>
+
+  <h2>Lab 2 · Neighbours and degree</h2>
+  <p>Click a town to see its neighbours.</p>
+  <div class="card"><div id="nB" class="btnrow"></div><div class="verdict" id="nV"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Node or edge?</h2><div id="cl1" class="card"></div>
+  <h2>2 · What is each part in this situation?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>4 · Put the steps of using a graph in AI in order</h2><div id="o1" class="card"></div>
+  <h2>5 · Counting</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A satnav</h3><p>Junctions are nodes, roads are edges and the distances or journey times are weights. The satnav searches the graph for the cheapest route.</p><div class="use"><b>Exam use:</b> a graph stores places and distances for a path search.</div></div>
+  <div class="rw"><h3>Social networks</h3><p>People are nodes and friendships are edges. The graph lets a site suggest people you might know, a friend of a friend.</p><div class="use"><b>Exam use:</b> graphs record relationships between entities.</div></div>
+  <div class="rw"><h3>A video game map</h3><p>Characters move across a graph of locations. The game uses it to find a route round obstacles.</p><div class="use"><b>Exam use:</b> path-finding in games.</div></div>
+  <div class="rw"><h3>Rail and flight networks</h3><p>Stations or airports are nodes and services are edges weighted by time or cost, so a planner can find the quickest or cheapest journey.</p><div class="use"><b>Exam use:</b> weighted edges.</div></div>
+  <div class="rw"><h3>The internet</h3><p>Routers are nodes and links are edges. Routing protocols use graph algorithms to decide where to send packets.</p><div class="use"><b>Exam use:</b> networks are graphs.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on the purpose and structure of graphs in AI (Paper 3), 2021 and 2025. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2021</td><td>31, 32, 33</td><td>5(b)</td><td>3</td><td>Explain the use of graphs to aid AI (Dijkstra's calculation in 5(a) is on the next page)</td></tr>
+    <tr><td>M/J 2025</td><td>31</td><td>10(a)</td><td>2</td><td>The purpose of a graph in an AI system</td></tr>
+    <tr><td>M/J 2025</td><td>32</td><td>6(a)</td><td>2</td><td>The structure of a graph in an AI system</td></tr>
+  </table></div>
+  <p class="note">The theory of graphs has been asked in Paper 3 in May/June 2021 and May/June 2025; most graph questions use a graph and ask for Dijkstra's or A* (next page). The graphs of those questions are redrawn there. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+  <details class="eq"><summary><span class="src">M/J 2021 · 9618/31/32/33 · Q5(b)</span> <span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain the use of graphs to aid Artificial Intelligence (AI).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Relationships between nodes; AI problems as finding a path; algorithms such as A* and Dijkstra's.</div>
+    <div class="ans"><p>Any three: <span class="mk k" data-t="1">Artificial neural networks can be represented using graphs</span> <span class="mk k" data-t="2">Graphs provide structures for relationships between nodes</span> <span class="mk k" data-t="3">AI problems can be defined or solved as finding a path in a graph</span> <span class="mk k" data-t="4">Graphs may be analysed by a range of algorithms</span> <span class="mk k" data-t="5">for example the A* or Dijkstra's algorithm</span> <span class="mk k" data-t="6">used in machine learning</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing about graphs as charts. The question is about nodes, edges and path-finding.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/31 · Q10(a)</span> <span class="cmd">Describe</span> <span class="mark">2 marks</span> Describe the purpose of a graph when used in an Artificial Intelligence (AI) system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Record relationships, with nodes and edges, for example distances on a map to find the shortest route.</div>
+    <div class="ans"><p>Any two: <span class="mk k" data-t="1">A graph is used in AI to record relationships between entities</span> <span class="mk k" data-t="2">using vertices (nodes) and edges</span> <span class="mk k" data-t="3">for example to represent places on a map and the distances between them, in order to find the shortest route</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/32 · Q6(a)</span> <span class="cmd">Describe</span> <span class="mark">2 marks</span> Describe the structure of a graph as used in an Artificial Intelligence (AI) system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Nodes, edges, weights, path, cycle.</div>
+    <div class="ans"><p>Any two: <span class="mk k" data-t="1">A graph uses vertices (nodes) to identify or represent entities such as destinations or people</span> <span class="mk k" data-t="2">Edges are used to connect nodes and can represent possible paths between them; a path is the list of nodes connected by edges between two given nodes</span> <span class="mk k" data-t="3">Nodes or edges can be labelled or weighted, and this weighting can be used in the context of the application</span> <span class="mk k" data-t="4">A cycle is a list of nodes that returns to the same node</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Describing the picture only. Say what nodes and edges represent and that edges can be weighted.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> A delivery company wants to find the quickest route between its depot and 20 towns. Explain how a graph could be used.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Nodes, edges, weights, algorithm.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Each town and the depot is a node and each road between them is an edge</span> <span class="mk k" data-t="2">The weight on each edge is the journey time</span> <span class="mk k" data-t="3">An algorithm such as Dijkstra's searches the graph for the path with the lowest total weight</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Distinguish</span> <span class="mark">2 marks</span> Distinguish between a path and a cycle in a graph.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Where does it end?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A path is a list of nodes connected by edges between two given nodes</span> <span class="mk k" data-t="2">A cycle is a list of nodes that returns to the node it started from</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> In the graph of this page, state the cost of the path A, B, D and the cost of A, C, B, D.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Add the weights.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A, B, D costs 4 + 5 = 9</span> <span class="mk k" data-t="2">A, C, B, D costs 2 + 1 + 5 = 8</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State what a directed graph shows that an undirected graph does not.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One-way streets.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Edges have a direction</span> <span class="mk k" data-t="2">An edge can only be followed in the direction of its arrow</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">2 marks</span> Describe how a social network could be represented as a graph.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Who are the nodes?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Each person is a node</span> <span class="mk k" data-t="2">A friendship is an edge between two people</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Nodes and edges.</b> Nodes are the entities; edges are the connections.</li>
+    <li><b>Weights mean something.</b> Distance, cost or time: say which.</li>
+    <li><b>Path v cycle.</b> A path joins two nodes; a cycle returns to its start.</li>
+    <li><b>A graph stores; an algorithm searches.</b> Dijkstra's and A* find the best path.</li>
+    <li><b>Fewest edges is not cheapest.</b> Add up the weights.</li>
+    <li><b>Justify with a situation.</b> Say what the nodes, edges and weights are.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>a graph</td><td>"Nodes joined by edges, used to represent relationships."</td></tr>
+    <tr><td>a weight</td><td>"A value on an edge such as a distance."</td></tr>
+    <tr><td>a path</td><td>"A list of nodes connected by edges between two nodes."</td></tr>
+    <tr><td>a cycle</td><td>"A list of nodes that returns to the same node."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Describe</td><td>Say what it is and what it contains.</td></tr>
+    <tr><td>Explain</td><td>Give uses and reasons.</td></tr>
+    <tr><td>State</td><td>Short answer.</td></tr>
+    <tr><td>Distinguish</td><td>Say how they differ.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+const INF = Infinity;
+function adjOf(g) { const a = {}; Object.keys(g.nodes).forEach((n) => (a[n] = [])); g.edges.forEach(([u, v, w]) => { a[u].push([v, w]); a[v].push([u, w]); }); return a; }
+function dijkstra(g, start) { const a = adjOf(g), names = Object.keys(a), dist = {}, prev = {}, seen = new Set(), steps = []; names.forEach((n) => (dist[n] = INF)); start = start || g.start; dist[start] = 0; steps.push([null, Object.assign({}, dist)]);
+  while (seen.size < names.length) { let u = null; names.forEach((n) => { if (!seen.has(n) && (u === null || dist[n] < dist[u])) u = n; }); if (dist[u] === INF) break; seen.add(u); a[u].forEach(([v, w]) => { if (!seen.has(v) && dist[u] + w < dist[v]) { dist[v] = dist[u] + w; prev[v] = u; } }); steps.push([u, Object.assign({}, dist)]); }
+  return { steps, dist, prev }; }
+function pathTo(prev, goal, start) { const p = [goal]; while (p[p.length - 1] !== start) p.push(prev[p[p.length - 1]]); return p.reverse(); }
+function astar(g) { const a = adjOf(g), h = g.h, start = g.start, goal = g.goal, best = { [start]: 0 }, prev = {}, rows = [[start, start, 0, h[start], h[start]]], open = { [start]: 0 }, closed = new Set(), order = { [start]: 0 }; let tick = 1;
+  while (Object.keys(open).length) { const u = Object.keys(open).sort((x, y) => (open[x] + h[x]) - (open[y] + h[y]) || h[x] - h[y] || order[y] - order[x])[0]; if (u === goal) break; const gu = open[u]; delete open[u]; closed.add(u);
+    a[u].forEach(([v, w]) => { const ng = gu + w; if (closed.has(v) || (v in best && ng >= best[v])) return; best[v] = ng; prev[v] = u; open[v] = ng; order[v] = tick++; rows.push([u, v, ng, h[v], ng + h[v]]); }); }
+  return { rows, path: pathTo(prev, goal, start), cost: best[goal] }; }
+function graphSvgJs(g, o) { o = o || {}; const nodes = g.nodes, hl = o.hl || [], hs = new Set(); hl.forEach((n, i) => { if (i) { hs.add(hl[i - 1] + "|" + n); hs.add(n + "|" + hl[i - 1]); } });
+  const xs = Object.values(nodes).map((p) => p[0]), ys = Object.values(nodes).map((p) => p[1]), W = Math.max(...xs) + 60, H = Math.max(...ys) + 50; let s = "";
+  g.edges.forEach(([u, v]) => { const on = hs.has(u + "|" + v); s += `<line x1="${nodes[u][0]}" y1="${nodes[u][1]}" x2="${nodes[v][0]}" y2="${nodes[v][1]}" class="ax" style="stroke:${on ? "var(--good)" : "var(--muted)"};stroke-width:${on ? 3.4 : 1.8}"/>`; });
+  g.edges.forEach(([u, v, w]) => { const mx = (nodes[u][0] + nodes[v][0]) / 2, my = (nodes[u][1] + nodes[v][1]) / 2; s += `<rect x="${mx - 11}" y="${my - 10}" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="${mx}" y="${my + 5}" text-anchor="middle" style="font-size:13px">${w}</text>`; });
+  Object.entries(nodes).forEach(([n, [x, y]]) => { const cur = o.cur === n, on = hl.includes(n), done = o.done && o.done.has(n), w = Math.max(46, 8.6 * n.length + 20), showH = o.h && g.h, ht = showH ? 42 : 34;
+    s += `<rect x="${x - w / 2}" y="${y - ht / 2}" width="${w}" height="${ht}" rx="${ht / 2}" class="ax" style="fill:${cur ? "var(--warn-soft)" : on || done ? "var(--good-soft)" : "var(--surface)"};${cur ? "stroke:var(--warn);stroke-width:3" : ""}"/>`;
+    s += showH ? `<text class="lbl bd" x="${x}" y="${y - 2}" text-anchor="middle" style="font-size:12.5px">${n}</text><text class="sm" x="${x}" y="${y + 12}" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=${g.h[n]}</text>` : `<text class="lbl bd" x="${x}" y="${y + 5}" text-anchor="middle" style="font-size:12.5px">${n}</text>`;
+    if (o.dist && o.dist[n] !== undefined) s += `<text class="sm" x="${x}" y="${y + 36}" text-anchor="middle" style="fill:var(--accent);font-size:12px">${o.dist[n] === INF ? "∞" : o.dist[n]}</text>`; });
+  return { W, H, inner: s }; }
+const GS = {"nodes": {"Base": [240, 36], "Town 1": [70, 100], "Town 2": [400, 90], "Town 3": [230, 130], "Town 6": [480, 170], "Town 4": [90, 240], "Town 5": [330, 230]}, "edges": [["Base", "Town 1", 4], ["Base", "Town 3", 2], ["Base", "Town 2", 5], ["Town 1", "Town 3", 1], ["Town 1", "Town 4", 7], ["Town 2", "Town 6", 8], ["Town 2", "Town 5", 3], ["Town 3", "Town 5", 1], ["Town 4", "Town 5", 6], ["Town 5", "Town 6", 5]], "start": "Base"}, GA = {"nodes": {"A": [60, 60], "B": [240, 40], "C": [150, 160], "D": [330, 150]}, "edges": [["A", "B", 4], ["A", "C", 2], ["B", "C", 1], ["B", "D", 5], ["C", "D", 8]], "start": "A"};
+
+(function () {
+  const steps = [{ n: 0, e: 0, w: false, cap: "A graph starts with <b>nodes</b>, one for each entity: here four places." }, { n: 4, e: 0, w: false, cap: "The four <b>nodes</b> A, B, C and D." }, { n: 4, e: 5, w: false, cap: "<b>Edges</b> connect nodes that are related, here by a road." }, { n: 4, e: 5, w: true, cap: "Each edge has a <b>weight</b>: the distance. Now the graph can be searched for the cheapest path." }];
+  const draw = (s) => { const st = steps[Math.round(s.i)], g = GA, names = Object.keys(g.nodes); let o = "";
+    g.edges.slice(0, st.e).forEach(([u, v, w]) => { o += SV.line(g.nodes[u][0], g.nodes[u][1], g.nodes[v][0], g.nodes[v][1], "ax", { style: "stroke:var(--muted);stroke-width:2" }); });
+    g.edges.slice(0, st.e).forEach(([u, v, w]) => { const mx = (g.nodes[u][0] + g.nodes[v][0]) / 2, my = (g.nodes[u][1] + g.nodes[v][1]) / 2; if (st.w) o += SV.rect(mx - 12, my - 11, 24, 22, "cell", { rx: 4 }) + SV.text(mx, my + 5, String(w), "lbl bd", { "text-anchor": "middle" }); });
+    names.slice(0, st.n).forEach((n) => (o += SV.circle(g.nodes[n][0], g.nodes[n][1], 22, "nd", {}) + SV.text(g.nodes[n][0], g.nodes[n][1] + 5, n, "lbl bd", { "text-anchor": "middle" }))); return o; };
+  Lib.stepper($("#stA"), { w: 420, h: 210, label: "Building a graph", base: { i: 0 }, draw, tween: 120, dwell: 2600, steps: steps.map((x, i) => ({ cap: x.cap, s: { i } })) });
+})();
+(function () {
+  const g = GA; const P = [["A", "B", "D"], ["A", "C", "B", "D"]];
+  const draw = (s) => { const k = Math.round(s.i), p = P[k > 1 ? 1 : 0]; const hs = new Set(); p.forEach((n, i) => { if (i) { hs.add(p[i - 1] + n); hs.add(n + p[i - 1]); } }); let o = "";
+    g.edges.forEach(([u, v, w]) => { o += SV.line(g.nodes[u][0], g.nodes[u][1], g.nodes[v][0], g.nodes[v][1], "ax", { style: "stroke:" + (k > 0 && hs.has(u + v) ? "var(--good)" : "var(--muted)") + ";stroke-width:" + (k > 0 && hs.has(u + v) ? 4 : 2) }); });
+    g.edges.forEach(([u, v, w]) => { const mx = (g.nodes[u][0] + g.nodes[v][0]) / 2, my = (g.nodes[u][1] + g.nodes[v][1]) / 2; o += SV.rect(mx - 12, my - 11, 24, 22, "cell", { rx: 4 }) + SV.text(mx, my + 5, String(w), "lbl bd", { "text-anchor": "middle" }); });
+    Object.keys(g.nodes).forEach((n) => (o += SV.circle(g.nodes[n][0], g.nodes[n][1], 22, p.includes(n) && k > 0 ? "nd-ok" : "nd", {}) + SV.text(g.nodes[n][0], g.nodes[n][1] + 5, n, "lbl bd", { "text-anchor": "middle" })));
+    o += SV.text(20, 200, k === 1 ? "A, B, D: 2 edges, cost 4 + 5 = 9" : k === 2 ? "A, C, B, D: 3 edges, cost 2 + 1 + 5 = 8: cheaper" : "", "lbl bd t3", { style: "font-size:14px" }); return o; };
+  Lib.stepper($("#stB"), { w: 420, h: 220, label: "Cheapest path", base: { i: 0 }, draw, tween: 120, dwell: 2600, steps: [{ cap: "Find the best path from A to D.", s: { i: 0 } }, { cap: "The path with the <b>fewest edges</b> is A, B, D. Its total weight is 9.", s: { i: 1 } }, { cap: "The path A, C, B, D has more edges but a total weight of only 8. The <b>cheapest</b> path is not the one with fewest edges.", s: { i: 2 } }] });
+})();
+
+(function () {
+  const names = Object.keys(GS.nodes), F = $("#gF"), T = $("#gT"); names.forEach((n) => { F.add(new Option(n, n)); T.add(new Option(n, n)); }); F.value = "Base"; T.value = "Town 6";
+  const a = adjOf(GS);
+  const paint = () => { const f = F.value, t = T.value, all = []; const dfs = (u, path, cost) => { if (u === t) { all.push([path.slice(), cost]); return; } a[u].forEach(([v, w]) => { if (!path.includes(v)) { path.push(v); dfs(v, path, cost + w); path.pop(); } }); }; dfs(f, [f], 0); all.sort((x, y) => x[1] - y[1]);
+    const best = all.length ? all[0][0] : []; const gs = graphSvgJs(GS, { hl: best }); $("#gG").innerHTML = `<svg viewBox="0 0 ${gs.W} ${gs.H}" style="width:${Math.round(gs.W * 1.1)}px;max-width:100%;display:block">${gs.inner}</svg>`;
+    $("#gP").innerHTML = f === t ? "<p>Choose two different towns.</p>" : `<div class="tw"><table class="t mono"><tr><th>Path</th><th>Edges</th><th>Cost</th></tr>${all.slice(0, 12).map((x, i) => `<tr${i === 0 ? ' style="background:var(--good-soft);font-weight:700"' : ""}><td>${x[0].join(" → ")}</td><td>${x[0].length - 1}</td><td>${x[1]}</td></tr>`).join("")}</table></div><div class="verdict">${all.length} simple paths from ${f} to ${t}. The cheapest costs <b>${all[0] ? all[0][1] : "-"}</b> (shaded).</div>`; };
+  F.onchange = T.onchange = paint; paint();
+})();
+(function () {
+  const a = adjOf(GS), b = $("#nB");
+  const show = (n) => { $("#nV").innerHTML = `<b>${n}</b> has <b>${a[n].length}</b> neighbours: ` + a[n].map(([v, w]) => `${v} (weight ${w})`).join(", ") + "."; b.querySelectorAll("button").forEach((x) => (x.className = x.textContent === n ? "on" : "")); };
+  Object.keys(GS.nodes).forEach((n) => { const x = document.createElement("button"); x.textContent = n; x.onclick = () => show(n); b.appendChild(x); }); show("Base");
+})();
+Lib.classify($("#cl1"), { prompt: "Is it a node or an edge?", buckets: [{"label": "Node"}, {"label": "Edge"}], items: [{"text": "A town", "b": 0}, {"text": "A road between two towns", "b": 1}, {"text": "A person in a social network", "b": 0}, {"text": "A friendship", "b": 1}, {"text": "A router", "b": 0}, {"text": "A cable between routers", "b": 1}], done: "Nodes are the things; edges are the connections." });
+Lib.classify($("#cl2"), { prompt: "In a road map graph, what is it?", buckets: [{"label": "Node"}, {"label": "Edge"}, {"label": "Weight"}], items: [{"text": "A junction", "b": 0}, {"text": "A road", "b": 1}, {"text": "The length of a road in km", "b": 2}, {"text": "A town", "b": 0}, {"text": "The journey time of a road", "b": 2}, {"text": "A motorway link", "b": 1}], done: "Junctions are nodes, roads edges, distances or times weights." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Vertex", "Another name for a node"], ["Edge", "A connection between two nodes"], ["Weight", "A distance, cost or time on an edge"], ["Path", "The nodes connected by edges between two nodes"], ["Cycle", "A path that returns to the same node"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the steps of using a graph to plan a route in order.", items: ["Represent the places as nodes", "Connect them with edges", "Add the distances as weights", "Run a search algorithm such as Dijkstra's", "Read off the path with the lowest total weight"], done: "Nodes, edges, weights, algorithm, result." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "In the A, B, C, D graph, what is the cost of the path A, C, D?", "a": 10, "unit": "", "tol": 0.01, "hint": "2 + 8.", "sol": "<b>10</b>."},
+  {"q": "How many edges does the graph A, B, C, D have?", "a": 5, "unit": "", "tol": 0.01, "hint": "Count the lines.", "sol": "<b>5</b>."},
+  {"q": "How many neighbours does node C have?", "a": 3, "unit": "", "tol": 0.01, "hint": "A, B and D.", "sol": "<b>3</b>."},
+  {"q": "What is the cost of the cheapest path from A to D?", "a": 8, "unit": "", "tol": 0.01, "hint": "A, C, B, D.", "sol": "<b>8</b>."},
+  {"q": "A complete graph with 4 nodes has an edge between every pair. How many edges?", "a": 6, "unit": "", "tol": 0.01, "hint": "4 × 3 ÷ 2.", "sol": "<b>6</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "A graph in AI is made of:", opts: ["Bars", "Nodes and edges", "Rows only", "Pixels"], a: 1, why: "Nodes and edges." },
+  { q: "A weight on an edge could be:", opts: ["A distance", "A colour", "A font", "A name"], a: 0, why: "A distance, cost or time." },
+  { q: "A cycle is:", opts: ["A path that returns to the same node", "A node with no edges", "A weight", "A table"], a: 0, why: "It returns to the start." },
+  { q: "Which algorithm can search a graph for a shortest path?", opts: ["Dijkstra's", "Bubble sort", "Binary search", "Hashing"], a: 0, why: "Dijkstra's." },
+  { q: "A directed graph has:", opts: ["Edges with a direction", "No nodes", "Only weights", "No edges"], a: 0, why: "Arrows." },
+  { q: "Neural networks can be represented as:", opts: ["Graphs", "Tables only", "Text", "Images only"], a: 0, why: "Neurons are nodes." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Graph", "Nodes joined by edges; records relationships."],
+  ["Weight", "Distance, cost or time on an edge."],
+  ["Path", "Nodes connected by edges between two nodes."],
+  ["Cycle", "A path returning to its start."],
+  ["Directed", "Edges can only be followed one way."],
+  ["Why in AI", "AI problems become path-finding in a graph."],
+  ["Algorithms", "Dijkstra's and A*."],
+  ["Storage", "Adjacency matrix or adjacency list."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

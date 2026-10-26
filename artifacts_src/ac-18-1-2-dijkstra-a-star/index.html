@@ -1,0 +1,872 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dijkstra's and A* Algorithms</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
+
+table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
+.synd{margin:8px 0;overflow-x:auto}
+.gantt{display:flex;margin:6px 0 0;font-family:var(--mono)}.gantt .gb{border:1.5px solid var(--ink);margin-left:-1.5px;text-align:center;padding:6px 0;font-weight:700;font-size:.85rem;background:var(--surface);min-width:0}
+.gantt .gb.c0{background:var(--accent-soft)}.gantt .gb.c1{background:var(--bad-soft)}.gantt .gb.c2{background:var(--good-soft)}.gantt .gb.c3{background:var(--warn-soft)}.gantt .gb.c4{background:var(--soft)}
+.gticks{display:flex;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:2px 0 10px}.gticks span{text-align:right;min-width:0}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 18.1.2</div>
+  <h1>Dijkstra's and A* Algorithms</h1>
+  <p class="cbook">Coursebook: Chapter 18 · Artificial Intelligence, section 18.1 Artificial Intelligence</p>
+  <p class="lead">Dijkstra's shortest-path algorithm and the A* algorithm worked through on the graphs from the past papers, and how they differ; animations, search labs and the real Paper 3 questions from 2021 to 2026.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p><b>Dijkstra's algorithm</b> finds the <b>shortest path from a start node to every other node</b> in a weighted graph: it sets the start to 0 and all other nodes to ∞, repeatedly visits the unvisited node with the smallest distance, and updates its neighbours if the route through it is shorter. The <b>A* algorithm</b> finds the <b>best path between two nodes</b>, start and goal, and is faster because it uses a <b>heuristic</b> (an estimate of the distance still to go) to try the most promising nodes first, instead of exploring all routes. A* chooses the node with the lowest <b>f = g + h</b>, where <b>g</b> is the cost so far and <b>h</b> is the heuristic. Dijkstra's algorithm always finds the shortest path; A* may not if its heuristic is inaccurate. You will not be asked to write these algorithms, but you must be able to <b>work them through on a graph</b>.</p></div>
+
+  <h2>1 · Purpose</h2>
+  <p>Both algorithms perform a <b>search on a graph</b> to find a path between points. They are used in satnavs, route planners, game character movement and robot navigation, to find the optimal, shortest or most cost-effective route based on distance, cost or time.</p>
+
+  <h2>2 · Dijkstra's algorithm</h2>
+  <ol>
+    <li><b>Initialise</b>: give the start node distance 0 and every other node ∞.</li>
+    <li>Choose the <b>unvisited node with the smallest distance</b> and mark it <b>visited</b> (its distance is now final).</li>
+    <li>For each unvisited neighbour, work out <b>distance of this node + weight of the edge</b>. If it is less than the neighbour's current value, replace it (and note the route).</li>
+    <li>Repeat from step 2 until every node is visited (or the destination is visited).</li>
+    <li>Read the final distances, and follow the recorded routes back to get each path.</li>
+  </ol>
+  <h3>Worked example (M/J 2021)</h3>
+  <p>Shortest distance from Base to each town.</p>
+  <div class="synd"><svg viewBox="0 0 540 290" style="width:594px;max-width:100%;display:block" role="img" aria-label="Dijkstra worked example"><line x1="240" y1="36" x2="70" y2="100" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="240" y1="36" x2="230" y2="130" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="240" y1="36" x2="400" y2="90" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="70" y1="100" x2="230" y2="130" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="70" y1="100" x2="90" y2="240" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="400" y1="90" x2="480" y2="170" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="400" y1="90" x2="330" y2="230" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="230" y1="130" x2="330" y2="230" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="90" y1="240" x2="330" y2="230" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="330" y1="230" x2="480" y2="170" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><rect x="144.0" y="58.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="155.0" y="73.0" text-anchor="middle" style="font-size:13px">4</text><rect x="224.0" y="73.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="235.0" y="88.0" text-anchor="middle" style="font-size:13px">2</text><rect x="309.0" y="53.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="320.0" y="68.0" text-anchor="middle" style="font-size:13px">5</text><rect x="139.0" y="105.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="150.0" y="120.0" text-anchor="middle" style="font-size:13px">1</text><rect x="69.0" y="160.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="80.0" y="175.0" text-anchor="middle" style="font-size:13px">7</text><rect x="429.0" y="120.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="440.0" y="135.0" text-anchor="middle" style="font-size:13px">8</text><rect x="354.0" y="150.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="365.0" y="165.0" text-anchor="middle" style="font-size:13px">3</text><rect x="269.0" y="170.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="280.0" y="185.0" text-anchor="middle" style="font-size:13px">1</text><rect x="199.0" y="225.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="210.0" y="240.0" text-anchor="middle" style="font-size:13px">6</text><rect x="394.0" y="190.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="405.0" y="205.0" text-anchor="middle" style="font-size:13px">5</text><rect x="212.8" y="19.0" width="54.4" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="240" y="41" text-anchor="middle" style="font-size:12.5px">Base</text><rect x="34.2" y="83.0" width="71.6" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="70" y="105" text-anchor="middle" style="font-size:12.5px">Town 1</text><rect x="364.2" y="73.0" width="71.6" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="400" y="95" text-anchor="middle" style="font-size:12.5px">Town 2</text><rect x="194.2" y="113.0" width="71.6" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="230" y="135" text-anchor="middle" style="font-size:12.5px">Town 3</text><rect x="444.2" y="153.0" width="71.6" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="480" y="175" text-anchor="middle" style="font-size:12.5px">Town 6</text><rect x="54.2" y="223.0" width="71.6" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="90" y="245" text-anchor="middle" style="font-size:12.5px">Town 4</text><rect x="294.2" y="213.0" width="71.6" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="330" y="235" text-anchor="middle" style="font-size:12.5px">Town 5</text></svg></div><div class="tw"><table class="t mono"><tr><th>Visit</th><th>Base</th><th>Town 1</th><th>Town 2</th><th>Town 3</th><th>Town 6</th><th>Town 4</th><th>Town 5</th></tr><tr><td>start</td><td>0</td><td>∞</td><td>∞</td><td>∞</td><td>∞</td><td>∞</td><td>∞</td></tr><tr><td>Base</td><td><b>0</b></td><td>4</td><td>5</td><td>2</td><td>∞</td><td>∞</td><td>∞</td></tr><tr><td>Town 3</td><td><b>0</b></td><td>3</td><td>5</td><td><b>2</b></td><td>∞</td><td>∞</td><td>3</td></tr><tr><td>Town 1</td><td><b>0</b></td><td><b>3</b></td><td>5</td><td><b>2</b></td><td>∞</td><td>10</td><td>3</td></tr><tr><td>Town 5</td><td><b>0</b></td><td><b>3</b></td><td>5</td><td><b>2</b></td><td>8</td><td>9</td><td><b>3</b></td></tr><tr><td>Town 2</td><td><b>0</b></td><td><b>3</b></td><td><b>5</b></td><td><b>2</b></td><td>8</td><td>9</td><td><b>3</b></td></tr><tr><td>Town 6</td><td><b>0</b></td><td><b>3</b></td><td><b>5</b></td><td><b>2</b></td><td><b>8</b></td><td>9</td><td><b>3</b></td></tr><tr><td>Town 4</td><td><b>0</b></td><td><b>3</b></td><td><b>5</b></td><td><b>2</b></td><td><b>8</b></td><td><b>9</b></td><td><b>3</b></td></tr></table></div>
+  <p>Each row shows the distances after one more node has been visited (bold = visited, so final). For Town 5 the route Base, Town 3, Town 5 costs 2 + 1 = 3, which beats Base, Town 2, Town 5 (5 + 3 = 8), so Town 5 = 3. The answers: Town 1 = 3, Town 2 = 5, Town 3 = 2, Town 4 = 9, Town 5 = 3, Town 6 = 8.</p>
+  <p>What the mark scheme looks for in your working (up to three marks) and in the answers (two marks: all correct, or four or five correct):</p>
+  <ul>
+    <li>Start node set to 0, all the rest to ∞.</li>
+    <li>Values at nodes updated as you go.</li>
+    <li>Visited nodes shown.</li>
+    <li>A route calculated, and more than one route calculated for at least one node.</li>
+  </ul>
+
+  <h2>3 · The A* algorithm</h2>
+  <p>A* is used to find a path from a <b>start node to a goal node</b>. Every node has a <b>heuristic h</b>: an estimate of the cost from that node to the goal (for a map, the straight-line distance). For each node A* keeps:</p>
+  <ul>
+    <li><b>g</b>: the cost of the route from the start to the node found so far;</li>
+    <li><b>h</b>: the heuristic, the estimated cost from the node to the goal;</li>
+    <li><b>f = g + h</b>: the estimated total cost of a route through this node.</li>
+  </ul>
+  <ol>
+    <li>Put the start node in the table with g = 0 and its h.</li>
+    <li>Choose the node with the <b>lowest f</b> that has not been expanded.</li>
+    <li>For each neighbour, work out g (the current node's g plus the edge weight), look up h, and write the row: start node, destination node, g, h and f.  Only note a neighbour again if this route to it is <b>cheaper</b> than one already found.</li>
+    <li>Stop when the goal is the node with the lowest f. The final path is found by following back through the nodes you came from.</li>
+  </ol>
+  <h3>Worked example (O/N 2021)</h3>
+  <p>Find a path from Home to School. The number beside each node is its heuristic.</p>
+  <div class="synd"><svg viewBox="0 0 470 300" style="width:517px;max-width:100%;display:block" role="img" aria-label="A* worked example"><line x1="250" y1="36" x2="90" y2="70" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="250" y1="36" x2="250" y2="120" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="250" y1="36" x2="410" y2="70" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="90" y1="70" x2="250" y2="120" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="90" y1="70" x2="70" y2="220" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="250" y1="120" x2="410" y2="170" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="250" y1="120" x2="400" y2="250" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="410" y1="70" x2="410" y2="170" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="410" y1="170" x2="400" y2="250" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="70" y1="220" x2="170" y2="180" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="70" y1="220" x2="400" y2="250" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="170" y1="180" x2="400" y2="250" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><rect x="159.0" y="43.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="170.0" y="58.0" text-anchor="middle" style="font-size:13px">1</text><rect x="239.0" y="68.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="250.0" y="83.0" text-anchor="middle" style="font-size:13px">5</text><rect x="319.0" y="43.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="330.0" y="58.0" text-anchor="middle" style="font-size:13px">4</text><rect x="159.0" y="85.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="170.0" y="100.0" text-anchor="middle" style="font-size:13px">3</text><rect x="69.0" y="135.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="80.0" y="150.0" text-anchor="middle" style="font-size:13px">6</text><rect x="319.0" y="135.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="330.0" y="150.0" text-anchor="middle" style="font-size:13px">2</text><rect x="314.0" y="175.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="325.0" y="190.0" text-anchor="middle" style="font-size:13px">7</text><rect x="399.0" y="110.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="410.0" y="125.0" text-anchor="middle" style="font-size:13px">6</text><rect x="394.0" y="200.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="405.0" y="215.0" text-anchor="middle" style="font-size:13px">2</text><rect x="109.0" y="190.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="120.0" y="205.0" text-anchor="middle" style="font-size:13px">1</text><rect x="224.0" y="225.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="235.0" y="240.0" text-anchor="middle" style="font-size:13px">5</text><rect x="274.0" y="205.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="285.0" y="220.0" text-anchor="middle" style="font-size:13px">3</text><rect x="222.8" y="15.0" width="54.4" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="250" y="34" text-anchor="middle" style="font-size:12.5px">Home</text><text class="sm" x="250" y="48" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=14</text><rect x="67.0" y="49.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="90" y="68" text-anchor="middle" style="font-size:12.5px">A</text><text class="sm" x="90" y="82" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=10</text><rect x="387.0" y="49.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="410" y="68" text-anchor="middle" style="font-size:12.5px">C</text><text class="sm" x="410" y="82" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=9</text><rect x="227.0" y="99.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="250" y="118" text-anchor="middle" style="font-size:12.5px">B</text><text class="sm" x="250" y="132" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=7</text><rect x="387.0" y="149.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="410" y="168" text-anchor="middle" style="font-size:12.5px">D</text><text class="sm" x="410" y="182" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=6</text><rect x="147.0" y="159.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="170" y="178" text-anchor="middle" style="font-size:12.5px">F</text><text class="sm" x="170" y="192" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=3</text><rect x="47.0" y="199.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="70" y="218" text-anchor="middle" style="font-size:12.5px">E</text><text class="sm" x="70" y="232" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=3</text><rect x="364.2" y="229.0" width="71.6" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="400" y="248" text-anchor="middle" style="font-size:12.5px">School</text><text class="sm" x="400" y="262" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=0</text></svg></div><div class="tw"><table class="t mono"><tr><th>Start node</th><th>Destination</th><th>g (cost so far)</th><th>h (heuristic)</th><th>f = g + h</th></tr><tr><td>Home</td><td>Home</td><td>0</td><td>14</td><td>14</td></tr><tr><td>Home</td><td>A</td><td>1</td><td>10</td><td>11</td></tr><tr><td>Home</td><td>B</td><td>5</td><td>7</td><td>12</td></tr><tr><td>Home</td><td>C</td><td>4</td><td>9</td><td>13</td></tr><tr><td>A</td><td>B</td><td>4</td><td>7</td><td>11</td></tr><tr><td>A</td><td>E</td><td>7</td><td>3</td><td>10</td></tr><tr><td>E</td><td>F</td><td>8</td><td>3</td><td>11</td></tr><tr><td>E</td><td>School</td><td>12</td><td>0</td><td>12</td></tr><tr><td>F</td><td>School</td><td>11</td><td>0</td><td>11</td></tr></table></div><p>Final path: <b>Home → A → E → F → School</b> (cost 11).</p>
+  <p>A* expanded Home, A, E and F, but never needed C or D: it found the path Home, A, E, F, School (cost 11) without exploring the whole graph.</p>
+
+  <h2>4 · Dijkstra and A* compared</h2>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Dijkstra's algorithm</th><th>A* algorithm</th></tr>
+    <tr><td><b>Finds</b></td><td>The shortest path from the start to <b>every</b> node</td><td>A path from the start to <b>one</b> goal node</td></tr>
+    <tr><td><b>Uses</b></td><td>Only the distance travelled so far</td><td>A <b>heuristic</b> as well: f = g + h, giving priority to nodes that seem better</td></tr>
+    <tr><td><b>Explores</b></td><td>All possible routes (simply checks each vertex)</td><td>Does not need to pass through all nodes or paths</td></tr>
+    <tr><td><b>Always shortest?</b></td><td>Yes</td><td>May not be, if the heuristic is inaccurate</td></tr>
+    <tr><td><b>Speed</b></td><td>Slower on a big graph</td><td>Faster when the heuristic is good</td></tr>
+  </table></div>
+
+  <h2>5 · Common ways to lose marks</h2>
+  <ul>
+    <li>Not showing the working: ∞ for unvisited nodes, updated values, and which nodes are visited.</li>
+    <li>Choosing the node with the smallest edge weight instead of the smallest total distance from the start.</li>
+    <li>In A*, choosing the lowest g or lowest h instead of the lowest <b>f = g + h</b>.</li>
+    <li>Saying that A* "always finds the shortest path". It depends on the heuristic.</li>
+    <li>Giving only one route to each node. Show a second route where there is one, to show you compared them.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Dijkstra's algorithm, one node at a time</h2>
+  <p>Press Play. The number under each node is its current distance from the Base; green nodes are visited and final.</p>
+  <div id="stA"></div>
+  <h2>2 · The A* algorithm</h2>
+  <div id="stB"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Dijkstra's algorithm</h2>
+  <p>Choose a graph from a past paper and move the slider to see each node being visited.</p>
+  <div class="card"><div id="dB" class="btnrow"></div><div id="dS"></div><div id="dG"></div><div id="dT"></div></div>
+
+  <h2>Lab 2 · A* with and without a heuristic</h2>
+  <p>Choose a graph. With the heuristic off, every h is 0 and A* behaves like Dijkstra's algorithm: count the rows.</p>
+  <div class="card"><div id="aB" class="btnrow"></div><div id="aH" class="btnrow"></div><div id="aG"></div><div id="aT"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Dijkstra's or A*?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Which does the A* table column mean?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>4 · Put the steps of Dijkstra's algorithm in order</h2><div id="o1" class="card"></div>
+  <h2>5 · Calculations</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Finding the quickest way home</h3><p>A route planner models the roads as a graph and runs a shortest-path search. A* is popular because the straight-line distance to your destination gives a good heuristic.</p><div class="use"><b>Exam use:</b> A* uses a heuristic to search less.</div></div>
+  <div class="rw"><h3>Characters in a game</h3><p>A character that has to walk from one side of a level to a door uses A* on a grid or map of locations, so it takes a sensible route round walls.</p><div class="use"><b>Exam use:</b> path-finding for one start and one goal.</div></div>
+  <div class="rw"><h3>Internet routing</h3><p>Routing protocols use shortest-path algorithms like Dijkstra's to decide the cheapest route across a network of routers.</p><div class="use"><b>Exam use:</b> Dijkstra's finds the shortest path to every node.</div></div>
+  <div class="rw"><h3>A robot vacuum</h3><p>It builds a map of your rooms as a graph and plans the route to cover them and get back to its charger.</p><div class="use"><b>Exam use:</b> weights can be distance or energy.</div></div>
+  <div class="rw"><h3>Emergency vehicles</h3><p>A planner can weight edges by travel time that includes traffic, so the quickest route changes through the day.</p><div class="use"><b>Exam use:</b> weights are costs such as time.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on Dijkstra's and the A* algorithms (Paper 3), 2021 to 2026. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2021</td><td>31, 32, 33</td><td>5(a)</td><td>5</td><td>Dijkstra's algorithm on a seven-node graph</td></tr>
+    <tr><td>O/N 2021</td><td>31, 32</td><td>9(b)</td><td>5</td><td>A* on a graph of Home, School and six nodes</td></tr>
+    <tr><td>M/J 2023</td><td>31, 33</td><td>2(b)</td><td>2</td><td>The purpose of the A* and Dijkstra's algorithms</td></tr>
+    <tr><td>M/J 2023</td><td>32</td><td>10(b)</td><td>5</td><td>A* from Begin to End</td></tr>
+    <tr><td>O/N 2023</td><td>32</td><td>8</td><td>5</td><td>Dijkstra's algorithm from Start</td></tr>
+    <tr><td>M/J 2025</td><td>33</td><td>10(a), (b)</td><td>1 + 2</td><td>The purpose of A* and Dijkstra's; the difference between them</td></tr>
+    <tr><td>O/N 2025</td><td>31</td><td>7(a)</td><td>1</td><td>Identify an AI algorithm to find the shortest distance between two points</td></tr>
+    <tr><td>O/N 2025</td><td>33</td><td>8</td><td>5</td><td>Dijkstra's algorithm from Start</td></tr>
+    <tr><td>M/J 2026</td><td>31</td><td>9(b)</td><td>5</td><td>Dijkstra's algorithm from Begin</td></tr>
+    <tr><td>M/J 2026</td><td>32</td><td>9(b)</td><td>3 + 5</td><td>How A* differs from Dijkstra's; Dijkstra's algorithm from Home</td></tr>
+    <tr><td>M/J 2026</td><td>33</td><td>9(b)</td><td>5</td><td>A* from W to E</td></tr>
+  </table></div>
+  <p class="note">Graph searches have been set in Paper 3 in most series: a Dijkstra's calculation (about 5 marks, nodes and weights given) or an A* table, together with a purpose or difference question. The graphs are redrawn here; the paper's tables give the first rows of the A* working. In the answers the working table is generated by working the algorithm through, so rows may be in a slightly different order from the mark scheme, which accepts correct calculations in any order. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+
+  <h3>Purpose and difference</h3>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/31/33 · Q2(b)</span> <span class="cmd">Describe</span> <span class="mark">2 marks</span> Describe the purpose of both the A* algorithm and Dijkstra's algorithm.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Optimal route between nodes, using distance, cost or time.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">To find the optimal, shortest or most cost-effective route</span> <span class="mk k" data-t="2">between two nodes in a graph</span> <span class="mk k" data-t="3">based on distance, cost or time</span> (two of these three points)</p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/31 · Q7(a)</span> <span class="cmd">Identify</span> <span class="mark">1 mark</span> Identify one Artificial Intelligence (AI) algorithm to find the shortest distance between two points on a graph.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Either of the two.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A* algorithm, or Dijkstra's algorithm</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/33 · Q10(a)(b)</span> <span class="cmd">State / Outline</span> <span class="mark">1 + 2 marks</span> (a) State the purpose of the A* and Dijkstra's algorithms. (b) Outline the difference between the A* and Dijkstra's algorithms.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(b) A* uses a heuristic; Dijkstra's explores all routes.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">To find the path between two points on a graph</span></p><p><b>(b)</b> Any two: <span class="mk k" data-t="1">A* tries to find a better path by using a heuristic function; it finds the adjacent route with the shortest path and continues until the destination is reached</span> <span class="mk k" data-t="2">Dijkstra's just explores all possible routes</span> <span class="mk k" data-t="3">The heuristic function in A* gives priority to nodes that are supposed to be better than others</span> <span class="mk k" data-t="4">Dijkstra's algorithm cannot work with negative weights, whereas the mark scheme also accepts that A* can</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/32 · Q9(b)(i)</span> <span class="cmd">Outline</span> <span class="mark">3 marks</span> The A* and Dijkstra's algorithms are used to perform searches on a graph. Outline how the A* algorithm is different from Dijkstra's algorithm.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Heuristics; not all nodes; Dijkstra's always shortest.</div>
+    <div class="ans"><p>Any three: <span class="mk k" data-t="1">The A* algorithm tries to find the shortest path using heuristics (intelligent guesses)</span> <span class="mk k" data-t="2">The A* algorithm does not necessarily pass through all nodes or paths</span> <span class="mk k" data-t="3">Dijkstra's algorithm finds the shortest path to all nodes: it simply checks each vertex looking for the shortest path</span> <span class="mk k" data-t="4">Dijkstra's algorithm always finds the shortest path</span> <span class="mk k" data-t="5">The A* algorithm may not find the shortest path if the heuristics are inaccurate</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing that A* is 'faster' without the reason. The reason is the heuristic.</div>
+  </div></details>
+
+  <h3>Dijkstra's algorithm</h3>
+  <details class="eq"><summary><span class="src">M/J 2021 · 9618/31/32/33 · Q5(a)</span> <span class="cmd">Calculate</span> <span class="mark">5 marks</span> Calculate the shortest distance between the base and each of the other towns in the diagram using Dijkstra's algorithm. Show your working and write your answers in the table provided.<div class="synd"><svg viewBox="0 0 540 290" style="width:594px;max-width:100%;display:block" role="img" aria-label="graph"><line x1="240" y1="36" x2="70" y2="100" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="240" y1="36" x2="230" y2="130" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="240" y1="36" x2="400" y2="90" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="70" y1="100" x2="230" y2="130" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="70" y1="100" x2="90" y2="240" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="400" y1="90" x2="480" y2="170" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="400" y1="90" x2="330" y2="230" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="230" y1="130" x2="330" y2="230" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="90" y1="240" x2="330" y2="230" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="330" y1="230" x2="480" y2="170" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><rect x="144.0" y="58.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="155.0" y="73.0" text-anchor="middle" style="font-size:13px">4</text><rect x="224.0" y="73.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="235.0" y="88.0" text-anchor="middle" style="font-size:13px">2</text><rect x="309.0" y="53.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="320.0" y="68.0" text-anchor="middle" style="font-size:13px">5</text><rect x="139.0" y="105.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="150.0" y="120.0" text-anchor="middle" style="font-size:13px">1</text><rect x="69.0" y="160.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="80.0" y="175.0" text-anchor="middle" style="font-size:13px">7</text><rect x="429.0" y="120.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="440.0" y="135.0" text-anchor="middle" style="font-size:13px">8</text><rect x="354.0" y="150.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="365.0" y="165.0" text-anchor="middle" style="font-size:13px">3</text><rect x="269.0" y="170.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="280.0" y="185.0" text-anchor="middle" style="font-size:13px">1</text><rect x="199.0" y="225.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="210.0" y="240.0" text-anchor="middle" style="font-size:13px">6</text><rect x="394.0" y="190.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="405.0" y="205.0" text-anchor="middle" style="font-size:13px">5</text><rect x="212.8" y="19.0" width="54.4" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="240" y="41" text-anchor="middle" style="font-size:12.5px">Base</text><rect x="34.2" y="83.0" width="71.6" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="70" y="105" text-anchor="middle" style="font-size:12.5px">Town 1</text><rect x="364.2" y="73.0" width="71.6" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="400" y="95" text-anchor="middle" style="font-size:12.5px">Town 2</text><rect x="194.2" y="113.0" width="71.6" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="230" y="135" text-anchor="middle" style="font-size:12.5px">Town 3</text><rect x="444.2" y="153.0" width="71.6" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="480" y="175" text-anchor="middle" style="font-size:12.5px">Town 6</text><rect x="54.2" y="223.0" width="71.6" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="90" y="245" text-anchor="middle" style="font-size:12.5px">Town 4</text><rect x="294.2" y="213.0" width="71.6" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="330" y="235" text-anchor="middle" style="font-size:12.5px">Town 5</text></svg></div><div class="tw"><table class="t mono"><tr><th>Town 1</th><th>Town 2</th><th>Town 3</th><th>Town 4</th><th>Town 5</th><th>Town 6</th></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Base = 0, others ∞. Visit Base, then Town 3 (2), then Town 1 (3) ...</div>
+    <div class="ans"><p>Working, up to three: <span class="mk k" data-t="1">Initialisation: the start node set to 0</span> <span class="mk k" data-t="2">and the rest of the nodes set to ∞</span> <span class="mk k" data-t="3">Evidence of values at nodes being updated</span> <span class="mk k" data-t="4">Evidence of 'visited' nodes</span> <span class="mk k" data-t="5">A correct calculation of at least one route</span> <span class="mk k" data-t="6">More than one route calculated for at least one node</span> Answers, up to two: all six correct, or four or five correct.</p><div class="tw"><table class="t mono"><tr><th>Visit</th><th>Base</th><th>Town 1</th><th>Town 2</th><th>Town 3</th><th>Town 6</th><th>Town 4</th><th>Town 5</th></tr><tr><td>start</td><td>0</td><td>∞</td><td>∞</td><td>∞</td><td>∞</td><td>∞</td><td>∞</td></tr><tr><td>Base</td><td><b>0</b></td><td>4</td><td>5</td><td>2</td><td>∞</td><td>∞</td><td>∞</td></tr><tr><td>Town 3</td><td><b>0</b></td><td>3</td><td>5</td><td><b>2</b></td><td>∞</td><td>∞</td><td>3</td></tr><tr><td>Town 1</td><td><b>0</b></td><td><b>3</b></td><td>5</td><td><b>2</b></td><td>∞</td><td>10</td><td>3</td></tr><tr><td>Town 5</td><td><b>0</b></td><td><b>3</b></td><td>5</td><td><b>2</b></td><td>8</td><td>9</td><td><b>3</b></td></tr><tr><td>Town 2</td><td><b>0</b></td><td><b>3</b></td><td><b>5</b></td><td><b>2</b></td><td>8</td><td>9</td><td><b>3</b></td></tr><tr><td>Town 6</td><td><b>0</b></td><td><b>3</b></td><td><b>5</b></td><td><b>2</b></td><td><b>8</b></td><td>9</td><td><b>3</b></td></tr><tr><td>Town 4</td><td><b>0</b></td><td><b>3</b></td><td><b>5</b></td><td><b>2</b></td><td><b>8</b></td><td><b>9</b></td><td><b>3</b></td></tr></table></div><p><b>Answers:</b> Town 1 = 3, Town 2 = 5, Town 3 = 2, Town 4 = 9, Town 5 = 3, Town 6 = 8</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Taking Town 5 as 8 (Base, Town 2, Town 5). The route via Town 3 is only 2 + 1 = 3. Always compare routes.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/32 · Q8</span> <span class="cmd">Calculate</span> <span class="mark">5 marks</span> Calculate the shortest distance between the Start and each of the destinations in the diagram using Dijkstra's algorithm. Show your working and write your answers in the table provided.<div class="synd"><svg viewBox="0 0 490 290" style="width:539px;max-width:100%;display:block" role="img" aria-label="graph"><line x1="60" y1="240" x2="70" y2="50" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="60" y1="240" x2="430" y2="240" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="70" y1="50" x2="240" y2="50" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="240" y1="50" x2="420" y2="60" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="240" y1="50" x2="150" y2="140" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="150" y1="140" x2="300" y2="170" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="420" y1="60" x2="300" y2="170" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="420" y1="60" x2="430" y2="240" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="300" y1="170" x2="430" y2="240" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><rect x="54.0" y="135.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="65.0" y="150.0" text-anchor="middle" style="font-size:13px">8</text><rect x="234.0" y="230.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="245.0" y="245.0" text-anchor="middle" style="font-size:13px">10</text><rect x="144.0" y="40.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="155.0" y="55.0" text-anchor="middle" style="font-size:13px">4</text><rect x="319.0" y="45.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="330.0" y="60.0" text-anchor="middle" style="font-size:13px">8</text><rect x="184.0" y="85.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="195.0" y="100.0" text-anchor="middle" style="font-size:13px">2</text><rect x="214.0" y="145.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="225.0" y="160.0" text-anchor="middle" style="font-size:13px">2</text><rect x="349.0" y="105.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="360.0" y="120.0" text-anchor="middle" style="font-size:13px">3</text><rect x="414.0" y="140.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="425.0" y="155.0" text-anchor="middle" style="font-size:13px">9</text><rect x="354.0" y="195.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="365.0" y="210.0" text-anchor="middle" style="font-size:13px">7</text><rect x="47.0" y="33.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="70" y="55" text-anchor="middle" style="font-size:12.5px">A</text><rect x="217.0" y="33.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="240" y="55" text-anchor="middle" style="font-size:12.5px">B</text><rect x="397.0" y="43.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="420" y="65" text-anchor="middle" style="font-size:12.5px">C</text><rect x="127.0" y="123.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="150" y="145" text-anchor="middle" style="font-size:12.5px">D</text><rect x="277.0" y="153.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="300" y="175" text-anchor="middle" style="font-size:12.5px">E</text><rect x="28.5" y="223.0" width="63.0" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="60" y="245" text-anchor="middle" style="font-size:12.5px">Start</text><rect x="407.0" y="223.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="430" y="245" text-anchor="middle" style="font-size:12.5px">F</text></svg></div><div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Start is 0; the next node to visit is A (8) then F (10).</div>
+    <div class="ans"><p>Working and answers as in the mark scheme (working up to three marks, answers two): </p><div class="tw"><table class="t mono"><tr><th>Visit</th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>Start</th><th>F</th></tr><tr><td>start</td><td>∞</td><td>∞</td><td>∞</td><td>∞</td><td>∞</td><td>0</td><td>∞</td></tr><tr><td>Start</td><td>8</td><td>∞</td><td>∞</td><td>∞</td><td>∞</td><td><b>0</b></td><td>10</td></tr><tr><td>A</td><td><b>8</b></td><td>12</td><td>∞</td><td>∞</td><td>∞</td><td><b>0</b></td><td>10</td></tr><tr><td>F</td><td><b>8</b></td><td>12</td><td>19</td><td>∞</td><td>17</td><td><b>0</b></td><td><b>10</b></td></tr><tr><td>B</td><td><b>8</b></td><td><b>12</b></td><td>19</td><td>14</td><td>17</td><td><b>0</b></td><td><b>10</b></td></tr><tr><td>D</td><td><b>8</b></td><td><b>12</b></td><td>19</td><td><b>14</b></td><td>16</td><td><b>0</b></td><td><b>10</b></td></tr><tr><td>E</td><td><b>8</b></td><td><b>12</b></td><td>19</td><td><b>14</b></td><td><b>16</b></td><td><b>0</b></td><td><b>10</b></td></tr><tr><td>C</td><td><b>8</b></td><td><b>12</b></td><td><b>19</b></td><td><b>14</b></td><td><b>16</b></td><td><b>0</b></td><td><b>10</b></td></tr></table></div><p><b>Answers:</b> A = 8, B = 12, C = 19, D = 14, E = 16, F = 10</p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/33 · Q8</span> <span class="cmd">Calculate</span> <span class="mark">5 marks</span> Calculate the shortest distance between the Start node and each of the nodes in the graph using Dijkstra's algorithm. Show your working on the graph or in the working space.<div class="synd"><svg viewBox="0 0 510 300" style="width:561px;max-width:100%;display:block" role="img" aria-label="graph"><line x1="60" y1="250" x2="90" y2="100" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="60" y1="250" x2="330" y2="210" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="90" y1="100" x2="260" y2="36" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="260" y1="36" x2="170" y2="150" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="260" y1="36" x2="430" y2="90" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="170" y1="150" x2="430" y2="90" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="430" y1="90" x2="330" y2="210" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="430" y1="90" x2="450" y2="250" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="330" y1="210" x2="450" y2="250" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><rect x="64.0" y="165.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="75.0" y="180.0" text-anchor="middle" style="font-size:13px">6</text><rect x="184.0" y="220.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="195.0" y="235.0" text-anchor="middle" style="font-size:13px">22</text><rect x="164.0" y="58.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="175.0" y="73.0" text-anchor="middle" style="font-size:13px">4</text><rect x="204.0" y="83.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="215.0" y="98.0" text-anchor="middle" style="font-size:13px">3</text><rect x="334.0" y="53.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="345.0" y="68.0" text-anchor="middle" style="font-size:13px">9</text><rect x="289.0" y="110.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="300.0" y="125.0" text-anchor="middle" style="font-size:13px">5</text><rect x="369.0" y="140.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="380.0" y="155.0" text-anchor="middle" style="font-size:13px">3</text><rect x="429.0" y="160.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="440.0" y="175.0" text-anchor="middle" style="font-size:13px">10</text><rect x="379.0" y="220.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="390.0" y="235.0" text-anchor="middle" style="font-size:13px">8</text><rect x="237.0" y="19.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="260" y="41" text-anchor="middle" style="font-size:12.5px">V</text><rect x="67.0" y="83.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="90" y="105" text-anchor="middle" style="font-size:12.5px">T</text><rect x="407.0" y="73.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="430" y="95" text-anchor="middle" style="font-size:12.5px">X</text><rect x="147.0" y="133.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="170" y="155" text-anchor="middle" style="font-size:12.5px">W</text><rect x="307.0" y="193.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="330" y="215" text-anchor="middle" style="font-size:12.5px">Y</text><rect x="28.5" y="233.0" width="63.0" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="60" y="255" text-anchor="middle" style="font-size:12.5px">Start</text><rect x="427.0" y="233.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="450" y="255" text-anchor="middle" style="font-size:12.5px">Z</text></svg></div><div class="tw"><table class="t mono"><tr><th>T</th><th>V</th><th>W</th><th>X</th><th>Y</th><th>Z</th></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Y looks close to Start (22) but T, V, X, Y is shorter.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Initialisation: the start node set to 0</span> <span class="mk k" data-t="2">and the rest of the nodes set to ∞</span> <span class="mk k" data-t="3">Evidence of values at nodes being updated</span> <span class="mk k" data-t="4">Evidence of 'visited' nodes</span> <span class="mk k" data-t="5">A correct calculation of at least one route</span> <span class="mk k" data-t="6">More than one route calculated for at least one node</span></p><div class="tw"><table class="t mono"><tr><th>Visit</th><th>V</th><th>T</th><th>X</th><th>W</th><th>Y</th><th>Start</th><th>Z</th></tr><tr><td>start</td><td>∞</td><td>∞</td><td>∞</td><td>∞</td><td>∞</td><td>0</td><td>∞</td></tr><tr><td>Start</td><td>∞</td><td>6</td><td>∞</td><td>∞</td><td>22</td><td><b>0</b></td><td>∞</td></tr><tr><td>T</td><td>10</td><td><b>6</b></td><td>∞</td><td>∞</td><td>22</td><td><b>0</b></td><td>∞</td></tr><tr><td>V</td><td><b>10</b></td><td><b>6</b></td><td>19</td><td>13</td><td>22</td><td><b>0</b></td><td>∞</td></tr><tr><td>W</td><td><b>10</b></td><td><b>6</b></td><td>18</td><td><b>13</b></td><td>22</td><td><b>0</b></td><td>∞</td></tr><tr><td>X</td><td><b>10</b></td><td><b>6</b></td><td><b>18</b></td><td><b>13</b></td><td>21</td><td><b>0</b></td><td>28</td></tr><tr><td>Y</td><td><b>10</b></td><td><b>6</b></td><td><b>18</b></td><td><b>13</b></td><td><b>21</b></td><td><b>0</b></td><td>28</td></tr><tr><td>Z</td><td><b>10</b></td><td><b>6</b></td><td><b>18</b></td><td><b>13</b></td><td><b>21</b></td><td><b>0</b></td><td><b>28</b></td></tr></table></div><p><b>Answers:</b> T = 6, V = 10, W = 13, X = 18, Y = 21, Z = 28</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Using the direct edge Start to Y (22). The route Start, T, V, X, Y costs 6 + 4 + 9 + 3 = 22 as well; X is 18 via W (6 + 4 + 3 + 5), so Y = 21.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/31 · Q9(b)</span> <span class="cmd">Calculate</span> <span class="mark">5 marks</span> Calculate the best path between the Begin node and each of the nodes in the diagram using Dijkstra's algorithm. Show your working and write your answers in the table provided.<div class="synd"><svg viewBox="0 0 560 290" style="width:616px;max-width:100%;display:block" role="img" aria-label="graph"><line x1="70" y1="240" x2="130" y2="140" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="70" y1="240" x2="300" y2="90" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="70" y1="240" x2="370" y2="240" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="130" y1="140" x2="90" y2="40" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="130" y1="140" x2="300" y2="90" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="90" y1="40" x2="470" y2="40" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="300" y1="90" x2="470" y2="40" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="470" y1="40" x2="370" y2="240" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="470" y1="40" x2="500" y2="180" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="500" y1="180" x2="370" y2="240" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><rect x="89.0" y="180.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="100.0" y="195.0" text-anchor="middle" style="font-size:13px">9</text><rect x="174.0" y="155.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="185.0" y="170.0" text-anchor="middle" style="font-size:13px">6</text><rect x="209.0" y="230.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="220.0" y="245.0" text-anchor="middle" style="font-size:13px">21</text><rect x="99.0" y="80.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="110.0" y="95.0" text-anchor="middle" style="font-size:13px">5</text><rect x="204.0" y="105.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="215.0" y="120.0" text-anchor="middle" style="font-size:13px">2</text><rect x="269.0" y="30.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="280.0" y="45.0" text-anchor="middle" style="font-size:13px">5</text><rect x="374.0" y="55.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="385.0" y="70.0" text-anchor="middle" style="font-size:13px">8</text><rect x="409.0" y="130.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="420.0" y="145.0" text-anchor="middle" style="font-size:13px">6</text><rect x="474.0" y="100.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="485.0" y="115.0" text-anchor="middle" style="font-size:13px">3</text><rect x="424.0" y="200.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="435.0" y="215.0" text-anchor="middle" style="font-size:13px">4</text><rect x="67.0" y="23.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="90" y="45" text-anchor="middle" style="font-size:12.5px">Q</text><rect x="447.0" y="23.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="470" y="45" text-anchor="middle" style="font-size:12.5px">S</text><rect x="277.0" y="73.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="300" y="95" text-anchor="middle" style="font-size:12.5px">R</text><rect x="107.0" y="123.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="130" y="145" text-anchor="middle" style="font-size:12.5px">P</text><rect x="477.0" y="163.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="500" y="185" text-anchor="middle" style="font-size:12.5px">T</text><rect x="347.0" y="223.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="370" y="245" text-anchor="middle" style="font-size:12.5px">U</text><rect x="38.5" y="223.0" width="63.0" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="70" y="245" text-anchor="middle" style="font-size:12.5px">Begin</text></svg></div><div class="tw"><table class="t mono"><tr><th>P</th><th>Q</th><th>R</th><th>S</th><th>T</th><th>U</th></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Begin to R is 6, then P via R is 2 more.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Initialisation: the start node set to 0</span> <span class="mk k" data-t="2">and the rest of the nodes set to ∞</span> <span class="mk k" data-t="3">Evidence of values at nodes being updated</span> <span class="mk k" data-t="4">Evidence of 'visited' nodes</span> <span class="mk k" data-t="5">A correct calculation of at least one route</span> <span class="mk k" data-t="6">More than one route calculated for at least one node</span></p><div class="tw"><table class="t mono"><tr><th>Visit</th><th>Q</th><th>S</th><th>R</th><th>P</th><th>T</th><th>U</th><th>Begin</th></tr><tr><td>start</td><td>∞</td><td>∞</td><td>∞</td><td>∞</td><td>∞</td><td>∞</td><td>0</td></tr><tr><td>Begin</td><td>∞</td><td>∞</td><td>6</td><td>9</td><td>∞</td><td>21</td><td><b>0</b></td></tr><tr><td>R</td><td>∞</td><td>14</td><td><b>6</b></td><td>8</td><td>∞</td><td>21</td><td><b>0</b></td></tr><tr><td>P</td><td>13</td><td>14</td><td><b>6</b></td><td><b>8</b></td><td>∞</td><td>21</td><td><b>0</b></td></tr><tr><td>Q</td><td><b>13</b></td><td>14</td><td><b>6</b></td><td><b>8</b></td><td>∞</td><td>21</td><td><b>0</b></td></tr><tr><td>S</td><td><b>13</b></td><td><b>14</b></td><td><b>6</b></td><td><b>8</b></td><td>17</td><td>20</td><td><b>0</b></td></tr><tr><td>T</td><td><b>13</b></td><td><b>14</b></td><td><b>6</b></td><td><b>8</b></td><td><b>17</b></td><td>20</td><td><b>0</b></td></tr><tr><td>U</td><td><b>13</b></td><td><b>14</b></td><td><b>6</b></td><td><b>8</b></td><td><b>17</b></td><td><b>20</b></td><td><b>0</b></td></tr></table></div><p><b>Answers:</b> P = 8, Q = 13, R = 6, S = 14, T = 17, U = 20</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Taking P as 9 (the direct edge). Begin, R, P costs 6 + 2 = 8.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/32 · Q9(b)(ii)</span> <span class="cmd">Calculate</span> <span class="mark">5 marks</span> Calculate the best path between the Home node and each of the nodes in the diagram using Dijkstra's algorithm. Show your working and write your answers in the table provided.<div class="synd"><svg viewBox="0 0 530 300" style="width:583px;max-width:100%;display:block" role="img" aria-label="graph"><line x1="60" y1="240" x2="200" y2="160" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="60" y1="240" x2="340" y2="240" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="200" y1="160" x2="90" y2="90" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="200" y1="160" x2="250" y2="36" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="200" y1="160" x2="340" y2="240" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="90" y1="90" x2="250" y2="36" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="250" y1="36" x2="450" y2="100" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="450" y1="100" x2="340" y2="240" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="450" y1="100" x2="470" y2="250" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="340" y1="240" x2="470" y2="250" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><rect x="119.0" y="190.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="130.0" y="205.0" text-anchor="middle" style="font-size:13px">6</text><rect x="189.0" y="230.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="200.0" y="245.0" text-anchor="middle" style="font-size:13px">16</text><rect x="134.0" y="115.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="145.0" y="130.0" text-anchor="middle" style="font-size:13px">8</text><rect x="214.0" y="88.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="225.0" y="103.0" text-anchor="middle" style="font-size:13px">3</text><rect x="259.0" y="190.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="270.0" y="205.0" text-anchor="middle" style="font-size:13px">8</text><rect x="159.0" y="53.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="170.0" y="68.0" text-anchor="middle" style="font-size:13px">4</text><rect x="339.0" y="58.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="350.0" y="73.0" text-anchor="middle" style="font-size:13px">12</text><rect x="384.0" y="160.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="395.0" y="175.0" text-anchor="middle" style="font-size:13px">6</text><rect x="449.0" y="165.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="460.0" y="180.0" text-anchor="middle" style="font-size:13px">7</text><rect x="394.0" y="235.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="405.0" y="250.0" text-anchor="middle" style="font-size:13px">3</text><rect x="227.0" y="19.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="250" y="41" text-anchor="middle" style="font-size:12.5px">C</text><rect x="67.0" y="73.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="90" y="95" text-anchor="middle" style="font-size:12.5px">B</text><rect x="427.0" y="83.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="450" y="105" text-anchor="middle" style="font-size:12.5px">D</text><rect x="177.0" y="143.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="200" y="165" text-anchor="middle" style="font-size:12.5px">A</text><rect x="32.8" y="223.0" width="54.4" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="60" y="245" text-anchor="middle" style="font-size:12.5px">Home</text><rect x="317.0" y="223.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="340" y="245" text-anchor="middle" style="font-size:12.5px">F</text><rect x="447.0" y="233.0" width="46" height="34" rx="17.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="470" y="255" text-anchor="middle" style="font-size:12.5px">E</text></svg></div><div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Home to F directly is 16, but via A it is 6 + 8 = 14.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Initialisation: the start node set to 0</span> <span class="mk k" data-t="2">and the rest of the nodes set to ∞</span> <span class="mk k" data-t="3">Evidence of values at nodes being updated</span> <span class="mk k" data-t="4">Evidence of 'visited' nodes</span> <span class="mk k" data-t="5">A correct calculation of at least one route</span> <span class="mk k" data-t="6">More than one route calculated for at least one node</span></p><div class="tw"><table class="t mono"><tr><th>Visit</th><th>C</th><th>B</th><th>D</th><th>A</th><th>Home</th><th>F</th><th>E</th></tr><tr><td>start</td><td>∞</td><td>∞</td><td>∞</td><td>∞</td><td>0</td><td>∞</td><td>∞</td></tr><tr><td>Home</td><td>∞</td><td>∞</td><td>∞</td><td>6</td><td><b>0</b></td><td>16</td><td>∞</td></tr><tr><td>A</td><td>9</td><td>14</td><td>∞</td><td><b>6</b></td><td><b>0</b></td><td>14</td><td>∞</td></tr><tr><td>C</td><td><b>9</b></td><td>13</td><td>21</td><td><b>6</b></td><td><b>0</b></td><td>14</td><td>∞</td></tr><tr><td>B</td><td><b>9</b></td><td><b>13</b></td><td>21</td><td><b>6</b></td><td><b>0</b></td><td>14</td><td>∞</td></tr><tr><td>F</td><td><b>9</b></td><td><b>13</b></td><td>20</td><td><b>6</b></td><td><b>0</b></td><td><b>14</b></td><td>17</td></tr><tr><td>E</td><td><b>9</b></td><td><b>13</b></td><td>20</td><td><b>6</b></td><td><b>0</b></td><td><b>14</b></td><td><b>17</b></td></tr><tr><td>D</td><td><b>9</b></td><td><b>13</b></td><td><b>20</b></td><td><b>6</b></td><td><b>0</b></td><td><b>14</b></td><td><b>17</b></td></tr></table></div><p><b>Answers:</b> A = 6, B = 13, C = 9, D = 20, E = 17, F = 14</p></div>
+  </div></details>
+
+  <h3>A* algorithm</h3>
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/31/32 · Q9(b)</span> <span class="cmd">Calculate</span> <span class="mark">5 marks</span> Find a path between the Home and School nodes using the A* algorithm. Show your working in the table provided. The first two rows in the table have been completed (Home: g 0, h 14, f 14; A: g 1, h 10, f 11). The number by each node is its heuristic.<div class="synd"><svg viewBox="0 0 470 300" style="width:517px;max-width:100%;display:block" role="img" aria-label="O/N 2021 Q9"><line x1="250" y1="36" x2="90" y2="70" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="250" y1="36" x2="250" y2="120" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="250" y1="36" x2="410" y2="70" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="90" y1="70" x2="250" y2="120" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="90" y1="70" x2="70" y2="220" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="250" y1="120" x2="410" y2="170" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="250" y1="120" x2="400" y2="250" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="410" y1="70" x2="410" y2="170" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="410" y1="170" x2="400" y2="250" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="70" y1="220" x2="170" y2="180" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="70" y1="220" x2="400" y2="250" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="170" y1="180" x2="400" y2="250" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><rect x="159.0" y="43.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="170.0" y="58.0" text-anchor="middle" style="font-size:13px">1</text><rect x="239.0" y="68.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="250.0" y="83.0" text-anchor="middle" style="font-size:13px">5</text><rect x="319.0" y="43.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="330.0" y="58.0" text-anchor="middle" style="font-size:13px">4</text><rect x="159.0" y="85.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="170.0" y="100.0" text-anchor="middle" style="font-size:13px">3</text><rect x="69.0" y="135.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="80.0" y="150.0" text-anchor="middle" style="font-size:13px">6</text><rect x="319.0" y="135.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="330.0" y="150.0" text-anchor="middle" style="font-size:13px">2</text><rect x="314.0" y="175.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="325.0" y="190.0" text-anchor="middle" style="font-size:13px">7</text><rect x="399.0" y="110.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="410.0" y="125.0" text-anchor="middle" style="font-size:13px">6</text><rect x="394.0" y="200.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="405.0" y="215.0" text-anchor="middle" style="font-size:13px">2</text><rect x="109.0" y="190.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="120.0" y="205.0" text-anchor="middle" style="font-size:13px">1</text><rect x="224.0" y="225.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="235.0" y="240.0" text-anchor="middle" style="font-size:13px">5</text><rect x="274.0" y="205.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="285.0" y="220.0" text-anchor="middle" style="font-size:13px">3</text><rect x="222.8" y="15.0" width="54.4" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="250" y="34" text-anchor="middle" style="font-size:12.5px">Home</text><text class="sm" x="250" y="48" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=14</text><rect x="67.0" y="49.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="90" y="68" text-anchor="middle" style="font-size:12.5px">A</text><text class="sm" x="90" y="82" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=10</text><rect x="387.0" y="49.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="410" y="68" text-anchor="middle" style="font-size:12.5px">C</text><text class="sm" x="410" y="82" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=9</text><rect x="227.0" y="99.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="250" y="118" text-anchor="middle" style="font-size:12.5px">B</text><text class="sm" x="250" y="132" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=7</text><rect x="387.0" y="149.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="410" y="168" text-anchor="middle" style="font-size:12.5px">D</text><text class="sm" x="410" y="182" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=6</text><rect x="147.0" y="159.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="170" y="178" text-anchor="middle" style="font-size:12.5px">F</text><text class="sm" x="170" y="192" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=3</text><rect x="47.0" y="199.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="70" y="218" text-anchor="middle" style="font-size:12.5px">E</text><text class="sm" x="70" y="232" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=3</text><rect x="364.2" y="229.0" width="71.6" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="400" y="248" text-anchor="middle" style="font-size:12.5px">School</text><text class="sm" x="400" y="262" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=0</text></svg></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Always expand the node with the lowest f.</div>
+    <div class="ans"><p>One mark for each correct calculation (max 4): <span class="mk k" data-t="1">Node B and node C (from Home)</span> <span class="mk k" data-t="2">Node B and node E (from A)</span> <span class="mk k" data-t="3">Node F and node School (from E)</span> <span class="mk k" data-t="4">Node School (from F)</span> One mark for the correct path (max 1).</p><div class="tw"><table class="t mono"><tr><th>Start node</th><th>Destination</th><th>g (cost so far)</th><th>h (heuristic)</th><th>f = g + h</th></tr><tr><td>Home</td><td>Home</td><td>0</td><td>14</td><td>14</td></tr><tr><td>Home</td><td>A</td><td>1</td><td>10</td><td>11</td></tr><tr><td>Home</td><td>B</td><td>5</td><td>7</td><td>12</td></tr><tr><td>Home</td><td>C</td><td>4</td><td>9</td><td>13</td></tr><tr><td>A</td><td>B</td><td>4</td><td>7</td><td>11</td></tr><tr><td>A</td><td>E</td><td>7</td><td>3</td><td>10</td></tr><tr><td>E</td><td>F</td><td>8</td><td>3</td><td>11</td></tr><tr><td>E</td><td>School</td><td>12</td><td>0</td><td>12</td></tr><tr><td>F</td><td>School</td><td>11</td><td>0</td><td>11</td></tr></table></div><p>Final path: <b>Home → A → E → F → School</b> (cost 11).</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Expanding B because it has the lowest g, not the lowest f. A* uses f = g + h.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/32 · Q10(b)</span> <span class="cmd">Calculate</span> <span class="mark">5 marks</span> Calculate the path that takes the shortest time to travel from the Begin node to the End node, using the A* algorithm. Show your working in the table provided. The first two rows have already been completed (Begin: g 0, h 12, f 12; A: g 5, h 8, f 13).<div class="synd"><svg viewBox="0 0 500 290" style="width:550px;max-width:100%;display:block" role="img" aria-label="M/J 2023 Q10"><line x1="260" y1="36" x2="110" y2="80" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="260" y1="36" x2="230" y2="120" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="260" y1="36" x2="370" y2="120" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="260" y1="36" x2="440" y2="80" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="110" y1="80" x2="60" y2="170" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="110" y1="80" x2="250" y2="190" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="230" y1="120" x2="250" y2="190" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="370" y1="120" x2="430" y2="190" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="440" y1="80" x2="430" y2="190" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="60" y1="170" x2="140" y2="240" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="140" y1="240" x2="250" y2="190" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="140" y1="240" x2="430" y2="190" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="430" y1="190" x2="250" y2="190" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><rect x="174.0" y="48.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="185.0" y="63.0" text-anchor="middle" style="font-size:13px">5</text><rect x="234.0" y="68.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="245.0" y="83.0" text-anchor="middle" style="font-size:13px">6</text><rect x="304.0" y="68.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="315.0" y="83.0" text-anchor="middle" style="font-size:13px">5</text><rect x="339.0" y="48.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="350.0" y="63.0" text-anchor="middle" style="font-size:13px">4</text><rect x="74.0" y="115.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="85.0" y="130.0" text-anchor="middle" style="font-size:13px">6</text><rect x="169.0" y="125.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="180.0" y="140.0" text-anchor="middle" style="font-size:13px">8</text><rect x="229.0" y="145.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="240.0" y="160.0" text-anchor="middle" style="font-size:13px">7</text><rect x="389.0" y="145.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="400.0" y="160.0" text-anchor="middle" style="font-size:13px">2</text><rect x="424.0" y="125.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="435.0" y="140.0" text-anchor="middle" style="font-size:13px">6</text><rect x="89.0" y="195.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="100.0" y="210.0" text-anchor="middle" style="font-size:13px">7</text><rect x="184.0" y="205.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="195.0" y="220.0" text-anchor="middle" style="font-size:13px">1</text><rect x="274.0" y="205.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="285.0" y="220.0" text-anchor="middle" style="font-size:13px">4</text><rect x="329.0" y="180.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="340.0" y="195.0" text-anchor="middle" style="font-size:13px">7</text><rect x="228.5" y="15.0" width="63.0" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="260" y="34" text-anchor="middle" style="font-size:12.5px">Begin</text><text class="sm" x="260" y="48" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=12</text><rect x="87.0" y="59.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="110" y="78" text-anchor="middle" style="font-size:12.5px">A</text><text class="sm" x="110" y="92" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=8</text><rect x="417.0" y="59.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="440" y="78" text-anchor="middle" style="font-size:12.5px">D</text><text class="sm" x="440" y="92" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=11</text><rect x="347.0" y="99.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="370" y="118" text-anchor="middle" style="font-size:12.5px">C</text><text class="sm" x="370" y="132" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=7</text><rect x="207.0" y="99.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="230" y="118" text-anchor="middle" style="font-size:12.5px">B</text><text class="sm" x="230" y="132" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=7</text><rect x="37.0" y="149.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="60" y="168" text-anchor="middle" style="font-size:12.5px">E</text><text class="sm" x="60" y="182" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=8</text><rect x="227.0" y="169.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="250" y="188" text-anchor="middle" style="font-size:12.5px">End</text><text class="sm" x="250" y="202" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=0</text><rect x="407.0" y="169.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="430" y="188" text-anchor="middle" style="font-size:12.5px">G</text><text class="sm" x="430" y="202" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=5</text><rect x="117.0" y="219.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="140" y="238" text-anchor="middle" style="font-size:12.5px">F</text><text class="sm" x="140" y="252" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=1</text></svg></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Lowest f after Begin is C.</div>
+    <div class="ans"><p>One mark per correct calculation (max 4): <span class="mk k" data-t="1">B, C and D (from Begin)</span> <span class="mk k" data-t="2">G (from C)</span> <span class="mk k" data-t="3">F and End (from G)</span> <span class="mk k" data-t="4">End (from F)</span> One mark for the path: Begin, C, G, F, End.</p><div class="tw"><table class="t mono"><tr><th>Start node</th><th>Destination</th><th>g (cost so far)</th><th>h (heuristic)</th><th>f = g + h</th></tr><tr><td>Begin</td><td>Begin</td><td>0</td><td>12</td><td>12</td></tr><tr><td>Begin</td><td>A</td><td>5</td><td>8</td><td>13</td></tr><tr><td>Begin</td><td>B</td><td>6</td><td>7</td><td>13</td></tr><tr><td>Begin</td><td>C</td><td>5</td><td>7</td><td>12</td></tr><tr><td>Begin</td><td>D</td><td>4</td><td>11</td><td>15</td></tr><tr><td>C</td><td>G</td><td>7</td><td>5</td><td>12</td></tr><tr><td>G</td><td>F</td><td>11</td><td>1</td><td>12</td></tr><tr><td>G</td><td>End</td><td>14</td><td>0</td><td>14</td></tr><tr><td>F</td><td>E</td><td>18</td><td>8</td><td>26</td></tr><tr><td>F</td><td>End</td><td>12</td><td>0</td><td>12</td></tr></table></div><p>Final path: <b>Begin → C → G → F → End</b> (cost 12).</p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/33 · Q9(b)</span> <span class="cmd">Calculate</span> <span class="mark">5 marks</span> Calculate the best path between the W and E nodes using the A* algorithm. Show your working in the table provided. The first two rows are done (W: g 0, h 18, f 18; N1: g 6, h 15, f 21).<div class="synd"><svg viewBox="0 0 540 295" style="width:594px;max-width:100%;display:block" role="img" aria-label="M/J 2026 Q9"><line x1="50" y1="160" x2="140" y2="70" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="50" y1="160" x2="260" y2="175" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="50" y1="160" x2="150" y2="245" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="140" y1="70" x2="260" y2="175" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="140" y1="70" x2="300" y2="40" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="260" y1="175" x2="150" y2="245" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="260" y1="175" x2="390" y2="100" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="150" y1="245" x2="430" y2="190" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="300" y1="40" x2="390" y2="100" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="300" y1="40" x2="480" y2="100" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="390" y1="100" x2="480" y2="100" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="390" y1="100" x2="430" y2="190" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><line x1="430" y1="190" x2="480" y2="100" class="ax" style="stroke:var(--muted);stroke-width:1.8"/><rect x="84.0" y="105.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="95.0" y="120.0" text-anchor="middle" style="font-size:13px">6</text><rect x="144.0" y="157.5" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="155.0" y="172.5" text-anchor="middle" style="font-size:13px">4</text><rect x="89.0" y="192.5" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="100.0" y="207.5" text-anchor="middle" style="font-size:13px">7</text><rect x="189.0" y="112.5" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="200.0" y="127.5" text-anchor="middle" style="font-size:13px">3</text><rect x="209.0" y="45.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="220.0" y="60.0" text-anchor="middle" style="font-size:13px">12</text><rect x="194.0" y="200.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="205.0" y="215.0" text-anchor="middle" style="font-size:13px">2</text><rect x="314.0" y="127.5" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="325.0" y="142.5" text-anchor="middle" style="font-size:13px">7</text><rect x="279.0" y="207.5" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="290.0" y="222.5" text-anchor="middle" style="font-size:13px">4</text><rect x="334.0" y="60.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="345.0" y="75.0" text-anchor="middle" style="font-size:13px">4</text><rect x="379.0" y="60.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="390.0" y="75.0" text-anchor="middle" style="font-size:13px">3</text><rect x="424.0" y="90.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="435.0" y="105.0" text-anchor="middle" style="font-size:13px">11</text><rect x="399.0" y="135.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="410.0" y="150.0" text-anchor="middle" style="font-size:13px">2</text><rect x="444.0" y="135.0" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="455.0" y="150.0" text-anchor="middle" style="font-size:13px">12</text><rect x="277.0" y="19.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="300" y="38" text-anchor="middle" style="font-size:12.5px">N6</text><text class="sm" x="300" y="52" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=3</text><rect x="117.0" y="49.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="140" y="68" text-anchor="middle" style="font-size:12.5px">N1</text><text class="sm" x="140" y="82" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=15</text><rect x="457.0" y="79.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="480" y="98" text-anchor="middle" style="font-size:12.5px">E</text><text class="sm" x="480" y="112" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=0</text><rect x="367.0" y="79.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="390" y="98" text-anchor="middle" style="font-size:12.5px">N5</text><text class="sm" x="390" y="112" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=7</text><rect x="27.0" y="139.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="50" y="158" text-anchor="middle" style="font-size:12.5px">W</text><text class="sm" x="50" y="172" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=18</text><rect x="237.0" y="154.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="260" y="173" text-anchor="middle" style="font-size:12.5px">N2</text><text class="sm" x="260" y="187" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=14</text><rect x="407.0" y="169.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="430" y="188" text-anchor="middle" style="font-size:12.5px">N4</text><text class="sm" x="430" y="202" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=9</text><rect x="127.0" y="224.0" width="46" height="42" rx="21.0" class="ax" style="fill:var(--surface)"/><text class="lbl bd" x="150" y="243" text-anchor="middle" style="font-size:12.5px">N3</text><text class="sm" x="150" y="257" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=13</text></svg></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>N2 has the lowest f first (4 + 14 = 18).</div>
+    <div class="ans"><p>One mark per correct calculation (max 4): <span class="mk k" data-t="1">W to N2 and W to N3</span> <span class="mk k" data-t="2">W, N2 to N5</span> <span class="mk k" data-t="3">W, N2, N5 to N4 and to N6</span> <span class="mk k" data-t="4">W, N2, N5, N6 to E</span> One mark for the correct path: W, N2, N5, N6, E.</p><div class="tw"><table class="t mono"><tr><th>Start node</th><th>Destination</th><th>g (cost so far)</th><th>h (heuristic)</th><th>f = g + h</th></tr><tr><td>W</td><td>W</td><td>0</td><td>18</td><td>18</td></tr><tr><td>W</td><td>N1</td><td>6</td><td>15</td><td>21</td></tr><tr><td>W</td><td>N2</td><td>4</td><td>14</td><td>18</td></tr><tr><td>W</td><td>N3</td><td>7</td><td>13</td><td>20</td></tr><tr><td>N2</td><td>N3</td><td>6</td><td>13</td><td>19</td></tr><tr><td>N2</td><td>N5</td><td>11</td><td>7</td><td>18</td></tr><tr><td>N5</td><td>N6</td><td>15</td><td>3</td><td>18</td></tr><tr><td>N5</td><td>E</td><td>22</td><td>0</td><td>22</td></tr><tr><td>N5</td><td>N4</td><td>13</td><td>9</td><td>22</td></tr><tr><td>N6</td><td>E</td><td>18</td><td>0</td><td>18</td></tr></table></div><p>Final path: <b>W → N2 → N5 → N6 → E</b> (cost 18).</p><p>The table here also lists the improved route to N3 (6 via N2 against 7 direct); the mark scheme does not require it.</p></div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Calculate</span> <span class="mark">3 marks</span> A graph has nodes S, A, B, T. Edges: S–A 2, S–B 6, A–B 3, A–T 7, B–T 2. Use Dijkstra's algorithm from S. State the shortest distance to each node.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Visit S, A, then B.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A = 2 (S–A)</span> <span class="mk k" data-t="2">B = 5 (S, A, B) not 6</span> <span class="mk k" data-t="3">T = 7 (S, A, B, T) not 9 (S, A, T)</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> In A*, a node has g = 8 and h = 5. State its f and explain what f is used for.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>f = g + h.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">f = 8 + 5 = 13</span> <span class="mk k" data-t="2">A* expands the unexpanded node with the lowest f, the estimated total cost of a route through it</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why a good heuristic makes A* faster than Dijkstra's algorithm.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Which nodes are explored?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The heuristic estimates the distance still to go, so nodes that look better are tried first</span> <span class="mk k" data-t="2">A* does not have to explore every route, so fewer nodes are examined</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">2 marks</span> Give one situation where A* is better than Dijkstra's algorithm and one where Dijkstra's is needed.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One goal or all nodes?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A*: finding a route between one start and one destination, for example a satnav</span> <span class="mk k" data-t="2">Dijkstra's: finding the shortest distances from one node to all others, or when no good heuristic is available</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State the values a node holds at the start of Dijkstra's algorithm.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Start and others.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The start node has distance 0</span> <span class="mk k" data-t="2">Every other node has distance ∞</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Dijkstra: start 0, others ∞.</b> Write it down; it earns the working marks.</li>
+    <li><b>Visit the smallest distance.</b> Then update neighbours: distance + weight, if smaller.</li>
+    <li><b>Show two routes.</b> Compare them for at least one node.</li>
+    <li><b>A*: lowest f = g + h.</b> Not the lowest g or h.</li>
+    <li><b>Dijkstra: all nodes, always shortest.</b> A*: one goal, heuristic, may not be shortest.</li>
+    <li><b>Check the path.</b> Add the weights of your final path.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Dijkstra's algorithm</td><td>"Finds the shortest path from a start node to every node."</td></tr>
+    <tr><td>A* algorithm</td><td>"Finds a path to one goal using a heuristic."</td></tr>
+    <tr><td>a heuristic</td><td>"An estimate of the cost still to go."</td></tr>
+    <tr><td>f = g + h</td><td>"Cost so far plus estimated cost to the goal."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Calculate</td><td>Work the algorithm, showing the working.</td></tr>
+    <tr><td>Outline</td><td>Main points only.</td></tr>
+    <tr><td>State</td><td>Short answer.</td></tr>
+    <tr><td>Identify</td><td>Name it.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+const INF = Infinity;
+function adjOf(g) { const a = {}; Object.keys(g.nodes).forEach((n) => (a[n] = [])); g.edges.forEach(([u, v, w]) => { a[u].push([v, w]); a[v].push([u, w]); }); return a; }
+function dijkstra(g, start) { const a = adjOf(g), names = Object.keys(a), dist = {}, prev = {}, seen = new Set(), steps = []; names.forEach((n) => (dist[n] = INF)); start = start || g.start; dist[start] = 0; steps.push([null, Object.assign({}, dist)]);
+  while (seen.size < names.length) { let u = null; names.forEach((n) => { if (!seen.has(n) && (u === null || dist[n] < dist[u])) u = n; }); if (dist[u] === INF) break; seen.add(u); a[u].forEach(([v, w]) => { if (!seen.has(v) && dist[u] + w < dist[v]) { dist[v] = dist[u] + w; prev[v] = u; } }); steps.push([u, Object.assign({}, dist)]); }
+  return { steps, dist, prev }; }
+function pathTo(prev, goal, start) { const p = [goal]; while (p[p.length - 1] !== start) p.push(prev[p[p.length - 1]]); return p.reverse(); }
+function astar(g) { const a = adjOf(g), h = g.h, start = g.start, goal = g.goal, best = { [start]: 0 }, prev = {}, rows = [[start, start, 0, h[start], h[start]]], open = { [start]: 0 }, closed = new Set(), order = { [start]: 0 }; let tick = 1;
+  while (Object.keys(open).length) { const u = Object.keys(open).sort((x, y) => (open[x] + h[x]) - (open[y] + h[y]) || h[x] - h[y] || order[y] - order[x])[0]; if (u === goal) break; const gu = open[u]; delete open[u]; closed.add(u);
+    a[u].forEach(([v, w]) => { const ng = gu + w; if (closed.has(v) || (v in best && ng >= best[v])) return; best[v] = ng; prev[v] = u; open[v] = ng; order[v] = tick++; rows.push([u, v, ng, h[v], ng + h[v]]); }); }
+  return { rows, path: pathTo(prev, goal, start), cost: best[goal] }; }
+function graphSvgJs(g, o) { o = o || {}; const nodes = g.nodes, hl = o.hl || [], hs = new Set(); hl.forEach((n, i) => { if (i) { hs.add(hl[i - 1] + "|" + n); hs.add(n + "|" + hl[i - 1]); } });
+  const xs = Object.values(nodes).map((p) => p[0]), ys = Object.values(nodes).map((p) => p[1]), W = Math.max(...xs) + 60, H = Math.max(...ys) + 50; let s = "";
+  g.edges.forEach(([u, v]) => { const on = hs.has(u + "|" + v); s += `<line x1="${nodes[u][0]}" y1="${nodes[u][1]}" x2="${nodes[v][0]}" y2="${nodes[v][1]}" class="ax" style="stroke:${on ? "var(--good)" : "var(--muted)"};stroke-width:${on ? 3.4 : 1.8}"/>`; });
+  g.edges.forEach(([u, v, w]) => { const mx = (nodes[u][0] + nodes[v][0]) / 2, my = (nodes[u][1] + nodes[v][1]) / 2; s += `<rect x="${mx - 11}" y="${my - 10}" width="22" height="20" rx="4" style="fill:var(--surface)"/><text class="lbl bd" x="${mx}" y="${my + 5}" text-anchor="middle" style="font-size:13px">${w}</text>`; });
+  Object.entries(nodes).forEach(([n, [x, y]]) => { const cur = o.cur === n, on = hl.includes(n), done = o.done && o.done.has(n), w = Math.max(46, 8.6 * n.length + 20), showH = o.h && g.h, ht = showH ? 42 : 34;
+    s += `<rect x="${x - w / 2}" y="${y - ht / 2}" width="${w}" height="${ht}" rx="${ht / 2}" class="ax" style="fill:${cur ? "var(--warn-soft)" : on || done ? "var(--good-soft)" : "var(--surface)"};${cur ? "stroke:var(--warn);stroke-width:3" : ""}"/>`;
+    s += showH ? `<text class="lbl bd" x="${x}" y="${y - 2}" text-anchor="middle" style="font-size:12.5px">${n}</text><text class="sm" x="${x}" y="${y + 12}" text-anchor="middle" style="fill:var(--accent);font-size:11px">h=${g.h[n]}</text>` : `<text class="lbl bd" x="${x}" y="${y + 5}" text-anchor="middle" style="font-size:12.5px">${n}</text>`;
+    if (o.dist && o.dist[n] !== undefined) s += `<text class="sm" x="${x}" y="${y + 36}" text-anchor="middle" style="fill:var(--accent);font-size:12px">${o.dist[n] === INF ? "∞" : o.dist[n]}</text>`; });
+  return { W, H, inner: s }; }
+const GG = {"s21": {"start": "Base", "goal": null, "h": null, "nodes": {"Base": [240, 36], "Town 1": [70, 100], "Town 2": [400, 90], "Town 3": [230, 130], "Town 6": [480, 170], "Town 4": [90, 240], "Town 5": [330, 230]}, "edges": [["Base", "Town 1", 4], ["Base", "Town 3", 2], ["Base", "Town 2", 5], ["Town 1", "Town 3", 1], ["Town 1", "Town 4", 7], ["Town 2", "Town 6", 8], ["Town 2", "Town 5", 3], ["Town 3", "Town 5", 1], ["Town 4", "Town 5", 6], ["Town 5", "Town 6", 5]]}, "w23": {"start": "Start", "goal": null, "h": null, "nodes": {"A": [70, 50], "B": [240, 50], "C": [420, 60], "D": [150, 140], "E": [300, 170], "Start": [60, 240], "F": [430, 240]}, "edges": [["Start", "A", 8], ["Start", "F", 10], ["A", "B", 4], ["B", "C", 8], ["B", "D", 2], ["D", "E", 2], ["C", "E", 3], ["C", "F", 9], ["E", "F", 7]]}, "w25": {"start": "Start", "goal": null, "h": null, "nodes": {"V": [260, 36], "T": [90, 100], "X": [430, 90], "W": [170, 150], "Y": [330, 210], "Start": [60, 250], "Z": [450, 250]}, "edges": [["Start", "T", 6], ["Start", "Y", 22], ["T", "V", 4], ["V", "W", 3], ["V", "X", 9], ["W", "X", 5], ["X", "Y", 3], ["X", "Z", 10], ["Y", "Z", 8]]}, "s26_31": {"start": "Begin", "goal": null, "h": null, "nodes": {"Q": [90, 40], "S": [470, 40], "R": [300, 90], "P": [130, 140], "T": [500, 180], "U": [370, 240], "Begin": [70, 240]}, "edges": [["Begin", "P", 9], ["Begin", "R", 6], ["Begin", "U", 21], ["P", "Q", 5], ["P", "R", 2], ["Q", "S", 5], ["R", "S", 8], ["S", "U", 6], ["S", "T", 3], ["T", "U", 4]]}, "s26_32": {"start": "Home", "goal": null, "h": null, "nodes": {"C": [250, 36], "B": [90, 90], "D": [450, 100], "A": [200, 160], "Home": [60, 240], "F": [340, 240], "E": [470, 250]}, "edges": [["Home", "A", 6], ["Home", "F", 16], ["A", "B", 8], ["A", "C", 3], ["A", "F", 8], ["B", "C", 4], ["C", "D", 12], ["D", "F", 6], ["D", "E", 7], ["F", "E", 3]]}, "w21": {"start": "Home", "goal": "School", "h": {"Home": 14, "A": 10, "B": 7, "C": 9, "D": 6, "E": 3, "F": 3, "School": 0}, "nodes": {"Home": [250, 36], "A": [90, 70], "C": [410, 70], "B": [250, 120], "D": [410, 170], "F": [170, 180], "E": [70, 220], "School": [400, 250]}, "edges": [["Home", "A", 1], ["Home", "B", 5], ["Home", "C", 4], ["A", "B", 3], ["A", "E", 6], ["B", "D", 2], ["B", "School", 7], ["C", "D", 6], ["D", "School", 2], ["E", "F", 1], ["E", "School", 5], ["F", "School", 3]]}, "s23": {"start": "Begin", "goal": "End", "h": {"Begin": 12, "A": 8, "B": 7, "C": 7, "D": 11, "E": 8, "F": 1, "G": 5, "End": 0}, "nodes": {"Begin": [260, 36], "A": [110, 80], "D": [440, 80], "C": [370, 120], "B": [230, 120], "E": [60, 170], "End": [250, 190], "G": [430, 190], "F": [140, 240]}, "edges": [["Begin", "A", 5], ["Begin", "B", 6], ["Begin", "C", 5], ["Begin", "D", 4], ["A", "E", 6], ["A", "End", 8], ["B", "End", 7], ["C", "G", 2], ["D", "G", 6], ["E", "F", 7], ["F", "End", 1], ["F", "G", 4], ["G", "End", 7]]}, "s26_33": {"start": "W", "goal": "E", "h": {"W": 18, "N1": 15, "N2": 14, "N3": 13, "N4": 9, "N5": 7, "N6": 3, "E": 0}, "nodes": {"N6": [300, 40], "N1": [140, 70], "E": [480, 100], "N5": [390, 100], "W": [50, 160], "N2": [260, 175], "N4": [430, 190], "N3": [150, 245]}, "edges": [["W", "N1", 6], ["W", "N2", 4], ["W", "N3", 7], ["N1", "N2", 3], ["N1", "N6", 12], ["N2", "N3", 2], ["N2", "N5", 7], ["N3", "N4", 4], ["N6", "N5", 4], ["N6", "E", 3], ["N5", "E", 11], ["N5", "N4", 2], ["N4", "E", 12]]}};
+
+function gsvg(g, o) { const s = graphSvgJs(g, o); return { W: s.W, H: s.H, inner: s.inner }; }
+(function () {
+  const g = GG.s21, { steps, dist } = dijkstra(g), names = Object.keys(g.nodes);
+  const draw = (s) => { const k = Math.round(s.i), [cur, d] = steps[k]; const done = new Set(steps.slice(1, k + 1).map((x) => x[0])); const o = gsvg(g, { cur, done, dist: d }); return o.inner; };
+  const W = Math.max(...Object.values(g.nodes).map((p) => p[0])) + 60, H = Math.max(...Object.values(g.nodes).map((p) => p[1])) + 60;
+  Lib.stepper($("#stA"), { w: W, h: H, label: "Dijkstra", base: { i: 0 }, draw, tween: 100, dwell: 2600, steps: steps.map(([u, d], i) => ({ cap: i === 0 ? "Initialise: Base = 0 and every other node = ∞ (not yet reached)." : `Visit <b>${u}</b> (distance ${d[u]}, the smallest unvisited). Update its neighbours: ` + (adjOf(g)[u].filter(([v]) => !steps.slice(1, i + 1).some((x) => x[0] === v)).map(([v, w]) => `${v}: ${d[u]} + ${w} = ${d[u] + w}${d[v] === d[u] + w ? " (new best)" : ""}`).join("; ") || "no unvisited neighbours") + ".", s: { i } })) });
+})();
+(function () {
+  const g = GG.w21, { rows, path } = astar(g);
+  const Wd = Math.max(...Object.values(g.nodes).map((p) => p[0])) + 60, Hd = Math.max(...Object.values(g.nodes).map((p) => p[1])) + 60;
+  const draw = (s) => { const k = Math.round(s.i); const seen = new Set(rows.slice(0, k + 1).flatMap((r) => [r[0], r[1]])); const cur = k ? rows[k][1] : "Home"; const o = gsvg(g, { h: true, cur, done: seen, hl: k === rows.length - 1 ? path : [] }); return o.inner; };
+  Lib.stepper($("#stB"), { w: Wd, h: Hd, label: "A*", base: { i: 0 }, draw, tween: 100, dwell: 2800, steps: rows.map((r, i) => ({ cap: i === 0 ? "Start: Home has g = 0, h = 14, so f = 14." : `From <b>${r[0]}</b> to <b>${r[1]}</b>: g = ${r[2]}, h = ${r[3]}, <b>f = ${r[4]}</b>.` + (i === rows.length - 1 ? " The goal has the lowest f: the path is " + path.join(" → ") + "." : ""), s: { i } })) });
+})();
+
+(function () {
+  let key = "s21", step = 99; const b = $("#dB"); const keys = ["s21", "w23", "w25", "s26_31", "s26_32"];
+  const paint = () => { const g = GG[key], { steps } = dijkstra(g), k = Math.min(step, steps.length - 1), [cur, d] = steps[k]; const done = new Set(steps.slice(1, k + 1).map((x) => x[0])); const o = gsvg(g, { cur, done, dist: d });
+    $("#dG").innerHTML = `<svg viewBox="0 0 ${o.W} ${o.H}" style="width:${Math.round(o.W * 1.1)}px;max-width:100%;display:block">${o.inner}</svg>`; const names = Object.keys(g.nodes);
+    $("#dT").innerHTML = `<div class="tw"><table class="t mono"><tr><th>Visit</th>${names.map((n) => `<th>${n}</th>`).join("")}</tr>` + steps.slice(0, k + 1).map(([u, dd], i) => { const vis = new Set(steps.slice(1, i + 1).map((x) => x[0])); return `<tr><td>${u || "start"}</td>${names.map((n) => `<td>${vis.has(n) ? "<b>" + dd[n] + "</b>" : dd[n] === INF ? "∞" : dd[n]}</td>`).join("")}</tr>`; }).join("") + "</table></div>";
+    b.querySelectorAll("button").forEach((x) => (x.className = x.dataset.k === key ? "on" : "")); };
+  const NM = { s21: "M/J 2021", w23: "O/N 2023", w25: "O/N 2025", s26_31: "M/J 2026 P31", s26_32: "M/J 2026 P32" };
+  keys.forEach((k) => { const x = document.createElement("button"); x.textContent = NM[k]; x.dataset.k = k; x.onclick = () => { key = k; step = 99; paint(); }; b.appendChild(x); });
+  Lib.slider($("#dS"), { id: "ds", label: "Nodes visited ", min: 0, max: 7, value: 7, fmt: (x) => x, onInput: (v) => { step = v; paint(); } }); paint();
+})();
+(function () {
+  let key = "w21", useH = true; const b = $("#aB"), hb = $("#aH"); const keys = ["w21", "s23", "s26_33"], NM = { w21: "O/N 2021", s23: "M/J 2023", s26_33: "M/J 2026" };
+  const paint = () => { const g = JSON.parse(JSON.stringify(GG[key])); if (!useH) Object.keys(g.h).forEach((n) => (g.h[n] = 0)); const { rows, path, cost } = astar(g); const o = gsvg(g, { h: true, hl: path });
+    $("#aG").innerHTML = `<svg viewBox="0 0 ${o.W} ${o.H}" style="width:${Math.round(o.W * 1.1)}px;max-width:100%;display:block">${o.inner}</svg>`;
+    $("#aT").innerHTML = `<div class="tw"><table class="t mono"><tr><th>From</th><th>To</th><th>g</th><th>h</th><th>f</th></tr>${rows.map((r) => `<tr>${r.map((x) => `<td>${x}</td>`).join("")}</tr>`).join("")}</table></div><div class="verdict">${useH ? "With the heuristic" : "With h = 0 (like Dijkstra's)"}: <b>${rows.length}</b> rows. Path ${path.join(" → ")}, cost ${cost}.</div>`;
+    b.querySelectorAll("button").forEach((x) => (x.className = x.dataset.k === key ? "on" : "")); hb.querySelectorAll("button").forEach((x) => (x.className = (x.dataset.k === "on") === useH ? "on" : "")); };
+  keys.forEach((k) => { const x = document.createElement("button"); x.textContent = NM[k]; x.dataset.k = k; x.onclick = () => { key = k; paint(); }; b.appendChild(x); });
+  [["on", "Heuristic on"], ["off", "Heuristic off (h = 0)"]].forEach(([k, t]) => { const x = document.createElement("button"); x.textContent = t; x.dataset.k = k; x.onclick = () => { useH = k === "on"; paint(); }; hb.appendChild(x); }); paint();
+})();
+Lib.classify($("#cl1"), { prompt: "Dijkstra's algorithm or the A* algorithm?", buckets: [{"label": "Dijkstra's"}, {"label": "A*"}], items: [{"text": "Finds the shortest path to every node", "b": 0}, {"text": "Uses a heuristic", "b": 1}, {"text": "Always finds the shortest path", "b": 0}, {"text": "May not find the shortest path if the heuristic is poor", "b": 1}, {"text": "Chooses the node with the lowest f = g + h", "b": 1}, {"text": "Explores all possible routes", "b": 0}], done: "A* uses a heuristic and one goal; Dijkstra's explores everything." });
+Lib.classify($("#cl2"), { prompt: "What does it stand for in the A* table?", buckets: [{"label": "g"}, {"label": "h"}, {"label": "f"}], items: [{"text": "The cost of the route from the start so far", "b": 0}, {"text": "The estimated cost still to go", "b": 1}, {"text": "g + h", "b": 2}, {"text": "Used to choose the next node to expand", "b": 2}, {"text": "Often the straight-line distance to the goal", "b": 1}, {"text": "Adds the edge weights along the path", "b": 0}], done: "g travelled, h estimated, f the total." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Dijkstra's algorithm", "Shortest path from a start node to all nodes"], ["A* algorithm", "Path to one goal using a heuristic"], ["Heuristic", "An estimate of the cost to the goal"], ["Visited node", "A node whose distance is final"], ["∞", "The starting value of every node except the start"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the steps of Dijkstra's algorithm in order.", items: ["Set the start node to 0 and all others to ∞", "Visit the unvisited node with the smallest distance", "Update each neighbour if the route through this node is shorter", "Repeat until all nodes are visited", "Read off the shortest distances"], done: "Initialise, visit, update, repeat, read." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "In A*, a node has g = 7 and h = 6. What is f?", "a": 13, "unit": "", "tol": 0.01, "hint": "g + h.", "sol": "<b>13</b>."},
+  {"q": "Dijkstra: node X = 5. An edge from X to Y has weight 4 and Y is currently ∞. What does Y become?", "a": 9, "unit": "", "tol": 0.01, "hint": "5 + 4.", "sol": "<b>9</b>."},
+  {"q": "Y is currently 9 and a new route gives 5 + 3 = 8. What does Y become?", "a": 8, "unit": "", "tol": 0.01, "hint": "The smaller value.", "sol": "<b>8</b>."},
+  {"q": "M/J 2021 graph: the shortest distance from Base to Town 6.", "a": 8, "unit": "", "tol": 0.01, "hint": "Base, Town 3, Town 5, Town 6 = 2 + 1 + 5.", "sol": "<b>8</b>."},
+  {"q": "O/N 2021 A* graph: the cost of the path Home, A, E, F, School.", "a": 11, "unit": "", "tol": 0.01, "hint": "1 + 6 + 1 + 3.", "sol": "<b>11</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "Which algorithm uses a heuristic?", opts: ["Dijkstra's", "A*", "Bubble sort", "Binary search"], a: 1, why: "A*." },
+  { q: "In Dijkstra's algorithm, unvisited nodes start at:", opts: ["0", "1", "∞", "−1"], a: 2, why: "Infinity." },
+  { q: "A* chooses the node with the lowest:", opts: ["g", "h", "f = g + h", "weight"], a: 2, why: "f." },
+  { q: "Which always finds the shortest path?", opts: ["A*", "Dijkstra's", "Neither", "Both always, whatever h"], a: 1, why: "Dijkstra's." },
+  { q: "What is h in A*?", opts: ["Cost so far", "Estimated cost to the goal", "Number of edges", "The start node"], a: 1, why: "The heuristic." },
+  { q: "Both algorithms are used to search a:", opts: ["Graph", "Sorted list", "Stack", "Queue"], a: 0, why: "A graph." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Dijkstra's", "Shortest path from the start to all nodes; start 0, others ∞."],
+  ["A*", "Path to one goal; f = g + h; heuristic."],
+  ["Heuristic", "Estimate of the cost still to go."],
+  ["f = g + h", "Cost so far plus estimate to the goal."],
+  ["Visited", "Distance final."],
+  ["Update", "New distance if smaller: distance + weight."],
+  ["Difference", "A* uses a heuristic; Dijkstra's explores all routes."],
+  ["Working marks", "0 and ∞, updates, visited, routes compared."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>
