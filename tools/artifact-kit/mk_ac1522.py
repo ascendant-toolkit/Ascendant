@@ -129,7 +129,7 @@ function srVals(st, S, R) { return { R, S, Q: st.Q, Qb: st.Qb }; }
   seq.forEach(([S, R], i) => { st = srStep(st, S, R); hist.push({ st, S, R }); });
   const draw = (s) => { const h = hist[Math.round(s.i) + 1]; return circFit(GSR, srVals(h.st, h.S, h.R), 560, { vals: false }); };
   const caps = ["Start: Q = 0, S = 0 and R = 0. Nothing is stored yet (Q = 0).", "S goes to 1: the flip-flop is <b>set</b>. Q becomes 1.", "S returns to 0. Q is <b>still 1</b>: the flip-flop has remembered.", "R goes to 1: the flip-flop is <b>reset</b>. Q becomes 0.", "R returns to 0. Q stays 0. The bit is stored again, this time as 0."];
-  Lib.stepper($("#stA"), { w: 560, h: Math.round(SRNOR.h * 2.2) + 12, label: "SR flip-flop remembering", base: { i: 0 }, draw, tween: 150, dwell: 2800, steps: caps.map((c, i) => ({ cap: c, s: { i } })) });
+  Lib.stepper($("#stA"), { w: 560, h: Math.round(GSR.h * 2.2) + 12, label: "SR flip-flop remembering", base: { i: 0 }, draw, tween: 150, dwell: 2800, steps: caps.map((c, i) => ({ cap: c, s: { i } })) });
 })();
 (function () {
   const ev = [{ j: 1, k: 0, q: 1, c: "J = 1, K = 0, clock pulse: Q is <b>set</b> to 1." }, { j: 0, k: 0, q: 1, c: "J = 0, K = 0, clock pulse: Q <b>keeps</b> its value, 1." }, { j: 1, k: 1, q: 0, c: "J = 1, K = 1, clock pulse: Q <b>toggles</b> from 1 to 0." }, { j: 1, k: 1, q: 1, c: "J = 1, K = 1, another pulse: Q toggles from 0 to 1." }, { j: 0, k: 1, q: 0, c: "J = 0, K = 1, clock pulse: Q is <b>reset</b> to 0." }];

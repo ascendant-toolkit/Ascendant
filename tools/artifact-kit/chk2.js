@@ -26,7 +26,7 @@ window.__chk = null; (async () => {
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   for (const st of root.querySelectorAll(".stp")) {
     const sv = st.querySelector("svg"), dots = [...st.querySelectorAll(".stp-dots button")], name = (st.parentElement.id || st.id || "stepper");
-    for (let i = 0; i < dots.length; i++) { dots[i].click(); await wait(120); check(sv, `${name} step ${i + 1}`); }
+    for (let i = 0; i < dots.length; i++) { dots[i].click(); await wait(60); check(sv, `${name} step ${i + 1}`); }
   }
   const stepSvgs = new Set([...document.querySelectorAll(".stp svg")]);
   [...root.querySelectorAll("svg")].filter((s) => !stepSvgs.has(s) && s.viewBox.baseVal && s.viewBox.baseVal.width).forEach((s, k) => check(s, (s.closest("[id]") || {}).id || "svg" + k));
