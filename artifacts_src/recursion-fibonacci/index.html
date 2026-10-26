@@ -1,0 +1,993 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Recursion in Action: The Fibonacci Sequence</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<style>
+.pick{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:6px 0 10px}
+.pick select{font:600 .95rem var(--sans);padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.pick label{font-weight:600;font-size:.92rem}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .85rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+#ciChart svg{display:block;width:100%;height:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.callbox{font:700 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:8px 14px;border-radius:0 8px 8px 0;margin:8px 0;overflow-x:auto}
+.step4{counter-reset:s;list-style:none;padding:0;margin:8px 0}
+.step4 li{counter-increment:s;display:flex;gap:10px;padding:8px 12px;margin-bottom:6px;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
+.step4 li::before{content:counter(s);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+.algo{grid-template-columns:minmax(0,1fr)}
+table.t td,table.t th{white-space:normal}
+table.t.mono td,table.t.mono th{white-space:nowrap}
+</style>
+<div class="wrap">
+
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Chapter 19 · 19.2</div>
+  <h1>Recursion in Action: The Fibonacci Sequence</h1>
+  <p class="lead">The classic example of a function that calls itself twice. See the call stack and the call tree grow, fill in the trace table from the past paper, count the calls, and find out why the simple recursive version is slow.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<!-- LEARN -->
+<section id="learn" role="tabpanel">
+  <div class="card big">
+    <h3>The sequence</h3>
+    <p>The <span class="kw">Fibonacci sequence</span> starts 0, 1 and then every number is the sum of the two before it: 0, 1, 1, 2, 3, 5, 8, 13, 21, … Counting from position 0, Fib(0) = 0, Fib(1) = 1, Fib(2) = 1, Fib(3) = 2, Fib(4) = 3, Fib(5) = 5.</p>
+    <p>That definition refers to itself: Fib(<i>n</i>) is Fib(<i>n</i> − 1) + Fib(<i>n</i> − 2). It is a natural fit for recursion, and it appeared in 9618 Paper 3 (M/J 2023) as a trace table question.</p>
+  </div>
+
+  <h2>Two base cases, two calls</h2>
+  <div class="grid2">
+    <div class="card"><h3>Base cases</h3><div class="formula">Fib(0) = 0 · Fib(1) = 1</div><p>The two starting values are known, so no further call is made. In the paper’s code both are handled by one test, <code>Number &lt;= 1</code>, which returns <code>Number</code> itself.</p></div>
+    <div class="card"><h3>General case</h3><div class="formula">Fib(n) = Fib(n − 1) + Fib(n − 2)</div><p>For any larger <i>n</i>, call the function <b>twice</b>, with <i>n</i> − 1 and <i>n</i> − 2, and add the answers. Both arguments are smaller, so each call moves towards a base case.</p></div>
+  </div>
+  <div class="tip"><b class="h">Why two base cases?</b>Fib(2) calls Fib(1) and Fib(0). If only Fib(1) were a base case, Fib(0) would call Fib(−1) and Fib(−2), and the calls would never stop.</div>
+
+  <h2>The function, line by line</h2>
+  <p>This is the function from the past paper. Switch between Pseudocode and Python.</p>
+  <div id="codeF"></div>
+  <ol class="step4">
+    <li><span><b>Header.</b> One parameter, <code>Number</code>, and it RETURNS an INTEGER.</span></li>
+    <li><span><b>IF Number &lt;= 1.</b> Covers both base cases. <code>Result ← Number</code> gives 0 for Fib(0) and 1 for Fib(1).</span></li>
+    <li><span><b>The recursive line.</b> <code>Fib(Number - 1) + Fib(Number - 2)</code> makes two calls. The addition waits until both have returned.</span></li>
+    <li><span><b>RETURN Result.</b> Both branches finish here, so every call hands back its answer.</span></li>
+  </ol>
+
+  <h2>Double recursion</h2>
+  <p>Compound interest and factorial call themselves once, so the calls form a single chain. Fibonacci calls itself <b>twice</b>, so the calls form a <span class="kw">tree</span>. The first call (<code>Fib(Number - 1)</code>) is followed all the way down and back before the second call (<code>Fib(Number - 2)</code>) even starts. The stack only ever holds one branch: it is as deep as <i>n</i>, even though the tree has many more calls.</p>
+
+  <h2>The cost of the simple version</h2>
+  <p>Look at the tree for Fib(5) in the Watch tab: Fib(3) is worked out twice, Fib(2) three times, and Fib(1) five times. Nothing is remembered, so the same sub-problems are repeated. The number of calls roughly multiplies by 1.6 each time <i>n</i> goes up by 1.</p>
+  <div class="tw"><table class="t">
+    <tr><th>n</th><th>Calls to Fib</th><th>Loop passes needed</th></tr>
+    <tr><td>5</td><td>15</td><td>4</td></tr>
+    <tr><td>10</td><td>177</td><td>9</td></tr>
+    <tr><td>20</td><td>21 891</td><td>19</td></tr>
+    <tr><td>30</td><td>2 692 537</td><td>29</td></tr>
+  </table></div>
+
+  <h2>The same job with a loop</h2>
+  <p>An iterative version keeps the last two values and moves along, doing about <i>n</i> steps and using no stack.</p>
+  <div class="grid2">
+    <div class="card"><h3>Recursive</h3><pre class="plain">FUNCTION Fib(Number : INTEGER) RETURNS INTEGER
+   IF Number &lt;= 1 THEN
+      RETURN Number
+   ELSE
+      RETURN Fib(Number - 1) + Fib(Number - 2)
+   ENDIF
+ENDFUNCTION</pre><pre class="plain">def fib(number):
+    if number &lt;= 1:
+        return number
+    return fib(number - 1) + fib(number - 2)</pre></div>
+    <div class="card"><h3>Iterative</h3><pre class="plain">FUNCTION Fib(Number : INTEGER) RETURNS INTEGER
+   Previous ← 0
+   Current ← 1
+   FOR i ← 2 TO Number
+      Next ← Previous + Current
+      Previous ← Current
+      Current ← Next
+   NEXT i
+   IF Number = 0 THEN
+      RETURN 0
+   ENDIF
+   RETURN Current
+ENDFUNCTION</pre><pre class="plain">def fib(number):
+    previous, current = 0, 1
+    for i in range(2, number + 1):
+        previous, current = current, previous + current
+    return 0 if number == 0 else current</pre></div>
+  </div>
+  <div class="note">Fibonacci is a good function to learn recursion on, and a poor one to use recursively in a real program. The recursive version is shorter and matches the definition; the loop is far faster.</div>
+</section>
+
+<!-- WATCH -->
+<section id="watch" role="tabpanel" hidden>
+  <p>Press Play, or click the numbered dots. In the stack diagrams, the left is the <b>call stack</b> (top box = running now) and the right is the <b>call tree</b> (amber = waiting, blue = running, green = returned, with the returned value). The highlighted code line shows what is being run.</p>
+
+  <h2>1 · Fib(4): the call stack and call tree</h2>
+  <p>Watch the stack: it never holds more than four frames, because Fib(3) is finished completely before Fib(2) is called. The tree grows from left to right.</p>
+  <div id="aStack"></div>
+
+  <h2>2 · Fib(5): the paper’s trace table</h2>
+  <p>This is the table from M/J 2023. It records the leftmost path down to the base case, then the unwinding. The other branches’ values are filled in as they are needed.</p>
+  <div id="aTab"></div>
+  <div class="warn"><b class="h">Remember</b>Rows 1 to 4 are <b>winding</b>: the Result column holds the sum that is still waiting, and the Return value is blank. Only from row 5 do any calls return.</div>
+
+  <h2>3 · Fib(3): the whole tree, step by step</h2>
+  <p>A smaller tree where every call is visible. Fib(1) is called twice and returns 1 each time.</p>
+  <div id="aStack3"></div>
+</section>
+
+<!-- EXPLORE -->
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · How many calls?</h2>
+  <p>Choose <i>n</i>. The call tree is drawn for <i>n</i> up to 7. Pick a value and every call to Fib of that value is highlighted, so you can see how often the same work is repeated.</p>
+  <div id="fbS"></div>
+  <div class="pick"><label for="fbHi">Highlight calls to</label><select id="fbHi"></select></div>
+  <div class="readout" id="fbRO"></div>
+  <div id="fbTree"></div>
+  <div id="fbBars"></div>
+  <div class="tip"><b class="h">Try this</b>Set <i>n</i> = 5 and highlight Fib(1): five of the calls are the same. Then try <i>n</i> = 12. The tree is too wide to draw, but the call counts show how quickly the repeated work builds up while a loop would need only 11 passes.</div>
+
+  <h2>Activity 1 · Order the events</h2>
+  <div id="o1"></div>
+
+  <h2>Activity 2 · Sort the code into its roles</h2>
+  <div id="cl1"></div>
+
+  <h2>Activity 3 · Recursion or loop?</h2>
+  <div id="cl2"></div>
+
+  <h2>Activity 4 · Match the terms</h2>
+  <div id="m1"></div>
+</section>
+
+<!-- PRACTISE -->
+<section id="practise" role="tabpanel" hidden>
+  <h2>Trace it yourself</h2>
+  <p>Work down the left branch first, then back up, then across to the next call. Use <b>Hint</b> before <b>Show working</b>.</p>
+  <div id="c1"></div>
+  <h2>Quick quiz</h2>
+  <div id="qz1"></div>
+  <h2>Flashcards</h2>
+  <div id="fc1"></div>
+</section>
+
+<!-- REAL WORLD -->
+<section id="real" role="tabpanel" hidden>
+  <p class="note">General descriptions of where the idea appears. Numbers are illustrative only.</p>
+  <div class="rw"><h3>Breeding rabbits</h3><p>Fibonacci described an idealised rabbit population: each pair needs a month to mature, then produces a new pair every month. The number of pairs each month is the number two months ago plus the number last month, which is exactly the definition.</p><div class="use"><b>Exam use:</b> a clear example of a problem defined in terms of two smaller versions of itself.</div></div>
+  <div class="rw"><h3>Climbing stairs</h3><p>If you can climb one or two stairs at a time, the number of ways to reach step <i>n</i> is the number of ways to reach step <i>n</i> − 1 plus step <i>n</i> − 2. The answers follow the Fibonacci numbers.</p><div class="use"><b>Exam use:</b> shows that the same code shape solves counting problems, not only “maths” sequences.</div></div>
+  <div class="rw"><h3>Spirals in plants</h3><p>The number of spirals in some pine cones, sunflower heads and pineapples are often Fibonacci numbers. The link is a result of how growth packs new seeds efficiently, not a program running in the plant.</p><div class="use"><b>Exam use:</b> interesting context, but not needed in an answer.</div></div>
+  <div class="rw"><h3>Other problems that split in two</h3><p>Searching a game tree, exploring a maze with a choice of two turns, and many divide-and-conquer algorithms call themselves two or more times, just like Fib. The call tree is the same kind of picture.</p><div class="use"><b>Exam use:</b> a good answer to “give an example of an application that could use recursion”, together with the reason: the problem splits into smaller copies of itself.</div></div>
+  <div class="rw"><h3>Why real programs avoid the simple version</h3><p>Because the same values are recomputed, the plain recursive Fib takes far longer than a loop as <i>n</i> grows. Programmers either use a loop or store results already worked out (called memoisation) so each value is calculated once. Memoisation is beyond the 9618 syllabus, but it explains why repeated calls are the weakness.</p><div class="use"><b>Exam use:</b> supports a “discuss the drawbacks of recursion” answer: repeated work, more memory for the stack, possible stack overflow.</div></div>
+</section>
+
+<!-- EXAM -->
+<section id="exam" role="tabpanel" hidden>
+  <h2>What 9618 has asked about Fibonacci</h2>
+  <p>The sequence appeared as a trace table in Paper 3. The same trace-table skill is tested with other functions in Paper 3 and Paper 4. Open each question for reminders, a model answer and common mistakes. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span></div>
+
+  <h2>1. Past paper question</h2>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/31 and 33 · Q12(b)</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> Complete the trace table for Fib(5).
+<pre class="plain">FUNCTION Fib(Number : INTEGER) RETURNS INTEGER
+   IF Number <= 1 THEN
+      Result ← Number
+   ELSE
+      Result ← Fib(Number - 1) + Fib(Number - 2)
+   ENDIF
+   RETURN Result
+ENDFUNCTION</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The table’s columns were: Call number, Function call, Number, Result, Return value. It is the same layout as the compound interest trace. Go down the first branch to the base case, then back up. The mark scheme only expects the leftmost path with known values filled in for the other branch.</div>
+    <div class="ans"><div class="tw"><table class="t mono">
+      <tr><th>Call number</th><th>Function call</th><th>Number</th><th>Result</th><th>Return value</th></tr>
+      <tr><td>1</td><td>Fib(5)</td><td>5</td><td>Fib(4) + Fib(3)</td><td></td></tr>
+      <tr><td>2</td><td>Fib(4)</td><td>4</td><td>Fib(3) + Fib(2)</td><td></td></tr>
+      <tr><td>3</td><td>Fib(3)</td><td>3</td><td>Fib(2) + Fib(1)</td><td></td></tr>
+      <tr><td>4</td><td>Fib(2)</td><td>2</td><td>Fib(1) + Fib(0)</td><td></td></tr>
+      <tr><td>5</td><td>Fib(1)</td><td>1</td><td>1</td><td><b>1</b></td></tr>
+      <tr><td>6</td><td>Fib(0)</td><td>0</td><td>0</td><td><b>0</b></td></tr>
+      <tr style="background:var(--good-soft)"><td>(4)</td><td>Fib(2)</td><td>2</td><td>1 + 0</td><td><b>1</b></td></tr>
+      <tr style="background:var(--good-soft)"><td>(3)</td><td>Fib(3)</td><td>3</td><td>1 + 1</td><td><b>2</b></td></tr>
+      <tr style="background:var(--good-soft)"><td>(2)</td><td>Fib(4)</td><td>4</td><td>2 + 1</td><td><b>3</b></td></tr>
+      <tr style="background:var(--good-soft)"><td>(1)</td><td>Fib(5)</td><td>5</td><td>3 + 2</td><td><b>5</b></td></tr></table></div>
+      <p>Mark points, one each: <span class="mk k" data-t="1">call number column correct</span>; <span class="mk k" data-t="2">function call and Number columns correct</span>; <span class="mk k" data-t="3">Result column correct going down to the base case (winding, rows 1 to 6)</span>; <span class="mk k" data-t="4">Result column correct going back up (unwinding, rows 7 to 10)</span>; <span class="mk k" data-t="5">Return value column correct</span>.</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Filling the Return value column on the winding rows (1 to 4). Those calls have not returned yet. Another: leaving out the base case calls Fib(1) and Fib(0). Same layout as compound interest: expression in the Result column on the way down, numbers on the way up.</div>
+  </div></details>
+
+  <h2>2. Review questions</h2>
+  <p>Written for practice, not taken from past papers.</p>
+
+  <details class="eq"><summary>Q1 <span class="cmd">State</span> <span class="mark">2 marks</span> State the base cases of the function Fib().</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>“State” needs short facts. Give the condition and what it returns.</div>
+    <div class="ans"><span class="mk k" data-t="1">When Number is 0, it returns 0 (no further call).</span> <span class="mk k" data-t="2">When Number is 1, it returns 1 (no further call).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving only Fib(1). Without the Number = 0 case, Fib(2) would call Fib(0), and the function would carry on to negative numbers.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q2 <span class="cmd">Calculate</span> <span class="mark">2 marks</span> The function Fib() is called with Fib(4). State how many times the function is called in total, and how many of those calls are base cases.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Draw the call tree. Fib(4) calls Fib(3) and Fib(2); Fib(3) calls Fib(2) and Fib(1); and so on. Count every box, including the first.</div>
+    <div class="ans"><span class="mk k" data-t="1">9 calls in total.</span> <span class="mk k" data-t="2">5 of them are base cases (Fib(1) three times, Fib(0) twice).</span><pre class="plain">Fib(4)
+├─ Fib(3)
+│  ├─ Fib(2)
+│  │  ├─ Fib(1)   base
+│  │  └─ Fib(0)   base
+│  └─ Fib(1)      base
+└─ Fib(2)
+   ├─ Fib(1)      base
+   └─ Fib(0)      base</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting the original call, or counting only the calls that return 1.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q3 <span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain why the recursive version of Fib() is slow for large values of Number.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Say what is repeated, and what that does to the number of calls.</div>
+    <div class="ans"><span class="mk k" data-t="1">Each call (except the base cases) makes two further calls.</span> <span class="mk k" data-t="2">The same values are calculated many times (e.g. Fib(2) is worked out again in each branch), because nothing is remembered.</span> <span class="mk k" data-t="3">The total number of calls roughly multiplies each time Number increases (exponential growth), so far more calls are made than a loop would need.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Just writing “recursion is slow”. Name the repeated calculations.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q4 <span class="cmd">Rewrite</span> <span class="mark">5 marks</span> Rewrite the function Fib() as an iterative function, using program code.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Starting values replace the base cases. The repeating step goes in a loop. Keep two variables for the previous two values.</div>
+    <div class="ans"><span class="mk k" data-t="1">Function header with one parameter, returning an integer.</span> <span class="mk k" data-t="2">Two variables initialised to the starting values (0 and 1).</span> <span class="mk k" data-t="3">A loop that runs the correct number of times (Number − 1 passes from 2 up to Number).</span> <span class="mk k" data-t="4">Inside the loop, the new value is the sum of the two previous ones and the variables are updated in the right order.</span> <span class="mk k" data-t="5">Returns the correct value (including the case Number = 0 or 1).</span>
+<pre class="plain">def fib(number):
+    previous, current = 0, 1
+    for i in range(2, number + 1):
+        previous, current = current, previous + current
+    return 0 if number == 0 else current</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Updating <code>previous</code> before <code>current</code> has used it, so one value is lost. Python’s two-value assignment avoids this; in pseudocode use a temporary variable.</div>
+  </div></details>
+</section>
+
+<!-- TIPS -->
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Two base cases.</b> Fib(0) = 0 and Fib(1) = 1. Both appear in a trace table, so don’t leave out Fib(0).</li>
+    <li><b>Go down the left branch first.</b> Fib(Number - 1) is called and finished completely before Fib(Number - 2) is started.</li>
+    <li><b>In the Result column write the sum going down</b> (<code>Fib(4) + Fib(3)</code>) <b>and the numbers going up</b> (<code>3 + 2</code>). The Return value column stays blank until a call returns.</li>
+    <li><b>Count the calls with a tree.</b> Fib(3) is 5 calls, Fib(4) is 9, Fib(5) is 15. Each is the previous two plus 1.</li>
+    <li><b>The stack is only as deep as <i>n</i>.</b> Fib(5) never has more than 5 frames, even though there are 15 calls in all.</li>
+    <li><b>For drawbacks, name the repeated work.</b> The same values are recalculated, so the number of calls grows very quickly. Also: more memory for stack frames and a risk of stack overflow.</li>
+    <li><b>Converting to a loop:</b> the base-case values become the starting values of two variables, and the sum goes in the loop.</li>
+    <li><b>Say “frame”, “return address”, “push” and “pop”</b> in any stack answer.</li>
+  </ul>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Identify</td><td>A short fact or the line of code. No explanation.</td></tr>
+    <tr><td>Describe</td><td>The steps in order, or how something works.</td></tr>
+    <tr><td>Explain</td><td>What happens and why.</td></tr>
+    <tr><td>Complete</td><td>Fill every gap or cell, with exact values or code.</td></tr>
+    <tr><td>Write / Rewrite</td><td>Full code with header, structure and end statements.</td></tr>
+  </table></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider (back / next buttons) ---------- */
+function slider(el, o) {
+  const id = o.id, step = o.step || 1;
+  let v = o.value;
+  el.innerHTML = `<div class="sl"><label>${o.label}<output id="${id}o"></output></label><div class="stp-ctl"><button class="b" data-a="prev">◀ Previous</button><button class="b" data-a="next">Next ▶</button></div></div>`;
+  const out = $("#" + id + "o", el), prev = $("[data-a=prev]", el), next = $("[data-a=next]", el);
+  const upd = () => { prev.disabled = v <= o.min; next.disabled = v >= o.max; out.textContent = (o.fmt || ((x) => x))(v); o.onInput && o.onInput(v); };
+  const set = (x) => { v = Math.max(o.min, Math.min(o.max, x)); upd(); };
+  prev.onclick = () => set(v - step);
+  next.onclick = () => set(v + step);
+  upd();
+  return { get: () => v, set };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+/* ===== 19.2 Recursion: trace engine ===== */
+const RW = 720, RH = 372;
+
+/* Records every call/return of a recursive function as snapshots, then draws stack + call tree. */
+function Trace(o = {}) {
+  const nodes = [], stack = [], snaps = [], out = [];
+  let phase = "down", pdata = null, alert = null;
+  const clonePanel = () => (pdata ? JSON.parse(JSON.stringify(pdata)) : null);
+  const snap = (cap, ps, py) => snaps.push({
+    cap, ps, py, phase, alert, out: [...out], n: nodes.length, panel: clonePanel(),
+    ns: nodes.map((n) => [n.st, n.val]),
+    stack: stack.map((f) => ({ label: f.label, ra: f.ra, status: f.status, st: f.st })),
+  });
+  const T = {
+    nodes, out, o,
+    setPanel(d) { pdata = d; },
+    print(t) { out.push(t); },
+    setStatus(nd, s) { nd.fr.status = s; },
+    call(label, short, parent, ra, cap, ps, py, status = "", st = "run") {
+      if (parent) { parent.st = "wait"; parent.fr.st = "wait"; }
+      const nd = { label, short, parent, kids: [], st: "act", val: null };
+      nodes.push(nd); parent && parent.kids.push(nd);
+      nd.fr = { label, ra, status, st }; stack.push(nd.fr);
+      phase = "down"; snap(cap, ps, py); return nd;
+    },
+    note(nd, status, cap, ps, py, st = "run") { nd.fr.status = status; nd.fr.st = st; nd.st = "act"; snap(cap, ps, py); },
+    ret(nd, val, cap, ps, py, outLine, status) {
+      nd.fr.status = status || (val === undefined || val === null ? "finished" : "returns " + val); nd.fr.st = "ret"; nd.st = "done"; nd.val = val ?? "";
+      if (outLine) out.push(outLine);
+      phase = "up"; snap(cap, ps, py); stack.pop();
+    },
+    finish(cap, ps, py, al) { alert = al || null; snap(cap, ps, py); },
+    alertNow(a) { alert = a; },
+  };
+  T.build = () => {
+    layout(nodes);
+    return snaps.map((s) => ({ cap: s.cap, ps: s.ps, py: s.py, svg: drawSnap(s, nodes, o) }));
+  };
+  T.maxDepth = () => 0;
+  return T;
+}
+
+/* tree layout: leaves spaced evenly, parents centred over children */
+function layout(nodes) {
+  if (!nodes.length) return;
+  let leaf = 0; const depthOf = (n) => (n.parent ? depthOf(n.parent) + 1 : 0);
+  const go = (n) => { if (!n.kids.length) n.lx = leaf++; else { n.kids.forEach(go); n.lx = (n.kids[0].lx + n.kids[n.kids.length - 1].lx) / 2; } };
+  go(nodes[0]); nodes.forEach((n) => (n.d = depthOf(n)));
+  nodes.leaves = leaf; nodes.depth = Math.max(...nodes.map((n) => n.d)) + 1;
+}
+
+function maxStack(snaps) { return Math.max(1, ...snaps.map((s) => s.stack.length)); }
+
+function drawSnap(s, nodes, o) {
+  const maxD = o.maxDepth || 5, fh = Math.max(34, Math.min(50, Math.floor(272 / maxD) - 5)), gap = 5, X = 14, FW = 340, base = 322;
+  let g = "";
+  // left: call stack
+  g += SV.text(X, 22, "CALL STACK", "sm bd", { "text-anchor": "start", style: "letter-spacing:.1em" });
+  g += SV.text(X + FW, 22, s.phase === "down" ? "▼ WINDING (calls)" : "▲ UNWINDING (returns)", "lbl bd " + (s.phase === "down" ? "t1" : "t3"), { "text-anchor": "end" });
+  g += SV.line(X - 4, base + 3, X + FW + 4, base + 3, "ax");
+  g += SV.text(X, base + 20, "bottom of stack: main program", "sm", { "text-anchor": "start" });
+  s.stack.forEach((f, i) => {
+    const y = base - fh - i * (fh + gap), c = { run: "cell-cur", wait: "", ret: "cell-ok", base: "cell-warn" }[f.st];
+    g += SV.rect(X, y, FW, fh, "cell " + c, { rx: 8 });
+    g += SV.text(X + 10, y + (fh > 40 ? 20 : 15), esc(f.label), "lbl bd", { "text-anchor": "start", style: "font-family:var(--mono);font-size:14px" });
+    g += SV.text(X + FW - 10, y + fh - (fh > 40 ? 10 : 6), "↩ " + esc(f.ra), "sm", { "text-anchor": "end" });
+    if (f.status) g += SV.text(X + 10, y + fh - (fh > 40 ? 10 : 6), esc(f.status), "lbl", { "text-anchor": "start", style: "font-size:12.5px" });
+  });
+  if (!s.stack.length) g += SV.text(X + FW / 2, base - 40, "stack is empty", "lbl", { "text-anchor": "middle", style: "font-style:italic;fill:var(--muted)" });
+  // right: call tree
+  const RX = 388, RWd = RW - RX - 10;
+  g += SV.text(RX, 22, "CALL TREE  " + (o.treeName || ""), "sm bd", { "text-anchor": "start", style: "letter-spacing:.1em" });
+  const lv = nodes.depth || 1, lvs = nodes.leaves || 1, r = nodes.length > 12 ? 14 : nodes.some((n) => String(n.short).length > 3) ? 22 : 17, dy = Math.min(52, 190 / Math.max(1, lv - 1 || 1)), sp = lvs > 1 ? Math.min(54, (RWd - 2 * r) / (lvs - 1)) : 0;
+  const tw = (lvs - 1) * sp, ox = RX + RWd / 2 - tw / 2, oy = 52;
+  const px = (n) => ox + n.lx * sp, py = (n) => oy + n.d * dy;
+  nodes.forEach((n, i) => { if (n.parent) { const live = i < s.n; g += SV.line(px(n.parent), py(n.parent), px(n), py(n), live ? "edge" : "edge", { opacity: live ? 1 : 0.18 }); } });
+  nodes.forEach((n, i) => {
+    const live = i < s.n, st = live ? s.ns[i][0] : "new", val = live ? s.ns[i][1] : null;
+    const cls = { new: "nd", wait: "nd", act: "nd nd-cur", done: "nd nd-ok" }[st];
+    g += `<g opacity="${live ? 1 : 0.22}">` + SV.circle(px(n), py(n), r, cls, st === "wait" ? { style: "stroke:var(--warn);stroke-width:3.5;fill:var(--warn-soft)" } : {}) + SV.text(px(n), py(n) + 5, esc(n.short), "lbl bd", { "text-anchor": "middle", style: "font-size:" + (String(n.short).length > 3 ? 10 : String(n.short).length > 2 ? 10.5 : r < 16 ? 11 : 13) + "px" });
+    if (st === "done" && val !== "" && val !== null) g += SV.text(px(n) + r + 3, py(n) + 4, esc(val), "sm bd t3", { "text-anchor": "start", style: "font-family:var(--mono);font-size:11.5px" });
+    g += "</g>";
+  });
+  // bottom right: output / returned values / custom panel
+  const BY = 268;
+  g += SV.rect(RX, BY, RWd, 90, "cell", { rx: 8 });
+  if (s.panel && o.panelFn) g += o.panelFn(s.panel, RX, BY, RWd);
+  else {
+    g += SV.text(RX + 10, BY + 16, (o.outTitle || "OUTPUT").toUpperCase(), "sm bd", { "text-anchor": "start", style: "letter-spacing:.1em" });
+    s.out.forEach((t, i) => { const col = i < 5 ? 0 : 1, row = i % 5; g += SV.text(RX + 10 + col * (RWd / 2), BY + 33 + row * 13.5, esc(t), "lbl", { "text-anchor": "start", style: "font-family:var(--mono);font-size:12px" }); });
+  }
+  if (s.alert) { g += SV.rect(RX, BY, RWd, 90, "cell cell-no", { rx: 8 }) + SV.text(RX + RWd / 2, BY + 52, esc(s.alert), "lbl bd t2", { "text-anchor": "middle", style: "font-size:17px" }); }
+  return g;
+}
+
+/* helper: run a simulation and hand the frames to Lib.algo */
+function showAlgo(sel, T, code, label, dwell = 2600) {
+  const frames = T.build();
+  Lib.algo($(sel), { w: RW, h: RH, label, pseudo: code.ps, py: code.py, dwell, frames });
+}
+
+/* ===== Fibonacci: double recursion, trace table, call counts ===== */
+const PS = ["FUNCTION Fib(Number : INTEGER) RETURNS INTEGER", "   IF Number <= 1 THEN", "      Result ← Number", "   ELSE", "      Result ← Fib(Number - 1) + Fib(Number - 2)", "   ENDIF", "   RETURN Result", "ENDFUNCTION"];
+const PY = ["def fib(number):", "    if number <= 1:", "        result = number", "    else:", "        result = fib(number - 1) + fib(number - 2)", "    return result"];
+const CODE = { ps: PS, py: PY };
+const fibv = (n) => { let a = 0, b = 1; for (let i = 0; i < n; i++) [a, b] = [b, a + b]; return a; };
+const callsOf = (n) => 2 * fibv(n + 1) - 1;
+
+/* Stack + call tree animation for Fib(n) */
+function fibTrace(n) {
+  const T = Trace({ treeName: "Number", outTitle: "Values returned", maxDepth: n + 1 });
+  const run = (k, parent, ra) => {
+    const nd = T.call(`Fib(${k})`, k, parent, ra, `<b>Fib(${k}) is called.</b> A new frame is pushed with Number = ${k}.`, [0], [0]);
+    if (k <= 1) {
+      T.note(nd, `Number = ${k}: BASE CASE`, `Is Number &lt;= 1? <b>Yes</b>: the <b>base case</b>. Result ← Number = ${k}. No further call.`, [1, 2], [1, 2], "base");
+      T.print(`Fib(${k}) returns ${k}`);
+      T.ret(nd, String(k), `RETURN Result sends <b>${k}</b> back to the waiting call. The frame is popped.`, [6], [5]);
+      return k;
+    }
+    T.note(nd, "general case: two calls", `Is Number &lt;= 1? No (${k}). General case: Result ← Fib(${k - 1}) + Fib(${k - 2}). The first call is made now; the addition has to <b>wait</b> for both answers.`, [1, 4], [1, 4]);
+    T.setStatus(nd, `paused: waiting for Fib(${k - 1})`);
+    const a = run(k - 1, nd, "line 5, first call");
+    T.note(nd, `${a} + Fib(${k - 2}) …`, `Fib(${k - 1}) returned ${a}. Back in Fib(${k}), the <b>second</b> call, Fib(${k - 2}), is made next.`, [4], [4]);
+    T.setStatus(nd, `paused: waiting for Fib(${k - 2})`);
+    const b = run(k - 2, nd, "line 5, second call");
+    T.note(nd, `${a} + ${b} = ${a + b}`, `Both calls have returned: Result ← ${a} + ${b} = <b>${a + b}</b>.`, [4], [4]);
+    T.print(`Fib(${k}) returns ${a + b}`);
+    T.ret(nd, String(a + b), `RETURN Result sends ${a + b} up. The frame is popped.`, [6], [5]);
+    return a + b;
+  };
+  const res = run(n, null, "main");
+  T.finish(`The stack is empty. Fib(${n}) = ${res}, using ${T.nodes.length} calls. The stack was never more than ${n} frames deep: only one branch is active at a time.`, [], []);
+  return T;
+}
+showAlgo("#aStack", fibTrace(4), CODE, "Animated call stack and call tree for Fib(4)", 2800);
+showAlgo("#aStack3", fibTrace(3), CODE, "Animated call stack and call tree for Fib(3)", 2800);
+
+/* The paper's trace table for Fib(5) (leftmost path) */
+(() => {
+  const rows = [
+    ["1", "Fib(5)", "5", "Fib(4) + Fib(3)", "", "down", "<b>Call 1: Fib(5).</b> Number is 5, so this is the general case. Result holds the sum it cannot finish: Fib(4) + Fib(3). Nothing is returned yet."],
+    ["2", "Fib(4)", "4", "Fib(3) + Fib(2)", "", "down", "<b>Call 2: Fib(4).</b> The first call from Fib(5). Again the general case, so it waits for Fib(3) + Fib(2)."],
+    ["3", "Fib(3)", "3", "Fib(2) + Fib(1)", "", "down", "<b>Call 3: Fib(3).</b> Another general case. The first call it makes is Fib(2)."],
+    ["4", "Fib(2)", "2", "Fib(1) + Fib(0)", "", "down", "<b>Call 4: Fib(2).</b> The last general case on this path. Its first call is Fib(1)."],
+    ["5", "Fib(1)", "1", "1", "1", "base", "<b>Call 5: Fib(1).</b> Number &lt;= 1: the <b>base case</b>. Result = Number = 1, returned straight away. <b>Unwinding starts.</b>"],
+    ["6", "Fib(0)", "0", "0", "0", "base", "<b>Call 6: Fib(0).</b> The second call from Fib(2), also a base case: Result = 0, returned."],
+    ["(4)", "Fib(2)", "2", "1 + 0", "1", "up", "<b>Call 4 resumes.</b> Both its calls have returned: 1 + 0 = <b>1</b>."],
+    ["(3)", "Fib(3)", "3", "1 + 1", "2", "up", "<b>Call 3 resumes.</b> Fib(2) returned 1, and the second call, Fib(1), is a base case returning 1: 1 + 1 = <b>2</b>."],
+    ["(2)", "Fib(4)", "4", "2 + 1", "3", "up", "<b>Call 2 resumes.</b> Fib(3) returned 2, and its second call Fib(2) returns 1: 2 + 1 = <b>3</b>."],
+    ["(1)", "Fib(5)", "5", "3 + 2", "5", "up", "<b>Call 1 resumes.</b> Fib(4) returned 3, and its second call Fib(3) returns 2: 3 + 2 = <b>5</b>. Fib(5) = 5."],
+  ];
+  const COLS = [["Call number", 0, 90], ["Function call", 90, 130], ["Number", 220, 80], ["Result", 300, 270], ["Return value", 570, 150]];
+  const RHt = 30, top = 40;
+  const tbl = (n) => {
+    let g = "";
+    COLS.forEach(([t, x]) => { g += SV.text(x + 8, 26, t, "sm bd", { style: "font-size:11px;text-transform:uppercase;letter-spacing:.03em" }); });
+    g += SV.line(0, 34, 720, 34, "ax");
+    rows.forEach((r, i) => {
+      const y = top + i * RHt;
+      if (i >= n) { g += SV.rect(0, y, 720, RHt, "cell", { style: "opacity:.35;stroke-width:1" }); return; }
+      const cls = i === n - 1 ? "cell cell-cur" : r[5] === "base" ? "cell cell-warn" : r[5] === "up" ? "cell cell-ok" : "cell";
+      g += SV.rect(1, y + 1, 718, RHt - 2, cls, { style: "stroke-width:" + (i === n - 1 ? 2.5 : 1.2) });
+      r.slice(0, 5).forEach((c, k) => { const [, x, w] = COLS[k], mid = k === 0 || k === 2 || k === 4; g += SV.text(mid ? x + w / 2 : x + 8, y + 20, esc(c), "lbl" + (k === 4 ? " bd" : ""), { "text-anchor": mid ? "middle" : "start", style: "font-family:var(--mono);font-size:12px" }); });
+    });
+    COLS.slice(1).forEach(([, x]) => { g += SV.line(x, 34, x, top + rows.length * RHt, "gr"); });
+    return g;
+  };
+  const frames = [{ cap: "A <b>trace table</b> has one row per call. Rows 1 to 6 go <b>down</b> (the calls), then the bracketed rows go <b>up</b> (the same calls finishing). Press Next to fill in call 1.", ps: [0], py: [0], svg: tbl(0) }];
+  const lines = { down: [[1, 4], [1, 4]], base: [[1, 2, 6], [1, 2, 5]], up: [[4, 6], [4, 5]] };
+  rows.forEach((r, i) => frames.push({ cap: r[6], ps: lines[r[5]][0], py: lines[r[5]][1], svg: tbl(i + 1) }));
+  Lib.algo($("#aTab"), { w: 720, h: top + rows.length * RHt + 10, label: "Trace table being filled in for Fib(5)", pseudo: PS, py: PY, dwell: 3400, frames });
+})();
+
+Lib.codePanel($("#codeF"), { pseudo: PS, py: PY });
+
+/* ===== Explore lab ===== */
+(() => {
+  let S, hi = 0;
+  const sel = $("#fbHi");
+  const tree = (n, h) => {
+    const nodes = [];
+    const mk = (k, parent) => { const nd = { k, parent, kids: [] }; nodes.push(nd); parent && parent.kids.push(nd); if (k > 1) { mk(k - 1, nd); mk(k - 2, nd); } return nd; };
+    mk(n, null); layout(nodes);
+    const W = 720, lv = nodes.depth, lvs = nodes.leaves, sp = lvs > 1 ? Math.min(52, (W - 40) / (lvs - 1)) : 0, r = lvs > 14 ? 12 : 15, dy = Math.min(50, 230 / Math.max(1, lv - 1)), ox = W / 2 - ((lvs - 1) * sp) / 2, oy = 28, H = oy + (lv - 1) * dy + 34;
+    const px = (nd) => ox + nd.lx * sp, py = (nd) => oy + nd.d * dy;
+    let g = "";
+    nodes.forEach((nd) => { if (nd.parent) g += SV.line(px(nd.parent), py(nd.parent), px(nd), py(nd), "edge"); });
+    nodes.forEach((nd) => {
+      const on = nd.k === h;
+      g += SV.circle(px(nd), py(nd), r, "nd", on ? { style: "fill:var(--warn-soft);stroke:var(--warn);stroke-width:3" } : {}) + SV.text(px(nd), py(nd) + 4.5, nd.k, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (r < 14 ? 11 : 12.5) + "px" });
+    });
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Call tree for Fib(${n}); calls to Fib(${h}) highlighted">${g}</svg>`;
+  };
+  const counts = (n) => { const c = Array(n + 1).fill(0); const go = (k) => { c[k]++; if (k > 1) { go(k - 1); go(k - 2); } }; go(n); return c; };
+  const fill = (n) => { sel.innerHTML = Array.from({ length: n + 1 }, (_, k) => `<option value="${k}">Fib(${k})</option>`).join(""); hi = Math.min(hi, n); sel.value = hi; };
+  const draw = () => {
+    if (!S) return;
+    const n = S.get();
+    if (+sel.options.length !== n + 1) fill(n);
+    hi = +sel.value;
+    const c = n <= 20 ? counts(n) : null, total = callsOf(n), loop = Math.max(n - 1, 1);
+    $("#fbRO").innerHTML = `<div><small>Fib(${n}) =</small><strong>${fibv(n).toLocaleString()}</strong></div><div><small>Total calls</small><strong>${total.toLocaleString()}</strong></div><div><small>Deepest stack</small><strong>${n + 1 > 1 ? Math.max(n, 1) : 1}</strong></div><div><small>Loop passes</small><strong>${loop}</strong></div><div><small>Calls to Fib(${hi})</small><strong>${c ? c[hi] : "–"}</strong></div>`;
+    $("#fbTree").innerHTML = n <= 7 ? `<div class="card">${tree(n, hi)}</div>` : `<p class="note">The tree for Fib(${n}) has ${total.toLocaleString()} boxes, too many to draw. The counts below show the same pattern.</p>`;
+    if (c) {
+      const mx = Math.max(...c);
+      $("#fbBars").innerHTML = `<h3>Calls made to each value</h3>` + c.map((v, k) => k).reverse().map((k) => `<div style="display:flex;gap:10px;align-items:center;margin:3px 0"><span style="font:600 .85rem var(--mono);width:64px">Fib(${k})</span><div style="flex:1;background:var(--soft);border-radius:4px"><div style="width:${Math.max(1.5, (c[k] / mx) * 100)}%;height:14px;border-radius:4px;background:${k === hi ? "var(--warn)" : "var(--accent)"}"></div></div><b style="font:700 .85rem var(--mono);width:70px;text-align:right">${c[k].toLocaleString()}</b></div>`).join("");
+    } else $("#fbBars").innerHTML = "";
+  };
+  S = Lib.slider($("#fbS"), { id: "fbN", label: "Number: ", min: 0, max: 20, value: 0, onInput: draw });
+  sel.addEventListener("change", draw);
+  draw();
+})();
+
+/* ===== Activities ===== */
+Lib.order($("#o1"), { prompt: "Fib(3) is called. Put the events in the order they happen.", items: ["Fib(3) is called and its frame is pushed", "Fib(2) is called (first call from Fib(3)) and its frame is pushed", "Fib(1) is called: base case, returns 1", "Fib(0) is called: base case, returns 0", "Fib(2) works out 1 + 0 = 1 and returns it", "Fib(1) is called (second call from Fib(3)): base case, returns 1", "Fib(3) works out 1 + 1 = 2 and returns it"], done: "The first call goes all the way down and back before the second call starts." });
+
+Lib.classify($("#cl1"), { prompt: "Drag each piece of the function to the part of recursion it plays.", buckets: [{ label: "Base case" }, { label: "General case (calls itself)" }, { label: "Moves towards the base case" }, { label: "Runs during unwinding" }], items: [
+  { text: "IF Number <= 1", b: 0 }, { text: "Result ← Number", b: 0 }, { text: "Fib(Number - 1)", b: 1 }, { text: "Fib(Number - 2)", b: 1 }, { text: "Number - 1 and Number - 2", b: 2 }, { text: "adding the two returned values", b: 3 }], done: "Two smaller calls are added together once both have returned." });
+
+Lib.classify($("#cl2"), { prompt: "Which version is each statement true of?", buckets: [{ label: "Recursive Fib" }, { label: "Iterative Fib" }], items: [
+  { text: "Uses stack frames for each call", b: 0 }, { text: "Repeats the same calculations many times", b: 0 }, { text: "Needs about n passes of a loop", b: 1 }, { text: "Can run out of stack space for very large Number", b: 0 }, { text: "Keeps the previous two values in variables", b: 1 }, { text: "Matches the mathematical definition most closely", b: 0 }], done: "Recursion is shorter to write for Fib; the loop is faster and safer." });
+
+Lib.match($("#m1"), { prompt: "Match each term to what it means for Fib.", pairs: [
+  ["Base case", "Number is 0 or 1: the answer is known without another call"], ["General case", "Number is 2 or more: two calls are made and added"], ["Double recursion", "a function that calls itself twice, so the calls form a tree"], ["Winding", "the calls being made, down to the base cases"], ["Unwinding", "the calls returning, with each sum worked out"], ["Stack frame", "one call’s copy of Number and its return address"]], done: "Those six ideas cover everything Fib can ask." });
+
+/* ===== Practise ===== */
+Lib.calc($("#c1"), { qs: [
+  { q: "What does Fib(1) return?", a: 1, tol: 0, hint: "Number is 1, which is a base case.", sol: "Number <= 1, so Result = Number = 1." },
+  { q: "What does Fib(0) return?", a: 0, tol: 0, hint: "Also a base case.", sol: "Number <= 1, so Result = Number = 0." },
+  { q: "What does Fib(2) return?", a: 1, tol: 0, hint: "Fib(1) + Fib(0).", sol: "1 + 0 = 1." },
+  { q: "What does Fib(3) return?", a: 2, tol: 0, hint: "Fib(2) + Fib(1).", sol: "1 + 1 = 2." },
+  { q: "What does Fib(6) return?", a: 8, tol: 0, hint: "Keep adding the two before: 0, 1, 1, 2, 3, 5, …", sol: "Fib(4) = 3 and Fib(5) = 5, so 3 + 5 = 8." },
+  { q: "How many calls to Fib are made in total by Fib(4), counting the first call?", a: 9, tol: 0, hint: "Fib(4) → Fib(3) + Fib(2); count every box in the tree.", sol: "Fib(4) 1, Fib(3) 5 calls, Fib(2) 3 calls: 1 + 5 + 3 = 9." },
+  { q: "How many times is Fib(1) called by Fib(5)?", a: 5, tol: 0, hint: "Draw the tree for Fib(5) and count the Fib(1) boxes. Fib(1) is Fib(5)’s own value, so you can check this against the answer.", sol: "Each call to Fib(1) adds 1 to the total, and Fib(5) = 5, so Fib(1) is called 5 times." },
+  { q: "What is the maximum number of frames on the stack at one time during Fib(5)?", a: 5, tol: 0, hint: "Follow the left branch down: Fib(5), Fib(4), Fib(3), Fib(2), then Fib(1).", sol: "Fib(5), Fib(4), Fib(3), Fib(2) and Fib(1) are all on the stack together: the stack holds one branch only. That is 5 frames, equal to Number." }] });
+
+Lib.quiz($("#qz1"), { qs: [
+  { q: "What is the base case of Fib?", opts: ["Number = 0 only", "Number <= 1, which returns Number", "Number = 2, which returns 1", "Number < 0"], a: 1, why: "Both Fib(0) = 0 and Fib(1) = 1 are known, and both are handled by returning Number." },
+  { q: "Fib(Number - 1) + Fib(Number - 2) is an example of…", opts: ["tail recursion only", "double (binary) recursion", "iteration", "indirect recursion"], a: 1, why: "The function calls itself twice in one line, so the calls form a tree." },
+  { q: "In Fib(5), which call is made first after Fib(5) itself?", opts: ["Fib(4)", "Fib(3)", "Fib(0)", "Fib(1)"], a: 0, why: "Fib(Number - 1) comes first in the expression, so Fib(4) is called, and it is completely finished before Fib(3) is started." },
+  { q: "A trace table for Fib(5) has a row for call 4, Fib(2), with Result “Fib(1) + Fib(0)”. What is in its Return value column on that row?", opts: ["1", "0", "blank, because it has not returned yet", "1 + 0"], a: 2, why: "On the winding row the call is still waiting. The Return value is filled on the later (4) row, once both calls have returned." },
+  { q: "The base case is changed to IF Number = 1 only. What happens when Fib(2) is called?", opts: ["It returns 1", "It calls Fib(1) and Fib(0), and Fib(0) keeps calling Fib(−1), Fib(−2)… until the stack overflows", "It returns 0", "It returns 2"], a: 1, why: "Fib(0) is no longer a base case, so it calls Fib(−1) and Fib(−2), and the numbers keep falling." },
+  { q: "Why is recursive Fib slower than the loop for Number = 30?", opts: ["Recursion is always slower", "The same values are calculated again and again", "Python is slow at addition", "The loop uses a stack"], a: 1, why: "About 2.7 million calls are made for Fib(30) because nothing is remembered between calls." },
+  { q: "How many frames are on the stack at the deepest point of Fib(6)?", opts: ["6", "7", "13", "25"], a: 0, why: "The deepest chain is Fib(6), Fib(5), Fib(4), Fib(3), Fib(2), Fib(1): six frames. Only one branch is on the stack at a time." }] });
+
+Lib.cards($("#fc1"), { cards: [
+  ["Fibonacci sequence", "0, 1, 1, 2, 3, 5, 8, … where each number is the sum of the previous two."],
+  ["Base case", "The input for which the answer is known without a further call. For Fib: Number = 0 or 1."],
+  ["General case", "The branch where the function calls itself with a simpler value: Fib(Number - 1) + Fib(Number - 2)."],
+  ["Double recursion", "A function that calls itself twice. The calls form a tree, not a chain."],
+  ["Call tree", "A diagram with a box for every call; the children of a box are the calls it makes."],
+  ["Winding", "The phase where calls are made until the base case is reached."],
+  ["Unwinding", "The phase where calls return and their frames are popped, in reverse order."],
+  ["Stack frame", "The block pushed on the call stack for each call: parameters, local variables and the return address."],
+  ["Return address", "Where the program carries on once a call finishes."],
+  ["Trace table", "A table that records the calls, parameter values, results and returned values step by step."],
+  ["Stack overflow", "An error when the call stack runs out of memory, for example because the base case is never reached."],
+  ["Memoisation", "Storing answers already worked out so they are not recalculated (beyond the 9618 syllabus)."]] });
+
+Lib.initTabs();
+</script>
+</body></html>

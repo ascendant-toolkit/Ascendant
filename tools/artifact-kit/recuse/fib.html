@@ -1,0 +1,226 @@
+
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Chapter 19 · 19.2</div>
+  <h1>Recursion in Action: The Fibonacci Sequence</h1>
+  <p class="lead">The classic example of a function that calls itself twice. See the call stack and the call tree grow, fill in the trace table from the past paper, count the calls, and find out why the simple recursive version is slow.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<!-- LEARN -->
+<section id="learn" role="tabpanel">
+  <div class="card big">
+    <h3>The sequence</h3>
+    <p>The <span class="kw">Fibonacci sequence</span> starts 0, 1 and then every number is the sum of the two before it: 0, 1, 1, 2, 3, 5, 8, 13, 21, … Counting from position 0, Fib(0) = 0, Fib(1) = 1, Fib(2) = 1, Fib(3) = 2, Fib(4) = 3, Fib(5) = 5.</p>
+    <p>That definition refers to itself: Fib(<i>n</i>) is Fib(<i>n</i> − 1) + Fib(<i>n</i> − 2). It is a natural fit for recursion, and it appeared in 9618 Paper 3 (M/J 2023) as a trace table question.</p>
+  </div>
+
+  <h2>Two base cases, two calls</h2>
+  <div class="grid2">
+    <div class="card"><h3>Base cases</h3><div class="formula">Fib(0) = 0 · Fib(1) = 1</div><p>The two starting values are known, so no further call is made. In the paper’s code both are handled by one test, <code>Number &lt;= 1</code>, which returns <code>Number</code> itself.</p></div>
+    <div class="card"><h3>General case</h3><div class="formula">Fib(n) = Fib(n − 1) + Fib(n − 2)</div><p>For any larger <i>n</i>, call the function <b>twice</b>, with <i>n</i> − 1 and <i>n</i> − 2, and add the answers. Both arguments are smaller, so each call moves towards a base case.</p></div>
+  </div>
+  <div class="tip"><b class="h">Why two base cases?</b>Fib(2) calls Fib(1) and Fib(0). If only Fib(1) were a base case, Fib(0) would call Fib(−1) and Fib(−2), and the calls would never stop.</div>
+
+  <h2>The function, line by line</h2>
+  <p>This is the function from the past paper. Switch between Pseudocode and Python.</p>
+  <div id="codeF"></div>
+  <ol class="step4">
+    <li><span><b>Header.</b> One parameter, <code>Number</code>, and it RETURNS an INTEGER.</span></li>
+    <li><span><b>IF Number &lt;= 1.</b> Covers both base cases. <code>Result ← Number</code> gives 0 for Fib(0) and 1 for Fib(1).</span></li>
+    <li><span><b>The recursive line.</b> <code>Fib(Number - 1) + Fib(Number - 2)</code> makes two calls. The addition waits until both have returned.</span></li>
+    <li><span><b>RETURN Result.</b> Both branches finish here, so every call hands back its answer.</span></li>
+  </ol>
+
+  <h2>Double recursion</h2>
+  <p>Compound interest and factorial call themselves once, so the calls form a single chain. Fibonacci calls itself <b>twice</b>, so the calls form a <span class="kw">tree</span>. The first call (<code>Fib(Number - 1)</code>) is followed all the way down and back before the second call (<code>Fib(Number - 2)</code>) even starts. The stack only ever holds one branch: it is as deep as <i>n</i>, even though the tree has many more calls.</p>
+
+  <h2>The cost of the simple version</h2>
+  <p>Look at the tree for Fib(5) in the Watch tab: Fib(3) is worked out twice, Fib(2) three times, and Fib(1) five times. Nothing is remembered, so the same sub-problems are repeated. The number of calls roughly multiplies by 1.6 each time <i>n</i> goes up by 1.</p>
+  <div class="tw"><table class="t">
+    <tr><th>n</th><th>Calls to Fib</th><th>Loop passes needed</th></tr>
+    <tr><td>5</td><td>15</td><td>4</td></tr>
+    <tr><td>10</td><td>177</td><td>9</td></tr>
+    <tr><td>20</td><td>21 891</td><td>19</td></tr>
+    <tr><td>30</td><td>2 692 537</td><td>29</td></tr>
+  </table></div>
+
+  <h2>The same job with a loop</h2>
+  <p>An iterative version keeps the last two values and moves along, doing about <i>n</i> steps and using no stack.</p>
+  <div class="grid2">
+    <div class="card"><h3>Recursive</h3><pre class="plain">FUNCTION Fib(Number : INTEGER) RETURNS INTEGER
+   IF Number &lt;= 1 THEN
+      RETURN Number
+   ELSE
+      RETURN Fib(Number - 1) + Fib(Number - 2)
+   ENDIF
+ENDFUNCTION</pre><pre class="plain">def fib(number):
+    if number &lt;= 1:
+        return number
+    return fib(number - 1) + fib(number - 2)</pre></div>
+    <div class="card"><h3>Iterative</h3><pre class="plain">FUNCTION Fib(Number : INTEGER) RETURNS INTEGER
+   Previous ← 0
+   Current ← 1
+   FOR i ← 2 TO Number
+      Next ← Previous + Current
+      Previous ← Current
+      Current ← Next
+   NEXT i
+   IF Number = 0 THEN
+      RETURN 0
+   ENDIF
+   RETURN Current
+ENDFUNCTION</pre><pre class="plain">def fib(number):
+    previous, current = 0, 1
+    for i in range(2, number + 1):
+        previous, current = current, previous + current
+    return 0 if number == 0 else current</pre></div>
+  </div>
+  <div class="note">Fibonacci is a good function to learn recursion on, and a poor one to use recursively in a real program. The recursive version is shorter and matches the definition; the loop is far faster.</div>
+</section>
+
+<!-- WATCH -->
+<section id="watch" role="tabpanel" hidden>
+  <p>Press Play, or click the numbered dots. In the stack diagrams, the left is the <b>call stack</b> (top box = running now) and the right is the <b>call tree</b> (amber = waiting, blue = running, green = returned, with the returned value). The highlighted code line shows what is being run.</p>
+
+  <h2>1 · Fib(4): the call stack and call tree</h2>
+  <p>Watch the stack: it never holds more than four frames, because Fib(3) is finished completely before Fib(2) is called. The tree grows from left to right.</p>
+  <div id="aStack"></div>
+
+  <h2>2 · Fib(5): the paper’s trace table</h2>
+  <p>This is the table from M/J 2023. It records the leftmost path down to the base case, then the unwinding. The other branches’ values are filled in as they are needed.</p>
+  <div id="aTab"></div>
+  <div class="warn"><b class="h">Remember</b>Rows 1 to 4 are <b>winding</b>: the Result column holds the sum that is still waiting, and the Return value is blank. Only from row 5 do any calls return.</div>
+
+  <h2>3 · Fib(3): the whole tree, step by step</h2>
+  <p>A smaller tree where every call is visible. Fib(1) is called twice and returns 1 each time.</p>
+  <div id="aStack3"></div>
+</section>
+
+<!-- EXPLORE -->
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · How many calls?</h2>
+  <p>Choose <i>n</i>. The call tree is drawn for <i>n</i> up to 7. Pick a value and every call to Fib of that value is highlighted, so you can see how often the same work is repeated.</p>
+  <div id="fbS"></div>
+  <div class="pick"><label for="fbHi">Highlight calls to</label><select id="fbHi"></select></div>
+  <div class="readout" id="fbRO"></div>
+  <div id="fbTree"></div>
+  <div id="fbBars"></div>
+  <div class="tip"><b class="h">Try this</b>Set <i>n</i> = 5 and highlight Fib(1): five of the calls are the same. Then try <i>n</i> = 12. The tree is too wide to draw, but the call counts show how quickly the repeated work builds up while a loop would need only 11 passes.</div>
+
+  <h2>Activity 1 · Order the events</h2>
+  <div id="o1"></div>
+
+  <h2>Activity 2 · Sort the code into its roles</h2>
+  <div id="cl1"></div>
+
+  <h2>Activity 3 · Recursion or loop?</h2>
+  <div id="cl2"></div>
+
+  <h2>Activity 4 · Match the terms</h2>
+  <div id="m1"></div>
+</section>
+
+<!-- PRACTISE -->
+<section id="practise" role="tabpanel" hidden>
+  <h2>Trace it yourself</h2>
+  <p>Work down the left branch first, then back up, then across to the next call. Use <b>Hint</b> before <b>Show working</b>.</p>
+  <div id="c1"></div>
+  <h2>Quick quiz</h2>
+  <div id="qz1"></div>
+  <h2>Flashcards</h2>
+  <div id="fc1"></div>
+</section>
+
+<!-- REAL WORLD -->
+<section id="real" role="tabpanel" hidden>
+  <p class="note">General descriptions of where the idea appears. Numbers are illustrative only.</p>
+  <div class="rw"><h3>Breeding rabbits</h3><p>Fibonacci described an idealised rabbit population: each pair needs a month to mature, then produces a new pair every month. The number of pairs each month is the number two months ago plus the number last month, which is exactly the definition.</p><div class="use"><b>Exam use:</b> a clear example of a problem defined in terms of two smaller versions of itself.</div></div>
+  <div class="rw"><h3>Climbing stairs</h3><p>If you can climb one or two stairs at a time, the number of ways to reach step <i>n</i> is the number of ways to reach step <i>n</i> − 1 plus step <i>n</i> − 2. The answers follow the Fibonacci numbers.</p><div class="use"><b>Exam use:</b> shows that the same code shape solves counting problems, not only “maths” sequences.</div></div>
+  <div class="rw"><h3>Spirals in plants</h3><p>The number of spirals in some pine cones, sunflower heads and pineapples are often Fibonacci numbers. The link is a result of how growth packs new seeds efficiently, not a program running in the plant.</p><div class="use"><b>Exam use:</b> interesting context, but not needed in an answer.</div></div>
+  <div class="rw"><h3>Other problems that split in two</h3><p>Searching a game tree, exploring a maze with a choice of two turns, and many divide-and-conquer algorithms call themselves two or more times, just like Fib. The call tree is the same kind of picture.</p><div class="use"><b>Exam use:</b> a good answer to “give an example of an application that could use recursion”, together with the reason: the problem splits into smaller copies of itself.</div></div>
+  <div class="rw"><h3>Why real programs avoid the simple version</h3><p>Because the same values are recomputed, the plain recursive Fib takes far longer than a loop as <i>n</i> grows. Programmers either use a loop or store results already worked out (called memoisation) so each value is calculated once. Memoisation is beyond the 9618 syllabus, but it explains why repeated calls are the weakness.</p><div class="use"><b>Exam use:</b> supports a “discuss the drawbacks of recursion” answer: repeated work, more memory for the stack, possible stack overflow.</div></div>
+</section>
+
+<!-- EXAM -->
+<section id="exam" role="tabpanel" hidden>
+  <h2>What 9618 has asked about Fibonacci</h2>
+  <p>The sequence appeared as a trace table in Paper 3. The same trace-table skill is tested with other functions in Paper 3 and Paper 4. Open each question for reminders, a model answer and common mistakes. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span></div>
+
+  <h2>1. Past paper question</h2>
+<!--PP: M/J 2023 · 9618/31 and 33 · Q12(b)-->
+
+  <h2>2. Review questions</h2>
+  <p>Written for practice, not taken from past papers.</p>
+
+  <details class="eq"><summary>Q1 <span class="cmd">State</span> <span class="mark">2 marks</span> State the base cases of the function Fib().</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>“State” needs short facts. Give the condition and what it returns.</div>
+    <div class="ans"><span class="mk k" data-t="1">When Number is 0, it returns 0 (no further call).</span> <span class="mk k" data-t="2">When Number is 1, it returns 1 (no further call).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving only Fib(1). Without the Number = 0 case, Fib(2) would call Fib(0), and the function would carry on to negative numbers.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q2 <span class="cmd">Calculate</span> <span class="mark">2 marks</span> The function Fib() is called with Fib(4). State how many times the function is called in total, and how many of those calls are base cases.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Draw the call tree. Fib(4) calls Fib(3) and Fib(2); Fib(3) calls Fib(2) and Fib(1); and so on. Count every box, including the first.</div>
+    <div class="ans"><span class="mk k" data-t="1">9 calls in total.</span> <span class="mk k" data-t="2">5 of them are base cases (Fib(1) three times, Fib(0) twice).</span><pre class="plain">Fib(4)
+├─ Fib(3)
+│  ├─ Fib(2)
+│  │  ├─ Fib(1)   base
+│  │  └─ Fib(0)   base
+│  └─ Fib(1)      base
+└─ Fib(2)
+   ├─ Fib(1)      base
+   └─ Fib(0)      base</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting the original call, or counting only the calls that return 1.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q3 <span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain why the recursive version of Fib() is slow for large values of Number.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Say what is repeated, and what that does to the number of calls.</div>
+    <div class="ans"><span class="mk k" data-t="1">Each call (except the base cases) makes two further calls.</span> <span class="mk k" data-t="2">The same values are calculated many times (e.g. Fib(2) is worked out again in each branch), because nothing is remembered.</span> <span class="mk k" data-t="3">The total number of calls roughly multiplies each time Number increases (exponential growth), so far more calls are made than a loop would need.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Just writing “recursion is slow”. Name the repeated calculations.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q4 <span class="cmd">Rewrite</span> <span class="mark">5 marks</span> Rewrite the function Fib() as an iterative function, using program code.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Starting values replace the base cases. The repeating step goes in a loop. Keep two variables for the previous two values.</div>
+    <div class="ans"><span class="mk k" data-t="1">Function header with one parameter, returning an integer.</span> <span class="mk k" data-t="2">Two variables initialised to the starting values (0 and 1).</span> <span class="mk k" data-t="3">A loop that runs the correct number of times (Number − 1 passes from 2 up to Number).</span> <span class="mk k" data-t="4">Inside the loop, the new value is the sum of the two previous ones and the variables are updated in the right order.</span> <span class="mk k" data-t="5">Returns the correct value (including the case Number = 0 or 1).</span>
+<pre class="plain">def fib(number):
+    previous, current = 0, 1
+    for i in range(2, number + 1):
+        previous, current = current, previous + current
+    return 0 if number == 0 else current</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Updating <code>previous</code> before <code>current</code> has used it, so one value is lost. Python’s two-value assignment avoids this; in pseudocode use a temporary variable.</div>
+  </div></details>
+</section>
+
+<!-- TIPS -->
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Two base cases.</b> Fib(0) = 0 and Fib(1) = 1. Both appear in a trace table, so don’t leave out Fib(0).</li>
+    <li><b>Go down the left branch first.</b> Fib(Number - 1) is called and finished completely before Fib(Number - 2) is started.</li>
+    <li><b>In the Result column write the sum going down</b> (<code>Fib(4) + Fib(3)</code>) <b>and the numbers going up</b> (<code>3 + 2</code>). The Return value column stays blank until a call returns.</li>
+    <li><b>Count the calls with a tree.</b> Fib(3) is 5 calls, Fib(4) is 9, Fib(5) is 15. Each is the previous two plus 1.</li>
+    <li><b>The stack is only as deep as <i>n</i>.</b> Fib(5) never has more than 5 frames, even though there are 15 calls in all.</li>
+    <li><b>For drawbacks, name the repeated work.</b> The same values are recalculated, so the number of calls grows very quickly. Also: more memory for stack frames and a risk of stack overflow.</li>
+    <li><b>Converting to a loop:</b> the base-case values become the starting values of two variables, and the sum goes in the loop.</li>
+    <li><b>Say “frame”, “return address”, “push” and “pop”</b> in any stack answer.</li>
+  </ul>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Identify</td><td>A short fact or the line of code. No explanation.</td></tr>
+    <tr><td>Describe</td><td>The steps in order, or how something works.</td></tr>
+    <tr><td>Explain</td><td>What happens and why.</td></tr>
+    <tr><td>Complete</td><td>Fill every gap or cell, with exact values or code.</td></tr>
+    <tr><td>Write / Rewrite</td><td>Full code with header, structure and end statements.</td></tr>
+  </table></div>
+</section>
+</div>

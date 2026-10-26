@@ -1,0 +1,209 @@
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 13.2.2</div>
+  <h1>Hashing Algorithms</h1>
+  <p class="cbook">Coursebook: Chapter 13 · Data representation, section 13.2 File organisation and access</p>
+  <p class="lead">What a hashing algorithm does, MOD hash values, collisions and how they are resolved when storing and finding records; animations, a hash table sandbox and the real 9618 hashing questions from 2023 and 2024.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A <b>hashing algorithm</b> is a mathematical formula that is applied to a record's <b>key field</b> and calculates the <b>address</b> where the record is stored or should be found. The most common one is the <b>modulus</b>: divide the key by the number of locations and use the remainder. Because two different keys can give the same address, a <b>collision</b> can occur, and the system needs a <b>collision resolution</b> method, such as storing the record in the <b>next free location</b> (linear probing) or in an <b>overflow area</b>. To find a record the same hash is calculated, the location is read, and if the key there does not match the search continues in the same way. This is how random files give direct access to a record without reading the others.</p></div>
+
+  <h2>1 · What a hashing algorithm does</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Step</th><th>Storing a record</th><th>Finding a record</th></tr>
+    <tr><td>1</td><td>Take the record's <b>key</b> (e.g. account number 3003)</td><td>Take the <b>key</b> being searched for</td></tr>
+    <tr><td>2</td><td>Apply the hashing algorithm: 3003 MOD 5 = 3</td><td>Apply the <b>same</b> algorithm: 3003 MOD 5 = 3</td></tr>
+    <tr><td>3</td><td>Write the record at location 3</td><td>Read location 3 and check the key matches</td></tr>
+  </table></div>
+  <p>The same key always gives the same address, so a record can be stored and found without searching. <b>MOD</b> gives the remainder after integer division: 3003 MOD 5 = 3, 1029 MOD 5 = 4, 7630 MOD 5 = 0.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">def Hash(Key, Size):</span><span class="ln">    return Key % Size            # the remainder: always from 0 to Size - 1</span><span class="ln"> </span><span class="ln">print(Hash(3003, 5))             # 3</span><span class="ln">print(Hash(1029, 5))             # 4</span><span class="ln">print(Hash(7630, 5))             # 0</span></pre></div>
+  <p>A good hashing algorithm is <b>fast</b>, always gives the <b>same</b> address for the same key, and <b>spreads</b> keys evenly over all locations so there are few collisions. Using a table size that is a prime number helps.</p>
+
+  <h2>2 · Collisions</h2>
+  <p>A <b>collision</b> occurs when two different keys give the <b>same hash value</b>, so the location the algorithm identifies is <b>already in use</b>. Two records cannot occupy the same address.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Method</th><th>When storing</th><th>When finding</th></tr>
+    <tr><td><b>Linear probing</b> (closed hashing)</td><td>Start at the hashed location and go through the following locations, one after another, until the first free one, and store the record there</td><td>Start at the hashed location and search linearly onwards until the key matches. If an empty location is reached, the record is not in the file</td></tr>
+    <tr><td><b>Overflow area</b> (open hashing)</td><td>Store the record in the next free space in a separate overflow area</td><td>If the key at the hashed location does not match, search the overflow area linearly until the matching key is found</td></tr>
+    <tr><td><b>Chaining</b></td><td>Each location holds a reference to a collection (chain) of items; add the record to the chain</td><td>Search the chain at the hashed location</td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Exam wording</b>When asked what happens on a collision, say: the calculated location is already used for another record; the file is searched linearly from that point (or the overflow area is searched) for the next free space and the record is stored there; when finding, the search carries on linearly until the matching key is found, and if it is not found the record is not in the file.</div>
+
+  <h2>3 · Hashing and the random file</h2>
+  <p>A random file is opened with <code>FOR RANDOM</code>. The hash gives the location to <code>SEEK</code>, and then <code>GETRECORD</code> or <code>PUTRECORD</code> reads or writes the record. The pseudocode questions that do this are on the chapter 20 file processing page.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">Location ← Hash(Customer.AccountNumber)</span><span class="ln">SEEK AccountFile, Location</span><span class="ln">GETRECORD AccountFile, Customer</span></pre></div>
+
+  <h2>4 · Advantages and limits</h2>
+  <ul>
+    <li><b>Fast direct access</b>: one calculation and (usually) one read, however large the file.</li>
+    <li>Records can be <b>updated directly</b> without rewriting the file.</li>
+    <li>Some locations are <b>empty</b>, so space is wasted, and collisions make access slower as the file fills up.</li>
+    <li>The records are <b>not in key order</b>, so a hash file is poor for reports that need an order.</li>
+  </ul>
+
+  <h2>5 · Common ways to lose marks</h2>
+  <ul>
+    <li>Saying a hash function "encrypts" the key. It calculates an address; it is not for secrecy.</li>
+    <li>Calculating MOD wrongly: the remainder after integer division, so 1029 MOD 5 is 4, not 205.</li>
+    <li>Describing a collision as an error in the file. It is two keys producing the same address.</li>
+    <li>For a collision, only saying "use another location". Say how: next free space linearly, or an overflow area.</li>
+    <li>Forgetting that finding a record also has to follow the same collision method.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Storing records with a hash</h2>
+  <p>Press Play, or click the steps. The table has 5 locations and Hash(Key) = Key MOD 5.</p>
+  <div id="stA"></div>
+  <h2>2 · A collision and linear probing</h2>
+  <div id="stB"></div>
+  <h2>3 · Finding a record after a collision</h2>
+  <div id="stC"></div>
+  <h2>4 · An overflow area</h2>
+  <div id="stD"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Hash table sandbox</h2>
+  <p>Choose the table size and how a collision is resolved, then store keys one at a time and watch the table fill. Use Find to see how many locations are checked.</p>
+  <div class="card"><div id="hZ" class="btnrow"></div><div id="hM" class="btnrow"></div>
+    <p><input id="hK" type="number" value="1030" style="width:9em;padding:8px;border:1px solid var(--line);border-radius:8px;font:500 .95rem var(--mono)" aria-label="Key"> <button class="b pri" id="hS">Store key</button> <button class="b" id="hF">Find key</button> <button class="b" id="hR">Clear table</button></p>
+    <div id="hT"></div><div class="verdict" id="hV"></div></div>
+
+  <h2>Lab 2 · Calculate a hash value</h2>
+  <div class="card"><div id="cK"></div><div id="cZ"></div><div class="readout"><div><small>Key MOD size</small><strong id="c1"></strong></div><div><small>Working</small><strong id="c2" style="font-size:1rem"></strong></div></div></div>
+
+  <h2>Lab 3 · Collision methods compared</h2>
+  <div class="card"><div id="eB" class="btnrow"></div><div id="eO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Hashing facts</h2><div id="cl1" class="card"></div>
+  <h2>2 · Storing or finding?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the steps for storing a record with a collision in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>5 · Calculate the hash values</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A library catalogue</h3><p>Each book's ID is turned into a shelf location by a hash. Looking up a book means calculating the hash and going to that shelf, instead of searching every shelf.</p><div class="use"><b>Exam use:</b> hashing gives direct access using the key field.</div></div>
+  <div class="rw"><h3>A phone's contacts or a database index</h3><p>Many databases use hash tables so a record can be found from its key in about one step, however many records there are.</p><div class="use"><b>Exam use:</b> random files and hash tables share the same idea.</div></div>
+  <div class="rw"><h3>A hotel booking system</h3><p>Booking references are hashed to locations in a large file. If two bookings map to the same place, the second is stored in the next free location, and a search follows the same path.</p><div class="use"><b>Exam use:</b> collisions are resolved by linear probing or an overflow area.</div></div>
+  <div class="rw"><h3>Checking a downloaded file</h3><p>A different kind of hash, a checksum, is calculated over a whole file. If the result differs from the published one, the file has changed.</p><div class="use"><b>Exam use:</b> same word, different purpose: this hash checks integrity, not an address.</div></div>
+  <div class="rw"><h3>Passwords</h3><p>Websites store a hash of your password, not the password. When you log in the hash of what you type is compared with the stored one.</p><div class="use"><b>Exam use:</b> another use of hashing: here it is a one-way function, unlike the address calculation in this topic.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is the real 9618 questions on hashing algorithms and collisions (Paper 3), 2023 and 2024. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2023</td><td>31, 33</td><td>3</td><td>2 + 4</td><td>Complete a table of hash values (modulus 3); describe what happens on a collision</td></tr>
+    <tr><td>M/J 2023</td><td>32</td><td>2(b)</td><td>2</td><td>Complete a table of hash values (modulus 5)</td></tr>
+    <tr><td>O/N 2023</td><td>32</td><td>3</td><td>2 + 3</td><td>Outline a collision; explain how it is dealt with when writing records</td></tr>
+    <tr><td>O/N 2024</td><td>31, 33</td><td>5</td><td>3 + 2</td><td>Explain a hashing algorithm; outline two ways of overcoming a collision</td></tr>
+  </table></div>
+  <p class="note">Hashing is tested in Paper 3 as a short theory question, in May/June and Oct/Nov 2023 and Oct/Nov 2024. The pseudocode questions that use a hash to read and write a random file (Oct/Nov 2023 Paper 31 and 33 Question 8 and others) are on the chapter 20 page on file processing, and the question that asks how direct access finds a record in a random file (May/June 2024 Paper 32 Question 7) is on the previous page. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+
+  <h3>Calculating and defining</h3>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/31, 33 · Q3</span> <span class="cmd">Complete / Describe</span> <span class="mark">2 + 4 marks</span> A hashing algorithm is used to calculate storage locations for records in a random access file. It calculates hash values by using the function modulus 3. The function modulus gives the remainder after integer division. For example, 1030 modulus 3 = 1, so the record key 1030 gives a hash value of 1. (a) Complete the table to show the hash values for the keys 1050 and 1025. (b) Describe what happens, in relation to the storage or retrieval of a record in the file, when the calculated hash value is a duplicate of a previously calculated hash value for a different record key.<pre class="plain">Record key     Hash value
+1030           1
+1050           ...
+1025           ...</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) divide and keep the remainder. (b) a collision, then how a record is stored and how it is found.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">1050 MOD 3 = 0 (1050 = 3 × 350)</span> <span class="mk k" data-t="2">1025 MOD 3 = 2 (1025 = 3 × 341 + 2)</span></p><pre class="plain">Record key     Hash value
+1030           1
+1050           0
+1025           2</pre><p><b>(b)</b> Up to four marks: <span class="mk a" data-t="1">A collision occurs when the record key does not match the stored record key</span> <span class="mk a" data-t="2">which means the determined storage location has already been used for another record</span> <span class="mk a" data-t="3">When storing: search the file linearly to find the next available storage space (closed hash), or the overflow area linearly (open hash)</span> <span class="mk a" data-t="4">When finding: search the overflow area linearly, or search linearly from where you are, until the matching record key is found; if it is not found the record is not in the file</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving a wrong remainder: 1050 is exactly divisible by 3, so the hash value is 0.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/32 · Q2(b)</span> <span class="cmd">Complete</span> <span class="mark">2 marks</span> A hashing algorithm is used to calculate storage locations for records in a random access file, using the function modulus 5. For example, 3003 modulus 5 = 3, so the record key 3003 gives a hash value of 3. Complete the table to show the hash values for the keys 1029 and 7630.<pre class="plain">Record key     Hash value
+3003           3
+1029           ...
+7630           ...</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Remainder after dividing by 5: look at the last digit.</div>
+    <div class="ans"><p>One mark for each correct hash value: <span class="mk k" data-t="1">1029 MOD 5 = 4</span> <span class="mk k" data-t="2">7630 MOD 5 = 0</span></p><pre class="plain">Record key     Hash value
+3003           3
+1029           4
+7630           0</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing the quotient (205 or 1526) instead of the remainder.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/31, 33 · Q5</span> <span class="cmd">Explain / Outline</span> <span class="mark">3 + 2 marks</span> (a) Explain what is meant by a hashing algorithm in the context of file access. (b) The use of a hashing algorithm can result in the same storage location being identified for more than one record. Outline two methods of overcoming this issue.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) a formula, applied to the key, giving the address. (b) next free space after the hashed location; an overflow area.</div>
+    <div class="ans"><p><b>(a)</b> Up to three: <span class="mk k" data-t="1">A hashing algorithm is used in direct access methods on random and sequential files</span> <span class="mk k" data-t="2">It is a mathematical formula</span> <span class="mk k" data-t="3">used to perform a calculation applied to the key field of the record being searched or stored</span> <span class="mk k" data-t="4">The result of the calculation gives the address where the record should be found or stored</span></p><p><b>(b)</b> <span class="mk a" data-t="1">The record is stored in the next free memory space after the one identified by the hashing algorithm (linear progression)</span> <span class="mk a" data-t="2">An overflow area is set up and the record is stored in the next free memory space in the overflow area</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Describing hashing as sorting the records. It calculates an address; it does not sort.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/32 · Q3</span> <span class="cmd">Outline / Explain</span> <span class="mark">2 + 3 marks</span> The location of a record in a random file is determined using a hashing algorithm. A collision may occur during the process of adding a record. (a) Outline what is meant by the term collision in this context. (b) Explain how a collision can be dealt with when writing records to a random file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) two keys, the same hash value, the location already in use. (b) any one method, with its steps.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">A collision is when the key fields of two records give the same hash value</span> <span class="mk k" data-t="2">so the location identified may already be in use: two records cannot occupy the same address</span></p><p><b>(b)</b> Up to three, from one method: <span class="mk a" data-t="1">A process of collision resolution is used: start at the original hashed storage space</span> <span class="mk a" data-t="2">go through the following spaces in a linear fashion</span> <span class="mk a" data-t="3">and store the data item in the first available slot (or: search the overflow area in the same way; or: each space holds a reference to a chain of items, and the item is stored in the first available space in the chain)</span></p></div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Calculate</span> <span class="mark">2 marks</span> A random file uses Hash(Key) = Key MOD 11. Give the hash values for the keys 4719 and 5000.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Divide by 11, keep the remainder.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">4719 MOD 11 = 0 (11 × 429 = 4719 exactly)</span> <span class="mk k" data-t="2">5000 MOD 11 = 6</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Using the quotient. Hash values are always remainders between 0 and 10.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">3 marks</span> Keys 1030 and 1050 are stored in a file using Hash(Key) = Key MOD 5. Both give 0. Describe what happens when 1050 is stored after 1030, and how 1050 is later found.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Collision, next free space, linear search.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Location 0 is already used by 1030, so there is a collision.</span> <span class="mk k" data-t="2">1050 is stored in the next free location after location 0 (linear probing).</span> <span class="mk k" data-t="3">To find 1050 the hash is calculated, location 0 is read (key 1030, no match), and the search continues linearly until the key 1050 is found.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State two properties of a good hashing algorithm.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Think speed and spread.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">It is quick to calculate and always gives the same value for the same key.</span> <span class="mk k" data-t="2">It spreads the keys evenly over the locations so there are few collisions.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why records in a hash (random) file cannot easily be produced in key order.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Where do the records sit?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Records are stored at addresses calculated from their keys, not in key order.</span> <span class="mk k" data-t="2">Many locations are empty, so producing an ordered list needs a separate sort.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Compare</span> <span class="mark">3 marks</span> Compare using the next free location with using an overflow area to resolve a collision.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Where is the record stored; how is it found?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Next free location: the record goes in the following space in the main file, found by searching linearly on from the hashed location.</span> <span class="mk k" data-t="2">Overflow area: the record goes in a separate area, found by searching that area when the hashed location holds a different key.</span> <span class="mk k" data-t="3">Both need the same method used when storing and finding.</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>MOD is the remainder.</b> Divide, ignore the whole number, keep what is left over.</li>
+    <li><b>Same hash, same place.</b> Storing and finding use the same algorithm and the same collision method.</li>
+    <li><b>Define a collision.</b> Two different keys give the same hash value, so the location is already in use.</li>
+    <li><b>Give a method with its steps.</b> Next free space, searching on linearly; or an overflow area searched linearly.</li>
+    <li><b>The hash gives an address, not an order.</b> Records are not stored in key order.</li>
+    <li><b>Say 'key field'.</b> The hashing algorithm is applied to the key field of the record.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>what a hashing algorithm is</td><td>"A formula applied to the key field of a record that calculates the address where it should be stored or found."</td></tr>
+    <tr><td>what a collision is</td><td>"Two different keys give the same hash value, so the location is already in use."</td></tr>
+    <tr><td>how to deal with a collision</td><td>"Store the record in the next free space found by searching linearly, or in an overflow area."</td></tr>
+    <tr><td>how a record is found after a collision</td><td>"Search linearly from the hashed location, or in the overflow area, until the matching key is found."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Complete</td><td>Fill in the table with the remainders.</td></tr>
+    <tr><td>Outline</td><td>Give the main points briefly.</td></tr>
+    <tr><td>Explain</td><td>Give the points with reasons.</td></tr>
+    <tr><td>Describe</td><td>Say what happens, step by step.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>

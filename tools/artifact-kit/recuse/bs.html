@@ -1,0 +1,226 @@
+
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Chapter 19 · 19.2</div>
+  <h1>Recursion in Action: Binary Search</h1>
+  <p class="lead">Search a sorted array by looking at the middle and throwing half of it away, again and again. See the range shrink call by call, trace the function, count how many calls it needs, and practise the Paper 4 question that asked for it.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<!-- LEARN -->
+<section id="learn" role="tabpanel">
+  <div class="card big">
+    <h3>The problem</h3>
+    <p>You have a <b>sorted</b> array and want the position of a value in it. A linear search checks the items one at a time, which could mean checking all of them. A <span class="kw">binary search</span> uses the order: look at the middle item. If it is the one you want, stop. If the middle item is too big, the value can only be in the lower half. If it is too small, only the upper half. Either way, half of the array has been ruled out in one step.</p>
+    <p>Searching the remaining half is the same problem on a smaller array. That is recursion: <b>search this range = check the middle, then search a smaller range</b>.</p>
+  </div>
+
+  <h2>Two base cases and two general cases</h2>
+  <div class="grid2">
+    <div class="card"><h3>Base cases</h3><div class="formula">found · or · range empty</div><p><b>Found:</b> <code>DataArray[Middle] = DataToFind</code>, so return <code>Middle</code>. <b>Not found:</b> <code>Upper &lt; Lower</code>, so no items are left to look at: return −1.</p></div>
+    <div class="card"><h3>General cases</h3><div class="formula">search the lower half · or · the upper half</div><p>If the middle value is <b>greater</b> than the target, search <code>Lower</code> to <code>Middle − 1</code>. If it is <b>less</b>, search <code>Middle + 1</code> to <code>Upper</code>. The middle is excluded because it has just been checked.</p></div>
+  </div>
+  <div class="tip"><b class="h">The array must be sorted</b>The whole idea depends on knowing that everything on one side of the middle is smaller and everything on the other is larger. On an unsorted array a binary search can give the wrong answer.</div>
+
+  <h2>The function, line by line</h2>
+  <p>This is the function from the past paper question (O/N 2025, Paper 4). Switch between Pseudocode and Python.</p>
+  <div id="codeB"></div>
+  <ol class="step4">
+    <li><span><b>Header.</b> Four parameters: the array, the <code>Lower</code> and <code>Upper</code> index of the part still to search, and the value to find. It RETURNS an index, or −1.</span></li>
+    <li><span><b>IF Upper &gt;= Lower.</b> There is at least one item left. If this is false the range is empty, which is the “not found” base case at the bottom.</span></li>
+    <li><span><b>Middle ← Lower + (Upper − Lower) DIV 2.</b> The integer middle of the range. With indexes 0 to 10, Middle = 5.</span></li>
+    <li><span><b>Compare.</b> Equal: return Middle (found). Greater: recurse on <code>Lower … Middle − 1</code>. Otherwise: recurse on <code>Middle + 1 … Upper</code>. Each recursive call has a range at least one item smaller, so it must end.</span></li>
+    <li><span><b>RETURN in front of each recursive call.</b> The answer from the smaller search is passed straight back up. Nothing is added or calculated on the way up.</span></li>
+  </ol>
+
+  <h2>How many calls?</h2>
+  <p>Each call halves the range, so the number of calls is about log₂ of the array size. 1 000 items need at most 10 calls; a million items need at most 20. A linear search could need a million.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Items in the array</th><th>Most calls, binary search</th><th>Most checks, linear search</th></tr>
+    <tr><td>7</td><td>3</td><td>7</td></tr>
+    <tr><td>20</td><td>5</td><td>20</td></tr>
+    <tr><td>1 023</td><td>10</td><td>1 023</td></tr>
+    <tr><td>1 048 575</td><td>20</td><td>1 048 575</td></tr>
+  </table></div>
+
+  <h2>The same job with a loop</h2>
+  <p>Binary search is also easy to write with a loop: keep <code>Lower</code> and <code>Upper</code> as variables and move them instead of passing new values to a new call. It uses no stack.</p>
+  <pre class="plain">def binary_search(data_array, data_to_find):
+    lower, upper = 0, len(data_array) - 1
+    while upper &gt;= lower:
+        middle = lower + (upper - lower) // 2
+        if data_array[middle] == data_to_find:
+            return middle
+        elif data_array[middle] &gt; data_to_find:
+            upper = middle - 1
+        else:
+            lower = middle + 1
+    return -1</pre>
+  <div class="note">The two versions make the same comparisons. The loop avoids the stack frames; the recursive version matches the idea more directly.</div>
+</section>
+
+<!-- WATCH -->
+<section id="watch" role="tabpanel" hidden>
+  <p>The array below is <code>3, 8, 12, 17, 21, 26, 34, 40, 47, 55, 63</code> (indexes 0 to 10). Press Play, or click the numbered dots. The part of the array still being searched is bright; everything ruled out is faded. The highlighted code line shows what is being run.</p>
+
+  <h2>1 · Searching for 40 (found)</h2>
+  <div id="aFound"></div>
+
+  <h2>2 · Searching for 30 (not in the array)</h2>
+  <p>The range shrinks until it is empty: <code>Upper</code> falls below <code>Lower</code>, and the function returns −1.</p>
+  <div id="aMiss"></div>
+
+  <h2>3 · The same search for 40 on the call stack</h2>
+  <p>On the left is the call stack, on the right the call tree. It is a chain, because each call makes at most one further call. Nothing is calculated on the way back up: each frame just passes the answer on.</p>
+  <div id="aStack"></div>
+  <div class="warn"><b class="h">Remember</b>A trace table for this function has one column for each parameter (<code>Lower</code>, <code>Upper</code>), plus <code>Middle</code> and the value returned. The Return value stays blank on the way down; every row from the final call upwards carries the same answer.</div>
+</section>
+
+<!-- EXPLORE -->
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Search for any value</h2>
+  <p>Choose a value to look for. Step through the search with Next, and see how many calls it takes. Values marked “missing” are not in the array.</p>
+  <div class="pick"><label for="bsT">Search for</label><select id="bsT"></select></div>
+  <div class="readout" id="bsRO"></div>
+  <div id="bsAlgo"></div>
+
+  <h2>Lab 2 · How much work does halving save?</h2>
+  <p>The array has 2<sup>k</sup> − 1 items (a size that halves evenly). Change <i>k</i>.</p>
+  <div id="bsK"></div>
+  <div class="readout" id="bsRO2"></div>
+  <div id="bsBars"></div>
+  <div class="tip"><b class="h">Try this</b>Set k = 10. A linear search might need 1 023 checks; binary search needs at most 10 calls. Each time the array doubles in size, binary search needs only one more call.</div>
+
+  <h2>Activity 1 · Order the events</h2>
+  <div id="o1"></div>
+
+  <h2>Activity 2 · Sort the code into its roles</h2>
+  <div id="cl1"></div>
+
+  <h2>Activity 3 · Binary or linear?</h2>
+  <div id="cl2"></div>
+
+  <h2>Activity 4 · Match the terms</h2>
+  <div id="m1"></div>
+</section>
+
+<!-- PRACTISE -->
+<section id="practise" role="tabpanel" hidden>
+  <h2>Trace it yourself</h2>
+  <p>Questions use the array <code>3, 8, 12, 17, 21, 26, 34, 40, 47, 55, 63</code> at indexes 0 to 10 unless stated. Use <b>Hint</b> before <b>Show working</b>.</p>
+  <div id="c1"></div>
+  <h2>Quick quiz</h2>
+  <div id="qz1"></div>
+  <h2>Flashcards</h2>
+  <div id="fc1"></div>
+</section>
+
+<!-- REAL WORLD -->
+<section id="real" role="tabpanel" hidden>
+  <p class="note">General descriptions of where the halving idea is used. Numbers are illustrative only.</p>
+  <div class="rw"><h3>Looking up a word in a dictionary</h3><p>You open the book near the middle, see whether your word comes before or after the page you landed on, and repeat with the remaining half. That is binary search done by hand, and it only works because the words are in alphabetical order.</p><div class="use"><b>Exam use:</b> a clear example of why the data must be sorted.</div></div>
+  <div class="rw"><h3>The guessing game</h3><p>In “I’m thinking of a number between 1 and 100”, guessing the middle each time and being told higher or lower finds the number in at most 7 guesses.</p><div class="use"><b>Exam use:</b> shows the number of calls grows with log₂ of the size, not with the size itself.</div></div>
+  <div class="rw"><h3>Finding a fault in a long list of changes</h3><p>If a program worked last month and is broken now, testing the middle version tells you which half contains the change that broke it. Repeating this finds the problem in a handful of tests, even among thousands of changes. Developer tools can automate it.</p><div class="use"><b>Exam use:</b> a non-obvious use of the same idea, good for “give an example”.</div></div>
+  <div class="rw"><h3>Database indexes</h3><p>Databases keep an ordered index of a column so that a record can be located without reading every row. Many indexes are tree structures that work on the same halving principle, as you see on the binary tree page.</p><div class="use"><b>Exam use:</b> links searching to databases and to binary trees.</div></div>
+  <div class="rw"><h3>The cost of sorting first</h3><p>If the data arrives unsorted, it has to be sorted before a binary search can be used, and sorting costs time. Binary search pays off when the same data will be searched many times.</p><div class="use"><b>Exam use:</b> supports a “discuss” answer comparing binary and linear search.</div></div>
+  <div class="rw"><h3>Recursion or a loop?</h3><p>Because the answer is passed straight back with no calculation, binary search is just as easy with a loop, and the loop avoids stack frames. The recursive version is shorter to explain; a real program would often use the loop.</p><div class="use"><b>Exam use:</b> for “when is recursion beneficial?” the honest answer is: when the problem splits into smaller copies, and the code is clearer; not always when it is fastest.</div></div>
+</section>
+
+<!-- EXAM -->
+<section id="exam" role="tabpanel" hidden>
+  <h2>What 9618 has asked about recursive binary search</h2>
+  <p>A recursive binary search was a six-mark code-writing question in Paper 4 (O/N 2025). Open each question for reminders, a model answer and common mistakes. Each coloured phrase earns one mark; the number shows which mark point it is. Past paper mark schemes list Python, VB.NET and Java; only Python is shown here.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span></div>
+
+  <h2>1. Past paper question</h2>
+<!--PP: O/N 2025 · 9618/42 · Q2(e), (f)-->
+
+  <h2>2. Review questions</h2>
+  <p>Written for practice, not taken from past papers. Questions use the array <code>3, 8, 12, 17, 21, 26, 34, 40, 47, 55, 63</code> at indexes 0 to 10.</p>
+
+  <details class="eq"><summary>Q1 <span class="cmd">State</span> <span class="mark">2 marks</span> State the two base cases of a recursive binary search.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One where the value is found, one where it cannot be.</div>
+    <div class="ans"><span class="mk k" data-t="1">The value at the middle index equals the value being searched for (found, so return the index).</span> <span class="mk k" data-t="2">The upper bound is less than the lower bound / there are no items left to search (not found, so return −1).</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting the not-found case. Without it, searching for a missing value would keep calling forever or index outside the array.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q2 <span class="cmd">Complete</span> <span class="mark">4 marks</span> The function is called as <code>RecursiveBinarySearch(DataArray, 0, 10, 40)</code>. Complete the trace table.<pre class="plain">Call | Lower | Upper | Middle | DataArray[Middle] | Return value
+ 1   |  0    | 10    | ...    | ...               | ...
+ 2   | ...
+ 3   | ...
+ 4   | ...</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Middle = Lower + (Upper − Lower) DIV 2. If the middle value is too small, the new Lower is Middle + 1. If it is too big, the new Upper is Middle − 1. Return values are blank until the base case.</div>
+    <div class="ans"><div class="tw"><table class="t mono"><tr><th>Call</th><th>Lower</th><th>Upper</th><th>Middle</th><th>DataArray[Middle]</th><th>Return value</th></tr>
+      <tr><td>1</td><td>0</td><td>10</td><td>5</td><td>26</td><td></td></tr>
+      <tr><td>2</td><td>6</td><td>10</td><td>8</td><td>47</td><td></td></tr>
+      <tr><td>3</td><td>6</td><td>7</td><td>6</td><td>34</td><td></td></tr>
+      <tr><td>4</td><td>7</td><td>7</td><td>7</td><td>40</td><td><b>7</b></td></tr></table></div>
+      <p><span class="mk k" data-t="1">Call 1 correct (Middle 5, value 26, so search the upper half).</span> <span class="mk k" data-t="2">Call 2 correct (Lower 6, Upper 10, Middle 8, value 47, too big, so Upper becomes 7).</span> <span class="mk k" data-t="3">Call 3 correct (Lower 6, Upper 7, Middle 6, value 34, too small, so Lower becomes 7).</span> <span class="mk k" data-t="4">Call 4 correct and returns 7 (the value 40 is at index 7).</span> The same 7 is passed back up through calls 3, 2 and 1.</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Using Middle instead of Middle − 1 or Middle + 1 for the new bound, or filling the Return value column on rows 1 to 3 before the base case has returned.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q3 <span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain why a binary search needs fewer comparisons than a linear search on a large sorted array.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Say what one comparison achieves, and give the effect on the number of comparisons.</div>
+    <div class="ans"><span class="mk k" data-t="1">Each comparison with the middle item rules out half of the remaining items, because the array is sorted.</span> <span class="mk k" data-t="2">So the number of items left halves each time, and the number of comparisons grows with log₂ of the size (e.g. 1 000 items need about 10).</span> <span class="mk k" data-t="3">A linear search removes only one item per comparison, so it may need to check every item.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying binary search “is faster” without saying why. Name the halving.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q4 <span class="cmd">Rewrite</span> <span class="mark">6 marks</span> Rewrite the recursive binary search as an iterative function using program code.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The recursive calls become changes to Lower or Upper, inside a loop that runs while there is something left to search.</div>
+    <div class="ans"><span class="mk k" data-t="1">Function header with the array and value to find as parameters (the bounds set up inside).</span> <span class="mk k" data-t="2">Lower and Upper initialised to the first and last index.</span> <span class="mk k" data-t="3">Loop that continues while Upper &gt;= Lower.</span> <span class="mk k" data-t="4">Middle calculated inside the loop.</span> <span class="mk k" data-t="5">If equal, the index is returned; if greater, Upper becomes Middle − 1; otherwise Lower becomes Middle + 1.</span> <span class="mk k" data-t="6">Returns −1 after the loop if not found.</span>
+<pre class="plain">def binary_search(data_array, data_to_find):
+    lower, upper = 0, len(data_array) - 1
+    while upper &gt;= lower:
+        middle = lower + (upper - lower) // 2
+        if data_array[middle] == data_to_find:
+            return middle
+        elif data_array[middle] &gt; data_to_find:
+            upper = middle - 1
+        else:
+            lower = middle + 1
+    return -1</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using <code>Upper &gt; Lower</code> in the loop condition, which skips the last single item.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q5 <span class="cmd">Discuss</span> <span class="mark">4 marks</span> Discuss whether a recursive or an iterative binary search is the better choice.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One advantage and one disadvantage of each, then a judgement.</div>
+    <div class="ans"><span class="mk k" data-t="1">Recursive: short code that follows the idea directly (search a smaller range).</span> <span class="mk k" data-t="2">Recursive: each call needs a stack frame, so it uses more memory, though only about log₂ n frames are needed.</span> <span class="mk k" data-t="3">Iterative: no stack frames, so it uses less memory and has no risk of stack overflow.</span> <span class="mk k" data-t="4">A judgement: for binary search the depth is small, so either works; the iterative version is slightly more efficient, the recursive version is often clearer.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying recursion is always slower or always uses too much memory. For binary search the stack depth is tiny.</div>
+  </div></details>
+</section>
+
+<!-- TIPS -->
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>The array must be sorted.</b> Say so in any binary search explanation.</li>
+    <li><b>Two base cases:</b> found (return the index) and <code>Upper &lt; Lower</code> (return −1).</li>
+    <li><b>Middle ← Lower + (Upper − Lower) DIV 2.</b> Use integer division. Check that the middle is always between Lower and Upper.</li>
+    <li><b>Exclude the middle.</b> The new bounds are <code>Middle − 1</code> and <code>Middle + 1</code>, not Middle, because that item has been checked.</li>
+    <li><b>Use RETURN on the recursive call.</b> <code>RETURN RecursiveBinarySearch(…)</code>. Without it the answer never reaches the original caller.</li>
+    <li><b>Indexes, not the number of items.</b> An array of 20 items has indexes 0 to 19, so the first call uses 0 and 19.</li>
+    <li><b>In a trace table</b> the Return value is blank on the way down. The same index is returned all the way up.</li>
+    <li><b>Count with powers of 2.</b> 7 items: 3 calls at most. 15: 4. 1 023: 10. Each doubling adds one call.</li>
+    <li><b>Handle “not found” in the main program.</b> Test the returned value for −1 before outputting a position.</li>
+    <li><b>Say “halves the search space”</b> when comparing with linear search.</li>
+  </ul>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Identify</td><td>A short fact or the line of code. No explanation.</td></tr>
+    <tr><td>Describe</td><td>The steps in order, or how something works.</td></tr>
+    <tr><td>Explain</td><td>What happens and why.</td></tr>
+    <tr><td>Complete</td><td>Fill every gap or cell, with exact values or code.</td></tr>
+    <tr><td>Write / Rewrite</td><td>Full code with header, structure and end statements.</td></tr>
+    <tr><td>Discuss</td><td>Both sides, applied to the scenario, with a judgement.</td></tr>
+  </table></div>
+</section>
+</div>

@@ -1,0 +1,316 @@
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 13.3.2</div>
+  <h1>Floating-point Numbers: Normalisation, Range and Errors</h1>
+  <p class="cbook">Coursebook: Chapter 13 · Data representation, section 13.3 Floating-point numbers, representation and manipulation</p>
+  <p class="lead">Why and how numbers are normalised, how the allocation of bits affects range and precision, overflow, underflow and rounding errors; animations, labs and the real 9618 theory questions from 2021 to 2026.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A floating-point number is <b>normalised</b> when its mantissa starts <b>01</b> (positive) or <b>10</b> (negative), so there are no wasted leading bits; this gives the <b>most precision</b> for the bits available, a <b>single representation</b> for each number, and the widest range. To normalise, shift the mantissa left until the first two bits differ and subtract the number of shifts from the exponent. With a fixed total number of bits, more bits for the mantissa give more <b>precision</b> and fewer for the exponent give a smaller <b>range</b>, and the reverse. A result too large to store causes <b>overflow</b>, one too small (closer to zero than the smallest number) causes <b>underflow</b>. Many numbers, such as 0.1, cannot be stored exactly in binary, so the stored value is an approximation and <b>rounding errors</b> appear.</p></div>
+
+  <h2>1 · Normalisation</h2>
+  <p>In two's complement the first bit is the sign. A mantissa is <b>normalised</b> if its first <b>two bits are different</b>:</p>
+  <div class="tw"><table class="t mono">
+    <tr><th>Mantissa</th><th>Normalised?</th><th>Reason</th></tr>
+    <tr><td>0111010000</td><td>Yes</td><td>starts 01: positive, 0.1...</td></tr>
+    <tr><td>1000110000</td><td>Yes</td><td>starts 10: negative</td></tr>
+    <tr><td>0001111000</td><td>No</td><td>starts 00: the leading zeros are wasted</td></tr>
+    <tr><td>1110000000</td><td>No</td><td>starts 11: the leading ones are wasted</td></tr>
+  </table></div>
+  <p>A normalised positive mantissa has a value from 0.5 up to just below 1, and a normalised negative mantissa from −1 up to just below −0.5.</p>
+  <h3>How to normalise</h3>
+  <ol>
+    <li><b>Shift the mantissa left</b> until its first two bits are different, adding zeros on the right.</li>
+    <li>Each shift left makes the number twice as big, so <b>subtract 1 from the exponent</b> for every shift (to keep the same value).</li>
+    <li>Write the new mantissa and exponent. Check: the value is unchanged.</li>
+  </ol>
+  <div class="tw"><table class="t mono">
+    <tr><th>Step</th><th>Mantissa</th><th>Exponent</th></tr>
+    <tr><td>Given (starts 00, not normalised)</td><td>0000000111</td><td>100111 (−25)</td></tr>
+    <tr><td>Shift left 6 places: starts 01</td><td>0111000000</td><td>100111 − 6 = 100001 (−31)</td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Why normalise?</b>(1) To store the <b>maximum range of numbers</b> in the minimum number of bits. (2) It minimises the number of <b>leading zeros or ones</b>, so the <b>most significant bits</b> are kept: the number has the greatest possible <b>precision</b>. (3) It avoids a number having <b>multiple representations</b>.</div>
+
+  <h2>2 · Range and precision: how the bits are shared</h2>
+  <p>The total number of bits is fixed (for example 16). Every bit given to the mantissa is taken from the exponent.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Change</th><th>Effect on precision (accuracy)</th><th>Effect on range</th></tr>
+    <tr><td><b>More bits for the mantissa</b>, fewer for the exponent</td><td>Increases: more significant digits can be stored</td><td>Decreases: the exponent is smaller, so the largest and smallest numbers are less extreme</td></tr>
+    <tr><td><b>Fewer bits for the mantissa</b>, more for the exponent</td><td>Decreases</td><td>Increases: larger and smaller numbers can be stored</td></tr>
+  </table></div>
+  <p>The range and the accuracy trade off: when the range increases the accuracy decreases, and the other way round. For a mantissa of <i>m</i> bits and an exponent of <i>e</i> bits (normalised, two's complement), with <i>E</i> = 2<sup><i>e</i>−1</sup>:</p>
+  <ul>
+    <li><b>Largest positive:</b> mantissa 0111...1 and the largest exponent: (1 − 2<sup>−(<i>m</i>−1)</sup>) × 2<sup><i>E</i>−1</sup></li>
+    <li><b>Smallest positive:</b> mantissa 0100...0 (0.5) and the most negative exponent: 0.5 × 2<sup>−<i>E</i></sup> = 2<sup>−<i>E</i>−1</sup></li>
+    <li><b>Largest negative number (most negative):</b> mantissa 1000...0 (−1) with the largest exponent.</li>
+  </ul>
+  <div class="tw"><table class="t">
+    <tr><th>Mantissa</th><th>Exponent</th><th>Largest positive number</th><th>Smallest positive number</th></tr>
+    <tr><td>8 bits</td><td>8 bits</td><td>(1 − 2<sup>−7</sup>) × 2<sup>127</sup></td><td>2<sup>−129</sup></td></tr><tr><td>10 bits</td><td>6 bits</td><td>(1 − 2<sup>−9</sup>) × 2<sup>31</sup></td><td>2<sup>−33</sup></td></tr><tr><td>11 bits</td><td>5 bits</td><td>(1 − 2<sup>−10</sup>) × 2<sup>15</sup> = 32736</td><td>2<sup>−17</sup></td></tr><tr><td>12 bits</td><td>4 bits</td><td>(1 − 2<sup>−11</sup>) × 2<sup>7</sup> = 127.9375</td><td>2<sup>−9</sup></td></tr>
+  </table></div>
+  <p>For 12 bits and 4 bits the largest positive number is 127.9375 (exponent 7). Giving 10 bits to the mantissa and 6 to the exponent <b>increases the range</b> (up to 2<sup>31</sup>) but <b>reduces the precision</b> of each number.</p>
+
+  <h2>3 · Overflow and underflow</h2>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Overflow</th><th>Underflow</th></tr>
+    <tr><td>What happens</td><td>The result of a calculation is <b>too large</b> to be stored: the exponent needed is bigger than the system can hold</td><td>The result is <b>too small</b>: closer to zero than the smallest number the system can represent</td></tr>
+    <tr><td>Example</td><td>Multiplying two very large numbers; adding 91.5 and 123.25 in a system whose largest value is 127.9375 (the answer, 214.75, needs an exponent of 8)</td><td>Dividing a very small number by a large one repeatedly</td></tr>
+    <tr><td>Consequence</td><td>The most significant bits are lost, so the answer is wrong, or the program stops with an error</td><td>The result is stored as zero (or loses all accuracy), so later calculations are wrong</td></tr>
+  </table></div>
+
+  <h2>4 · Approximations and rounding errors</h2>
+  <p>A binary fraction can only be built from halves, quarters, eighths and so on. A decimal fraction such as 0.1 or 0.2 is a <b>recurring</b> binary fraction (0.000110011...), and a finite mantissa has to cut it off, so the stored number is only the nearest value it can hold. The difference is a <b>rounding error</b>.</p>
+  <div class="tw"><table class="t mono">
+    <tr><th>Number</th><th>Stored in 12 + 4 bits</th><th>Error</th></tr>
+    <tr><td>0.1</td><td>0.0999755859</td><td>−0.0000244...</td></tr>
+    <tr><td>65.2</td><td>65.1875</td><td>−0.0125</td></tr>
+    <tr><td>0.25</td><td>0.25</td><td>none: 1/4 is a power of two</td></tr>
+  </table></div>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">print(0.1 + 0.2)              # 0.30000000000000004</span><span class="ln">print(0.1 + 0.2 == 0.3)       # False</span><span class="ln"> </span><span class="ln">print(abs((0.1 + 0.2) - 0.3) &lt; 1e-9)   # True: compare with a tolerance, not ==</span></pre></div>
+  <ul>
+    <li>Rounding errors <b>build up</b> when many calculations are done on approximate numbers.</li>
+    <li>More mantissa bits give a closer approximation but never remove the problem.</li>
+    <li>Programs compare real numbers using a small tolerance, and store money as a whole number of pence.</li>
+  </ul>
+
+  <h2>5 · Common ways to lose marks</h2>
+  <ul>
+    <li>Calling a mantissa normalised because it starts with 0. It must start <b>01</b> or <b>10</b>.</li>
+    <li>Changing the exponent in the wrong direction when normalising: each shift left <b>reduces</b> the exponent by 1.</li>
+    <li>Saying more mantissa bits give a bigger range. They give more <b>precision</b>; more exponent bits give the bigger <b>range</b>.</li>
+    <li>Mixing up overflow (too large) and underflow (too small, near zero).</li>
+    <li>Explaining an approximation without saying why: the fractional part cannot be written exactly as a sum of powers of ½ in the available bits, so bits are lost or rounded.</li>
+    <li>Not giving the <b>consequence</b> when asked: loss of precision, a wrong answer, or the value stored as zero.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Normalising a mantissa</h2>
+  <p>Press Play, or click the steps.</p>
+  <div id="stA"></div>
+  <h2>2 · Sharing 16 bits: precision against range</h2>
+  <div id="stB"></div>
+  <h2>3 · Overflow and underflow on the number line</h2>
+  <div id="stC"></div>
+  <h2>4 · Why 0.1 is only an approximation</h2>
+  <div id="stD"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Normalise a floating-point number</h2>
+  <p>Choose a number that is not normalised and press Shift left until it is. Watch the exponent drop by one each time.</p>
+  <div class="card"><div id="nB" class="btnrow"></div><div id="nS"></div><div class="btnrow"><button class="b pri" id="nL">Shift mantissa left</button><button class="b" id="nR">Reset</button></div><div class="verdict" id="nV"></div></div>
+
+  <h2>Lab 2 · Share 16 bits between mantissa and exponent</h2>
+  <p>Move the slider. The mantissa takes the bits you give it; the exponent gets the rest. Watch what happens to the range and to the precision.</p>
+  <div class="card"><div id="sS"></div><div class="readout"><div><small>Largest positive</small><strong id="s1" style="font-size:1rem"></strong></div><div><small>Smallest positive</small><strong id="s2" style="font-size:1rem"></strong></div><div><small>Gap near 1 (precision)</small><strong id="s3" style="font-size:1rem"></strong></div></div><div class="verdict" id="sV"></div></div>
+
+  <h2>Lab 3 · What is actually stored?</h2>
+  <p>Type a decimal number and choose the allocation of bits. The stored value and the error are shown.</p>
+  <div class="card"><div id="rB" class="btnrow"></div><div class="btnrow" id="rE"></div><p><input id="rN" type="text" value="0.1" style="width:12em;padding:8px;border:1px solid var(--line);border-radius:8px;font:500 .95rem var(--mono)" aria-label="Number"> <button class="b pri" id="rR">Store it</button></p><div id="rO"></div><div class="verdict" id="rV"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Is the mantissa normalised?</h2><div id="cl1" class="card"></div>
+  <h2>2 · More mantissa bits or more exponent bits?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the steps for normalising in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>5 · Normalising and ranges</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Spreadsheet totals that are off by a tiny amount</h3><p>A sum of prices can show 0.30000000000000004 instead of 0.3. The computer holds 0.1 and 0.2 as approximations, so adding them gives an answer that is very slightly wrong.</p><div class="use"><b>Exam use:</b> rounding errors come from binary approximations.</div></div>
+  <div class="rw"><h3>A game physics engine</h3><p>If an object's speed is multiplied by 0.99 many times it may shrink until it is too small to store and becomes zero. That is underflow, and the object stops.</p><div class="use"><b>Exam use:</b> underflow: a result closer to zero than the smallest number.</div></div>
+  <div class="rw"><h3>A scientific simulation</h3><p>A model of a galaxy multiplies huge masses and distances. If the result is bigger than the largest number the format can hold, the program reports an overflow error or gives a wrong answer.</p><div class="use"><b>Exam use:</b> overflow: a result too large to store.</div></div>
+  <div class="rw"><h3>Choosing 32-bit or 64-bit floats</h3><p>A 64-bit float has more bits for both parts, giving far more precision and range than a 32-bit float, but uses twice the memory.</p><div class="use"><b>Exam use:</b> the allocation of bits sets the precision and the range.</div></div>
+  <div class="rw"><h3>Storing money</h3><p>Banks store pounds and pence as a whole number of pence, because 0.10 cannot be held exactly as a binary fraction and tiny errors would add up over millions of transactions.</p><div class="use"><b>Exam use:</b> avoid floating point where exact values matter.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is the real 9618 questions on normalisation, range and precision, overflow, underflow and approximations (Paper 3), 2021 to 2026. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2021</td><td>31, 32, 33</td><td>1(c), 1(d)</td><td>3 + 3 + 2</td><td>Normalise a mantissa; explain why 513 cannot be stored; alter the storage</td></tr>
+    <tr><td>O/N 2021</td><td>31, 32</td><td>1(a)(ii), 1(b)</td><td>2 + 3</td><td>Consequence of too few mantissa bits; why numbers are normalised</td></tr>
+    <tr><td>O/N 2022</td><td>31, 33</td><td>1(c)</td><td>1 + 2</td><td>Why a number is not normalised; normalise it</td></tr>
+    <tr><td>O/N 2022</td><td>32</td><td>1(a), 1(c)</td><td>1 + 2</td><td>Largest positive number; when underflow occurs</td></tr>
+    <tr><td>M/J 2023</td><td>31, 33</td><td>1(b)</td><td>2</td><td>The problem representing 113.75 in the 8-bit mantissa system</td></tr>
+    <tr><td>M/J 2023</td><td>32</td><td>1(b)</td><td>3</td><td>Why a normalised number cannot be represented accurately</td></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>1(b)</td><td>2</td><td>The problem storing +65.20</td></tr>
+    <tr><td>O/N 2023</td><td>32</td><td>1(b)</td><td>3</td><td>Why a binary representation is only an approximation</td></tr>
+    <tr><td>M/J 2024</td><td>32</td><td>1(a)</td><td>2</td><td>The effect of changing the allocation of bits</td></tr>
+    <tr><td>M/J 2025</td><td>33</td><td>2(a)</td><td>2</td><td>Largest normalised positive number and its denary value</td></tr>
+    <tr><td>O/N 2025</td><td>33</td><td>2(a), 2(b)</td><td>3 + 3</td><td>Effect of a 10-bit mantissa; an example of overflow and its consequences</td></tr>
+    <tr><td>M/J 2026</td><td>32</td><td>3(b)</td><td>2</td><td>An example of underflow and its consequences</td></tr>
+    <tr><td>M/J 2026</td><td>33</td><td>5(b)</td><td>3</td><td>The problem adding 91.5 and 123.25 in the system</td></tr>
+  </table></div>
+  <p class="note">Normalisation, accuracy, overflow, underflow and rounding errors are the second half of the floating-point questions in Paper 3, often as the second part of a conversion question. The conversions are on the previous page. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+
+  <h3>Normalising and why</h3>
+  <details class="eq"><summary><span class="src">M/J 2021 · 9618/31, 32, 33 · Q1(c)</span> <span class="cmd">Normalise</span> <span class="mark">3 marks</span> Real numbers are stored using 10 bits for the mantissa and 6 bits for the exponent, in two's complement. The given binary floating-point number is not normalised. Normalise it. Show your working. Mantissa 0000000111, exponent 100111.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Shift the mantissa left until it starts 01, and reduce the exponent by the number of shifts.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">working: the mantissa is moved 6 places left (6 shifts) so the exponent is reduced by 6</span> <span class="mk k" data-t="2">correct mantissa 0111000000</span> <span class="mk k" data-t="3">correct exponent 100001</span></p><pre class="plain">Mantissa 0000000111   starts 00: not normalised
+Shift left 6 places:  0111000000   (starts 01)
+Exponent 100111 = −25;  −25 − 6 = −31 = 100001
+
+Mantissa  0111000000
+Exponent  100001</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Adding 6 to the exponent. Shifting the mantissa left makes it look larger, so the exponent must be made smaller to keep the value.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/31, 33 · Q1(c)</span> <span class="cmd">State / Normalise</span> <span class="mark">1 + 2 marks</span> Real numbers use 8 bits for the mantissa and 8 bits for the exponent, in two's complement. A binary number is stored with mantissa 00011110 and exponent 00011000. (i) State why the number is not normalised. (ii) Write the normalised floating-point representation of the number.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(i) look at the first two bits. (ii) shift and adjust the exponent.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">The mantissa does not begin 01 or 10 (it begins 00): the first two digits are the same</span></p><p><b>(ii)</b> <span class="mk a" data-t="1">correct mantissa 01111000</span> <span class="mk a" data-t="2">correct exponent 00010110</span></p><pre class="plain">00011110 → shift left 2 places → 01111000
+Exponent 00011000 = 24;  24 − 2 = 22 = 00010110
+
+Mantissa  01111000
+Exponent  00010110</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/31, 32 · Q1(b)</span> <span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain the reason why binary numbers are stored in normalised form.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Range in the fewest bits; leading zeros or ones; precision; one representation.</div>
+    <div class="ans"><p>Any three: <span class="mk k" data-t="1">To store the maximum range of numbers in the minimum number of bytes / bits</span> <span class="mk k" data-t="2">Normalisation minimises the number of leading zeros / ones represented</span> <span class="mk k" data-t="3">so the number of significant bits is maximised, giving the greatest precision / accuracy for the given number of bits</span> <span class="mk k" data-t="4">it enables very large or very small numbers to be stored with accuracy</span> <span class="mk k" data-t="5">it avoids the possibility of many numbers having multiple representations</span></p></div>
+  </div></details>
+
+  <h3>Range, accuracy and the allocation of bits</h3>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/32 · Q1(a)</span> <span class="cmd">Describe</span> <span class="mark">2 marks</span> Describe the effect of changing the allocation of bits used for the mantissa and for the exponent in a floating-point number with a fixed total number of bits.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Mantissa bits: precision. Exponent bits: range. And the trade-off.</div>
+    <div class="ans"><p>Any two: <span class="mk k" data-t="1">More bits for the mantissa increase the precision / accuracy of the number; fewer reduce it</span> <span class="mk k" data-t="2">Fewer bits for the exponent reduce the range of numbers that can be represented; more increase it</span> <span class="mk k" data-t="3">When the range increases the accuracy decreases, and when the range decreases the accuracy increases</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing that more bits make the number 'bigger'. Say which part: the mantissa affects precision, the exponent affects range.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/33 · Q2(a)</span> <span class="cmd">Outline</span> <span class="mark">3 marks</span> Numbers are stored using 12 bits for the mantissa, 4 bits for the exponent, in two's complement, 2 bytes in total. Outline the effect of changing the number of bits used to store the mantissa to 10 bits in this system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The total stays 16, so the exponent gets 6.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The precision of the number stored in the mantissa is reduced</span> <span class="mk k" data-t="2">the number of bits available for the exponent increases to 6</span> <span class="mk k" data-t="3">so the range of numbers that can be stored increases</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2021 · 9618/31, 32, 33 · Q1(d)</span> <span class="cmd">Explain / Describe</span> <span class="mark">3 + 2 marks</span> Real numbers are stored with 10 bits for the mantissa, 6 for the exponent. The denary number 513 cannot be stored accurately as a normalised floating-point number in this system. (i) Explain the reason for this. (ii) Describe an alteration to the way floating-point numbers are stored to enable this number to be stored accurately using the same total number of bits.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>513 in binary is 1000000001 (10 digits): the positive mantissa needs 11 bits.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">It requires 11 bits (more than 10) in the mantissa to store 513 accurately; the largest whole number a 10-bit mantissa can hold is 511</span> <span class="mk k" data-t="2">513 in binary is 1000000001, which normalised is 0.1000000001 × 2<sup>10</sup></span> <span class="mk k" data-t="3">so the least significant digit is lost / the result is an overflow of the mantissa</span></p><p><b>(ii)</b> <span class="mk a" data-t="1">The number of bits for the mantissa must be increased</span> <span class="mk a" data-t="2">to 11 or 12 bits for the mantissa and 5 or 4 bits for the exponent</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/32 · Q1(a)</span> <span class="cmd">Write</span> <span class="mark">1 mark</span> Normalised floating-point numbers are stored using two's complement for both the mantissa and the exponent, with 11 bits for the mantissa and 5 bits for the exponent. Write the largest positive two's complement binary number that can be stored in this system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A positive mantissa with every other bit 1, and the largest positive exponent.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">mantissa 01111111111, exponent 01111</span></p><pre class="plain">Mantissa  01111111111    (0.1111111111 = 1 − 2^-10)
+Exponent  01111          (+15)</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using 11111 for the exponent. A leading 1 would make it negative: the largest positive exponent is 01111.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/33 · Q2(a)</span> <span class="cmd">Give</span> <span class="mark">2 marks</span> Numbers are stored using 8 bits for the mantissa and 8 bits for the exponent, in two's complement. Give the largest normalised positive two's complement binary number that can be stored in this system and state its denary equivalent. The denary answer should be expressed in terms of powers of 2.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Mantissa 01111111 and the largest exponent 01111111 (127).</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Mantissa 01111111 and exponent 01111111</span> <span class="mk k" data-t="2">Denary: (1 − 2<sup>−7</sup>) × 2<sup>127</sup> = 2<sup>127</sup> − 2<sup>120</sup></span></p><pre class="plain">Mantissa  01111111      = 0.1111111 = 1 - 2^-7
+Exponent  01111111      = 127
+Value = (1 - 2^-7) x 2^127  =  2^127 - 2^120</pre></div>
+  </div></details>
+
+  <h3>Overflow, underflow and approximations</h3>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/32 · Q1(c)</span> <span class="cmd">State</span> <span class="mark">2 marks</span> State when underflow occurs in a binary floating-point system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A result too small, following an operation.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Following an arithmetic or logical operation</span> <span class="mk k" data-t="2">the result is too small to be precisely represented in the available system (smaller than the smallest number that can be stored)</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/32 · Q3(b)</span> <span class="cmd">Describe</span> <span class="mark">2 marks</span> Describe one example of a situation that could cause underflow to occur and the consequences of this underflow.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A calculation on a normalised number, the result below the lowest value, and what is stored.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">When a calculation is performed on a normalised floating-point number (any specific example is allowed)</span> <span class="mk k" data-t="2">so that the result is less than the lowest possible value that can be stored, the exponent being too small for the number of bits, so the result becomes zero</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/33 · Q2(b)</span> <span class="cmd">Describe</span> <span class="mark">3 marks</span> Describe one example of a situation that could cause an overflow to occur and the consequences of such an overflow.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A calculation, a result out of range, and what is lost.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A process involving a calculation, such as multiplying two large numbers, could take place</span> <span class="mk k" data-t="2">the result might be outside the range of values possible to store in the given system</span> <span class="mk k" data-t="3">leading to the most significant bits of the mantissa or exponent being lost, which is an overflow</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/33 · Q5(b)</span> <span class="cmd">Explain</span> <span class="mark">3 marks</span> Numbers are stored using 12 bits for the mantissa and 4 bits for the exponent, in two's complement. Explain the problem that would occur if the two binary floating-point numbers representing the denary numbers 91.5 and 123.25 were added together and the result stored in the given system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Add them, then compare with the largest number that can be stored.</div>
+    <div class="ans"><p>Up to three: <span class="mk k" data-t="1">The sum would be 214.75</span> <span class="mk k" data-t="2">which exceeds the largest number that can be stored in this system with an exponent of 7 (127.9375)</span> <span class="mk k" data-t="3">an exponent of 8 would be required to increase the range beyond 128</span> <span class="mk k" data-t="4">overflow would occur</span></p><pre class="plain">91.5 + 123.25 = 214.75
+Largest number with a 4-bit exponent:  (1 − 2^-11) × 2^7 = 127.9375
+214.75 &gt; 127.9375  →  OVERFLOW</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/31, 33 · Q1(b)</span> <span class="cmd">Explain</span> <span class="mark">2 marks</span> System 1 uses 10 bits for the mantissa and 6 bits for the exponent. System 2 uses 8 bits for the mantissa and 8 for the exponent. 113.75 is stored in both. Explain the problem that occurred when representing the number in System 2.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>How many bits does the mantissa need?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The mantissa in System 2 does not have enough bits to store the whole binary number (10 bits are required, only 8 are available)</span> <span class="mk k" data-t="2">so precision is lost / the number is truncated</span></p><pre class="plain">113.75 = 0.111000111 × 2^7   needs 10 bits of mantissa
+System 2 has 8: stored as 01110001 → 0.1110001 × 2^7 = 112.5</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/32 · Q1(b)</span> <span class="cmd">Describe</span> <span class="mark">3 marks</span> Numbers are stored with 10 bits for the mantissa and 6 for the exponent. Describe the reason why the normalised form of the binary number 0101011.111001 cannot be represented accurately using this system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Count the digits in the normalised mantissa.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The mantissa of the number would need to be 0.101011111001 (13 bits)</span> <span class="mk k" data-t="2">but it can only store 10 bits</span> <span class="mk k" data-t="3">so the 3 least significant digits would be truncated, causing a loss of precision</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31, 33 · Q1(b)</span> <span class="cmd">Explain</span> <span class="mark">2 marks</span> Numbers are stored with 12 bits for the mantissa and 4 bits for the exponent. Explain the problem that will occur in storing the normalised floating-point representation of +65.20 in this system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Can 0.20 be written exactly as a sum of halves, quarters, eighths...?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The decimal fraction 0.20 cannot be represented exactly in binary (the closest values are 0.1875 and 0.25)</span> <span class="mk k" data-t="2">so there will be a loss of precision due to a rounding error / truncation</span></p><pre class="plain">65.2 = 1000001.001100110011...   (the fraction recurs)
+12-bit mantissa keeps 1000001.0011  →  stored value 65.1875</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/32 · Q1(b)</span> <span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain why a binary representation is sometimes only an approximation to the real number it represents.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Fractions, fixed length, powers of 2.</div>
+    <div class="ans"><p>Any three: <span class="mk k" data-t="1">Real numbers can have a fractional part (such as 1/3 or 0.4)</span> <span class="mk k" data-t="2">The fixed length of the storage means very large or very small numbers cannot be stored, and not every fraction can be stored with enough precision</span> <span class="mk k" data-t="3">Binary represents numbers using powers of 2, so only fractions such as 1/2, 1/4, 1/8, 1/16 can be stored exactly</span> <span class="mk k" data-t="4">The fractional part is stored as close as possible within the constraints (so it is an approximation)</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/31, 32 · Q1(a)(ii)</span> <span class="cmd">State</span> <span class="mark">2 marks</span> Numbers are stored with 12 bits for the mantissa, 4 bits for the exponent. The unsigned binary number 1011100.011001 (13 binary digits) is stored in this system. State the consequence of storing it as a floating-point number in this system, and justify your answer.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One mark for the consequence, one for why.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Consequence: the precision / accuracy of the number would be reduced</span> <span class="mk k" data-t="2">Justification: the least significant bits of the original number have been truncated / lost, because the number needs 13 (or 14 with the sign) bits but the mantissa can only store 12</span></p></div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Normalise</span> <span class="mark">3 marks</span> A system has an 8-bit mantissa and a 6-bit exponent (two's complement). Normalise mantissa 00001100 with exponent 000101.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Shift until it starts 01 and reduce the exponent by the number of shifts.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">the mantissa starts 00, so it is not normalised</span> <span class="mk k" data-t="2">shift 3 places left: 01100000</span> <span class="mk k" data-t="3">exponent 5 − 3 = 2: 000010</span></p><pre class="plain">00001100 → 3 shifts left → 01100000
+Exponent 000101 = 5;  5 − 3 = 2 = 000010</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Increasing the exponent. Each left shift reduces it.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State two reasons why numbers are stored in normalised form.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Think precision and range.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">It gives the maximum precision for the number of bits, because there are no wasted leading zeros or ones.</span> <span class="mk k" data-t="2">Each number has only one representation, and the range is maximised.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> A system uses 12 bits for the mantissa and 4 bits for the exponent. The designer changes it to 8 bits and 8 bits. Explain the effect on the range and on the accuracy of the numbers.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Which part gets bigger?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The exponent has more bits, so the range of numbers that can be stored increases.</span> <span class="mk k" data-t="2">The mantissa has fewer bits, so fewer significant digits are stored: the accuracy / precision decreases.</span> <span class="mk k" data-t="3">Larger and smaller numbers can be represented but each is less precise.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Distinguish</span> <span class="mark">2 marks</span> Distinguish between overflow and underflow.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Too large against too small.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Overflow: the result of a calculation is too large to be stored in the number of bits available.</span> <span class="mk k" data-t="2">Underflow: the result is too small, closer to zero than the smallest number that can be stored.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain why the result of adding 0.1 ten times in a program may not be exactly 1.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>0.1 in binary.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">0.1 cannot be stored exactly in binary: it is a recurring binary fraction.</span> <span class="mk k" data-t="2">The stored value is an approximation with a small rounding error.</span> <span class="mk k" data-t="3">Adding it ten times adds the error ten times, so the total is slightly different from 1.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Calculate</span> <span class="mark">2 marks</span> Using 12 bits for the mantissa and 4 for the exponent, the largest positive number is (1 − 2<sup>−11</sup>) × 2<sup>7</sup>. Write the mantissa and exponent for it.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The largest positive mantissa has a 0 sign bit then all 1s.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">mantissa 011111111111</span> <span class="mk k" data-t="2">exponent 0111</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Normalised means 01 or 10.</b> If the first two bits match, shift left and lower the exponent for each shift.</li>
+    <li><b>Mantissa bits: precision. Exponent bits: range.</b> A fixed total means gaining one costs the other.</li>
+    <li><b>Give the cause and the consequence.</b> Overflow: too large, bits lost. Underflow: too small, stored as zero. Approximation: lost bits, rounding error.</li>
+    <li><b>Say why 0.1 is an approximation.</b> It is not a sum of powers of ½, so it recurs in binary and has to be cut off.</li>
+    <li><b>Use numbers from the question.</b> 'The mantissa needs 13 bits but only 10 are available, so the last 3 are lost.'</li>
+    <li><b>Quote the limit.</b> In 12 + 4 bits the largest number is 127.9375, so 214.75 overflows.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>why numbers are normalised</td><td>"It maximises the precision for the available bits, uses the fewest bits for the range, and gives each number one representation."</td></tr>
+    <tr><td>what overflow is</td><td>"The result of a calculation is too large to store, so the most significant bits are lost."</td></tr>
+    <tr><td>what underflow is</td><td>"The result is closer to zero than the smallest number that can be stored, so it is stored as zero."</td></tr>
+    <tr><td>why a number is an approximation</td><td>"Its binary fraction needs more bits than the mantissa has, so the least significant bits are truncated and precision is lost."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State</td><td>Give the fact in a short sentence.</td></tr>
+    <tr><td>Explain</td><td>Give the cause and the effect, using the numbers in the question.</td></tr>
+    <tr><td>Describe</td><td>Say what happens, with an example.</td></tr>
+    <tr><td>Normalise</td><td>Show the shifts and the change to the exponent.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>

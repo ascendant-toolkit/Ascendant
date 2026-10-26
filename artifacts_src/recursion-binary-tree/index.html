@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Recursion in Action: Binary Tree Traversal</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+</style></head>
+<body>
+<style>
+.pick{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:6px 0 10px}
+.pick select{font:600 .95rem var(--sans);padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.pick label{font-weight:600;font-size:.92rem}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .85rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+#ciChart svg{display:block;width:100%;height:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.callbox{font:700 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:8px 14px;border-radius:0 8px 8px 0;margin:8px 0;overflow-x:auto}
+.step4{counter-reset:s;list-style:none;padding:0;margin:8px 0}
+.step4 li{counter-increment:s;display:flex;gap:10px;padding:8px 12px;margin-bottom:6px;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
+.step4 li::before{content:counter(s);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+.algo{grid-template-columns:minmax(0,1fr)}
+table.t td,table.t th{white-space:normal}
+table.t.mono td,table.t.mono th{white-space:nowrap}
+</style>
+<div class="wrap">
+
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Chapter 19 · 19.2</div>
+  <h1>Recursion in Action: Binary Tree Traversal</h1>
+  <p class="lead">A binary tree is built from smaller binary trees, so recursion is the natural way to walk it. See in-order, pre-order and post-order traversal run call by call, watch a recursive search, and learn why the output order changes with one line moved.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<!-- LEARN -->
+<section id="learn" role="tabpanel">
+  <div class="card big">
+    <h3>A tree is a node with two smaller trees</h3>
+    <p>A <span class="kw">binary tree</span> is made of nodes. Each node holds a value and up to two children: a left child and a right child. Each child is the root of its own smaller binary tree (a <span class="kw">subtree</span>), and an empty subtree is a tree with no nodes.</p>
+    <p>That is a recursive definition: <b>a tree is a node plus a left tree plus a right tree</b>. Any algorithm that must visit every node can be written the same way: do something with this node, then do the same for the left subtree and for the right subtree. The base case is the empty tree.</p>
+  </div>
+
+  <h2>How the tree is stored</h2>
+  <p>In 9618 a binary tree is usually stored in arrays: one for the data and one each for the left and right pointers. A pointer holds the array index of the child, and a special value means “no child”. Here that value is 0, and the arrays start at index 1. Always check which null value a question uses; some papers use −1 or another value.</p>
+  <div id="treeStatic"></div>
+  <p class="note">The root is at index 1 (<code>RootPointer = 1</code>). Node 3 (70) has a left child (index 6) but no right child, so its right pointer is 0.</p>
+
+  <h2>Three ways to visit every node</h2>
+  <p>A <span class="kw">traversal</span> visits each node exactly once. The three standard orders differ only in <b>when the node’s own value is output</b>, compared with the two recursive calls.</p>
+  <div class="grid2">
+    <div class="card"><h3>In-order</h3><div class="formula">left · node · right</div><p>Left subtree first, then the node, then the right subtree. For a binary <i>search</i> tree this outputs the values in <b>ascending order</b>.</p></div>
+    <div class="card"><h3>Pre-order</h3><div class="formula">node · left · right</div><p>The node first, then its subtrees. The root always comes out first. Useful for copying a tree.</p></div>
+    <div class="card"><h3>Post-order</h3><div class="formula">left · right · node</div><p>Both subtrees before the node. The root always comes out last. Useful for deleting a tree, or evaluating an expression tree.</p></div>
+  </div>
+
+  <h2>The procedure, line by line</h2>
+  <p>This is in-order traversal. Choose Pseudocode or Python. The base case is <code>Node = 0</code>: the empty tree, where nothing happens.</p>
+  <div id="codeT"></div>
+  <ol class="step4">
+    <li><span><b>IF Node &lt;&gt; 0.</b> If the pointer is 0 the subtree is empty. The procedure ends without doing anything. This is the base case.</span></li>
+    <li><span><b>CALL InOrder(LeftPointer[Node]).</b> Visit the whole left subtree before anything else. The argument is a pointer to a smaller tree, so each call moves towards an empty tree.</span></li>
+    <li><span><b>OUTPUT Data[Node].</b> Only now is this node’s own value output.</span></li>
+    <li><span><b>CALL InOrder(RightPointer[Node]).</b> Then the whole right subtree.</span></li>
+  </ol>
+  <div class="tip"><b class="h">One line moves, the order changes</b>For <b>pre-order</b>, move the OUTPUT line above both calls. For <b>post-order</b>, move it below both calls. Nothing else changes.</div>
+
+  <h2>Recursive search and insert</h2>
+  <p>The syllabus asks you to find and insert items in a binary tree. In a binary <i>search</i> tree, smaller values go left and larger values go right, so a search only follows <b>one</b> branch at each node: it is recursion with a single call, like a chain. The base case is either an empty subtree (not found) or a matching value (found).</p>
+  <div id="codeFind"></div>
+  <p>Insert works the same way. Go left or right as the search would; where the pointer is 0, there is a free place for the new node.</p>
+  <pre class="plain">def insert(node, item):
+    if item &lt; data[node]:
+        if left[node] == 0:
+            left[node] = new_node(item)      # free slot found: base case
+        else:
+            insert(left[node], item)
+    else:
+        if right[node] == 0:
+            right[node] = new_node(item)
+        else:
+            insert(right[node], item)</pre>
+
+  <h2>Stack depth and the shape of the tree</h2>
+  <p>The stack holds one branch at a time, so the deepest the stack gets is the <b>height</b> of the tree (plus one for the final empty call). A well-balanced tree of 1 000 nodes is about 10 levels deep. A tree that is really a long chain (for example values inserted already in order) is as deep as it has nodes, and a very long chain could overflow the stack. The Explore tab lets you compare.</p>
+</section>
+
+<!-- WATCH -->
+<section id="watch" role="tabpanel" hidden>
+  <p>Press Play, or click the numbered dots. On the right is the <b>call tree</b> (amber = waiting, blue = running, green = finished). It has the same shape as the data tree, with an extra call for every missing child, shown as ∅. The <b>output</b> box fills as values are written. The highlighted code line shows what is being run.</p>
+
+  <h2>1 · In-order: left, node, right</h2>
+  <p>Notice that nothing is output until the left-most node is reached. The first value out is the smallest.</p>
+  <div id="aIn"></div>
+
+  <h2>2 · Pre-order: node, left, right</h2>
+  <p>The output line now runs <i>before</i> the calls, so each value appears as soon as its call starts, on the way down.</p>
+  <div id="aPre"></div>
+
+  <h2>3 · Post-order: left, right, node</h2>
+  <p>Each value is output only after both subtrees are finished, so the root is last.</p>
+  <div id="aPost"></div>
+
+  <h2>4 · Recursive search for 60</h2>
+  <p>Only one branch is followed: the call tree is a chain. The value is found in three calls, without visiting the rest of the tree.</p>
+  <div id="aFind"></div>
+  <div class="tip"><b class="h">If the item is not there</b>Searching for 45 would go 50 → 30 → 40 → right pointer 0, then <code>Find(0, 45)</code> hits the base case <code>Node = 0</code> and returns 0, meaning not found.</div>
+</section>
+
+<!-- EXPLORE -->
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Walk a tree, one visit at a time</h2>
+  <p>Choose a tree and a traversal, then press Next to output the next value. Each node shows the order in which it was visited. Try the long chain to see why tree shape matters.</p>
+  <div class="pick"><label for="trT">Tree</label><select id="trT"><option value="0">Tree A: 6 nodes (the tree above)</option><option value="1">Tree B: 7 nodes, uneven</option><option value="2">Tree C: a chain of 5 nodes</option></select>
+  <label for="trO">Traversal</label><select id="trO"><option value="in">In-order</option><option value="pre">Pre-order</option><option value="post">Post-order</option></select></div>
+  <div id="trS"></div>
+  <div class="readout" id="trRO"></div>
+  <div id="trSvg"></div>
+  <div class="callbox" id="trOut"></div>
+  <div class="tip"><b class="h">Try this</b>Pick Tree C with in-order. The values come out 10, 20, 30, 40, 50 because the tree is a sorted chain, but the deepest stack equals the number of nodes plus one.</div>
+
+  <h2>Activity 1 · Order the events</h2>
+  <div id="o1"></div>
+
+  <h2>Activity 2 · Which traversal?</h2>
+  <div id="cl1"></div>
+
+  <h2>Activity 3 · Which traversal produced this output?</h2>
+  <p>Using Tree A (the six-node tree on the Learn tab).</p>
+  <div id="cl2"></div>
+
+  <h2>Activity 4 · Match the terms</h2>
+  <div id="m1"></div>
+</section>
+
+<!-- PRACTISE -->
+<section id="practise" role="tabpanel" hidden>
+  <h2>Trace it yourself</h2>
+  <p>All questions use Tree A: <code>Data = 50, 30, 70, 20, 40, 60</code>, <code>LeftPointer = 2, 4, 6, 0, 0, 0</code>, <code>RightPointer = 3, 5, 0, 0, 0, 0</code>, root at index 1. Use <b>Hint</b> before <b>Show working</b>.</p>
+  <div id="c1"></div>
+  <h2>Quick quiz</h2>
+  <div id="qz1"></div>
+  <h2>Flashcards</h2>
+  <div id="fc1"></div>
+</section>
+
+<!-- REAL WORLD -->
+<section id="real" role="tabpanel" hidden>
+  <p class="note">General descriptions of where tree traversal appears. These are illustrations of the idea, not code from any particular program.</p>
+  <div class="rw"><h3>Folders on a computer</h3><p>A folder contains files and other folders, which contain files and other folders. Listing everything under a folder, or adding up its size, is a recursive walk of a tree: handle this folder, then do the same for each folder inside it.</p><div class="use"><b>Exam use:</b> a clear example of a structure that is defined in terms of smaller copies of itself.</div></div>
+  <div class="rw"><h3>Sorted output from a binary search tree</h3><p>If values are stored so that smaller ones go left and larger ones go right, an in-order traversal outputs them in ascending order without any separate sort.</p><div class="use"><b>Exam use:</b> state what in-order gives for a binary search tree: the values in order.</div></div>
+  <div class="rw"><h3>Evaluating a calculation</h3><p>An expression such as (3 + 4) × 5 can be stored as a tree with the operator at the node and the numbers as leaves. A post-order walk handles both operands before the operator, which is exactly the order a stack-based calculator needs (reverse Polish notation).</p><div class="use"><b>Exam use:</b> shows why post-order exists. It links to the stack work in 19.1.</div></div>
+  <div class="rw"><h3>Copying or deleting a tree</h3><p>To copy a tree, create the node first and then copy its subtrees (pre-order). To delete a tree safely, free the children before the node that points to them (post-order).</p><div class="use"><b>Exam use:</b> a reason for choosing pre-order or post-order when asked “when would each be used?”.</div></div>
+  <div class="rw"><h3>Web pages</h3><p>The elements of a web page are nested inside each other, forming a tree. Code that finds, styles or counts elements walks that tree, and often does it recursively.</p><div class="use"><b>Exam use:</b> another example for “give an example of a recursive application”.</div></div>
+  <div class="rw"><h3>Why not always use recursion for trees?</h3><p>It is the shortest and clearest way, but the stack grows with the height of the tree. For a very deep, unbalanced tree an iterative version using your own stack can avoid a stack overflow.</p><div class="use"><b>Exam use:</b> supports a “discuss” answer on when recursion is and is not suitable.</div></div>
+</section>
+
+<!-- EXAM -->
+<section id="exam" role="tabpanel" hidden>
+  <h2>What 9618 has asked about trees and recursion</h2>
+  <p>No past paper question to date asks for a recursive tree traversal by name. Recursion has been tested on lists, strings, binary search and number functions (see the other recursion pages). Binary trees themselves are on the syllabus under 19.1 (finding and inserting items), and the recursive pattern here is the one a Paper 4 question could ask you to write. The review questions below are written for practice, in the style of the papers. Each coloured phrase earns one mark.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span></div>
+
+  <h2>Review questions</h2>
+  <p>All use Tree A from the Learn tab unless stated.</p>
+
+  <details class="eq"><summary>Q1 <span class="cmd">State</span> <span class="mark">3 marks</span> State the output of an in-order traversal, a pre-order traversal and a post-order traversal of Tree A.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Write the three orders as left/node/right, node/left/right and left/right/node. Remember to follow each subtree completely before moving on.</div>
+    <div class="ans"><span class="mk k" data-t="1">In-order: 20, 30, 40, 50, 60, 70</span>; <span class="mk k" data-t="2">Pre-order: 50, 30, 20, 40, 70, 60</span>; <span class="mk k" data-t="3">Post-order: 20, 40, 30, 60, 70, 50</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Reading across the levels of the tree (50, 30, 70, 20, 40, 60). That is a different order (breadth-first), not any of the three.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q2 <span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain why recursion is suitable for traversing a binary tree.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Link the structure of the tree to the structure of the code.</div>
+    <div class="ans"><span class="mk k" data-t="1">Each subtree of a binary tree is itself a binary tree, so the same procedure can be applied to the left and right subtrees.</span> <span class="mk k" data-t="2">An empty subtree (a null pointer) gives a natural base case, where the procedure stops.</span> <span class="mk k" data-t="3">The code is short, and the call stack automatically remembers where to come back to after a subtree is finished.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying “because trees are complicated”. Name the self-similar structure and the base case.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q3 <span class="cmd">Write</span> <span class="mark">6 marks</span> The arrays <code>Data</code>, <code>LeftPointer</code> and <code>RightPointer</code> store a binary tree. A null pointer is 0. Write program code for a recursive procedure <code>PostOrder(Node)</code> that outputs the values in post-order.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Base case first, then left call, right call, and the output last.</div>
+    <div class="ans"><span class="mk k" data-t="1">Procedure header with a pointer parameter.</span> <span class="mk k" data-t="2">Test for the base case (the node pointer is not 0 / is 0).</span> <span class="mk k" data-t="3">Recursive call on the left child pointer.</span> <span class="mk k" data-t="4">Recursive call on the right child pointer.</span> <span class="mk k" data-t="5">Output of Data[Node] <b>after</b> both calls.</span> <span class="mk k" data-t="6">Nothing happens when the pointer is 0, and the first call uses the root pointer.</span>
+<pre class="plain">def post_order(node):
+    if node != 0:
+        post_order(LeftPointer[node])
+        post_order(RightPointer[node])
+        print(Data[node])
+
+post_order(RootPointer)</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Putting the output line before or between the calls, which gives pre-order or in-order. The position of that one line decides the order.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q4 <span class="cmd">Write</span> <span class="mark">6 marks</span> Write a recursive function <code>Find(Node, Item)</code> for a binary search tree stored in the same arrays. It returns the index of the item, or 0 if it is not in the tree.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two base cases: an empty subtree, and a match. Otherwise choose one side only.</div>
+    <div class="ans"><span class="mk k" data-t="1">Function header with two parameters, returning an integer.</span> <span class="mk k" data-t="2">If the pointer is 0, return 0.</span> <span class="mk k" data-t="3">If Data[Node] equals Item, return Node.</span> <span class="mk k" data-t="4">If Item is less than Data[Node], call recursively on the left pointer.</span> <span class="mk k" data-t="5">Otherwise call recursively on the right pointer.</span> <span class="mk k" data-t="6">The recursive result is returned (RETURN in front of each recursive call).</span>
+<pre class="plain">def find(node, item):
+    if node == 0:
+        return 0
+    elif data[node] == item:
+        return node
+    elif item &lt; data[node]:
+        return find(left[node], item)
+    else:
+        return find(right[node], item)</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing <code>find(left[node], item)</code> without <code>return</code>. The answer is found but never passed back up.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q5 <span class="cmd">Describe</span> <span class="mark">2 marks</span> A binary search tree is built by inserting the values 10, 20, 30, 40, 50 in that order. Describe the problem this causes for a recursive search.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Draw the tree: each value is larger than the last, so it goes to the right.</div>
+    <div class="ans"><span class="mk k" data-t="1">The tree becomes a chain (all nodes on one side), so its height equals the number of nodes.</span> <span class="mk k" data-t="2">A search may need as many calls as there are nodes, so it is no faster than a linear search, and the stack could grow very deep.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying the tree “is wrong”. It is still a valid tree; it is just unbalanced, which removes the benefit of halving the search.</div>
+  </div></details>
+</section>
+
+<!-- TIPS -->
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>The base case is the empty tree.</b> The pointer is the null value (0 in these examples), and the procedure does nothing.</li>
+    <li><b>One line decides the order.</b> Output before the calls: pre-order. Between them: in-order. After both: post-order.</li>
+    <li><b>Finish a whole subtree before moving on.</b> In-order of Tree A outputs everything under 30 before 50.</li>
+    <li><b>In-order of a binary search tree is sorted.</b> If your answer isn’t ascending, you have made a slip.</li>
+    <li><b>Pre-order starts with the root; post-order ends with it.</b> A quick check on your answer.</li>
+    <li><b>Count the calls.</b> A tree with <i>n</i> nodes causes 2<i>n</i> + 1 calls to the traversal procedure: one per node and one per empty pointer.</li>
+    <li><b>The stack is as deep as the height.</b> Not the number of nodes, unless the tree is a chain.</li>
+    <li><b>Use RETURN on recursive calls in a function.</b> <code>RETURN Find(…)</code>, not just <code>Find(…)</code>.</li>
+    <li><b>Check the question’s null pointer.</b> It may be 0, −1 or something else, and the arrays may start at 0 or 1.</li>
+    <li><b>Say “subtree”, “frame”, “return address” and “base case”</b> in any explanation.</li>
+  </ul>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Identify</td><td>A short fact or the line of code. No explanation.</td></tr>
+    <tr><td>Describe</td><td>The steps in order, or how something works.</td></tr>
+    <tr><td>Explain</td><td>What happens and why.</td></tr>
+    <tr><td>Complete</td><td>Fill every gap or cell, with exact values or code.</td></tr>
+    <tr><td>Write / Rewrite</td><td>Full code with header, structure and end statements.</td></tr>
+  </table></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider (back / next buttons) ---------- */
+function slider(el, o) {
+  const id = o.id, step = o.step || 1;
+  let v = o.value;
+  el.innerHTML = `<div class="sl"><label>${o.label}<output id="${id}o"></output></label><div class="stp-ctl"><button class="b" data-a="prev">◀ Previous</button><button class="b" data-a="next">Next ▶</button></div></div>`;
+  const out = $("#" + id + "o", el), prev = $("[data-a=prev]", el), next = $("[data-a=next]", el);
+  const upd = () => { prev.disabled = v <= o.min; next.disabled = v >= o.max; out.textContent = (o.fmt || ((x) => x))(v); o.onInput && o.onInput(v); };
+  const set = (x) => { v = Math.max(o.min, Math.min(o.max, x)); upd(); };
+  prev.onclick = () => set(v - step);
+  next.onclick = () => set(v + step);
+  upd();
+  return { get: () => v, set };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+/* ===== 19.2 Recursion: trace engine ===== */
+const RW = 720, RH = 372;
+
+/* Records every call/return of a recursive function as snapshots, then draws stack + call tree. */
+function Trace(o = {}) {
+  const nodes = [], stack = [], snaps = [], out = [];
+  let phase = "down", pdata = null, alert = null;
+  const clonePanel = () => (pdata ? JSON.parse(JSON.stringify(pdata)) : null);
+  const snap = (cap, ps, py) => snaps.push({
+    cap, ps, py, phase, alert, out: [...out], n: nodes.length, panel: clonePanel(),
+    ns: nodes.map((n) => [n.st, n.val]),
+    stack: stack.map((f) => ({ label: f.label, ra: f.ra, status: f.status, st: f.st })),
+  });
+  const T = {
+    nodes, out, o,
+    setPanel(d) { pdata = d; },
+    print(t) { out.push(t); },
+    setStatus(nd, s) { nd.fr.status = s; },
+    call(label, short, parent, ra, cap, ps, py, status = "", st = "run") {
+      if (parent) { parent.st = "wait"; parent.fr.st = "wait"; }
+      const nd = { label, short, parent, kids: [], st: "act", val: null };
+      nodes.push(nd); parent && parent.kids.push(nd);
+      nd.fr = { label, ra, status, st }; stack.push(nd.fr);
+      phase = "down"; snap(cap, ps, py); return nd;
+    },
+    note(nd, status, cap, ps, py, st = "run") { nd.fr.status = status; nd.fr.st = st; nd.st = "act"; snap(cap, ps, py); },
+    ret(nd, val, cap, ps, py, outLine, status) {
+      nd.fr.status = status || (val === undefined || val === null ? "finished" : "returns " + val); nd.fr.st = "ret"; nd.st = "done"; nd.val = val ?? "";
+      if (outLine) out.push(outLine);
+      phase = "up"; snap(cap, ps, py); stack.pop();
+    },
+    finish(cap, ps, py, al) { alert = al || null; snap(cap, ps, py); },
+    alertNow(a) { alert = a; },
+  };
+  T.build = () => {
+    layout(nodes);
+    return snaps.map((s) => ({ cap: s.cap, ps: s.ps, py: s.py, svg: drawSnap(s, nodes, o) }));
+  };
+  T.maxDepth = () => 0;
+  return T;
+}
+
+/* tree layout: leaves spaced evenly, parents centred over children */
+function layout(nodes) {
+  if (!nodes.length) return;
+  let leaf = 0; const depthOf = (n) => (n.parent ? depthOf(n.parent) + 1 : 0);
+  const go = (n) => { if (!n.kids.length) n.lx = leaf++; else { n.kids.forEach(go); n.lx = (n.kids[0].lx + n.kids[n.kids.length - 1].lx) / 2; } };
+  go(nodes[0]); nodes.forEach((n) => (n.d = depthOf(n)));
+  nodes.leaves = leaf; nodes.depth = Math.max(...nodes.map((n) => n.d)) + 1;
+}
+
+function maxStack(snaps) { return Math.max(1, ...snaps.map((s) => s.stack.length)); }
+
+function drawSnap(s, nodes, o) {
+  const maxD = o.maxDepth || 5, fh = Math.max(34, Math.min(50, Math.floor(272 / maxD) - 5)), gap = 5, X = 14, FW = 340, base = 322;
+  let g = "";
+  // left: call stack
+  g += SV.text(X, 22, "CALL STACK", "sm bd", { "text-anchor": "start", style: "letter-spacing:.1em" });
+  g += SV.text(X + FW, 22, s.phase === "down" ? "▼ WINDING (calls)" : "▲ UNWINDING (returns)", "lbl bd " + (s.phase === "down" ? "t1" : "t3"), { "text-anchor": "end" });
+  g += SV.line(X - 4, base + 3, X + FW + 4, base + 3, "ax");
+  g += SV.text(X, base + 20, "bottom of stack: main program", "sm", { "text-anchor": "start" });
+  s.stack.forEach((f, i) => {
+    const y = base - fh - i * (fh + gap), c = { run: "cell-cur", wait: "", ret: "cell-ok", base: "cell-warn" }[f.st];
+    g += SV.rect(X, y, FW, fh, "cell " + c, { rx: 8 });
+    g += SV.text(X + 10, y + (fh > 40 ? 20 : 15), esc(f.label), "lbl bd", { "text-anchor": "start", style: "font-family:var(--mono);font-size:14px" });
+    g += SV.text(X + FW - 10, y + fh - (fh > 40 ? 10 : 6), "↩ " + esc(f.ra), "sm", { "text-anchor": "end" });
+    if (f.status) g += SV.text(X + 10, y + fh - (fh > 40 ? 10 : 6), esc(f.status), "lbl", { "text-anchor": "start", style: "font-size:12.5px" });
+  });
+  if (!s.stack.length) g += SV.text(X + FW / 2, base - 40, "stack is empty", "lbl", { "text-anchor": "middle", style: "font-style:italic;fill:var(--muted)" });
+  // right: call tree
+  const RX = 388, RWd = RW - RX - 10;
+  g += SV.text(RX, 22, "CALL TREE  " + (o.treeName || ""), "sm bd", { "text-anchor": "start", style: "letter-spacing:.1em" });
+  const lv = nodes.depth || 1, lvs = nodes.leaves || 1, r = nodes.length > 12 ? 14 : nodes.some((n) => String(n.short).length > 3) ? 22 : 17, dy = Math.min(52, 190 / Math.max(1, lv - 1 || 1)), sp = lvs > 1 ? Math.min(54, (RWd - 2 * r) / (lvs - 1)) : 0;
+  const tw = (lvs - 1) * sp, ox = RX + RWd / 2 - tw / 2, oy = 52;
+  const px = (n) => ox + n.lx * sp, py = (n) => oy + n.d * dy;
+  nodes.forEach((n, i) => { if (n.parent) { const live = i < s.n; g += SV.line(px(n.parent), py(n.parent), px(n), py(n), live ? "edge" : "edge", { opacity: live ? 1 : 0.18 }); } });
+  nodes.forEach((n, i) => {
+    const live = i < s.n, st = live ? s.ns[i][0] : "new", val = live ? s.ns[i][1] : null;
+    const cls = { new: "nd", wait: "nd", act: "nd nd-cur", done: "nd nd-ok" }[st];
+    g += `<g opacity="${live ? 1 : 0.22}">` + SV.circle(px(n), py(n), r, cls, st === "wait" ? { style: "stroke:var(--warn);stroke-width:3.5;fill:var(--warn-soft)" } : {}) + SV.text(px(n), py(n) + 5, esc(n.short), "lbl bd", { "text-anchor": "middle", style: "font-size:" + (String(n.short).length > 3 ? 10 : String(n.short).length > 2 ? 10.5 : r < 16 ? 11 : 13) + "px" });
+    if (st === "done" && val !== "" && val !== null) g += SV.text(px(n) + r + 3, py(n) + 4, esc(val), "sm bd t3", { "text-anchor": "start", style: "font-family:var(--mono);font-size:11.5px" });
+    g += "</g>";
+  });
+  // bottom right: output / returned values / custom panel
+  const BY = 268;
+  g += SV.rect(RX, BY, RWd, 90, "cell", { rx: 8 });
+  if (s.panel && o.panelFn) g += o.panelFn(s.panel, RX, BY, RWd);
+  else {
+    g += SV.text(RX + 10, BY + 16, (o.outTitle || "OUTPUT").toUpperCase(), "sm bd", { "text-anchor": "start", style: "letter-spacing:.1em" });
+    s.out.forEach((t, i) => { const col = i < 5 ? 0 : 1, row = i % 5; g += SV.text(RX + 10 + col * (RWd / 2), BY + 33 + row * 13.5, esc(t), "lbl", { "text-anchor": "start", style: "font-family:var(--mono);font-size:12px" }); });
+  }
+  if (s.alert) { g += SV.rect(RX, BY, RWd, 90, "cell cell-no", { rx: 8 }) + SV.text(RX + RWd / 2, BY + 52, esc(s.alert), "lbl bd t2", { "text-anchor": "middle", style: "font-size:17px" }); }
+  return g;
+}
+
+/* helper: run a simulation and hand the frames to Lib.algo */
+function showAlgo(sel, T, code, label, dwell = 2600) {
+  const frames = T.build();
+  Lib.algo($(sel), { w: RW, h: RH, label, pseudo: code.ps, py: code.py, dwell, frames });
+}
+
+/* ===== Binary tree traversal: stored in arrays, null pointer = 0, indexes from 1 ===== */
+const TREES = [
+  { name: "Tree A", data: [50, 30, 70, 20, 40, 60], L: [2, 4, 6, 0, 0, 0], R: [3, 5, 0, 0, 0, 0] },
+  { name: "Tree B", data: [40, 20, 60, 10, 30, 50, 55], L: [2, 4, 6, 0, 0, 0, 0], R: [3, 5, 0, 0, 0, 7, 0] },
+  { name: "Tree C", data: [10, 20, 30, 40, 50], L: [0, 0, 0, 0, 0], R: [2, 3, 4, 5, 0] },
+];
+const dat = (t, p) => t.data[p - 1], lft = (t, p) => t.L[p - 1], rgt = (t, p) => t.R[p - 1];
+
+/* visit sequence (indexes) for a traversal order */
+function visits(t, order) {
+  const out = [];
+  const go = (p) => { if (!p) return; if (order === "pre") out.push(p); go(lft(t, p)); if (order === "in") out.push(p); go(rgt(t, p)); if (order === "post") out.push(p); };
+  go(1); return out;
+}
+const levelsOf = (t, p = 1) => (p ? 1 + Math.max(levelsOf(t, lft(t, p)), levelsOf(t, rgt(t, p))) : 0);
+
+/* draw the data tree; `seen` maps node index -> visit number, `cur` is the node being visited */
+function treeSvg(t, seen = {}, cur = 0, showIdx = false) {
+  const n = t.data.length, W = 720, pos = {}; let rank = 0;
+  const walk = (p, d) => { if (!p) return; walk(lft(t, p), d + 1); pos[p] = { x: rank++, d }; walk(rgt(t, p), d + 1); };
+  walk(1, 0);
+  const lv = levelsOf(t), sp = n > 1 ? Math.min(84, (W - 80) / (n - 1)) : 0, dy = 66, ox = W / 2 - ((n - 1) * sp) / 2, oy = 34, H = oy + (lv - 1) * dy + 40;
+  const X = (p) => ox + pos[p].x * sp, Y = (p) => oy + pos[p].d * dy;
+  let g = "";
+  for (let p = 1; p <= n; p++) { [lft(t, p), rgt(t, p)].forEach((c) => { if (c) g += SV.line(X(p), Y(p), X(c), Y(c), "edge"); }); }
+  for (let p = 1; p <= n; p++) {
+    const on = p === cur, done = seen[p] && !on;
+    g += SV.circle(X(p), Y(p), 20, "nd" + (on ? " nd-cur" : done ? " nd-ok" : "")) + SV.text(X(p), Y(p) + 5, dat(t, p), "lbl bd", { "text-anchor": "middle", style: "font-size:14px" });
+    if (showIdx) g += SV.text(X(p) - 24, Y(p) - 16, "#" + p, "sm", { "text-anchor": "end", style: "font-family:var(--mono)" });
+    if (seen[p]) g += SV.circle(X(p) + 18, Y(p) - 16, 10, "dot1") + SV.text(X(p) + 18, Y(p) - 12, seen[p], "sm bd", { "text-anchor": "middle", style: "fill:#fff;font-size:11px" });
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${t.name}: binary tree">${g}</svg>`;
+}
+
+/* ---------- Learn: the stored tree ---------- */
+(() => {
+  const t = TREES[0], row = (lab, a) => `<tr><th>${lab}</th>${a.map((v) => `<td>${v}</td>`).join("")}</tr>`;
+  $("#treeStatic").innerHTML = `<div class="card">${treeSvg(t, {}, 0, true)}<div class="tw"><table class="t mono"><tr><th>Index</th>${t.data.map((_, i) => `<th>${i + 1}</th>`).join("")}</tr>${row("Data", t.data)}${row("LeftPointer", t.L)}${row("RightPointer", t.R)}</table></div></div>`;
+})();
+
+/* ---------- code for each traversal ---------- */
+const ORDERS = { in: ["L", "O", "R"], pre: ["O", "L", "R"], post: ["L", "R", "O"] };
+const PROC = { in: "InOrder", pre: "PreOrder", post: "PostOrder" }, PYN = { in: "in_order", pre: "pre_order", post: "post_order" };
+function codeFor(o) {
+  const nm = PROC[o], pn = PYN[o];
+  const PSL = { L: `      CALL ${nm}(LeftPointer[Node])`, R: `      CALL ${nm}(RightPointer[Node])`, O: "      OUTPUT Data[Node]" };
+  const PYL = { L: `        ${pn}(left[node])`, R: `        ${pn}(right[node])`, O: "        print(data[node])" };
+  return { ps: [`PROCEDURE ${nm}(Node : INTEGER)`, "   IF Node <> 0 THEN", ...ORDERS[o].map((k) => PSL[k]), "   ENDIF", "ENDPROCEDURE"], py: [`def ${pn}(node):`, "    if node != 0:", ...ORDERS[o].map((k) => PYL[k])] };
+}
+Lib.codePanel($("#codeT"), { pseudo: codeFor("in").ps, py: codeFor("in").py });
+
+const FIND = {
+  ps: ["FUNCTION Find(Node, Item : INTEGER) RETURNS INTEGER", "   IF Node = 0 THEN", "      RETURN 0", "   ELSEIF Data[Node] = Item THEN", "      RETURN Node", "   ELSEIF Item < Data[Node] THEN", "      RETURN Find(LeftPointer[Node], Item)", "   ELSE", "      RETURN Find(RightPointer[Node], Item)", "   ENDIF", "ENDFUNCTION"],
+  py: ["def find(node, item):", "    if node == 0:", "        return 0", "    elif data[node] == item:", "        return node", "    elif item < data[node]:", "        return find(left[node], item)", "    else:", "        return find(right[node], item)"],
+};
+Lib.codePanel($("#codeFind"), { pseudo: FIND.ps, py: FIND.py });
+
+/* ---------- Watch: traversal traces on Tree A ---------- */
+function travTrace(t, o) {
+  const nm = PROC[o], ord = ORDERS[o], T = Trace({ treeName: "Node", outTitle: "Output so far", maxDepth: levelsOf(t) + 1 });
+  const lineOf = (k) => 2 + ord.indexOf(k);
+  const side = { L: "left", R: "right" };
+  const run = (p, parent, ra) => {
+    const sh = p ? dat(t, p) : "∅";
+    const nd = T.call(`${nm}(${p})`, sh, parent, ra, `<b>${nm}(${p}) is called.</b> ${p ? `Node = ${p}, the node holding ${dat(t, p)}.` : "Node = 0: a null pointer, there is no child here."} A new frame is pushed.`, [0], [0]);
+    if (!p) {
+      T.note(nd, "Node = 0: BASE CASE", `Is Node &lt;&gt; 0? <b>No.</b> This is the empty tree: the <b>base case</b>. Nothing is output and no further call is made.`, [1], [1], "base");
+      T.ret(nd, null, `The procedure ends. The frame is popped and control returns to the caller.`, [6], []);
+      return;
+    }
+    T.note(nd, `Node = ${p} (${dat(t, p)})`, `Is Node &lt;&gt; 0? <b>Yes</b> (${p}), so the node is real. The lines inside the IF run in this order: ${ord.map((k) => ({ L: "left call", R: "right call", O: "output" }[k])).join(", ")}.`, [1], [1]);
+    ord.forEach((k) => {
+      if (k === "O") { T.print(dat(t, p)); T.note(nd, `outputs ${dat(t, p)}`, `<b>OUTPUT Data[${p}]</b>: the value <b>${dat(t, p)}</b> is written to the output.`, [lineOf("O")], [lineOf("O")]); return; }
+      const c = k === "L" ? lft(t, p) : rgt(t, p);
+      T.setStatus(nd, `paused: ${side[k]} subtree`);
+      run(c, nd, `line ${lineOf(k) + 1}`);
+      T.note(nd, `${side[k]} subtree done`, `The ${side[k]} subtree of ${dat(t, p)} is finished. Back in ${nm}(${p}), the next line runs.`, [lineOf(k)], [lineOf(k)]);
+    });
+    T.ret(nd, null, `Both subtrees and the output are done. ${nm}(${p}) ends, its frame is popped and control goes back to its caller.`, [6], []);
+  };
+  run(1, null, "main");
+  T.finish(`The stack is empty. Output: <b>${T.out.join(", ")}</b>. ${T.nodes.length} calls were made: 6 nodes plus 7 null pointers.`, [], []);
+  return T;
+}
+["in", "pre", "post"].forEach((o) => { const c = codeFor(o); showAlgo({ in: "#aIn", pre: "#aPre", post: "#aPost" }[o], travTrace(TREES[0], o), { ps: c.ps, py: c.py }, `Animated call stack and call tree for ${PROC[o]} on Tree A`, 2200); });
+
+/* search trace */
+(() => {
+  const t = TREES[0], item = 60, T = Trace({ treeName: "Node", outTitle: "Values returned", maxDepth: 5 });
+  const run = (p, parent, ra) => {
+    const nd = T.call(`Find(${p}, ${item})`, p ? dat(t, p) : "∅", parent, ra, `<b>Find(${p}, ${item}) is called.</b> ${p ? `Node ${p} holds ${dat(t, p)}.` : "Node = 0."}`, [0], [0]);
+    if (!p) { T.note(nd, "base case: not found", "Node = 0: the item is not in this tree.", [1, 2], [1, 2], "base"); T.ret(nd, "0", "Returns 0 (not found).", [2], [2]); return 0; }
+    if (dat(t, p) === item) { T.note(nd, "found!", `Node &lt;&gt; 0, and Data[${p}] = ${item}: <b>found</b>. This is a base case.`, [3, 4], [3, 4], "base"); T.ret(nd, String(p), `Returns the index <b>${p}</b>.`, [4], [4]); return p; }
+    const left = item < dat(t, p);
+    T.note(nd, left ? "go left" : "go right", `Data[${p}] = ${dat(t, p)}. ${item} is ${left ? "less" : "greater"} than ${dat(t, p)}, so only the <b>${left ? "left" : "right"}</b> subtree could hold it. The other side is ignored.`, left ? [5] : [7], left ? [5] : [7]);
+    T.setStatus(nd, "paused: waiting for the result");
+    const r = run(left ? lft(t, p) : rgt(t, p), nd, left ? "line 7" : "line 9");
+    T.note(nd, `result ${r}`, `The call below returned ${r}. This frame passes it straight up.`, left ? [6] : [8], left ? [6] : [8]);
+    T.ret(nd, String(r), `RETURN ${r}: the frame is popped.`, left ? [6] : [8], left ? [6] : [8]);
+    return r;
+  };
+  const r = run(1, null, "main");
+  T.finish(`The stack is empty. Find(1, ${item}) returned ${r}: the item is at index ${r}. Only ${T.nodes.length} of the 6 nodes were looked at.`, [], []);
+  showAlgo("#aFind", T, FIND, "Animated call stack and call tree for Find(1, 60)", 2400);
+})();
+
+/* ===== Explore lab: step through the visits ===== */
+(() => {
+  const selT = $("#trT"), selO = $("#trO"); let S;
+  const setup = () => {
+    const t = TREES[+selT.value], seq = visits(t, selO.value);
+    S = Lib.slider($("#trS"), { id: "trN", label: "Values output so far: ", min: 0, max: seq.length, value: 0, onInput: () => S && draw() });
+    draw();
+  };
+  const draw = () => {
+    const t = TREES[+selT.value], o = selO.value, seq = visits(t, o), k = S.get(), seen = {};
+    seq.slice(0, k).forEach((p, i) => (seen[p] = i + 1));
+    const cur = k ? seq[k - 1] : 0, n = t.data.length;
+    $("#trSvg").innerHTML = `<div class="card">${treeSvg(t, seen, cur, false)}</div>`;
+    $("#trRO").innerHTML = `<div><small>Nodes</small><strong>${n}</strong></div><div><small>Total calls</small><strong>${2 * n + 1}</strong></div><div><small>Deepest stack</small><strong>${levelsOf(t) + 1}</strong></div><div><small>Next to output</small><strong>${k < n ? dat(t, seq[k]) : "none"}</strong></div>`;
+    $("#trOut").textContent = "Output: " + (k ? seq.slice(0, k).map((p) => dat(t, p)).join(", ") : "(nothing yet)");
+  };
+  selT.addEventListener("change", setup); selO.addEventListener("change", setup);
+  setup();
+})();
+
+/* ===== Activities ===== */
+Lib.order($("#o1"), { prompt: "InOrder(1) is called on Tree A. Put the first events in the order they happen.", items: ["InOrder(1) is called for the root, 50", "InOrder(2) is called for 50’s left child, 30", "InOrder(4) is called for 30’s left child, 20", "InOrder(0) is called for 20’s left child: Node = 0, base case, nothing happens", "20 is output", "InOrder(0) is called for 20’s right child and ends at once", "InOrder(4) ends, and InOrder(2) outputs 30"], done: "The left subtree is followed all the way down before any value is output." });
+
+Lib.classify($("#cl1"), { prompt: "Drag each statement to the traversal it describes.", buckets: [{ label: "In-order" }, { label: "Pre-order" }, { label: "Post-order" }], items: [
+  { text: "Outputs the values of a binary search tree in ascending order", b: 0 }, { text: "The OUTPUT line sits between the two recursive calls", b: 0 }, { text: "The root is always output first", b: 1 }, { text: "Useful for making a copy of a tree", b: 1 }, { text: "The root is always output last", b: 2 }, { text: "Useful for deleting a tree: children before parents", b: 2 }, { text: "The OUTPUT line sits before both recursive calls", b: 1 }, { text: "Used to evaluate an expression tree (operands before operator)", b: 2 }], done: "The position of one OUTPUT line makes all the difference." });
+
+Lib.classify($("#cl2"), { prompt: "Which traversal of Tree A gives each output?", buckets: [{ label: "In-order" }, { label: "Pre-order" }, { label: "Post-order" }], items: [
+  { text: "20, 30, 40, 50, 60, 70", b: 0 }, { text: "50, 30, 20, 40, 70, 60", b: 1 }, { text: "20, 40, 30, 60, 70, 50", b: 2 }, { text: "starts at 50 and the next value is 30", b: 1 }, { text: "ends at 50", b: 2 }, { text: "ascending order", b: 0 }], done: "Check the first and last values: they usually give it away." });
+
+Lib.match($("#m1"), { prompt: "Match each term to what it means for a tree traversal.", pairs: [
+  ["Base case", "the pointer is 0: an empty subtree, so nothing happens"], ["Subtree", "a child node with everything below it, itself a binary tree"], ["Root", "the one node that is not a child of any other"], ["Leaf", "a node with no children: both pointers are 0"], ["Traversal", "visiting every node of the tree exactly once"], ["Stack frame", "one call’s copy of Node and its return address"]], done: "Those six ideas are the vocabulary of the topic." });
+
+/* ===== Practise ===== */
+Lib.calc($("#c1"), { qs: [
+  { q: "What is the first value output by an in-order traversal of Tree A?", a: 20, tol: 0, hint: "Keep going left from the root: 50, 30, 20. Then 20 has no left child.", sol: "The left-most node is 20, and nothing is output before it." },
+  { q: "What is the fourth value output by an in-order traversal of Tree A?", a: 50, tol: 0, hint: "In-order is ascending: 20, 30, 40, …", sol: "20, 30, 40, 50: the fourth value is the root, 50." },
+  { q: "What is the fourth value output by a pre-order traversal of Tree A?", a: 40, tol: 0, hint: "Node first: 50, then the whole left subtree (30 and its children), then the right.", sol: "50, 30, 20, 40, 70, 60: the fourth is 40." },
+  { q: "What is the last value output by a post-order traversal of Tree A?", a: 50, tol: 0, hint: "Post-order ends with the root.", sol: "The root is output after both subtrees: 50." },
+  { q: "How many calls to the traversal procedure are made in total on Tree A, counting calls with Node = 0?", a: 13, tol: 0, hint: "One call per node, plus one for every missing child.", sol: "6 nodes have 12 child pointers, 5 of them used, so 7 are null: 6 + 7 = 13 calls (or 2n + 1)." },
+  { q: "How many of those calls have Node = 0?", a: 7, tol: 0, hint: "Count the zeros in LeftPointer and in RightPointer.", sol: "LeftPointer has 3 zeros and RightPointer has 4 zeros that belong to the six nodes, 7 in all (3 + 4)." },
+  { q: "What is the greatest number of frames on the stack at one time during any traversal of Tree A (count the calls with Node = 0)?", a: 4, tol: 0, hint: "Follow the longest path: 50, 30, 20, then the null call below 20.", sol: "InOrder(1), InOrder(2), InOrder(4) and InOrder(0): 4 frames, equal to the number of levels (3) plus one." }] });
+
+Lib.quiz($("#qz1"), { qs: [
+  { q: "What is the base case of a recursive tree traversal?", opts: ["The root has been reached", "The pointer is null (0): the subtree is empty", "The node is a leaf", "The output is finished"], a: 1, why: "The empty tree is where nothing is left to visit. A leaf is not a base case: its two calls to empty trees are." },
+  { q: "Which traversal outputs the values of a binary search tree in ascending order?", opts: ["Pre-order", "Post-order", "In-order", "None of them"], a: 2, why: "Left (smaller) values first, then the node, then right (larger) values." },
+  { q: "In which traversal is the root output last?", opts: ["In-order", "Pre-order", "Post-order", "All of them"], a: 2, why: "Post-order outputs both subtrees before the node." },
+  { q: "In the in-order procedure, the OUTPUT line is moved above both recursive calls. Which traversal is it now?", opts: ["In-order", "Pre-order", "Post-order", "It is no longer a traversal"], a: 1, why: "Node first, then left, then right is pre-order." },
+  { q: "A tree has 9 nodes. How many calls does a traversal make, including those with a null pointer?", opts: ["9", "10", "18", "19"], a: 3, why: "2n + 1 = 19: nine real nodes plus ten null pointers." },
+  { q: "Why is the stack for a traversal only as deep as the tree’s height, not the number of nodes?", opts: ["The stack is compressed", "Only one branch is active at a time: a subtree’s frames are popped before the next subtree starts", "Null pointers use no frames", "Recursion does not use a stack for trees"], a: 1, why: "Once the left subtree is finished all its frames have been popped, so the right subtree reuses the same space." },
+  { q: "Which tree makes a recursive search slowest?", opts: ["A balanced tree", "A tree with values inserted in ascending order, forming a chain", "A tree with a single node", "A full tree"], a: 1, why: "A chain has height equal to the number of nodes, so the search may follow every node." }] });
+
+Lib.cards($("#fc1"), { cards: [
+  ["Binary tree", "A structure where each node has at most two children, a left child and a right child."],
+  ["Subtree", "A node together with everything below it. Each subtree is itself a binary tree."],
+  ["Root", "The top node, the only one that is not a child of another node."],
+  ["Leaf", "A node with no children."],
+  ["Null pointer", "A pointer value (such as 0) meaning ‘no child’. It is the base case of a traversal."],
+  ["Traversal", "Visiting every node of a tree exactly once, in a defined order."],
+  ["In-order", "Left subtree, node, right subtree. Ascending order for a binary search tree."],
+  ["Pre-order", "Node, left subtree, right subtree. The root comes first."],
+  ["Post-order", "Left subtree, right subtree, node. The root comes last."],
+  ["Binary search tree", "A binary tree where every value in a node’s left subtree is smaller and every value in its right subtree is larger."],
+  ["Height", "The number of levels in the tree. The recursion stack is about this deep."],
+  ["Stack frame", "The block pushed on the call stack for each call: parameters, local variables and the return address."]] });
+
+Lib.initTabs();
+</script>
+</body></html>

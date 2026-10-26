@@ -1,0 +1,530 @@
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 13.3.1</div>
+  <h1>Floating-point Numbers: Format and Conversion</h1>
+  <p class="cbook">Coursebook: Chapter 13 · Data representation, section 13.3 Floating-point numbers, representation and manipulation</p>
+  <p class="lead">The floating-point format with a two's complement mantissa and exponent, converting to and from denary with the working the exam awards marks for; animations, labs and every Paper 3 conversion question from 2021 to 2026.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A computer stores a real number in <b>floating-point</b> form as a <b>mantissa</b> (the digits) and an <b>exponent</b> (the power of 2 that scales them), both in <b>two's complement</b>, so the value is <b>mantissa × 2<sup>exponent</sup></b>. The mantissa has an implied binary point after its first bit, so it is a value from −1 up to (but not including) +1, and the exponent says how many places to move the point right (positive) or left (negative). To convert a floating-point number to denary you read the exponent, move the binary point, and add up the place values, remembering the first bit of a negative mantissa has a negative place value. To convert a number to floating-point you convert it to binary, move the point to get a normalised mantissa, find the exponent, and for a negative number take the two's complement of the mantissa. The next page covers normalisation, accuracy and errors.</p></div>
+
+  <h2>1 · The format</h2>
+  <p>A floating-point number is stored in two parts, with a fixed number of bits for each, for example 10 bits for the mantissa and 6 for the exponent (16 bits in total):</p>
+  <div class="tw"><table class="t mono">
+    <tr><th colspan="10">Mantissa (10 bits)</th><th colspan="6">Exponent (6 bits)</th></tr>
+    <tr><td>1</td><td>.0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td></tr>
+  </table></div>
+  <ul>
+    <li>The <b>mantissa</b> is a two's complement fraction. The binary point sits <b>after the first bit</b>: <code>1.011000111</code>. The first bit has a place value of −1; the rest are ½, ¼, ⅛...</li>
+    <li>The <b>exponent</b> is a two's complement <b>integer</b>: <code>000111</code> is 7, <code>100001</code> is −31.</li>
+    <li><b>Value = mantissa × 2<sup>exponent</sup></b>. Multiplying by 2<sup>7</sup> moves the binary point 7 places to the right.</li>
+    <li>A <b>positive</b> mantissa starts 0 and a <b>negative</b> one starts 1.</li>
+  </ul>
+  <div class="tip"><b class="h">Two's complement reminder</b>The first bit has a negative place value. In 8 bits, 10011011 is −128 + 16 + 8 + 2 + 1 = −101. To negate a number, <b>invert every bit and add 1</b>. So −(01100101) = 10011010 + 1 = 10011011.</div>
+
+  <h2>2 · Floating-point to denary</h2>
+  <ol>
+    <li><b>Exponent:</b> convert the exponent from two's complement to denary.</li>
+    <li><b>Move the point:</b> write the mantissa with its point after the first bit, then move the point right by the exponent (left if the exponent is negative), adding zeros if you run out of bits.</li>
+    <li><b>Evaluate:</b> add up the place values. For a negative number the first (left-most) bit is negative: −2<sup>n</sup>.</li>
+  </ol>
+  <div class="tw"><table class="t mono">
+    <tr><th>Step</th><th>Mantissa 1011000111, exponent 000111</th></tr>
+    <tr><td>Exponent</td><td>000111 = 7</td></tr>
+    <tr><td>Mantissa with its point</td><td>1.011000111</td></tr>
+    <tr><td>Move the point 7 places right</td><td>10110001.11</td></tr>
+    <tr><td>Place values</td><td>−128 + 32 + 16 + 1 + 0.5 + 0.25</td></tr>
+    <tr><td>Value</td><td><b>−78.25</b></td></tr>
+  </table></div>
+  <p>A positive example: mantissa <code>0100111100</code>, exponent <code>001001</code> = 9. The mantissa is 0.100111100; moving the point 9 places gives 100111100, which is 256 + 32 + 16 + 8 + 4 = <b>316</b>. With a <b>negative exponent</b> the point moves left: exponent −2 turns 0.101 into 0.00101.</p>
+
+  <h2>3 · Denary to floating-point</h2>
+  <ol>
+    <li><b>Convert</b> the number (ignore the sign) to binary, including any fraction.</li>
+    <li><b>Normalise:</b> move the binary point so the number is written 0.1... × 2<sup>n</sup>. The number of places moved is the exponent (positive if the point moved left, negative if it moved right).</li>
+    <li><b>Write the mantissa:</b> a 0 for the sign, then the digits, padding with zeros on the right to fill the mantissa.</li>
+    <li><b>Negative numbers:</b> take the two's complement of the mantissa (invert and add 1). The exponent stays the same.</li>
+    <li><b>Write the exponent</b> in two's complement using the bits available.</li>
+  </ol>
+  <div class="tw"><table class="t mono">
+    <tr><th>Step</th><th>−7.25 in a 10-bit mantissa, 6-bit exponent</th></tr>
+    <tr><td>Binary</td><td>7.25 = 111.01</td></tr>
+    <tr><td>Normalise</td><td>0.11101 × 2<sup>3</sup>, so the exponent is 3</td></tr>
+    <tr><td>Positive mantissa</td><td>0111010000</td></tr>
+    <tr><td>Negative: invert, add 1</td><td>1000101111 + 1 = 1000110000</td></tr>
+    <tr><td>Exponent 3 in 6 bits</td><td>000011</td></tr>
+    <tr><td>Answer</td><td><b>1000110000  000011</b></td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Check yourself</b>Convert your answer back to denary. 1.000110000 × 2<sup>3</sup> = 1000.110000 = −8 + 0.5 + 0.25 = −7.25. A normalised <b>negative</b> mantissa always starts <b>10</b>; a normalised <b>positive</b> one starts <b>01</b>.</div>
+  <p>If the number has more significant bits than the mantissa can hold, the <b>extra bits on the right are lost</b> (truncated). The stored value is then only an approximation (see the next page).</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">from fractions import Fraction</span><span class="ln"> </span><span class="ln">def to_float(x, mbits, ebits):</span><span class="ln">    &quot;&quot;&quot;normalised two&#x27;s complement mantissa and exponent for x&quot;&quot;&quot;</span><span class="ln">    mag, e = abs(Fraction(x)), 0</span><span class="ln">    while mag &gt;= 1: mag, e = mag / 2, e + 1</span><span class="ln">    while mag &lt; Fraction(1, 2): mag, e = mag * 2, e - 1</span><span class="ln">    m = int(mag * 2 ** (mbits - 1))                  # truncate extra bits</span><span class="ln">    if x &lt; 0: m = (1 &lt;&lt; mbits) - m                   # two&#x27;s complement</span><span class="ln">    return format(m, f&quot;0{mbits}b&quot;), format(e % (1 &lt;&lt; ebits), f&quot;0{ebits}b&quot;)</span><span class="ln"> </span><span class="ln">print(to_float(-7.25, 10, 6))                        # (&#x27;1000110000&#x27;, &#x27;000011&#x27;)</span></pre></div>
+
+  <h2>4 · Setting out your answer</h2>
+  <ul>
+    <li>Show the conversion to binary, the movement of the binary point (the exponent), and the final mantissa and exponent. The mark scheme awards marks for the working.</li>
+    <li>Write the answer in the table the question gives: mantissa on the left, exponent on the right.</li>
+    <li>Count the bits: a 10-bit mantissa has exactly 10 digits and a 6-bit exponent exactly 6.</li>
+  </ul>
+
+  <h2>5 · Common ways to lose marks</h2>
+  <ul>
+    <li>Treating the mantissa as a whole number. The point is after the first bit.</li>
+    <li>Getting the exponent's direction wrong: moving the point <b>right</b> makes a <b>positive</b> exponent when converting to denary; moving it <b>left</b> to normalise a large number also makes a <b>positive</b> exponent.</li>
+    <li>For a negative number, forgetting to take the two's complement of the whole mantissa, or changing the exponent.</li>
+    <li>Not giving the first bit of a negative mantissa a negative place value when evaluating.</li>
+    <li>Writing a mantissa or exponent with the wrong number of bits.</li>
+    <li>Not saying the number is truncated (precision lost) when it does not fit in the mantissa.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Reading a floating-point number</h2>
+  <p>Press Play, or click the steps. Mantissa 1011000111 and exponent 000111.</p>
+  <div id="stA"></div>
+  <h2>2 · Converting −7.25 to floating-point</h2>
+  <div id="stB"></div>
+  <h2>3 · The exponent moves the binary point</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Floating-point to denary: flip the bits</h2>
+  <p>Click a bit to flip it. The value is worked out from the mantissa and exponent.</p>
+  <div class="card"><div id="fB" class="btnrow"></div><div id="fM" class="btnrow"></div><div id="fE" class="btnrow"></div><div id="fW"></div><div class="readout"><div><small>Exponent</small><strong id="f1"></strong></div><div><small>Mantissa</small><strong id="f2"></strong></div><div><small>Value</small><strong id="f3"></strong></div></div></div>
+
+  <h2>Lab 2 · Denary to floating-point</h2>
+  <p>Type a number (it may be negative or have a fractional part) and choose the allocation of bits. The working is shown as in the exam.</p>
+  <div class="card"><div id="gB" class="btnrow"></div><p><input id="gN" type="text" value="-7.25" style="width:12em;padding:8px;border:1px solid var(--line);border-radius:8px;font:500 .95rem var(--mono)" aria-label="Number"> <button class="b pri" id="gR">Convert</button></p><div id="gW"></div><div class="verdict" id="gV"></div></div>
+
+  <h2>Lab 3 · The format</h2>
+  <div class="card"><div id="eB" class="btnrow"></div><div id="eO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Mantissa or exponent?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Which way does the point move?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the steps for converting a denary number in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>5 · Conversions</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Why computers use floating point</h3><p>A scientific calculation may involve both the size of an atom and the distance to a star. Floating point stores a number as digits and a scale factor so the same number of bits can cover both huge and tiny values.</p><div class="use"><b>Exam use:</b> floating point trades some precision for a very wide range.</div></div>
+  <div class="rw"><h3>A weather model</h3><p>Temperatures, pressures and distances are real numbers with fractional parts. The model stores them in floating point and a small rounding at each step can add up over many steps.</p><div class="use"><b>Exam use:</b> floating-point numbers are often approximations of the true value.</div></div>
+  <div class="rw"><h3>Graphics and games</h3><p>Positions and colours of millions of points are real numbers. Graphics hardware is built to do floating-point arithmetic very fast.</p><div class="use"><b>Exam use:</b> mantissa and exponent let one format store many magnitudes.</div></div>
+  <div class="rw"><h3>Money in a banking program</h3><p>Money is often stored as a whole number of pence rather than a floating-point number, because some decimals such as 0.1 cannot be stored exactly in binary.</p><div class="use"><b>Exam use:</b> not every decimal fraction can be stored exactly in binary floating point.</div></div>
+  <div class="rw"><h3>Scientific notation</h3><p>Writing 6.02 × 10<sup>23</sup> is the same idea in denary: a number (the mantissa) and a power of ten (the exponent). Floating point uses powers of 2.</p><div class="use"><b>Exam use:</b> value = mantissa × 2<sup>exponent</sup>.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 floating-point conversion questions from every Paper 3 between May/June 2021 and May/June 2026, with the working worked out. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2021</td><td>31, 32, 33</td><td>1(a), 1(b)</td><td>3 + 3</td><td>Denary to floating-point (−7.25); floating-point to denary</td></tr>
+    <tr><td>O/N 2021</td><td>31, 32</td><td>1(a)(i)</td><td>2</td><td>Normalised floating-point form of a binary number</td></tr>
+    <tr><td>O/N 2022</td><td>31, 33</td><td>1(a), 1(b)</td><td>3 + 3</td><td>+202 and −202 in an 8-bit mantissa, 8-bit exponent</td></tr>
+    <tr><td>O/N 2022</td><td>32</td><td>1(b)</td><td>3</td><td>Floating-point to denary</td></tr>
+    <tr><td>M/J 2023</td><td>31, 33</td><td>1(a)</td><td>4</td><td>113.75 in two different systems</td></tr>
+    <tr><td>M/J 2023</td><td>32</td><td>1(a)</td><td>2</td><td>A binary number to floating-point</td></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>1(a)</td><td>3</td><td>+65.25 to floating-point</td></tr>
+    <tr><td>O/N 2023</td><td>32</td><td>1(a)</td><td>3</td><td>−96.75 to floating-point</td></tr>
+    <tr><td>M/J 2024</td><td>31, 33</td><td>1(a), 1(b)</td><td>3 + 3</td><td>Floating-point to denary; −102.75 to floating-point</td></tr>
+    <tr><td>M/J 2024</td><td>32</td><td>1(b)</td><td>3</td><td>+54.8125 to floating-point</td></tr>
+    <tr><td>O/N 2024</td><td>31, 33</td><td>1(a), 1(b)</td><td>3 + 3</td><td>+201.125 to floating-point; floating-point to denary</td></tr>
+    <tr><td>O/N 2024</td><td>32</td><td>4(a), 4(b)</td><td>2 + 4</td><td>Floating-point to denary; −49.1875 to floating-point</td></tr>
+    <tr><td>M/J 2025</td><td>31</td><td>2(a), 2(b)</td><td>2 + 4</td><td>A small binary number and −25.3125 to floating-point</td></tr>
+    <tr><td>M/J 2025</td><td>32</td><td>2(a), 2(b)</td><td>3 + 3</td><td>+124.4375 to floating-point; floating-point to denary</td></tr>
+    <tr><td>M/J 2025</td><td>33</td><td>2(b)</td><td>4</td><td>−3.59375 to floating-point</td></tr>
+    <tr><td>O/N 2025</td><td>31</td><td>2(a), 2(b)</td><td>2 + 4</td><td>A small binary number and −76.1875 to floating-point</td></tr>
+    <tr><td>O/N 2025</td><td>32</td><td>2(a), 2(b)</td><td>3 + 3</td><td>Floating-point to denary; +26.6875 to floating-point</td></tr>
+    <tr><td>M/J 2026</td><td>31</td><td>3(a), 3(b)</td><td>3 + 3</td><td>−10.8125 to floating-point; floating-point to denary</td></tr>
+    <tr><td>M/J 2026</td><td>32</td><td>3(a)</td><td>3</td><td>Floating-point to denary</td></tr>
+    <tr><td>M/J 2026</td><td>33</td><td>5(a)</td><td>4</td><td>−18.5625 to floating-point</td></tr>
+  </table></div>
+  <p class="note">Floating-point conversion is the most frequently tested topic in this chapter: nearly every Paper 3 from May/June 2021 to May/June 2026 has one or two conversions. Every mantissa, exponent and denary value below was calculated and checked against the mark scheme. The theory questions on normalisation, precision and errors are on the next page. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+
+  <h3>Denary or binary to floating-point</h3>
+  <details class="eq"><summary><span class="src">M/J 2021 · 9618/31, 32, 33 · Q1(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -7.25 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the negative form worked out (two's complement) and the exponent</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 7.25 to binary: 111.01
+Move the binary point 3 places left so the number is 0.1...: 0.11101 × 2^3
+Mantissa (10 bits, sign bit 0 then the digits): 0111010000
+Negative: invert 0111010000 → 1000101111, add 1 → 1000110000
+Exponent 3 in 6-bit two&#x27;s complement: 000011
+
+Mantissa  1000110000
+Exponent  000011</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/31, 33 · Q1(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 8 bits for the mantissa, 8 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of 202 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Convert to binary, move the binary point so the mantissa is 0.1... (or 1.0... for a negative), then write the mantissa and the exponent in two's complement.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the binary point moved: the exponent worked out</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 202 to binary: 11001010
+Move the binary point 8 places left so the number is 0.1...: 0.11001010 × 2^8
+Mantissa (8 bits, sign bit 0 then the digits): 01100101
+Exponent 8 in 8-bit two&#x27;s complement: 00001000
+
+Mantissa  01100101
+Exponent  00001000</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/31, 33 · Q1(b)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 8 bits for the mantissa, 8 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -202 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the negative form worked out (two's complement) and the exponent</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 202 to binary: 11001010
+Move the binary point 8 places left so the number is 0.1...: 0.11001010 × 2^8
+Mantissa (8 bits, sign bit 0 then the digits): 01100101
+Negative: invert 01100101 → 10011010, add 1 → 10011011
+Exponent 8 in 8-bit two&#x27;s complement: 00001000
+
+Mantissa  10011011
+Exponent  00001000</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31, 33 · Q1(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of 65.25 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Convert to binary, move the binary point so the mantissa is 0.1... (or 1.0... for a negative), then write the mantissa and the exponent in two's complement.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the binary point moved: the exponent worked out</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 65.25 to binary: 1000001.01
+Move the binary point 7 places left so the number is 0.1...: 0.100000101 × 2^7
+Mantissa (12 bits, sign bit 0 then the digits): 010000010100
+Exponent 7 in 4-bit two&#x27;s complement: 0111
+
+Mantissa  010000010100
+Exponent  0111</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/32 · Q1(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -96.75 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the negative form worked out (two's complement) and the exponent</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 96.75 to binary: 1100000.11
+Move the binary point 7 places left so the number is 0.1...: 0.110000011 × 2^7
+Mantissa (10 bits, sign bit 0 then the digits): 0110000011
+Negative: invert 0110000011 → 1001111100, add 1 → 1001111101
+Exponent 7 in 6-bit two&#x27;s complement: 000111
+
+Mantissa  1001111101
+Exponent  000111</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/31, 33 · Q1(b)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -102.75 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the negative form worked out (two's complement) and the exponent</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 102.75 to binary: 1100110.11
+Move the binary point 7 places left so the number is 0.1...: 0.110011011 × 2^7
+Mantissa (10 bits, sign bit 0 then the digits): 0110011011
+Negative: invert 0110011011 → 1001100100, add 1 → 1001100101
+Exponent 7 in 6-bit two&#x27;s complement: 000111
+
+Mantissa  1001100101
+Exponent  000111</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/32 · Q1(b)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of 54.8125 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Convert to binary, move the binary point so the mantissa is 0.1... (or 1.0... for a negative), then write the mantissa and the exponent in two's complement.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the binary point moved: the exponent worked out</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 54.8125 to binary: 110110.1101
+Move the binary point 6 places left so the number is 0.1...: 0.1101101101 × 2^6
+Mantissa (12 bits, sign bit 0 then the digits): 011011011010
+Exponent 6 in 4-bit two&#x27;s complement: 0110
+
+Mantissa  011011011010
+Exponent  0110</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/32 · Q4(b)</span> <span class="cmd">Calculate</span> <span class="mark">4 marks</span> Numbers are stored in a computer system using binary floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -49.1875 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">the positive number converted to binary</span> <span class="mk k" data-t="2">negative mantissa found: bits flipped and 1 added</span> <span class="mk k" data-t="3">correct mantissa</span> <span class="mk k" data-t="4">correct exponent</span></p><pre class="plain">Convert 49.1875 to binary: 110001.0011
+Move the binary point 6 places left so the number is 0.1...: 0.1100010011 × 2^6
+Mantissa (12 bits, sign bit 0 then the digits): 011000100110
+Negative: invert 011000100110 → 100111011001, add 1 → 100111011010
+Exponent 6 in 4-bit two&#x27;s complement: 0110
+
+Mantissa  100111011010
+Exponent  0110</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/31 · Q2(b)</span> <span class="cmd">Calculate</span> <span class="mark">4 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -25.3125 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">the positive number converted to binary</span> <span class="mk k" data-t="2">negative mantissa found: bits flipped and 1 added</span> <span class="mk k" data-t="3">correct mantissa</span> <span class="mk k" data-t="4">correct exponent</span></p><pre class="plain">Convert 25.3125 to binary: 11001.0101
+Move the binary point 5 places left so the number is 0.1...: 0.110010101 × 2^5
+Mantissa (10 bits, sign bit 0 then the digits): 0110010101
+Negative: invert 0110010101 → 1001101010, add 1 → 1001101011
+Exponent 5 in 6-bit two&#x27;s complement: 000101
+
+Mantissa  1001101011
+Exponent  000101</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/32 · Q2(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of 124.4375 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Convert to binary, move the binary point so the mantissa is 0.1... (or 1.0... for a negative), then write the mantissa and the exponent in two's complement.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the binary point moved: the exponent worked out</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 124.438 to binary: 1111100.0111
+Move the binary point 7 places left so the number is 0.1...: 0.11111000111 × 2^7
+Mantissa (12 bits, sign bit 0 then the digits): 011111000111
+Exponent 7 in 4-bit two&#x27;s complement: 0111
+
+Mantissa  011111000111
+Exponent  0111</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/33 · Q2(b)</span> <span class="cmd">Calculate</span> <span class="mark">4 marks</span> Numbers are stored in a computer system using binary floating-point representation with 8 bits for the mantissa, 8 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -3.59375 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">the positive number converted to binary</span> <span class="mk k" data-t="2">negative mantissa found: bits flipped and 1 added</span> <span class="mk k" data-t="3">correct mantissa</span> <span class="mk k" data-t="4">correct exponent</span></p><pre class="plain">Convert 3.59375 to binary: 11.10011
+Move the binary point 2 places left so the number is 0.1...: 0.1110011 × 2^2
+Mantissa (8 bits, sign bit 0 then the digits): 01110011
+Negative: invert 01110011 → 10001100, add 1 → 10001101
+Exponent 2 in 8-bit two&#x27;s complement: 00000010
+
+Mantissa  10001101
+Exponent  00000010</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/31 · Q2(b)</span> <span class="cmd">Calculate</span> <span class="mark">4 marks</span> Numbers are stored in a computer system using binary floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -76.1875 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">the positive number converted to binary</span> <span class="mk k" data-t="2">negative mantissa found: bits flipped and 1 added</span> <span class="mk k" data-t="3">correct mantissa</span> <span class="mk k" data-t="4">correct exponent</span></p><pre class="plain">Convert 76.1875 to binary: 1001100.0011
+Move the binary point 7 places left so the number is 0.1...: 0.10011000011 × 2^7
+Mantissa (12 bits, sign bit 0 then the digits): 010011000011
+Negative: invert 010011000011 → 101100111100, add 1 → 101100111101
+Exponent 7 in 4-bit two&#x27;s complement: 0111
+
+Mantissa  101100111101
+Exponent  0111</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/32 · Q2(b)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of 26.6875 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Convert to binary, move the binary point so the mantissa is 0.1... (or 1.0... for a negative), then write the mantissa and the exponent in two's complement.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the binary point moved: the exponent worked out</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 26.6875 to binary: 11010.1011
+Move the binary point 5 places left so the number is 0.1...: 0.110101011 × 2^5
+Mantissa (10 bits, sign bit 0 then the digits): 0110101011
+Exponent 5 in 6-bit two&#x27;s complement: 000101
+
+Mantissa  0110101011
+Exponent  000101</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/31 · Q3(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -10.8125 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the negative form worked out (two's complement) and the exponent</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 10.8125 to binary: 1010.1101
+Move the binary point 4 places left so the number is 0.1...: 0.10101101 × 2^4
+Mantissa (10 bits, sign bit 0 then the digits): 0101011010
+Negative: invert 0101011010 → 1010100101, add 1 → 1010100110
+Exponent 4 in 6-bit two&#x27;s complement: 000100
+
+Mantissa  1010100110
+Exponent  000100</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/33 · Q5(a)</span> <span class="cmd">Calculate</span> <span class="mark">4 marks</span> Numbers are stored in a computer system using binary floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -18.5625 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">the positive number converted to binary</span> <span class="mk k" data-t="2">negative mantissa found: bits flipped and 1 added</span> <span class="mk k" data-t="3">correct mantissa</span> <span class="mk k" data-t="4">correct exponent</span></p><pre class="plain">Convert 18.5625 to binary: 10010.1001
+Move the binary point 5 places left so the number is 0.1...: 0.100101001 × 2^5
+Mantissa (12 bits, sign bit 0 then the digits): 010010100100
+Negative: invert 010010100100 → 101101011011, add 1 → 101101011100
+Exponent 5 in 4-bit two&#x27;s complement: 0101
+
+Mantissa  101101011100
+Exponent  0101</pre></div>
+  </div></details>
+
+  <h3>Denary conversion with a given number of bits that is too small</h3>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/31, 33 · Q1(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of 201.125 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Convert to binary, move the binary point so the mantissa is 0.1... (or 1.0... for a negative), then write the mantissa and the exponent in two's complement.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the binary point moved: the exponent worked out</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 201.125 to binary: 11001001.001
+Move the binary point 8 places left so the number is 0.1...: 0.11001001001 × 2^8
+Mantissa (10 bits, sign bit 0 then the digits): 0110010010  (the extra bits do not fit and are lost)
+Exponent 8 in 6-bit two&#x27;s complement: 001000
+
+Mantissa  0110010010
+Exponent  001000</pre><p><span class="mk a">The number needs more bits than the mantissa has, so the least significant bits are lost and precision is reduced.</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>A number that needs more bits than the mantissa has is truncated. The mark scheme also gives a mark for stating that precision is lost.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/31, 33 · Q1(a)</span> <span class="cmd">Calculate</span> <span class="mark">4 marks</span> Numbers are stored in two different computer systems using floating-point representation. System 1 uses 10 bits for the mantissa and 6 bits for the exponent. System 2 uses 8 bits for the mantissa and 8 bits for the exponent. Both use two's complement for the mantissa and the exponent. Calculate the normalised floating-point representation of 113.75 and show how it would be represented in each of these two systems. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One working out, two different mantissa lengths. System 2 has fewer bits for the mantissa.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">113.75 converted to binary: 1110001.11</span> <span class="mk k" data-t="2">normalised 0.11100011 1 × 2^7, so the exponent is 7</span> <span class="mk k" data-t="3">System 1: mantissa 0111000111, exponent 000111</span> <span class="mk k" data-t="4">System 2: mantissa 01110001 (the extra bits are lost), exponent 00000111</span></p><pre class="plain">113.75 = 1110001.11
+       = 0.111000111 × 2^7
+
+System 1 (10, 6):  Mantissa 0111000111   Exponent 000111
+System 2 (8, 8):   Mantissa 01110001     Exponent 00000111</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using 6 bits for the exponent in System 2. System 2 has an 8-bit exponent.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/31, 32 · Q1(a)(i)</span> <span class="cmd">Write</span> <span class="mark">2 marks</span> Numbers are stored in a computer using floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Write the normalised floating-point representation of the following unsigned binary number using this system: 1011100.011001</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The number is already binary. Move the point to the front and fit the digits into 12 bits.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">correct mantissa</span> <span class="mk k" data-t="2">correct exponent</span></p><pre class="plain">1011100.011001 = 0.1011100011001 × 2^7
+
+Mantissa  010111000110     (12 bits: the last two digits do not fit)
+Exponent  0111</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Putting the 13 digits into the mantissa. The mantissa has only 12 bits, including the sign bit, so the last digits are lost.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/32 · Q1(a)</span> <span class="cmd">Write</span> <span class="mark">2 marks</span> Numbers are stored with 10 bits for the mantissa, 6 bits for the exponent, two's complement for both. Write the normalised floating-point representation of the binary number 0101010.111 in this system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Remove the leading zero first: the number is 101010.111.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">mantissa 0101010111</span> <span class="mk k" data-t="2">exponent 000110</span></p><pre class="plain">0101010.111 = 101010.111 = 0.101010111 × 2^6
+
+Mantissa  0101010111
+Exponent  000110</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/31 · Q2(a)</span> <span class="cmd">Write</span> <span class="mark">2 marks</span> Numbers are stored with 10 bits for the mantissa, 6 bits for the exponent, two's complement for both. Write the normalised floating-point representation of the binary number 0.00000011010111 in this system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>This is a very small number, so the exponent will be negative: count how many places the point moves right.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">mantissa 0110101110</span> <span class="mk k" data-t="2">exponent 111010 (−6)</span></p><pre class="plain">0.00000011010111 = 0.11010111 × 2^(-6)       (the point moves 6 places right)
+
+Mantissa  0110101110
+Exponent  111010         (−6 in 6-bit two&#x27;s complement)</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving a positive exponent. The point moved right, so the exponent is negative.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/31 · Q2(a)</span> <span class="cmd">Write</span> <span class="mark">2 marks</span> Numbers are stored with 12 bits for the mantissa, 4 bits for the exponent, two's complement for both. Write the normalised floating-point representation of the binary number 0.00000001110101101 in this system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Another small number: the point moves right 7 places.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">mantissa 011101011010</span> <span class="mk k" data-t="2">exponent 1001 (−7)</span></p><pre class="plain">0.00000001110101101 = 0.1110101101 × 2^(-7)
+
+Mantissa  011101011010
+Exponent  1001         (−7 in 4-bit two&#x27;s complement)</pre></div>
+  </div></details>
+
+  <h3>Floating-point to denary</h3>
+  <details class="eq"><summary><span class="src">M/J 2021 · 9618/31, 32, 33 · Q1(b)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the denary value of the given normalised binary floating-point number. Show your working.<pre class="plain">Mantissa  1011000111
+Exponent  000111</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the exponent first, then move the binary point that many places right (or left if the exponent is negative), then add up the place values. A mantissa that starts with 1 is negative, so its first bit counts as a negative place value.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent converted to denary</span> <span class="mk k" data-t="2">the exponent applied to the mantissa (binary point moved)</span> <span class="mk k" data-t="3">correct denary answer</span></p><pre class="plain">Exponent 000111 = 7
+Mantissa = 1.011000111
+Move the binary point 7 places right: 10110001.11
+Value (the first bit has a negative place value): −128 + 32 + 16 + 1 + 0.5 + 0.25 = -78.25
+
+Denary value  -78.25</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/32 · Q1(b)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 11 bits for the mantissa, 5 bits for the exponent, and two's complement form for both. Calculate the denary value of the given normalised binary floating-point number. Show your working.<pre class="plain">Mantissa  10110010011
+Exponent  01001</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the exponent first, then move the binary point that many places right (or left if the exponent is negative), then add up the place values. A mantissa that starts with 1 is negative, so its first bit counts as a negative place value.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent converted to denary</span> <span class="mk k" data-t="2">the exponent applied to the mantissa (binary point moved)</span> <span class="mk k" data-t="3">correct denary answer</span></p><pre class="plain">Exponent 01001 = 9
+Mantissa = 1.0110010011
+Move the binary point 9 places right: 1011001001.1
+Value (the first bit has a negative place value): −512 + 128 + 64 + 8 + 1 + 0.5 = -310.5
+
+Denary value  -310.5</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/31, 33 · Q1(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the denary value of the given normalised binary floating-point number. Show your working.<pre class="plain">Mantissa  0100111100
+Exponent  001001</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the exponent first, then move the binary point that many places right (or left if the exponent is negative), then add up the place values. A mantissa that starts with 1 is negative, so its first bit counts as a negative place value.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent converted to denary</span> <span class="mk k" data-t="2">the exponent applied to the mantissa (binary point moved)</span> <span class="mk k" data-t="3">correct denary answer</span></p><pre class="plain">Exponent 001001 = 9
+Mantissa = 0.100111100
+Move the binary point 9 places right: 0100111100
+Value: 256 + 32 + 16 + 8 + 4 = 316
+
+Denary value  316</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/31, 33 · Q1(b)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the denary value of the given normalised binary floating-point number. Show your working.<pre class="plain">Mantissa  1010110011
+Exponent  000101</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the exponent first, then move the binary point that many places right (or left if the exponent is negative), then add up the place values. A mantissa that starts with 1 is negative, so its first bit counts as a negative place value.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent converted to denary</span> <span class="mk k" data-t="2">the exponent applied to the mantissa (binary point moved)</span> <span class="mk k" data-t="3">correct denary answer</span></p><pre class="plain">Exponent 000101 = 5
+Mantissa = 1.010110011
+Move the binary point 5 places right: 101011.0011
+Value (the first bit has a negative place value): −32 + 8 + 2 + 1 + 0.125 + 0.0625 = -20.8125
+
+Denary value  -20.8125</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/32 · Q4(a)</span> <span class="cmd">Calculate</span> <span class="mark">2 marks</span> Numbers are stored in a computer system using binary floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Calculate the denary value of the given normalised binary floating-point number. Show your working.<pre class="plain">Mantissa  010001110111
+Exponent  0111</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the exponent first, then move the binary point that many places right (or left if the exponent is negative), then add up the place values. A mantissa that starts with 1 is negative, so its first bit counts as a negative place value.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">the exponent applied to the mantissa</span> <span class="mk k" data-t="2">correct denary answer</span></p><pre class="plain">Exponent 0111 = 7
+Mantissa = 0.10001110111
+Move the binary point 7 places right: 01000111.0111
+Value: 64 + 4 + 2 + 1 + 0.25 + 0.125 + 0.0625 = 71.4375
+
+Denary value  71.4375</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/32 · Q2(b)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Calculate the denary value of the given normalised binary floating-point number. Show your working.<pre class="plain">Mantissa  101000101011
+Exponent  0110</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the exponent first, then move the binary point that many places right (or left if the exponent is negative), then add up the place values. A mantissa that starts with 1 is negative, so its first bit counts as a negative place value.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent converted to denary</span> <span class="mk k" data-t="2">the exponent applied to the mantissa (binary point moved)</span> <span class="mk k" data-t="3">correct denary answer</span></p><pre class="plain">Exponent 0110 = 6
+Mantissa = 1.01000101011
+Move the binary point 6 places right: 1010001.01011
+Value (the first bit has a negative place value): −64 + 16 + 1 + 0.25 + 0.0625 + 0.03125 = -46.65625
+
+Denary value  -46.65625</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/32 · Q2(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the denary value of the given normalised binary floating-point number. Show your working.<pre class="plain">Mantissa  0111100101
+Exponent  001011</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the exponent first, then move the binary point that many places right (or left if the exponent is negative), then add up the place values. A mantissa that starts with 1 is negative, so its first bit counts as a negative place value.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent converted to denary</span> <span class="mk k" data-t="2">the exponent applied to the mantissa (binary point moved)</span> <span class="mk k" data-t="3">correct denary answer</span></p><pre class="plain">Exponent 001011 = 11
+Mantissa = 0.111100101
+Move the binary point 11 places right: 011110010100
+Value: 1024 + 512 + 256 + 128 + 16 + 4 = 1940
+
+Denary value  1940</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/31 · Q3(b)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the denary value of the given normalised binary floating-point number. Show your working.<pre class="plain">Mantissa  1010000111
+Exponent  000111</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the exponent first, then move the binary point that many places right (or left if the exponent is negative), then add up the place values. A mantissa that starts with 1 is negative, so its first bit counts as a negative place value.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent converted to denary</span> <span class="mk k" data-t="2">the exponent applied to the mantissa (binary point moved)</span> <span class="mk k" data-t="3">correct denary answer</span></p><pre class="plain">Exponent 000111 = 7
+Mantissa = 1.010000111
+Move the binary point 7 places right: 10100001.11
+Value (the first bit has a negative place value): −128 + 32 + 1 + 0.5 + 0.25 = -94.25
+
+Denary value  -94.25</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/32 · Q3(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Calculate the denary value of the given normalised binary floating-point number. Show your working.<pre class="plain">Mantissa  101101000110
+Exponent  0110</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the exponent first, then move the binary point that many places right (or left if the exponent is negative), then add up the place values. A mantissa that starts with 1 is negative, so its first bit counts as a negative place value.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent converted to denary</span> <span class="mk k" data-t="2">the exponent applied to the mantissa (binary point moved)</span> <span class="mk k" data-t="3">correct denary answer</span></p><pre class="plain">Exponent 0110 = 6
+Mantissa = 1.01101000110
+Move the binary point 6 places right: 1011010.00110
+Value (the first bit has a negative place value): −64 + 16 + 8 + 2 + 0.125 + 0.0625 = -37.8125
+
+Denary value  -37.8125</pre></div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Calculate</span> <span class="mark">3 marks</span> A system uses 8 bits for the mantissa and 4 bits for the exponent, both in two's complement. Calculate the denary value of mantissa 01100000 and exponent 0011.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Exponent 3; move the point 3 places.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent 0011 = 3</span> <span class="mk k" data-t="2">mantissa 0.1100000 with its point moved 3 places right: 110.0000</span> <span class="mk k" data-t="3">value 4 + 2 = 6</span></p><pre class="plain">Exponent 0011 = 3
+Mantissa 0.1100000
+Move the point 3 places right: 110.0000
+Value = 4 + 2 = 6</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Moving the point the wrong way, or by the wrong number of places.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Calculate</span> <span class="mark">3 marks</span> Calculate the 8-bit mantissa and 4-bit exponent (two's complement) for the denary number 5.5.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Convert to binary, normalise, write the bits.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">5.5 = 101.1</span> <span class="mk k" data-t="2">0.1011 × 2^3, exponent 0011</span> <span class="mk k" data-t="3">mantissa 01011000</span></p><pre class="plain">5.5 = 101.1 = 0.1011 × 2^3
+Mantissa  01011000
+Exponent  0011</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Calculate</span> <span class="mark">4 marks</span> Using an 8-bit mantissa and a 4-bit exponent, both in two's complement, write −5.5 in floating-point form.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Use the positive mantissa for 5.5 and negate it.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">5.5 = 101.1, mantissa 01011000</span> <span class="mk k" data-t="2">invert the bits: 10100111</span> <span class="mk k" data-t="3">add 1: 10101000</span> <span class="mk k" data-t="4">exponent 0011</span></p><pre class="plain">+5.5   mantissa 01011000   exponent 0011
+invert 10100111, add 1  →  10101000
+−5.5   mantissa 10101000   exponent 0011</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Changing the exponent for a negative number. Only the mantissa is negated.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Calculate</span> <span class="mark">3 marks</span> A 10-bit mantissa and 6-bit exponent (two's complement). Calculate the denary value of mantissa 0110000000 and exponent 111110.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A negative exponent moves the point left.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent 111110 = −2</span> <span class="mk k" data-t="2">mantissa 0.110000000 moved 2 places left</span> <span class="mk k" data-t="3">value 0.1875</span></p><pre class="plain">Exponent 111110 = -2
+Mantissa 0.11 × 2^(-2) = 0.0011
+Value = 1/8 + 1/16 = 0.1875</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State how many bits in total are needed for a mantissa of 12 bits and an exponent of 4 bits, and the number of bytes this is.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Add the two parts.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">16 bits</span> <span class="mk k" data-t="2">2 bytes</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Write the working.</b> Binary conversion, the movement of the point, the exponent, then the answer. The marks are for the working.</li>
+    <li><b>Mantissa starts 0 or 1.</b> 0 positive, 1 negative. The point is after that first bit.</li>
+    <li><b>Exponent sign.</b> Point moves right to evaluate: positive exponent. A small number needs a negative exponent.</li>
+    <li><b>Negatives: negate the mantissa only.</b> Invert, add 1. The exponent is the same as for the positive number.</li>
+    <li><b>Fit the bits.</b> Count the digits in each field. Extra digits on the right are lost.</li>
+    <li><b>Check by converting back.</b> It takes a minute and catches most slips.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>how floating point is stored</td><td>"A mantissa and an exponent, both in two's complement; the value is the mantissa multiplied by 2 to the power of the exponent."</td></tr>
+    <tr><td>how to read the exponent</td><td>"Convert it from two's complement, then move the binary point that many places."</td></tr>
+    <tr><td>what the working shows</td><td>"The conversion to binary, the normalising of the point and the exponent, and the two's complement of a negative mantissa."</td></tr>
+    <tr><td>when precision is lost</td><td>"When the number needs more bits than the mantissa has, so the least significant bits are lost."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Calculate</td><td>Work it out and show the working, then write the answer.</td></tr>
+    <tr><td>Write</td><td>Give the mantissa and exponent in the table, with the right number of bits.</td></tr>
+    <tr><td>Show your working</td><td>Each step earns marks: the binary, the point, the exponent.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>

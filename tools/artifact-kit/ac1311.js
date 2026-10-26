@@ -80,9 +80,9 @@ function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
 (function () {
   const draw = (s) => {
     const k = Math.round(s.i); let o = SV.text(40, 24, "memory", "sm");
-    o += memCell(40, 36, "addr 5000", 40, "f3", 1, 240, 44) + SV.text(300, 64, "Score  (INTEGER)", "lbl", { style: "font-size:14px" });
-    o += memCell(40, 96, "addr 5004", 7, "f3", 1, 240, 44) + SV.text(300, 124, "Lives  (INTEGER)", "lbl", { style: "font-size:14px" });
-    o += memCell(40, 170, "P", k === 0 ? "?" : k === 1 ? "5000" : "5004", k === 0 ? "cell" : "f2", 1, 240, 44) + SV.text(300, 198, "P : TIntPointer", "lbl", { style: "font-size:14px" });
+    o += memCell(40, 36, "addr 5000", 40, "f3", 1, 240, 44) + SV.text(330, 64, "Score  (INTEGER)", "lbl", { style: "font-size:14px" });
+    o += memCell(40, 96, "addr 5004", 7, "f3", 1, 240, 44) + SV.text(330, 124, "Lives  (INTEGER)", "lbl", { style: "font-size:14px" });
+    o += memCell(40, 170, "P", k === 0 ? "?" : k === 1 ? "5000" : "5004", k === 0 ? "cell" : "f2", 1, 240, 44) + SV.text(330, 198, "P : TIntPointer", "lbl", { style: "font-size:14px" });
     if (k === 1) o += SV.path("M 285 190 C 345 190 345 70 285 60", "c1", { fill: "none", "stroke-width": 2.5 }) + SV.arrowHead(285, 60, "l", "dot1");
     if (k === 2) o += SV.path("M 285 190 C 345 190 345 130 285 120", "c1", { fill: "none", "stroke-width": 2.5 }) + SV.arrowHead(285, 120, "l", "dot1");
     if (k >= 1) o += SV.text(430, 70, k === 1 ? "P ← ^Score  stores the ADDRESS 5000" : "P ← ^Lives  stores the ADDRESS 5004", "lbl bd", { style: "font-family:var(--mono);font-size:14px" }) + SV.text(430, 100, "P^ is the value at that address: " + (k === 1 ? 40 : 7), "lbl", { style: "font-family:var(--mono);font-size:14px" });

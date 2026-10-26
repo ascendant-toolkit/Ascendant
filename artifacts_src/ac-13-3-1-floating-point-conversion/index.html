@@ -1,0 +1,1181 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Floating-point Numbers: Format and Conversion</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 13.3.1</div>
+  <h1>Floating-point Numbers: Format and Conversion</h1>
+  <p class="cbook">Coursebook: Chapter 13 · Data representation, section 13.3 Floating-point numbers, representation and manipulation</p>
+  <p class="lead">The floating-point format with a two's complement mantissa and exponent, converting to and from denary with the working the exam awards marks for; animations, labs and every Paper 3 conversion question from 2021 to 2026.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A computer stores a real number in <b>floating-point</b> form as a <b>mantissa</b> (the digits) and an <b>exponent</b> (the power of 2 that scales them), both in <b>two's complement</b>, so the value is <b>mantissa × 2<sup>exponent</sup></b>. The mantissa has an implied binary point after its first bit, so it is a value from −1 up to (but not including) +1, and the exponent says how many places to move the point right (positive) or left (negative). To convert a floating-point number to denary you read the exponent, move the binary point, and add up the place values, remembering the first bit of a negative mantissa has a negative place value. To convert a number to floating-point you convert it to binary, move the point to get a normalised mantissa, find the exponent, and for a negative number take the two's complement of the mantissa. The next page covers normalisation, accuracy and errors.</p></div>
+
+  <h2>1 · The format</h2>
+  <p>A floating-point number is stored in two parts, with a fixed number of bits for each, for example 10 bits for the mantissa and 6 for the exponent (16 bits in total):</p>
+  <div class="tw"><table class="t mono">
+    <tr><th colspan="10">Mantissa (10 bits)</th><th colspan="6">Exponent (6 bits)</th></tr>
+    <tr><td>1</td><td>.0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td></tr>
+  </table></div>
+  <ul>
+    <li>The <b>mantissa</b> is a two's complement fraction. The binary point sits <b>after the first bit</b>: <code>1.011000111</code>. The first bit has a place value of −1; the rest are ½, ¼, ⅛...</li>
+    <li>The <b>exponent</b> is a two's complement <b>integer</b>: <code>000111</code> is 7, <code>100001</code> is −31.</li>
+    <li><b>Value = mantissa × 2<sup>exponent</sup></b>. Multiplying by 2<sup>7</sup> moves the binary point 7 places to the right.</li>
+    <li>A <b>positive</b> mantissa starts 0 and a <b>negative</b> one starts 1.</li>
+  </ul>
+  <div class="tip"><b class="h">Two's complement reminder</b>The first bit has a negative place value. In 8 bits, 10011011 is −128 + 16 + 8 + 2 + 1 = −101. To negate a number, <b>invert every bit and add 1</b>. So −(01100101) = 10011010 + 1 = 10011011.</div>
+
+  <h2>2 · Floating-point to denary</h2>
+  <ol>
+    <li><b>Exponent:</b> convert the exponent from two's complement to denary.</li>
+    <li><b>Move the point:</b> write the mantissa with its point after the first bit, then move the point right by the exponent (left if the exponent is negative), adding zeros if you run out of bits.</li>
+    <li><b>Evaluate:</b> add up the place values. For a negative number the first (left-most) bit is negative: −2<sup>n</sup>.</li>
+  </ol>
+  <div class="tw"><table class="t mono">
+    <tr><th>Step</th><th>Mantissa 1011000111, exponent 000111</th></tr>
+    <tr><td>Exponent</td><td>000111 = 7</td></tr>
+    <tr><td>Mantissa with its point</td><td>1.011000111</td></tr>
+    <tr><td>Move the point 7 places right</td><td>10110001.11</td></tr>
+    <tr><td>Place values</td><td>−128 + 32 + 16 + 1 + 0.5 + 0.25</td></tr>
+    <tr><td>Value</td><td><b>−78.25</b></td></tr>
+  </table></div>
+  <p>A positive example: mantissa <code>0100111100</code>, exponent <code>001001</code> = 9. The mantissa is 0.100111100; moving the point 9 places gives 100111100, which is 256 + 32 + 16 + 8 + 4 = <b>316</b>. With a <b>negative exponent</b> the point moves left: exponent −2 turns 0.101 into 0.00101.</p>
+
+  <h2>3 · Denary to floating-point</h2>
+  <ol>
+    <li><b>Convert</b> the number (ignore the sign) to binary, including any fraction.</li>
+    <li><b>Normalise:</b> move the binary point so the number is written 0.1... × 2<sup>n</sup>. The number of places moved is the exponent (positive if the point moved left, negative if it moved right).</li>
+    <li><b>Write the mantissa:</b> a 0 for the sign, then the digits, padding with zeros on the right to fill the mantissa.</li>
+    <li><b>Negative numbers:</b> take the two's complement of the mantissa (invert and add 1). The exponent stays the same.</li>
+    <li><b>Write the exponent</b> in two's complement using the bits available.</li>
+  </ol>
+  <div class="tw"><table class="t mono">
+    <tr><th>Step</th><th>−7.25 in a 10-bit mantissa, 6-bit exponent</th></tr>
+    <tr><td>Binary</td><td>7.25 = 111.01</td></tr>
+    <tr><td>Normalise</td><td>0.11101 × 2<sup>3</sup>, so the exponent is 3</td></tr>
+    <tr><td>Positive mantissa</td><td>0111010000</td></tr>
+    <tr><td>Negative: invert, add 1</td><td>1000101111 + 1 = 1000110000</td></tr>
+    <tr><td>Exponent 3 in 6 bits</td><td>000011</td></tr>
+    <tr><td>Answer</td><td><b>1000110000  000011</b></td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Check yourself</b>Convert your answer back to denary. 1.000110000 × 2<sup>3</sup> = 1000.110000 = −8 + 0.5 + 0.25 = −7.25. A normalised <b>negative</b> mantissa always starts <b>10</b>; a normalised <b>positive</b> one starts <b>01</b>.</div>
+  <p>If the number has more significant bits than the mantissa can hold, the <b>extra bits on the right are lost</b> (truncated). The stored value is then only an approximation (see the next page).</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">from fractions import Fraction</span><span class="ln"> </span><span class="ln">def to_float(x, mbits, ebits):</span><span class="ln">    &quot;&quot;&quot;normalised two&#x27;s complement mantissa and exponent for x&quot;&quot;&quot;</span><span class="ln">    mag, e = abs(Fraction(x)), 0</span><span class="ln">    while mag &gt;= 1: mag, e = mag / 2, e + 1</span><span class="ln">    while mag &lt; Fraction(1, 2): mag, e = mag * 2, e - 1</span><span class="ln">    m = int(mag * 2 ** (mbits - 1))                  # truncate extra bits</span><span class="ln">    if x &lt; 0: m = (1 &lt;&lt; mbits) - m                   # two&#x27;s complement</span><span class="ln">    return format(m, f&quot;0{mbits}b&quot;), format(e % (1 &lt;&lt; ebits), f&quot;0{ebits}b&quot;)</span><span class="ln"> </span><span class="ln">print(to_float(-7.25, 10, 6))                        # (&#x27;1000110000&#x27;, &#x27;000011&#x27;)</span></pre></div>
+
+  <h2>4 · Setting out your answer</h2>
+  <ul>
+    <li>Show the conversion to binary, the movement of the binary point (the exponent), and the final mantissa and exponent. The mark scheme awards marks for the working.</li>
+    <li>Write the answer in the table the question gives: mantissa on the left, exponent on the right.</li>
+    <li>Count the bits: a 10-bit mantissa has exactly 10 digits and a 6-bit exponent exactly 6.</li>
+  </ul>
+
+  <h2>5 · Common ways to lose marks</h2>
+  <ul>
+    <li>Treating the mantissa as a whole number. The point is after the first bit.</li>
+    <li>Getting the exponent's direction wrong: moving the point <b>right</b> makes a <b>positive</b> exponent when converting to denary; moving it <b>left</b> to normalise a large number also makes a <b>positive</b> exponent.</li>
+    <li>For a negative number, forgetting to take the two's complement of the whole mantissa, or changing the exponent.</li>
+    <li>Not giving the first bit of a negative mantissa a negative place value when evaluating.</li>
+    <li>Writing a mantissa or exponent with the wrong number of bits.</li>
+    <li>Not saying the number is truncated (precision lost) when it does not fit in the mantissa.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Reading a floating-point number</h2>
+  <p>Press Play, or click the steps. Mantissa 1011000111 and exponent 000111.</p>
+  <div id="stA"></div>
+  <h2>2 · Converting −7.25 to floating-point</h2>
+  <div id="stB"></div>
+  <h2>3 · The exponent moves the binary point</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Floating-point to denary: flip the bits</h2>
+  <p>Click a bit to flip it. The value is worked out from the mantissa and exponent.</p>
+  <div class="card"><div id="fB" class="btnrow"></div><div id="fM" class="btnrow"></div><div id="fE" class="btnrow"></div><div id="fW"></div><div class="readout"><div><small>Exponent</small><strong id="f1"></strong></div><div><small>Mantissa</small><strong id="f2"></strong></div><div><small>Value</small><strong id="f3"></strong></div></div></div>
+
+  <h2>Lab 2 · Denary to floating-point</h2>
+  <p>Type a number (it may be negative or have a fractional part) and choose the allocation of bits. The working is shown as in the exam.</p>
+  <div class="card"><div id="gB" class="btnrow"></div><p><input id="gN" type="text" value="-7.25" style="width:12em;padding:8px;border:1px solid var(--line);border-radius:8px;font:500 .95rem var(--mono)" aria-label="Number"> <button class="b pri" id="gR">Convert</button></p><div id="gW"></div><div class="verdict" id="gV"></div></div>
+
+  <h2>Lab 3 · The format</h2>
+  <div class="card"><div id="eB" class="btnrow"></div><div id="eO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Mantissa or exponent?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Which way does the point move?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the steps for converting a denary number in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>5 · Conversions</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Why computers use floating point</h3><p>A scientific calculation may involve both the size of an atom and the distance to a star. Floating point stores a number as digits and a scale factor so the same number of bits can cover both huge and tiny values.</p><div class="use"><b>Exam use:</b> floating point trades some precision for a very wide range.</div></div>
+  <div class="rw"><h3>A weather model</h3><p>Temperatures, pressures and distances are real numbers with fractional parts. The model stores them in floating point and a small rounding at each step can add up over many steps.</p><div class="use"><b>Exam use:</b> floating-point numbers are often approximations of the true value.</div></div>
+  <div class="rw"><h3>Graphics and games</h3><p>Positions and colours of millions of points are real numbers. Graphics hardware is built to do floating-point arithmetic very fast.</p><div class="use"><b>Exam use:</b> mantissa and exponent let one format store many magnitudes.</div></div>
+  <div class="rw"><h3>Money in a banking program</h3><p>Money is often stored as a whole number of pence rather than a floating-point number, because some decimals such as 0.1 cannot be stored exactly in binary.</p><div class="use"><b>Exam use:</b> not every decimal fraction can be stored exactly in binary floating point.</div></div>
+  <div class="rw"><h3>Scientific notation</h3><p>Writing 6.02 × 10<sup>23</sup> is the same idea in denary: a number (the mantissa) and a power of ten (the exponent). Floating point uses powers of 2.</p><div class="use"><b>Exam use:</b> value = mantissa × 2<sup>exponent</sup>.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 floating-point conversion questions from every Paper 3 between May/June 2021 and May/June 2026, with the working worked out. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2021</td><td>31, 32, 33</td><td>1(a), 1(b)</td><td>3 + 3</td><td>Denary to floating-point (−7.25); floating-point to denary</td></tr>
+    <tr><td>O/N 2021</td><td>31, 32</td><td>1(a)(i)</td><td>2</td><td>Normalised floating-point form of a binary number</td></tr>
+    <tr><td>O/N 2022</td><td>31, 33</td><td>1(a), 1(b)</td><td>3 + 3</td><td>+202 and −202 in an 8-bit mantissa, 8-bit exponent</td></tr>
+    <tr><td>O/N 2022</td><td>32</td><td>1(b)</td><td>3</td><td>Floating-point to denary</td></tr>
+    <tr><td>M/J 2023</td><td>31, 33</td><td>1(a)</td><td>4</td><td>113.75 in two different systems</td></tr>
+    <tr><td>M/J 2023</td><td>32</td><td>1(a)</td><td>2</td><td>A binary number to floating-point</td></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>1(a)</td><td>3</td><td>+65.25 to floating-point</td></tr>
+    <tr><td>O/N 2023</td><td>32</td><td>1(a)</td><td>3</td><td>−96.75 to floating-point</td></tr>
+    <tr><td>M/J 2024</td><td>31, 33</td><td>1(a), 1(b)</td><td>3 + 3</td><td>Floating-point to denary; −102.75 to floating-point</td></tr>
+    <tr><td>M/J 2024</td><td>32</td><td>1(b)</td><td>3</td><td>+54.8125 to floating-point</td></tr>
+    <tr><td>O/N 2024</td><td>31, 33</td><td>1(a), 1(b)</td><td>3 + 3</td><td>+201.125 to floating-point; floating-point to denary</td></tr>
+    <tr><td>O/N 2024</td><td>32</td><td>4(a), 4(b)</td><td>2 + 4</td><td>Floating-point to denary; −49.1875 to floating-point</td></tr>
+    <tr><td>M/J 2025</td><td>31</td><td>2(a), 2(b)</td><td>2 + 4</td><td>A small binary number and −25.3125 to floating-point</td></tr>
+    <tr><td>M/J 2025</td><td>32</td><td>2(a), 2(b)</td><td>3 + 3</td><td>+124.4375 to floating-point; floating-point to denary</td></tr>
+    <tr><td>M/J 2025</td><td>33</td><td>2(b)</td><td>4</td><td>−3.59375 to floating-point</td></tr>
+    <tr><td>O/N 2025</td><td>31</td><td>2(a), 2(b)</td><td>2 + 4</td><td>A small binary number and −76.1875 to floating-point</td></tr>
+    <tr><td>O/N 2025</td><td>32</td><td>2(a), 2(b)</td><td>3 + 3</td><td>Floating-point to denary; +26.6875 to floating-point</td></tr>
+    <tr><td>M/J 2026</td><td>31</td><td>3(a), 3(b)</td><td>3 + 3</td><td>−10.8125 to floating-point; floating-point to denary</td></tr>
+    <tr><td>M/J 2026</td><td>32</td><td>3(a)</td><td>3</td><td>Floating-point to denary</td></tr>
+    <tr><td>M/J 2026</td><td>33</td><td>5(a)</td><td>4</td><td>−18.5625 to floating-point</td></tr>
+  </table></div>
+  <p class="note">Floating-point conversion is the most frequently tested topic in this chapter: nearly every Paper 3 from May/June 2021 to May/June 2026 has one or two conversions. Every mantissa, exponent and denary value below was calculated and checked against the mark scheme. The theory questions on normalisation, precision and errors are on the next page. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+
+  <h3>Denary or binary to floating-point</h3>
+  <details class="eq"><summary><span class="src">M/J 2021 · 9618/31, 32, 33 · Q1(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -7.25 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the negative form worked out (two's complement) and the exponent</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 7.25 to binary: 111.01
+Move the binary point 3 places left so the number is 0.1...: 0.11101 × 2^3
+Mantissa (10 bits, sign bit 0 then the digits): 0111010000
+Negative: invert 0111010000 → 1000101111, add 1 → 1000110000
+Exponent 3 in 6-bit two&#x27;s complement: 000011
+
+Mantissa  1000110000
+Exponent  000011</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/31, 33 · Q1(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 8 bits for the mantissa, 8 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of 202 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Convert to binary, move the binary point so the mantissa is 0.1... (or 1.0... for a negative), then write the mantissa and the exponent in two's complement.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the binary point moved: the exponent worked out</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 202 to binary: 11001010
+Move the binary point 8 places left so the number is 0.1...: 0.11001010 × 2^8
+Mantissa (8 bits, sign bit 0 then the digits): 01100101
+Exponent 8 in 8-bit two&#x27;s complement: 00001000
+
+Mantissa  01100101
+Exponent  00001000</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/31, 33 · Q1(b)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 8 bits for the mantissa, 8 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -202 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the negative form worked out (two's complement) and the exponent</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 202 to binary: 11001010
+Move the binary point 8 places left so the number is 0.1...: 0.11001010 × 2^8
+Mantissa (8 bits, sign bit 0 then the digits): 01100101
+Negative: invert 01100101 → 10011010, add 1 → 10011011
+Exponent 8 in 8-bit two&#x27;s complement: 00001000
+
+Mantissa  10011011
+Exponent  00001000</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31, 33 · Q1(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of 65.25 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Convert to binary, move the binary point so the mantissa is 0.1... (or 1.0... for a negative), then write the mantissa and the exponent in two's complement.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the binary point moved: the exponent worked out</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 65.25 to binary: 1000001.01
+Move the binary point 7 places left so the number is 0.1...: 0.100000101 × 2^7
+Mantissa (12 bits, sign bit 0 then the digits): 010000010100
+Exponent 7 in 4-bit two&#x27;s complement: 0111
+
+Mantissa  010000010100
+Exponent  0111</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/32 · Q1(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -96.75 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the negative form worked out (two's complement) and the exponent</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 96.75 to binary: 1100000.11
+Move the binary point 7 places left so the number is 0.1...: 0.110000011 × 2^7
+Mantissa (10 bits, sign bit 0 then the digits): 0110000011
+Negative: invert 0110000011 → 1001111100, add 1 → 1001111101
+Exponent 7 in 6-bit two&#x27;s complement: 000111
+
+Mantissa  1001111101
+Exponent  000111</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/31, 33 · Q1(b)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -102.75 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the negative form worked out (two's complement) and the exponent</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 102.75 to binary: 1100110.11
+Move the binary point 7 places left so the number is 0.1...: 0.110011011 × 2^7
+Mantissa (10 bits, sign bit 0 then the digits): 0110011011
+Negative: invert 0110011011 → 1001100100, add 1 → 1001100101
+Exponent 7 in 6-bit two&#x27;s complement: 000111
+
+Mantissa  1001100101
+Exponent  000111</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/32 · Q1(b)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of 54.8125 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Convert to binary, move the binary point so the mantissa is 0.1... (or 1.0... for a negative), then write the mantissa and the exponent in two's complement.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the binary point moved: the exponent worked out</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 54.8125 to binary: 110110.1101
+Move the binary point 6 places left so the number is 0.1...: 0.1101101101 × 2^6
+Mantissa (12 bits, sign bit 0 then the digits): 011011011010
+Exponent 6 in 4-bit two&#x27;s complement: 0110
+
+Mantissa  011011011010
+Exponent  0110</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/32 · Q4(b)</span> <span class="cmd">Calculate</span> <span class="mark">4 marks</span> Numbers are stored in a computer system using binary floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -49.1875 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">the positive number converted to binary</span> <span class="mk k" data-t="2">negative mantissa found: bits flipped and 1 added</span> <span class="mk k" data-t="3">correct mantissa</span> <span class="mk k" data-t="4">correct exponent</span></p><pre class="plain">Convert 49.1875 to binary: 110001.0011
+Move the binary point 6 places left so the number is 0.1...: 0.1100010011 × 2^6
+Mantissa (12 bits, sign bit 0 then the digits): 011000100110
+Negative: invert 011000100110 → 100111011001, add 1 → 100111011010
+Exponent 6 in 4-bit two&#x27;s complement: 0110
+
+Mantissa  100111011010
+Exponent  0110</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/31 · Q2(b)</span> <span class="cmd">Calculate</span> <span class="mark">4 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -25.3125 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">the positive number converted to binary</span> <span class="mk k" data-t="2">negative mantissa found: bits flipped and 1 added</span> <span class="mk k" data-t="3">correct mantissa</span> <span class="mk k" data-t="4">correct exponent</span></p><pre class="plain">Convert 25.3125 to binary: 11001.0101
+Move the binary point 5 places left so the number is 0.1...: 0.110010101 × 2^5
+Mantissa (10 bits, sign bit 0 then the digits): 0110010101
+Negative: invert 0110010101 → 1001101010, add 1 → 1001101011
+Exponent 5 in 6-bit two&#x27;s complement: 000101
+
+Mantissa  1001101011
+Exponent  000101</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/32 · Q2(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of 124.4375 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Convert to binary, move the binary point so the mantissa is 0.1... (or 1.0... for a negative), then write the mantissa and the exponent in two's complement.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the binary point moved: the exponent worked out</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 124.438 to binary: 1111100.0111
+Move the binary point 7 places left so the number is 0.1...: 0.11111000111 × 2^7
+Mantissa (12 bits, sign bit 0 then the digits): 011111000111
+Exponent 7 in 4-bit two&#x27;s complement: 0111
+
+Mantissa  011111000111
+Exponent  0111</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/33 · Q2(b)</span> <span class="cmd">Calculate</span> <span class="mark">4 marks</span> Numbers are stored in a computer system using binary floating-point representation with 8 bits for the mantissa, 8 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -3.59375 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">the positive number converted to binary</span> <span class="mk k" data-t="2">negative mantissa found: bits flipped and 1 added</span> <span class="mk k" data-t="3">correct mantissa</span> <span class="mk k" data-t="4">correct exponent</span></p><pre class="plain">Convert 3.59375 to binary: 11.10011
+Move the binary point 2 places left so the number is 0.1...: 0.1110011 × 2^2
+Mantissa (8 bits, sign bit 0 then the digits): 01110011
+Negative: invert 01110011 → 10001100, add 1 → 10001101
+Exponent 2 in 8-bit two&#x27;s complement: 00000010
+
+Mantissa  10001101
+Exponent  00000010</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/31 · Q2(b)</span> <span class="cmd">Calculate</span> <span class="mark">4 marks</span> Numbers are stored in a computer system using binary floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -76.1875 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">the positive number converted to binary</span> <span class="mk k" data-t="2">negative mantissa found: bits flipped and 1 added</span> <span class="mk k" data-t="3">correct mantissa</span> <span class="mk k" data-t="4">correct exponent</span></p><pre class="plain">Convert 76.1875 to binary: 1001100.0011
+Move the binary point 7 places left so the number is 0.1...: 0.10011000011 × 2^7
+Mantissa (12 bits, sign bit 0 then the digits): 010011000011
+Negative: invert 010011000011 → 101100111100, add 1 → 101100111101
+Exponent 7 in 4-bit two&#x27;s complement: 0111
+
+Mantissa  101100111101
+Exponent  0111</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/32 · Q2(b)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of 26.6875 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Convert to binary, move the binary point so the mantissa is 0.1... (or 1.0... for a negative), then write the mantissa and the exponent in two's complement.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the binary point moved: the exponent worked out</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 26.6875 to binary: 11010.1011
+Move the binary point 5 places left so the number is 0.1...: 0.110101011 × 2^5
+Mantissa (10 bits, sign bit 0 then the digits): 0110101011
+Exponent 5 in 6-bit two&#x27;s complement: 000101
+
+Mantissa  0110101011
+Exponent  000101</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/31 · Q3(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -10.8125 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the negative form worked out (two's complement) and the exponent</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 10.8125 to binary: 1010.1101
+Move the binary point 4 places left so the number is 0.1...: 0.10101101 × 2^4
+Mantissa (10 bits, sign bit 0 then the digits): 0101011010
+Negative: invert 0101011010 → 1010100101, add 1 → 1010100110
+Exponent 4 in 6-bit two&#x27;s complement: 000100
+
+Mantissa  1010100110
+Exponent  000100</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/33 · Q5(a)</span> <span class="cmd">Calculate</span> <span class="mark">4 marks</span> Numbers are stored in a computer system using binary floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of -18.5625 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out the positive number first, then take the two's complement of the mantissa. The exponent does not change.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">the positive number converted to binary</span> <span class="mk k" data-t="2">negative mantissa found: bits flipped and 1 added</span> <span class="mk k" data-t="3">correct mantissa</span> <span class="mk k" data-t="4">correct exponent</span></p><pre class="plain">Convert 18.5625 to binary: 10010.1001
+Move the binary point 5 places left so the number is 0.1...: 0.100101001 × 2^5
+Mantissa (12 bits, sign bit 0 then the digits): 010010100100
+Negative: invert 010010100100 → 101101011011, add 1 → 101101011100
+Exponent 5 in 4-bit two&#x27;s complement: 0101
+
+Mantissa  101101011100
+Exponent  0101</pre></div>
+  </div></details>
+
+  <h3>Denary conversion with a given number of bits that is too small</h3>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/31, 33 · Q1(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the normalised floating-point representation of 201.125 in this system. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Convert to binary, move the binary point so the mantissa is 0.1... (or 1.0... for a negative), then write the mantissa and the exponent in two's complement.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">number converted to binary</span> <span class="mk k" data-t="2">the binary point moved: the exponent worked out</span> <span class="mk k" data-t="3">correct mantissa and exponent</span></p><pre class="plain">Convert 201.125 to binary: 11001001.001
+Move the binary point 8 places left so the number is 0.1...: 0.11001001001 × 2^8
+Mantissa (10 bits, sign bit 0 then the digits): 0110010010  (the extra bits do not fit and are lost)
+Exponent 8 in 6-bit two&#x27;s complement: 001000
+
+Mantissa  0110010010
+Exponent  001000</pre><p><span class="mk a">The number needs more bits than the mantissa has, so the least significant bits are lost and precision is reduced.</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>A number that needs more bits than the mantissa has is truncated. The mark scheme also gives a mark for stating that precision is lost.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/31, 33 · Q1(a)</span> <span class="cmd">Calculate</span> <span class="mark">4 marks</span> Numbers are stored in two different computer systems using floating-point representation. System 1 uses 10 bits for the mantissa and 6 bits for the exponent. System 2 uses 8 bits for the mantissa and 8 bits for the exponent. Both use two's complement for the mantissa and the exponent. Calculate the normalised floating-point representation of 113.75 and show how it would be represented in each of these two systems. Show your working.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One working out, two different mantissa lengths. System 2 has fewer bits for the mantissa.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">113.75 converted to binary: 1110001.11</span> <span class="mk k" data-t="2">normalised 0.11100011 1 × 2^7, so the exponent is 7</span> <span class="mk k" data-t="3">System 1: mantissa 0111000111, exponent 000111</span> <span class="mk k" data-t="4">System 2: mantissa 01110001 (the extra bits are lost), exponent 00000111</span></p><pre class="plain">113.75 = 1110001.11
+       = 0.111000111 × 2^7
+
+System 1 (10, 6):  Mantissa 0111000111   Exponent 000111
+System 2 (8, 8):   Mantissa 01110001     Exponent 00000111</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using 6 bits for the exponent in System 2. System 2 has an 8-bit exponent.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/31, 32 · Q1(a)(i)</span> <span class="cmd">Write</span> <span class="mark">2 marks</span> Numbers are stored in a computer using floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Write the normalised floating-point representation of the following unsigned binary number using this system: 1011100.011001</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The number is already binary. Move the point to the front and fit the digits into 12 bits.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">correct mantissa</span> <span class="mk k" data-t="2">correct exponent</span></p><pre class="plain">1011100.011001 = 0.1011100011001 × 2^7
+
+Mantissa  010111000110     (12 bits: the last two digits do not fit)
+Exponent  0111</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Putting the 13 digits into the mantissa. The mantissa has only 12 bits, including the sign bit, so the last digits are lost.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/32 · Q1(a)</span> <span class="cmd">Write</span> <span class="mark">2 marks</span> Numbers are stored with 10 bits for the mantissa, 6 bits for the exponent, two's complement for both. Write the normalised floating-point representation of the binary number 0101010.111 in this system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Remove the leading zero first: the number is 101010.111.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">mantissa 0101010111</span> <span class="mk k" data-t="2">exponent 000110</span></p><pre class="plain">0101010.111 = 101010.111 = 0.101010111 × 2^6
+
+Mantissa  0101010111
+Exponent  000110</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/31 · Q2(a)</span> <span class="cmd">Write</span> <span class="mark">2 marks</span> Numbers are stored with 10 bits for the mantissa, 6 bits for the exponent, two's complement for both. Write the normalised floating-point representation of the binary number 0.00000011010111 in this system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>This is a very small number, so the exponent will be negative: count how many places the point moves right.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">mantissa 0110101110</span> <span class="mk k" data-t="2">exponent 111010 (−6)</span></p><pre class="plain">0.00000011010111 = 0.11010111 × 2^(-6)       (the point moves 6 places right)
+
+Mantissa  0110101110
+Exponent  111010         (−6 in 6-bit two&#x27;s complement)</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving a positive exponent. The point moved right, so the exponent is negative.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/31 · Q2(a)</span> <span class="cmd">Write</span> <span class="mark">2 marks</span> Numbers are stored with 12 bits for the mantissa, 4 bits for the exponent, two's complement for both. Write the normalised floating-point representation of the binary number 0.00000001110101101 in this system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Another small number: the point moves right 7 places.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">mantissa 011101011010</span> <span class="mk k" data-t="2">exponent 1001 (−7)</span></p><pre class="plain">0.00000001110101101 = 0.1110101101 × 2^(-7)
+
+Mantissa  011101011010
+Exponent  1001         (−7 in 4-bit two&#x27;s complement)</pre></div>
+  </div></details>
+
+  <h3>Floating-point to denary</h3>
+  <details class="eq"><summary><span class="src">M/J 2021 · 9618/31, 32, 33 · Q1(b)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the denary value of the given normalised binary floating-point number. Show your working.<pre class="plain">Mantissa  1011000111
+Exponent  000111</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the exponent first, then move the binary point that many places right (or left if the exponent is negative), then add up the place values. A mantissa that starts with 1 is negative, so its first bit counts as a negative place value.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent converted to denary</span> <span class="mk k" data-t="2">the exponent applied to the mantissa (binary point moved)</span> <span class="mk k" data-t="3">correct denary answer</span></p><pre class="plain">Exponent 000111 = 7
+Mantissa = 1.011000111
+Move the binary point 7 places right: 10110001.11
+Value (the first bit has a negative place value): −128 + 32 + 16 + 1 + 0.5 + 0.25 = -78.25
+
+Denary value  -78.25</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/32 · Q1(b)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 11 bits for the mantissa, 5 bits for the exponent, and two's complement form for both. Calculate the denary value of the given normalised binary floating-point number. Show your working.<pre class="plain">Mantissa  10110010011
+Exponent  01001</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the exponent first, then move the binary point that many places right (or left if the exponent is negative), then add up the place values. A mantissa that starts with 1 is negative, so its first bit counts as a negative place value.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent converted to denary</span> <span class="mk k" data-t="2">the exponent applied to the mantissa (binary point moved)</span> <span class="mk k" data-t="3">correct denary answer</span></p><pre class="plain">Exponent 01001 = 9
+Mantissa = 1.0110010011
+Move the binary point 9 places right: 1011001001.1
+Value (the first bit has a negative place value): −512 + 128 + 64 + 8 + 1 + 0.5 = -310.5
+
+Denary value  -310.5</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/31, 33 · Q1(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the denary value of the given normalised binary floating-point number. Show your working.<pre class="plain">Mantissa  0100111100
+Exponent  001001</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the exponent first, then move the binary point that many places right (or left if the exponent is negative), then add up the place values. A mantissa that starts with 1 is negative, so its first bit counts as a negative place value.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent converted to denary</span> <span class="mk k" data-t="2">the exponent applied to the mantissa (binary point moved)</span> <span class="mk k" data-t="3">correct denary answer</span></p><pre class="plain">Exponent 001001 = 9
+Mantissa = 0.100111100
+Move the binary point 9 places right: 0100111100
+Value: 256 + 32 + 16 + 8 + 4 = 316
+
+Denary value  316</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/31, 33 · Q1(b)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the denary value of the given normalised binary floating-point number. Show your working.<pre class="plain">Mantissa  1010110011
+Exponent  000101</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the exponent first, then move the binary point that many places right (or left if the exponent is negative), then add up the place values. A mantissa that starts with 1 is negative, so its first bit counts as a negative place value.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent converted to denary</span> <span class="mk k" data-t="2">the exponent applied to the mantissa (binary point moved)</span> <span class="mk k" data-t="3">correct denary answer</span></p><pre class="plain">Exponent 000101 = 5
+Mantissa = 1.010110011
+Move the binary point 5 places right: 101011.0011
+Value (the first bit has a negative place value): −32 + 8 + 2 + 1 + 0.125 + 0.0625 = -20.8125
+
+Denary value  -20.8125</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/32 · Q4(a)</span> <span class="cmd">Calculate</span> <span class="mark">2 marks</span> Numbers are stored in a computer system using binary floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Calculate the denary value of the given normalised binary floating-point number. Show your working.<pre class="plain">Mantissa  010001110111
+Exponent  0111</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the exponent first, then move the binary point that many places right (or left if the exponent is negative), then add up the place values. A mantissa that starts with 1 is negative, so its first bit counts as a negative place value.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">the exponent applied to the mantissa</span> <span class="mk k" data-t="2">correct denary answer</span></p><pre class="plain">Exponent 0111 = 7
+Mantissa = 0.10001110111
+Move the binary point 7 places right: 01000111.0111
+Value: 64 + 4 + 2 + 1 + 0.25 + 0.125 + 0.0625 = 71.4375
+
+Denary value  71.4375</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/32 · Q2(b)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Calculate the denary value of the given normalised binary floating-point number. Show your working.<pre class="plain">Mantissa  101000101011
+Exponent  0110</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the exponent first, then move the binary point that many places right (or left if the exponent is negative), then add up the place values. A mantissa that starts with 1 is negative, so its first bit counts as a negative place value.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent converted to denary</span> <span class="mk k" data-t="2">the exponent applied to the mantissa (binary point moved)</span> <span class="mk k" data-t="3">correct denary answer</span></p><pre class="plain">Exponent 0110 = 6
+Mantissa = 1.01000101011
+Move the binary point 6 places right: 1010001.01011
+Value (the first bit has a negative place value): −64 + 16 + 1 + 0.25 + 0.0625 + 0.03125 = -46.65625
+
+Denary value  -46.65625</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/32 · Q2(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the denary value of the given normalised binary floating-point number. Show your working.<pre class="plain">Mantissa  0111100101
+Exponent  001011</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the exponent first, then move the binary point that many places right (or left if the exponent is negative), then add up the place values. A mantissa that starts with 1 is negative, so its first bit counts as a negative place value.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent converted to denary</span> <span class="mk k" data-t="2">the exponent applied to the mantissa (binary point moved)</span> <span class="mk k" data-t="3">correct denary answer</span></p><pre class="plain">Exponent 001011 = 11
+Mantissa = 0.111100101
+Move the binary point 11 places right: 011110010100
+Value: 1024 + 512 + 256 + 128 + 16 + 4 = 1940
+
+Denary value  1940</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/31 · Q3(b)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 10 bits for the mantissa, 6 bits for the exponent, and two's complement form for both. Calculate the denary value of the given normalised binary floating-point number. Show your working.<pre class="plain">Mantissa  1010000111
+Exponent  000111</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the exponent first, then move the binary point that many places right (or left if the exponent is negative), then add up the place values. A mantissa that starts with 1 is negative, so its first bit counts as a negative place value.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent converted to denary</span> <span class="mk k" data-t="2">the exponent applied to the mantissa (binary point moved)</span> <span class="mk k" data-t="3">correct denary answer</span></p><pre class="plain">Exponent 000111 = 7
+Mantissa = 1.010000111
+Move the binary point 7 places right: 10100001.11
+Value (the first bit has a negative place value): −128 + 32 + 1 + 0.5 + 0.25 = -94.25
+
+Denary value  -94.25</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/32 · Q3(a)</span> <span class="cmd">Calculate</span> <span class="mark">3 marks</span> Numbers are stored in a computer system using binary floating-point representation with 12 bits for the mantissa, 4 bits for the exponent, and two's complement form for both. Calculate the denary value of the given normalised binary floating-point number. Show your working.<pre class="plain">Mantissa  101101000110
+Exponent  0110</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the exponent first, then move the binary point that many places right (or left if the exponent is negative), then add up the place values. A mantissa that starts with 1 is negative, so its first bit counts as a negative place value.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent converted to denary</span> <span class="mk k" data-t="2">the exponent applied to the mantissa (binary point moved)</span> <span class="mk k" data-t="3">correct denary answer</span></p><pre class="plain">Exponent 0110 = 6
+Mantissa = 1.01101000110
+Move the binary point 6 places right: 1011010.00110
+Value (the first bit has a negative place value): −64 + 16 + 8 + 2 + 0.125 + 0.0625 = -37.8125
+
+Denary value  -37.8125</pre></div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Calculate</span> <span class="mark">3 marks</span> A system uses 8 bits for the mantissa and 4 bits for the exponent, both in two's complement. Calculate the denary value of mantissa 01100000 and exponent 0011.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Exponent 3; move the point 3 places.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent 0011 = 3</span> <span class="mk k" data-t="2">mantissa 0.1100000 with its point moved 3 places right: 110.0000</span> <span class="mk k" data-t="3">value 4 + 2 = 6</span></p><pre class="plain">Exponent 0011 = 3
+Mantissa 0.1100000
+Move the point 3 places right: 110.0000
+Value = 4 + 2 = 6</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Moving the point the wrong way, or by the wrong number of places.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Calculate</span> <span class="mark">3 marks</span> Calculate the 8-bit mantissa and 4-bit exponent (two's complement) for the denary number 5.5.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Convert to binary, normalise, write the bits.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">5.5 = 101.1</span> <span class="mk k" data-t="2">0.1011 × 2^3, exponent 0011</span> <span class="mk k" data-t="3">mantissa 01011000</span></p><pre class="plain">5.5 = 101.1 = 0.1011 × 2^3
+Mantissa  01011000
+Exponent  0011</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Calculate</span> <span class="mark">4 marks</span> Using an 8-bit mantissa and a 4-bit exponent, both in two's complement, write −5.5 in floating-point form.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Use the positive mantissa for 5.5 and negate it.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">5.5 = 101.1, mantissa 01011000</span> <span class="mk k" data-t="2">invert the bits: 10100111</span> <span class="mk k" data-t="3">add 1: 10101000</span> <span class="mk k" data-t="4">exponent 0011</span></p><pre class="plain">+5.5   mantissa 01011000   exponent 0011
+invert 10100111, add 1  →  10101000
+−5.5   mantissa 10101000   exponent 0011</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Changing the exponent for a negative number. Only the mantissa is negated.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Calculate</span> <span class="mark">3 marks</span> A 10-bit mantissa and 6-bit exponent (two's complement). Calculate the denary value of mantissa 0110000000 and exponent 111110.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A negative exponent moves the point left.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">exponent 111110 = −2</span> <span class="mk k" data-t="2">mantissa 0.110000000 moved 2 places left</span> <span class="mk k" data-t="3">value 0.1875</span></p><pre class="plain">Exponent 111110 = -2
+Mantissa 0.11 × 2^(-2) = 0.0011
+Value = 1/8 + 1/16 = 0.1875</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State how many bits in total are needed for a mantissa of 12 bits and an exponent of 4 bits, and the number of bytes this is.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Add the two parts.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">16 bits</span> <span class="mk k" data-t="2">2 bytes</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Write the working.</b> Binary conversion, the movement of the point, the exponent, then the answer. The marks are for the working.</li>
+    <li><b>Mantissa starts 0 or 1.</b> 0 positive, 1 negative. The point is after that first bit.</li>
+    <li><b>Exponent sign.</b> Point moves right to evaluate: positive exponent. A small number needs a negative exponent.</li>
+    <li><b>Negatives: negate the mantissa only.</b> Invert, add 1. The exponent is the same as for the positive number.</li>
+    <li><b>Fit the bits.</b> Count the digits in each field. Extra digits on the right are lost.</li>
+    <li><b>Check by converting back.</b> It takes a minute and catches most slips.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>how floating point is stored</td><td>"A mantissa and an exponent, both in two's complement; the value is the mantissa multiplied by 2 to the power of the exponent."</td></tr>
+    <tr><td>how to read the exponent</td><td>"Convert it from two's complement, then move the binary point that many places."</td></tr>
+    <tr><td>what the working shows</td><td>"The conversion to binary, the normalising of the point and the exponent, and the two's complement of a negative mantissa."</td></tr>
+    <tr><td>when precision is lost</td><td>"When the number needs more bits than the mantissa has, so the least significant bits are lost."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Calculate</td><td>Work it out and show the working, then write the answer.</td></tr>
+    <tr><td>Write</td><td>Give the mantissa and exponent in the table, with the right number of bits.</td></tr>
+    <tr><td>Show your working</td><td>Each step earns marks: the binary, the point, the exponent.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+const val2 = (s) => { const n = parseInt(s, 2); return s[0] === "1" ? n - 2 ** s.length : n; };
+const decodeFp = (m, e) => (val2(m) / 2 ** (m.length - 1)) * 2 ** val2(e);
+function encodeFp(x, mb, eb) {
+  if (x === 0) return { m: "0".repeat(mb), e: "0".repeat(eb), exact: true };
+  const mag = Math.abs(x); let e = 0, m = mag;
+  while (m >= 1) { m /= 2; e++; } while (m < 0.5) { m *= 2; e--; }
+  const scaled = m * 2 ** (mb - 1), pos = Math.floor(scaled), exact = scaled === pos;
+  let mi = x > 0 ? pos : 2 ** mb - pos;
+  const tw = (n, b) => (n < 0 ? n + 2 ** b : n).toString(2).padStart(b, "0");
+  return { m: tw(mi, mb), e: tw(e, eb), exact, ev: e, mag };
+}
+
+(function () {
+  const M = "1011000111", E = "000111";
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "";
+    const boxes = (str, x0, cls) => str.split("").map((c, i) => SV.rect(x0 + i * 34, 30, 30, 36, cls, { rx: 4 }) + SV.text(x0 + i * 34 + 15, 55, c, "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:17px" })).join("");
+    o += SV.text(30, 22, "Mantissa", "sm") + SV.text(430, 22, "Exponent", "sm") + boxes(M, 30, "f3") + boxes(E, 430, "f2");
+    if (k >= 1) o += SV.text(430, 96, "exponent 000111 = 7", "lbl bd", { style: "font-family:var(--mono);font-size:15px" });
+    if (k >= 2) o += SV.text(30, 96, "mantissa 1.011000111   (point after the first bit)", "lbl bd", { style: "font-family:var(--mono);font-size:15px" });
+    if (k >= 3) o += SV.text(30, 132, "move the point 7 places right:   10110001.11", "lbl bd t3", { style: "font-family:var(--mono);font-size:16px" });
+    if (k >= 4) o += SV.text(30, 168, "−128 + 32 + 16 + 1 + 0.5 + 0.25", "lbl", { style: "font-family:var(--mono);font-size:16px" });
+    if (k >= 5) o += SV.text(30, 204, "value = −78.25", "lbl bd t3", { style: "font-family:var(--mono);font-size:22px" });
+    return o;
+  };
+  Lib.stepper($("#stA"), { w: 760, h: 225, label: "Converting floating-point to denary", base: { i: 0 }, draw, tween: 250, dwell: 3000, steps: [
+    { cap: "The 16 bits are a 10-bit <b>mantissa</b> and a 6-bit <b>exponent</b>, both in two's complement.", s: { i: 0 } },
+    { cap: "Convert the exponent: <code>000111</code> is <b>7</b>.", s: { i: 1 } },
+    { cap: "The mantissa has its point after the first bit: <code>1.011000111</code>. It starts with 1, so the number is negative.", s: { i: 2 } },
+    { cap: "Multiply by 2<sup>7</sup>: move the point <b>7 places right</b>. <code>1.011000111</code> becomes <code>10110001.11</code>.", s: { i: 3 } },
+    { cap: "Add the place values. The first bit is a <b>negative</b> place value: −128 + 32 + 16 + 1 + 0.5 + 0.25.", s: { i: 4 } },
+    { cap: "The value is <b>−78.25</b>.", s: { i: 5 } }] });
+})();
+
+(function () {
+  const rows = [["7.25 in binary", "111.01"], ["Normalise: move the point 3 places left", "0.11101 × 2^3,  exponent = 3"], ["Positive mantissa (10 bits)", "0111010000"], ["Negative: invert the bits", "1000101111"], ["Add 1", "1000110000"], ["Exponent 3 in 6 bits", "000011"], ["Answer", "1000110000   000011"]];
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = SV.text(30, 24, "Convert −7.25: 10-bit mantissa, 6-bit exponent", "lbl bd");
+    rows.forEach((r, i) => { const v = i < k ? 1 : 0; if (!v) return; o += SV.rect(30, 38 + i * 34, 700, 30, i === rows.length - 1 ? "cell-ok" : "cell", { rx: 6 }) + SV.text(44, 59 + i * 34, r[0], "lbl", { style: "font-size:14px" }) + SV.text(330, 59 + i * 34, r[1], "lbl bd", { style: "font-family:var(--mono);font-size:15px" }); });
+    return o;
+  };
+  Lib.stepper($("#stB"), { w: 760, h: 285, label: "Denary to floating-point", base: { i: 0 }, draw, tween: 250, dwell: 2800, steps: [
+    { cap: "Convert <b>−7.25</b> to floating-point. First ignore the sign.", s: { i: 0 } },
+    { cap: "7.25 in binary: 7 is 111 and 0.25 is .01, so <b>111.01</b>.", s: { i: 1 } },
+    { cap: "Normalise to 0.1...: move the point 3 places left. That is <b>× 2³</b>, so the exponent is 3.", s: { i: 2 } },
+    { cap: "The positive mantissa has a 0 sign bit and the digits, padded with zeros to 10 bits.", s: { i: 3 } },
+    { cap: "The number is negative, so take the <b>two's complement</b> of the mantissa. Invert every bit...", s: { i: 4 } },
+    { cap: "...then add 1. The mantissa is now 1000110000. It starts with <b>10</b>, as a normalised negative mantissa does.", s: { i: 5 } },
+    { cap: "The exponent does not change: 3 in 6-bit two's complement is 000011.", s: { i: 6 } },
+    { cap: "The answer, mantissa then exponent: <b>1000110000 000011</b>.", s: { i: 7 } }] });
+})();
+
+(function () {
+  const draw = (s) => {
+    const k = Math.round(s.i); const vals = ["0.1011", "1.011", "10.11", "101.1", "1011."], dec = ["0.6875", "1.375", "2.75", "5.5", "11"];
+    let o = SV.text(30, 26, "mantissa 0.1011 (0.6875)", "lbl bd", { style: "font-family:var(--mono);font-size:15px" });
+    o += SV.text(30, 76, "× 2^" + k, "lbl bd", { style: "font-family:var(--mono);font-size:22px" });
+    o += SV.text(30, 130, "move the point " + k + " place" + (k === 1 ? "" : "s") + " right", "lbl", { style: "font-size:15px" });
+    o += SV.text(30, 180, vals[k] + "  =  " + dec[k], "lbl bd t3", { style: "font-family:var(--mono);font-size:26px" });
+    for (let i = 0; i <= 4; i++) o += SV.rect(430 + i * 62, 40, 54, 50, i === k ? "cell-ok" : "cell", { rx: 6 }) + SV.text(457 + i * 62, 70, "2^" + i, "lbl", { "text-anchor": "middle", style: "font-size:14px" });
+    return o;
+  };
+  Lib.stepper($("#stC"), { w: 760, h: 215, label: "The exponent as a shift of the binary point", base: { i: 0 }, draw, tween: 200, dwell: 2200, steps: [0, 1, 2, 3, 4].map((i) => ({ cap: i === 0 ? "A mantissa of 0.1011 is 0.5 + 0.125 + 0.0625 = <b>0.6875</b>. With exponent 0 the value is unchanged." : `Exponent ${i}: multiply by 2<sup>${i}</sup>, which moves the binary point <b>${i}</b> place${i > 1 ? "s" : ""} to the right. The value is ${["", "1.375", "2.75", "5.5", "11"][i]}. Each increase of 1 in the exponent doubles the value.`, s: { i } })) });
+})();
+
+/* Lab 1 */
+(function () {
+  const alloc = [[10, 6], [12, 4], [8, 8]]; let cur = 0, m = "1011000111", e = "000111";
+  const paint = () => {
+    $$("#fB button").forEach((b, i) => b.classList.toggle("pri", i === cur));
+    const bits = (str, id, w) => { $("#" + id).innerHTML = '<span style="align-self:center;margin-right:6px">' + (id === "fM" ? "Mantissa" : "Exponent") + "</span>" + str.split("").map((c, i) => `<button class="b${c === "1" ? " pri" : ""}" data-i="${i}" style="min-width:2.2em;font-family:var(--mono)">${c}</button>`).join(""); $$("#" + id + " button").forEach((b) => (b.onclick = () => { const i = +b.dataset.i, arr = (id === "fM" ? m : e).split(""); arr[i] = arr[i] === "1" ? "0" : "1"; if (id === "fM") m = arr.join(""); else e = arr.join(""); paint(); })); };
+    bits(m, "fM"); bits(e, "fE");
+    const ev = val2(e), v = decodeFp(m, e), pt = 1 + ev;
+    $("#f1").textContent = ev; $("#f2").textContent = m[0] + "." + m.slice(1); $("#f3").textContent = String(+v.toPrecision(12));
+    let ipb, fpb; if (pt >= m.length) { ipb = m + "0".repeat(pt - m.length); fpb = ""; } else if (pt <= 0) { ipb = "0"; fpb = "0".repeat(-pt) + m; } else { ipb = m.slice(0, pt); fpb = m.slice(pt); }
+    $("#fW").innerHTML = '<div class="tw"><table class="t mono"><tr><th>Step</th><th>Working</th></tr><tr><td>Exponent</td><td>' + e + " = " + ev + "</td></tr><tr><td>Mantissa</td><td>" + m[0] + "." + m.slice(1) + (m[0] === "1" ? " (negative)" : " (positive)") + "</td></tr><tr><td>Move the point " + Math.abs(ev) + (ev >= 0 ? " places right" : " places left") + "</td><td>" + ipb + (fpb ? "." + fpb : "") + "</td></tr><tr><td>Normalised?</td><td>" + (m[0] !== m[1] ? "yes (starts " + m[0] + m[1] + ")" : "no: the mantissa starts " + m[0] + m[1]) + "</td></tr></table></div>";
+  };
+  $("#fB").innerHTML = alloc.map((a) => `<button class="b">${a[0]} + ${a[1]} bits</button>`).join("");
+  $$("#fB button").forEach((b, i) => (b.onclick = () => { cur = i; m = ["1011000111", "010111000110", "01110001"][i]; e = ["000111", "0111", "00000111"][i]; paint(); })); paint();
+})();
+
+/* Lab 2 */
+(function () {
+  const alloc = [[10, 6], [12, 4], [8, 8]]; let cur = 0;
+  const run = () => {
+    $$("#gB button").forEach((b, i) => b.classList.toggle("pri", i === cur));
+    const x = parseFloat($("#gN").value), [mb, eb] = alloc[cur];
+    if (isNaN(x)) { $("#gW").innerHTML = ""; $("#gV").textContent = "Enter a number."; return; }
+    const r = encodeFp(x, mb, eb), back = decodeFp(r.m, r.e), mag = Math.abs(x);
+    const maxE = 2 ** (eb - 1) - 1, over = r.ev !== undefined && (r.ev > maxE || r.ev < -(maxE + 1));
+    const bin = (() => { let ip = Math.floor(mag), fr = mag - ip, s = ip.toString(2), f = ""; for (let i = 0; i < 20 && fr > 0; i++) { fr *= 2; f += fr >= 1 ? "1" : "0"; fr -= Math.floor(fr); } return s + (f ? "." + f : ""); })();
+    $("#gW").innerHTML = '<div class="tw"><table class="t mono"><tr><th>Step</th><th>Working</th></tr><tr><td>Binary of ' + mag + "</td><td>" + bin + "</td></tr><tr><td>Exponent</td><td>" + (r.ev === undefined ? "0" : r.ev) + " → " + r.e + "</td></tr><tr><td>Mantissa</td><td>" + r.m + (x < 0 ? " (two's complement of the positive mantissa)" : "") + "</td></tr><tr><td>Answer</td><td><b>" + r.m + "  " + r.e + "</b></td></tr><tr><td>Converted back</td><td>" + +back.toPrecision(12) + "</td></tr></table></div>";
+    $("#gV").textContent = over ? "The exponent does not fit in " + eb + " bits: this number is outside the range of this system (overflow or underflow)." : r.exact ? "Stored exactly." : "The number needs more bits than the " + mb + "-bit mantissa has, so the last bits are lost: the stored value is " + +back.toPrecision(12) + ", an approximation.";
+  };
+  $("#gB").innerHTML = alloc.map((a) => `<button class="b">${a[0]} + ${a[1]} bits</button>`).join("");
+  $$("#gB button").forEach((b, i) => (b.onclick = () => { cur = i; run(); })); $("#gR").onclick = run; $("#gN").addEventListener("keydown", (e) => { if (e.key === "Enter") run(); });
+  run();
+})();
+
+btnTable("eB", "eO", [
+  ["Mantissa", "A two's complement fraction with the binary point after the first bit; holds the digits of the number", "Normalised: starts 01 (positive) or 10 (negative)", "More mantissa bits: more precision"],
+  ["Exponent", "A two's complement integer: the power of 2 the mantissa is multiplied by", "Positive moves the point right; negative moves it left", "More exponent bits: larger range"],
+  ["Value", "mantissa × 2^exponent", "Example: 0.1011 × 2^3 = 5.5", "Check by converting back"]
+], ["Part", "What it is", "Detail", "Effect of more bits"]);
+Lib.classify($("#cl1"), { prompt: "Does each statement describe the mantissa or the exponent?", buckets: [{"label": "Mantissa"}, {"label": "Exponent"}], items: [{"text": "Holds the digits of the number", "b": 0}, {"text": "Says how many places to move the binary point", "b": 1}, {"text": "Has the binary point after its first bit", "b": 0}, {"text": "A two's complement integer", "b": 1}, {"text": "More bits here increase precision", "b": 0}, {"text": "More bits here increase the range", "b": 1}], done: "Mantissa: the digits and precision. Exponent: the scale and range." });
+Lib.classify($("#cl2"), { prompt: "Which way does the binary point move (and what is the exponent's sign)?", buckets: [{"label": "Right (positive exponent)"}, {"label": "Left (negative exponent)"}], items: [{"text": "Converting 0.101 × 2^4 to denary", "b": 0}, {"text": "Normalising 0.000111 (a small number)", "b": 0}, {"text": "Converting 0.101 × 2^(-2) to denary", "b": 1}, {"text": "Writing 111.01 as 0.11101 × 2^3: the point moves left, exponent +3", "b": 0}, {"text": "A very small number: the normalised exponent", "b": 1}, {"text": "A large number such as 202 when normalised", "b": 0}], done: "Evaluating with a positive exponent moves the point right. A very small number needs a negative exponent." });
+Lib.order($("#o1"), { prompt: "Put the steps for converting −7.25 to floating-point in order.", items: ["Convert 7.25 to binary: 111.01", "Normalise: 0.11101 × 2^3, so the exponent is 3", "Write the positive mantissa: 0111010000", "Invert the bits and add 1: 1000110000", "Write the exponent 3 in two's complement: 000011"], done: "Binary, normalise, mantissa, negate, exponent." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Mantissa", "The digits of the number, a two's complement fraction"], ["Exponent", "The power of 2 that scales the mantissa"], ["Floating point", "A real number stored as a mantissa and an exponent"], ["Two's complement", "Representation where the first bit has a negative place value"], ["Normalised", "The mantissa starts 01 or 10"]], done: "Learn these terms." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "Exponent 000111 in 6-bit two's complement. What is its denary value?", "a": 7, "unit": "", "tol": 0.01, "hint": "4 + 2 + 1.", "sol": "<b>7</b>."},
+  {"q": "Exponent 111110 in 6-bit two's complement. What is its denary value?", "a": -2, "unit": "", "tol": 0.01, "hint": "−32 + 16 + 8 + 4 + 2.", "sol": "<b>−2</b>."},
+  {"q": "Mantissa 0.1 (binary) with exponent 3. What is the value?", "a": 4, "unit": "", "tol": 0.01, "hint": "0.5 × 8.", "sol": "<b>4</b>."},
+  {"q": "Mantissa 0.11 (binary) with exponent 2. What is the value?", "a": 3, "unit": "", "tol": 0.01, "hint": "0.75 × 4.", "sol": "<b>3</b>."},
+  {"q": "Mantissa 0100111100 with exponent 001001. What is the denary value?", "a": 316, "unit": "", "tol": 0.01, "hint": "Move the point 9 places: 100111100.", "sol": "<b>316</b>."},
+  {"q": "Mantissa 1011000111 with exponent 000111. What is the denary value?", "a": -78.25, "unit": "", "tol": 0.01, "hint": "10110001.11 = −128 + 32 + 16 + 1 + 0.5 + 0.25.", "sol": "<b>−78.25</b>."},
+  {"q": "In 8-bit two's complement, what is the denary value of 10011011?", "a": -101, "unit": "", "tol": 0.01, "hint": "−128 + 16 + 8 + 2 + 1.", "sol": "<b>−101</b>."},
+  {"q": "A floating-point system has 12 bits for the mantissa and 4 for the exponent. How many bytes does one number use?", "a": 2, "unit": "bytes", "tol": 0.01, "hint": "16 bits.", "sol": "<b>2</b> bytes."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "Where is the binary point in a floating-point mantissa?", opts: ["At the far right", "After the first bit", "In the middle of the exponent", "It has no point"], a: 1, why: "The mantissa is a fraction with the point after the first bit." },
+  { q: "A mantissa starting with 1 is...", opts: ["positive", "negative", "zero", "not normalised"], a: 1, why: "In two's complement a leading 1 means negative." },
+  { q: "To negate a mantissa you...", opts: ["add 1 to the exponent", "invert the bits and add 1", "remove the first bit", "double it"], a: 1, why: "Two's complement." },
+  { q: "What does a positive exponent do?", opts: ["Moves the point right", "Moves the point left", "Makes the number negative", "Nothing"], a: 0, why: "It multiplies by a power of 2." },
+  { q: "How is a negative number converted to floating point?", opts: ["Negate the mantissa and the exponent", "Convert the positive number, then take the two's complement of the mantissa only", "Subtract from 1", "Use a sign bit in the exponent"], a: 1, why: "The exponent is the same as for the positive number." },
+  { q: "0.11101 × 2³ equals...", opts: ["7.25", "3.625", "7", "14.5"], a: 0, why: "111.01 = 7.25." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Floating point", "Mantissa × 2^exponent, both in two's complement."],
+  ["Mantissa", "Fraction with the point after the first bit; holds the digits."],
+  ["Exponent", "Integer power of 2. Positive moves the point right."],
+  ["Denary to float", "Binary, normalise, mantissa, negate if negative, exponent."],
+  ["Float to denary", "Exponent, move the point, add place values."],
+  ["Negative mantissa", "Invert bits, add 1. Exponent unchanged."],
+  ["Normalised", "Mantissa starts 01 or 10."],
+  ["Truncation", "Bits that do not fit are lost: precision reduced."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

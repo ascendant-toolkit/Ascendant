@@ -1,0 +1,221 @@
+
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Chapter 19 · 19.2</div>
+  <h1>Recursion in Action: Binary Tree Traversal</h1>
+  <p class="lead">A binary tree is built from smaller binary trees, so recursion is the natural way to walk it. See in-order, pre-order and post-order traversal run call by call, watch a recursive search, and learn why the output order changes with one line moved.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<!-- LEARN -->
+<section id="learn" role="tabpanel">
+  <div class="card big">
+    <h3>A tree is a node with two smaller trees</h3>
+    <p>A <span class="kw">binary tree</span> is made of nodes. Each node holds a value and up to two children: a left child and a right child. Each child is the root of its own smaller binary tree (a <span class="kw">subtree</span>), and an empty subtree is a tree with no nodes.</p>
+    <p>That is a recursive definition: <b>a tree is a node plus a left tree plus a right tree</b>. Any algorithm that must visit every node can be written the same way: do something with this node, then do the same for the left subtree and for the right subtree. The base case is the empty tree.</p>
+  </div>
+
+  <h2>How the tree is stored</h2>
+  <p>In 9618 a binary tree is usually stored in arrays: one for the data and one each for the left and right pointers. A pointer holds the array index of the child, and a special value means “no child”. Here that value is 0, and the arrays start at index 1. Always check which null value a question uses; some papers use −1 or another value.</p>
+  <div id="treeStatic"></div>
+  <p class="note">The root is at index 1 (<code>RootPointer = 1</code>). Node 3 (70) has a left child (index 6) but no right child, so its right pointer is 0.</p>
+
+  <h2>Three ways to visit every node</h2>
+  <p>A <span class="kw">traversal</span> visits each node exactly once. The three standard orders differ only in <b>when the node’s own value is output</b>, compared with the two recursive calls.</p>
+  <div class="grid2">
+    <div class="card"><h3>In-order</h3><div class="formula">left · node · right</div><p>Left subtree first, then the node, then the right subtree. For a binary <i>search</i> tree this outputs the values in <b>ascending order</b>.</p></div>
+    <div class="card"><h3>Pre-order</h3><div class="formula">node · left · right</div><p>The node first, then its subtrees. The root always comes out first. Useful for copying a tree.</p></div>
+    <div class="card"><h3>Post-order</h3><div class="formula">left · right · node</div><p>Both subtrees before the node. The root always comes out last. Useful for deleting a tree, or evaluating an expression tree.</p></div>
+  </div>
+
+  <h2>The procedure, line by line</h2>
+  <p>This is in-order traversal. Choose Pseudocode or Python. The base case is <code>Node = 0</code>: the empty tree, where nothing happens.</p>
+  <div id="codeT"></div>
+  <ol class="step4">
+    <li><span><b>IF Node &lt;&gt; 0.</b> If the pointer is 0 the subtree is empty. The procedure ends without doing anything. This is the base case.</span></li>
+    <li><span><b>CALL InOrder(LeftPointer[Node]).</b> Visit the whole left subtree before anything else. The argument is a pointer to a smaller tree, so each call moves towards an empty tree.</span></li>
+    <li><span><b>OUTPUT Data[Node].</b> Only now is this node’s own value output.</span></li>
+    <li><span><b>CALL InOrder(RightPointer[Node]).</b> Then the whole right subtree.</span></li>
+  </ol>
+  <div class="tip"><b class="h">One line moves, the order changes</b>For <b>pre-order</b>, move the OUTPUT line above both calls. For <b>post-order</b>, move it below both calls. Nothing else changes.</div>
+
+  <h2>Recursive search and insert</h2>
+  <p>The syllabus asks you to find and insert items in a binary tree. In a binary <i>search</i> tree, smaller values go left and larger values go right, so a search only follows <b>one</b> branch at each node: it is recursion with a single call, like a chain. The base case is either an empty subtree (not found) or a matching value (found).</p>
+  <div id="codeFind"></div>
+  <p>Insert works the same way. Go left or right as the search would; where the pointer is 0, there is a free place for the new node.</p>
+  <pre class="plain">def insert(node, item):
+    if item &lt; data[node]:
+        if left[node] == 0:
+            left[node] = new_node(item)      # free slot found: base case
+        else:
+            insert(left[node], item)
+    else:
+        if right[node] == 0:
+            right[node] = new_node(item)
+        else:
+            insert(right[node], item)</pre>
+
+  <h2>Stack depth and the shape of the tree</h2>
+  <p>The stack holds one branch at a time, so the deepest the stack gets is the <b>height</b> of the tree (plus one for the final empty call). A well-balanced tree of 1 000 nodes is about 10 levels deep. A tree that is really a long chain (for example values inserted already in order) is as deep as it has nodes, and a very long chain could overflow the stack. The Explore tab lets you compare.</p>
+</section>
+
+<!-- WATCH -->
+<section id="watch" role="tabpanel" hidden>
+  <p>Press Play, or click the numbered dots. On the right is the <b>call tree</b> (amber = waiting, blue = running, green = finished). It has the same shape as the data tree, with an extra call for every missing child, shown as ∅. The <b>output</b> box fills as values are written. The highlighted code line shows what is being run.</p>
+
+  <h2>1 · In-order: left, node, right</h2>
+  <p>Notice that nothing is output until the left-most node is reached. The first value out is the smallest.</p>
+  <div id="aIn"></div>
+
+  <h2>2 · Pre-order: node, left, right</h2>
+  <p>The output line now runs <i>before</i> the calls, so each value appears as soon as its call starts, on the way down.</p>
+  <div id="aPre"></div>
+
+  <h2>3 · Post-order: left, right, node</h2>
+  <p>Each value is output only after both subtrees are finished, so the root is last.</p>
+  <div id="aPost"></div>
+
+  <h2>4 · Recursive search for 60</h2>
+  <p>Only one branch is followed: the call tree is a chain. The value is found in three calls, without visiting the rest of the tree.</p>
+  <div id="aFind"></div>
+  <div class="tip"><b class="h">If the item is not there</b>Searching for 45 would go 50 → 30 → 40 → right pointer 0, then <code>Find(0, 45)</code> hits the base case <code>Node = 0</code> and returns 0, meaning not found.</div>
+</section>
+
+<!-- EXPLORE -->
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Walk a tree, one visit at a time</h2>
+  <p>Choose a tree and a traversal, then press Next to output the next value. Each node shows the order in which it was visited. Try the long chain to see why tree shape matters.</p>
+  <div class="pick"><label for="trT">Tree</label><select id="trT"><option value="0">Tree A: 6 nodes (the tree above)</option><option value="1">Tree B: 7 nodes, uneven</option><option value="2">Tree C: a chain of 5 nodes</option></select>
+  <label for="trO">Traversal</label><select id="trO"><option value="in">In-order</option><option value="pre">Pre-order</option><option value="post">Post-order</option></select></div>
+  <div id="trS"></div>
+  <div class="readout" id="trRO"></div>
+  <div id="trSvg"></div>
+  <div class="callbox" id="trOut"></div>
+  <div class="tip"><b class="h">Try this</b>Pick Tree C with in-order. The values come out 10, 20, 30, 40, 50 because the tree is a sorted chain, but the deepest stack equals the number of nodes plus one.</div>
+
+  <h2>Activity 1 · Order the events</h2>
+  <div id="o1"></div>
+
+  <h2>Activity 2 · Which traversal?</h2>
+  <div id="cl1"></div>
+
+  <h2>Activity 3 · Which traversal produced this output?</h2>
+  <p>Using Tree A (the six-node tree on the Learn tab).</p>
+  <div id="cl2"></div>
+
+  <h2>Activity 4 · Match the terms</h2>
+  <div id="m1"></div>
+</section>
+
+<!-- PRACTISE -->
+<section id="practise" role="tabpanel" hidden>
+  <h2>Trace it yourself</h2>
+  <p>All questions use Tree A: <code>Data = 50, 30, 70, 20, 40, 60</code>, <code>LeftPointer = 2, 4, 6, 0, 0, 0</code>, <code>RightPointer = 3, 5, 0, 0, 0, 0</code>, root at index 1. Use <b>Hint</b> before <b>Show working</b>.</p>
+  <div id="c1"></div>
+  <h2>Quick quiz</h2>
+  <div id="qz1"></div>
+  <h2>Flashcards</h2>
+  <div id="fc1"></div>
+</section>
+
+<!-- REAL WORLD -->
+<section id="real" role="tabpanel" hidden>
+  <p class="note">General descriptions of where tree traversal appears. These are illustrations of the idea, not code from any particular program.</p>
+  <div class="rw"><h3>Folders on a computer</h3><p>A folder contains files and other folders, which contain files and other folders. Listing everything under a folder, or adding up its size, is a recursive walk of a tree: handle this folder, then do the same for each folder inside it.</p><div class="use"><b>Exam use:</b> a clear example of a structure that is defined in terms of smaller copies of itself.</div></div>
+  <div class="rw"><h3>Sorted output from a binary search tree</h3><p>If values are stored so that smaller ones go left and larger ones go right, an in-order traversal outputs them in ascending order without any separate sort.</p><div class="use"><b>Exam use:</b> state what in-order gives for a binary search tree: the values in order.</div></div>
+  <div class="rw"><h3>Evaluating a calculation</h3><p>An expression such as (3 + 4) × 5 can be stored as a tree with the operator at the node and the numbers as leaves. A post-order walk handles both operands before the operator, which is exactly the order a stack-based calculator needs (reverse Polish notation).</p><div class="use"><b>Exam use:</b> shows why post-order exists. It links to the stack work in 19.1.</div></div>
+  <div class="rw"><h3>Copying or deleting a tree</h3><p>To copy a tree, create the node first and then copy its subtrees (pre-order). To delete a tree safely, free the children before the node that points to them (post-order).</p><div class="use"><b>Exam use:</b> a reason for choosing pre-order or post-order when asked “when would each be used?”.</div></div>
+  <div class="rw"><h3>Web pages</h3><p>The elements of a web page are nested inside each other, forming a tree. Code that finds, styles or counts elements walks that tree, and often does it recursively.</p><div class="use"><b>Exam use:</b> another example for “give an example of a recursive application”.</div></div>
+  <div class="rw"><h3>Why not always use recursion for trees?</h3><p>It is the shortest and clearest way, but the stack grows with the height of the tree. For a very deep, unbalanced tree an iterative version using your own stack can avoid a stack overflow.</p><div class="use"><b>Exam use:</b> supports a “discuss” answer on when recursion is and is not suitable.</div></div>
+</section>
+
+<!-- EXAM -->
+<section id="exam" role="tabpanel" hidden>
+  <h2>What 9618 has asked about trees and recursion</h2>
+  <p>No past paper question to date asks for a recursive tree traversal by name. Recursion has been tested on lists, strings, binary search and number functions (see the other recursion pages). Binary trees themselves are on the syllabus under 19.1 (finding and inserting items), and the recursive pattern here is the one a Paper 4 question could ask you to write. The review questions below are written for practice, in the style of the papers. Each coloured phrase earns one mark.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span></div>
+
+  <h2>Review questions</h2>
+  <p>All use Tree A from the Learn tab unless stated.</p>
+
+  <details class="eq"><summary>Q1 <span class="cmd">State</span> <span class="mark">3 marks</span> State the output of an in-order traversal, a pre-order traversal and a post-order traversal of Tree A.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Write the three orders as left/node/right, node/left/right and left/right/node. Remember to follow each subtree completely before moving on.</div>
+    <div class="ans"><span class="mk k" data-t="1">In-order: 20, 30, 40, 50, 60, 70</span>; <span class="mk k" data-t="2">Pre-order: 50, 30, 20, 40, 70, 60</span>; <span class="mk k" data-t="3">Post-order: 20, 40, 30, 60, 70, 50</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Reading across the levels of the tree (50, 30, 70, 20, 40, 60). That is a different order (breadth-first), not any of the three.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q2 <span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain why recursion is suitable for traversing a binary tree.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Link the structure of the tree to the structure of the code.</div>
+    <div class="ans"><span class="mk k" data-t="1">Each subtree of a binary tree is itself a binary tree, so the same procedure can be applied to the left and right subtrees.</span> <span class="mk k" data-t="2">An empty subtree (a null pointer) gives a natural base case, where the procedure stops.</span> <span class="mk k" data-t="3">The code is short, and the call stack automatically remembers where to come back to after a subtree is finished.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying “because trees are complicated”. Name the self-similar structure and the base case.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q3 <span class="cmd">Write</span> <span class="mark">6 marks</span> The arrays <code>Data</code>, <code>LeftPointer</code> and <code>RightPointer</code> store a binary tree. A null pointer is 0. Write program code for a recursive procedure <code>PostOrder(Node)</code> that outputs the values in post-order.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Base case first, then left call, right call, and the output last.</div>
+    <div class="ans"><span class="mk k" data-t="1">Procedure header with a pointer parameter.</span> <span class="mk k" data-t="2">Test for the base case (the node pointer is not 0 / is 0).</span> <span class="mk k" data-t="3">Recursive call on the left child pointer.</span> <span class="mk k" data-t="4">Recursive call on the right child pointer.</span> <span class="mk k" data-t="5">Output of Data[Node] <b>after</b> both calls.</span> <span class="mk k" data-t="6">Nothing happens when the pointer is 0, and the first call uses the root pointer.</span>
+<pre class="plain">def post_order(node):
+    if node != 0:
+        post_order(LeftPointer[node])
+        post_order(RightPointer[node])
+        print(Data[node])
+
+post_order(RootPointer)</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Putting the output line before or between the calls, which gives pre-order or in-order. The position of that one line decides the order.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q4 <span class="cmd">Write</span> <span class="mark">6 marks</span> Write a recursive function <code>Find(Node, Item)</code> for a binary search tree stored in the same arrays. It returns the index of the item, or 0 if it is not in the tree.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two base cases: an empty subtree, and a match. Otherwise choose one side only.</div>
+    <div class="ans"><span class="mk k" data-t="1">Function header with two parameters, returning an integer.</span> <span class="mk k" data-t="2">If the pointer is 0, return 0.</span> <span class="mk k" data-t="3">If Data[Node] equals Item, return Node.</span> <span class="mk k" data-t="4">If Item is less than Data[Node], call recursively on the left pointer.</span> <span class="mk k" data-t="5">Otherwise call recursively on the right pointer.</span> <span class="mk k" data-t="6">The recursive result is returned (RETURN in front of each recursive call).</span>
+<pre class="plain">def find(node, item):
+    if node == 0:
+        return 0
+    elif data[node] == item:
+        return node
+    elif item &lt; data[node]:
+        return find(left[node], item)
+    else:
+        return find(right[node], item)</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing <code>find(left[node], item)</code> without <code>return</code>. The answer is found but never passed back up.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q5 <span class="cmd">Describe</span> <span class="mark">2 marks</span> A binary search tree is built by inserting the values 10, 20, 30, 40, 50 in that order. Describe the problem this causes for a recursive search.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Draw the tree: each value is larger than the last, so it goes to the right.</div>
+    <div class="ans"><span class="mk k" data-t="1">The tree becomes a chain (all nodes on one side), so its height equals the number of nodes.</span> <span class="mk k" data-t="2">A search may need as many calls as there are nodes, so it is no faster than a linear search, and the stack could grow very deep.</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying the tree “is wrong”. It is still a valid tree; it is just unbalanced, which removes the benefit of halving the search.</div>
+  </div></details>
+</section>
+
+<!-- TIPS -->
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>The base case is the empty tree.</b> The pointer is the null value (0 in these examples), and the procedure does nothing.</li>
+    <li><b>One line decides the order.</b> Output before the calls: pre-order. Between them: in-order. After both: post-order.</li>
+    <li><b>Finish a whole subtree before moving on.</b> In-order of Tree A outputs everything under 30 before 50.</li>
+    <li><b>In-order of a binary search tree is sorted.</b> If your answer isn’t ascending, you have made a slip.</li>
+    <li><b>Pre-order starts with the root; post-order ends with it.</b> A quick check on your answer.</li>
+    <li><b>Count the calls.</b> A tree with <i>n</i> nodes causes 2<i>n</i> + 1 calls to the traversal procedure: one per node and one per empty pointer.</li>
+    <li><b>The stack is as deep as the height.</b> Not the number of nodes, unless the tree is a chain.</li>
+    <li><b>Use RETURN on recursive calls in a function.</b> <code>RETURN Find(…)</code>, not just <code>Find(…)</code>.</li>
+    <li><b>Check the question’s null pointer.</b> It may be 0, −1 or something else, and the arrays may start at 0 or 1.</li>
+    <li><b>Say “subtree”, “frame”, “return address” and “base case”</b> in any explanation.</li>
+  </ul>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Identify</td><td>A short fact or the line of code. No explanation.</td></tr>
+    <tr><td>Describe</td><td>The steps in order, or how something works.</td></tr>
+    <tr><td>Explain</td><td>What happens and why.</td></tr>
+    <tr><td>Complete</td><td>Fill every gap or cell, with exact values or code.</td></tr>
+    <tr><td>Write / Rewrite</td><td>Full code with header, structure and end statements.</td></tr>
+  </table></div>
+</section>
+</div>
