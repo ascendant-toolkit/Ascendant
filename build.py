@@ -582,11 +582,14 @@ def crumb_bar(crumbs, root):
     return f'{CRUMB_CSS}<nav class="lesson-crumbs" aria-label="Breadcrumb">{"<i>/</i>".join(parts)}</nav>'
 
 
+SVGFIX = '<script>' + (ROOT / 'tools' / 'artifact-kit' / 'svgfix.js').read_text(encoding='utf-8') + '</script>'
+
+
 def inject_pill(text, back_href, back_label, home_href, slug, courses, review=True, crumbs=None):
     done_btn = f'<button data-done-slug="{slug}" hidden></button><button data-role-toggle="{slug}" hidden></button><button data-role-delete="{slug}" hidden></button><button data-role-restore="{slug}" hidden></button>'
     pill = (f'{PILL_CSS}<div class="site-pill"><button type="button" class="pill-more" aria-label="Menu" onclick="this.parentNode.classList.toggle(&#39;open&#39;)">☰</button><a href="{back_href}">← {esc(back_label)}</a>'
             f'<a href="{home_href}">Home</a><button type="button" title="Light / dark" onclick="{THEME_CLICK}">◐</button>{done_btn}</div>'
-            f'{auth_scripts(home_href, courses)}{TAB_SCROLL}{PILL_JS}{TOP_RESET}')
+            f'{auth_scripts(home_href, courses)}{TAB_SCROLL}{PILL_JS}{TOP_RESET}{SVGFIX}')
     head = favicon_links(home_href) + THEME_HEAD + GATE_HEAD
     text = text.replace("<head>", "<head>" + head, 1) if "<head>" in text else head + text
     if crumbs:
