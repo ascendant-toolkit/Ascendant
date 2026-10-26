@@ -131,6 +131,11 @@ Lib.quiz($("#qz1"), { qs: [
   { q: "Public goods are best provided by the state because:", opts: ["firms can easily charge for them", "free riders make private supply unprofitable", "demand is always elastic", "they have no external benefits"], a: 1, why: "Non-excludability means people can use them without paying." },
 ] });
 Lib.cards($("#fc1"), { cards: [
+  ["Production quota", "A legal limit on the quantity produced or sold; supply is fixed at the quota."],
+  ["Prohibition", "An outright ban on producing, selling or using a good."],
+  ["Licence", "Permission needed to produce or sell; the number of licences may be limited."],
+  ["Deregulation", "Removing rules that restrict entry or competition, to encourage new firms."],
+  ["Property rights", "Legal ownership or use of an asset, letting owners stop others imposing costs or charge them."],
   ["Regulation", "Legal rules such as bans, standards, price caps and competition law."],
   ["Competition policy", "Laws on mergers and cartels to protect competition."],
   ["Natural monopoly", "A market where one firm is cheapest because of very high fixed costs."],

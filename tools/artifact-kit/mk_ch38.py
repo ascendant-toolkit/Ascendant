@@ -2,6 +2,9 @@
 from splitter import Src, page, write, key
 S = Src("gp")
 HEAD = S.j_((1, 9))
+import pathlib
+_D = pathlib.Path(__file__).parent
+def snip(name, n=""): return (_D / f"{name}.html").read_text().replace("__N__", str(n))
 EY = "A Level Economics · 9708 · Syllabus 8.1 · Part {} of 4"
 def MCQ(old=(), new=""):
     return 'Lib.quiz($("#qz2"), { qs: [\n' + S.j_(*[(i, i) for i in old]) + new + '] });\n'
@@ -429,7 +432,7 @@ learn = '''
     <li><b>For nudges:</b> cheap, keep freedom of choice, can work where taxes would be unpopular.</li>
     <li><b>Against:</b> the effect may be small or uncertain, may not reach the people who need it, and someone must decide what is the "right" choice.</li>
   </ul>
-'''
+''' + snip('gp_other', 5)
 watch = '''
   <h2>1 · Price cap on a natural monopoly</h2><p>Fixed cost $800, marginal cost $20, demand P = 100 − Q. Press Play, or click the steps.</p><div id="stN"></div>
   <h2>2 · The power of a default</h2><p>An illustrative model of opt-in against opt-out organ donation. These are not real data.</p><div id="stD2"></div>
@@ -631,6 +634,11 @@ Lib.quiz($("#qz1"), { qs: [
   { q: "Public goods are best provided by the state because:", opts: ["firms can easily charge for them", "free riders make private supply unprofitable", "demand is always elastic", "they have no external benefits"], a: 1, why: "Non-excludability means people can use them without paying." },
 ] });
 Lib.cards($("#fc1"), { cards: [
+  ["Production quota", "A legal limit on the quantity produced or sold; supply is fixed at the quota."],
+  ["Prohibition", "An outright ban on producing, selling or using a good."],
+  ["Licence", "Permission needed to produce or sell; the number of licences may be limited."],
+  ["Deregulation", "Removing rules that restrict entry or competition, to encourage new firms."],
+  ["Property rights", "Legal ownership or use of an asset, letting owners stop others imposing costs or charge them."],
   ["Regulation", "Legal rules such as bans, standards, price caps and competition law."],
   ["Competition policy", "Laws on mergers and cartels to protect competition."],
   ["Natural monopoly", "A market where one firm is cheapest because of very high fixed costs."],
@@ -649,21 +657,28 @@ write("gp3", page(EY.format(3), "Regulation, Public Provision, Privatisation and
   learn=learn, watch=watch, explore=explore, practise=practise, real=real, exam=exam, tips=tips), js,
   "Regulation, Public Provision, Privatisation and Nudges", "regulation-provision-privatisation")
 
+
+EXTRA_ROWS = """    <tr><td><b>Production quota</b></td><td>Legal limit on quantity produced or sold, so supply is fixed.</td><td>Over-production, demerit goods, over-use of resources</td><td>Black markets, windfall profits from the higher price, hard to share fairly</td></tr>
+    <tr><td><b>Prohibition and licences</b></td><td>A ban, or permission needed to produce or sell.</td><td>Serious harm (ban); demerit goods and information failure (licences)</td><td>Enforcement cost, black markets, loss of choice; limited licences can protect incumbents</td></tr>
+    <tr><td><b>Deregulation</b></td><td>Removes rules that restrict entry or competition.</td><td>Monopoly power created by barriers to entry</td><td>Lower standards, exploitation where information is poor; only works if firms enter</td></tr>
+    <tr><td><b>Property rights</b></td><td>Assigns ownership so owners can stop or charge those who impose costs, or keep benefits (patents).</td><td>Externalities with identifiable parties</td><td>Cannot cover air or the sea; bargaining costs and unequal power</td></tr>
+"""
 # ---- 38.4 government failure and choosing the right policy
 learn = '''
   <div class="card big"><h3>This part in four sentences</h3>
-  <p>Intervention is justified when a market fails, but <b>government failure</b> occurs when intervention leaves resources allocated no better, or worse. It has several causes: poor information, time lags, unintended consequences, the cost of administration and enforcement, and political pressure. Choosing the right tool means matching it to the cause of the failure and then weighing it against these risks. The final judgement compares the size of the market failure with the likely success and cost of the policy.</p></div>
+  <p>Intervention is justified when a market fails, but <b>government failure</b> occurs when intervention leaves resources allocated no better, or worse. It has several causes: poor information, time lags, unintended consequences, the cost of administration and enforcement, and political pressure. Choosing the right tool means matching it to the type of failure and its cause and then weighing it against these risks. The final judgement compares the size of the market failure with the likely success and cost of the policy.</p></div>
 ''' + S.b((67, 76)).replace('6 · Government failure', '1 · Sources of government failure') + '''
-  <h2>2 · The toolkit: which tool for which failure</h2>
-''' + S.b((26, 37)) + '''
-  <h2>3 · Free market or intervention?</h2>
+''' + snip('gp_match', 2) + '''
+  <h2>3 · The toolkit: every tool on the syllabus list</h2>
+''' + S.b((26, 37)).replace('  </table></div>', EXTRA_ROWS + '  </table></div>') + '''
+  <h2>4 · Free market or intervention?</h2>
   <div class="grid2">
     <div class="card"><h3>The case for the free market</h3><p>Prices carry information, so resources may flow to their most valued uses without anyone planning it. Profit gives firms an incentive to be efficient and to innovate, and consumers have choice. Intervention costs money and can be captured by special interests.</p></div>
     <div class="card"><h3>The case for intervention</h3><p>Markets may ignore external costs and benefits, under-supply public goods, leave monopolies unchecked, suffer from poor information and produce an unequal distribution of income. In each case government action may raise welfare.</p></div>
   </div>
   <p>Almost every economy is <b>mixed</b>: the question is how much intervention, and of what kind. Good answers avoid "the market always works" and "the government always helps".</p>
 
-  <h2>4 · A checklist for evaluating a policy</h2>
+  <h2>5 · A checklist for evaluating a policy</h2>
   <ul>
     <li><b>Effectiveness:</b> does it deal with the cause of the failure, and by how much?</li>
     <li><b>Cost:</b> to the government (taxes, administration) and to those affected.</li>
@@ -689,10 +704,12 @@ explore = S.b((117, 122)).replace('Lab 4 · Getting', 'Lab 1 · Getting') + '''
 practise = '''
   <h2>1 · What kind of government failure?</h2><div id="cl1" class="card"></div>
 ''' + S.b((130, 131)).replace('2 · Which', '2 · Which') + '''
-  <h2>3 · Match the word to its meaning</h2><div id="m1" class="card"></div>
-  <h2>4 · Put the evaluation of a policy in order</h2><div id="o1" class="card"></div>
-  <h2>5 · Calculations</h2><div id="c1"></div>
-  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+  <h2>3 · Name the failure from the scenario</h2><div id="cl3" class="card"></div>
+  <h2>4 · Best policy, and the one that does not fit</h2><div id="qz3"></div>
+  <h2>5 · Match the word to its meaning</h2><div id="m1" class="card"></div>
+  <h2>6 · Put the evaluation of a policy in order</h2><div id="o1" class="card"></div>
+  <h2>7 · Calculations</h2><div id="c1"></div>
+  <h2>8 · Multiple choice</h2><div id="qz1"></div>
 '''
 real = '<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>\n' + '''  <div class="rw"><h3>Sugar taxes and reformulation</h3><p>Several countries have taxed soft drinks by sugar content. Some manufacturers cut the sugar in their drinks to avoid the tax, so revenue was lower than forecast and consumption of sugar fell, though the government raised less money than it expected.</p><div class="use"><b>Exam use:</b> a policy that works better than expected on the aim but worse on revenue. Forecasting is hard, which is one cause of government failure.</div></div>
   <div class="rw"><h3>Food subsidies and land clearance</h3><p>Subsidies to grow fresh fruit and vegetables can encourage farmers to clear land. The merit good is encouraged, but habitats may be lost, an unintended external cost.</p><div class="use"><b>Exam use:</b> an unintended consequence. A Paper 3 question asked which result of such a subsidy would be a government failure: the loss of wildlife.</div></div>
@@ -707,6 +724,7 @@ exam = '''
     <tr><td>Essay, 25 marks</td><td>2</td><td>May/June 2020 (42, not sat); May/June 2021 (41, 43)</td></tr>
     <tr><td>Multiple choice (Paper 3)</td><td>6 shown below</td><td>2022 to 2025</td></tr>
   </table></div>
+''' + snip('gp_stems') + '''
   <h2>A · 20 and 25 mark essays</h2>
 ''' + S.b((191, 205)) + '''
   <h2>B · Practice question with a model answer</h2>
@@ -729,6 +747,7 @@ tips = '''
     <li><b>Give a specific cause, then a specific example.</b> "Poor information, so the tax may be set too high" beats "the government may fail".</li>
     <li><b>Compare the size of the market failure with the risk of government failure</b> in your conclusion.</li>
     <li><b>Test strong words:</b> "always", "all", "neither possible nor desirable". Weigh both sides and conclude.</li>
+    <li><b>Name the failure before the policy.</b> Production or consumption, over- or under-provided, then the tool (see the table in the Learn tab). A policy that does not fit the failure scores little.</li>
     <li><b>Match tool to failure</b> before evaluating: negative externality (tax, permits, regulation), positive externality or merit good (subsidy, provision), public good (provision), monopoly (regulation), information failure (labels, nudges).</li>
     <li><b>Mention mixed economies.</b> Real economies use markets and government together.</li>
   </ul>
@@ -833,7 +852,30 @@ Lib.quiz($("#qz1"), { qs: [
   { q: "Which is a reason to prefer a nudge to a tax?", opts: ["It always works better", "It keeps people free to choose and may cost less", "It raises revenue", "It changes the price"], a: 1, why: "Nudges leave choice intact and are often cheap, though the effect can be uncertain." },
   { q: "An economy that uses both markets and government intervention is:", opts: ["a free market economy", "a command economy", "a mixed economy", "a subsistence economy"], a: 2, why: "Almost all real economies are mixed." },
 ] });
+Lib.classify($("#cl3"), {
+  prompt: "Which market failure does each situation show?",
+  buckets: [{ label: "Negative externality" }, { label: "Positive externality / merit good" }, { label: "Public good" }, { label: "Monopoly power" }, { label: "Information failure" }],
+  items: [
+    { text: "A chemical plant dumps waste into a river that a fishing community uses", b: 0 }, { text: "Traffic fumes raise asthma rates for people who never drive", b: 0 },
+    { text: "Many parents under-value vaccination, so uptake is low and diseases spread", b: 1 }, { text: "A firm's research produces knowledge that rivals can copy for free", b: 1 },
+    { text: "A flood barrier protects a whole town, and nobody can be excluded from its benefit", b: 2 }, { text: "Street lighting that private firms have no way of charging for", b: 2 },
+    { text: "One firm supplies all the water pipes in a region and sets a high price", b: 3 }, { text: "Two firms hold 95% of the market and block new entrants", b: 3 },
+    { text: "Buyers cannot tell whether a used product is safe", b: 4 }, { text: "Patients cannot judge whether a treatment is needed", b: 4 },
+  ], done: "Name the failure first. The policy follows from it.",
+});
+Lib.quiz($("#qz3"), { qs: [
+  { q: "A city wants to cut congestion caused by private cars. Which policy fits the failure best?", opts: ["A subsidy on petrol", "A congestion charge and better public transport", "A maximum price for parking", "Information only"], a: 1, why: "Congestion is a negative externality of consumption. A charge raises the private cost towards the social cost, and public transport offers an alternative. A subsidy or a low price for parking would increase car use." },
+  { q: "Which policy is the poorest fit for the failure named?", opts: ["Direct provision of a flood barrier (public good)", "A subsidy to cut the price of vaccination (positive externality)", "A subsidy for coal power (negative externality)", "A price cap on a water monopoly"], a: 2, why: "A subsidy increases output of a good that already has too much, so it moves the market away from the social optimum." },
+  { q: "Why might a government use a specific tax instead of an ad valorem tax on petrol?", opts: ["The harm depends on litres burned, not on the price", "It is always higher", "It shifts the supply curve less", "It cannot be avoided"], a: 0, why: "Emissions are the same for each litre whatever it costs, so a fixed amount per unit lines up with the external cost." },
+  { q: "A government wants to reduce consumption of a demerit good by encouraging better choices without limiting freedom. Which tool is that?", opts: ["Prohibition", "Production quota", "A nudge", "A licence"], a: 2, why: "Nudges change how choices are presented and leave people free to choose. The other three are legal limits." },
+  { q: "For which failure is deregulation most relevant?", opts: ["A public good", "A negative production externality", "Monopoly power created by barriers to entry", "A merit good"], a: 2, why: "Removing rules that restrict entry lets new firms compete with the incumbent." },
+  { q: "Which is a weakness of using property rights to correct an externality?", opts: ["They cost the government a lot in subsidies", "Nobody can own the air or the sea, and many people may be affected", "They always set the tax too high", "They cause shortages"], a: 1, why: "Where the resource cannot be owned or many parties are affected, bargaining breaks down." },
+] });
 Lib.cards($("#fc1"), { cards: [
+  ["Market-based policy", "Works through prices and ownership (taxes, subsidies, permits, property rights) and leaves decisions to buyers and sellers."],
+  ["Command and control", "Rules and limits backed by penalties (regulation, bans, quotas, licences)."],
+  ["Specific tax", "A fixed amount per unit; shifts supply parallel."],
+  ["Ad valorem tax", "A percentage of the price; supply pivots."],
   ["Government failure", "Intervention that makes the allocation of resources worse or no better."],
   ["Information failure (government)", "The government cannot measure costs and benefits well enough to set the right policy."],
   ["Time lag", "Delay between the problem arising and the policy working."],
@@ -844,7 +886,11 @@ Lib.cards($("#fc1"), { cards: [
   ["Free market", "Resources allocated by prices and private decisions, with no government role."],
   ["Regressive tax", "Takes a larger share of income from low earners."],
 ] });
-''' + MCQ([217, 218, 220], '''  { q: "[Feb/March 2025 · 32 · Q8] What is not an example of government failure?", opts: ["decreased maximum price causing producers to leave the market", "higher guaranteed price encouraging suppliers to overproduce", "increased minimum wage leading to employers dismissing workers", "increased subsidies encouraging the consumption of a socially desirable product"], a: 3, why: "Encouraging consumption of a socially desirable good is the aim of a subsidy. A, B and C are harmful side effects." },
+''' + MCQ([217, 218, 220], '''  { q: "[May/June 2020 · 31 · Q13] Which policy is not designed to correct a market failure?", opts: ["government provision of healthcare", "price controls on large firms", "regulations to limit smoke pollution", "removing import quotas"], a: 3, why: "Healthcare provision, price controls on large firms with market power and pollution rules all target a market failure. Removing import quotas is a trade policy." },
+  { q: "[May/June 2023 · 31 · Q12] One reason for market failure is the existence of public goods. Which policy option is appropriate for addressing such a market failure?", opts: ["direct provision of the good by the government", "provision of detailed information to consumers", "subsidising firms that currently produce the good", "the adoption of maximum price controls"], a: 0, why: "Free riders mean private firms may not supply a public good, so the government provides it from taxation." },
+  { q: "[Feb/March 2024 · 32 · Q11] A government wishes to use market forces to remove a negative externality in the consumption of a good. Which policy is likely to be the most effective?", opts: ["provide information about the undesirable side-effects", "give producers a subsidy so consumers can buy more cheaply", "impose an indirect tax on consumers to reduce consumption to the socially efficient level", "not interfere at all"], a: 2, why: "A tax works through the price, a market force, and cuts consumption towards the social optimum. A subsidy would raise it." },
+  { q: "[Feb/March 2023 · 32 · Q15] A government wishes to reduce the use of cars in cities. Which policy should be used?", opts: ["a decrease in parking charges", "lowering tax on petrol (gasoline)", "restricting cycling", "subsidising public transport"], a: 3, why: "A cheaper alternative cuts car use. A, B and C all make driving cheaper or alternatives harder." },
+  { q: "[Feb/March 2025 · 32 · Q8] What is not an example of government failure?", opts: ["decreased maximum price causing producers to leave the market", "higher guaranteed price encouraging suppliers to overproduce", "increased minimum wage leading to employers dismissing workers", "increased subsidies encouraging the consumption of a socially desirable product"], a: 3, why: "Encouraging consumption of a socially desirable good is the aim of a subsidy. A, B and C are harmful side effects." },
   { q: "[Oct/Nov 2022 · 33 · Q13] A government regards fresh fruit and vegetables as merit goods, and subsidises agriculture to boost their production. What could be a government failure arising from these subsidies?", opts: ["cheaper fresh fruit and vegetables", "land clearance reducing wildlife", "lower spending on treating dietary illnesses", "more jobs picking fruit and vegetables"], a: 1, why: "Land clearance is an unintended external cost. A, C and D are intended benefits." },
 ''')
 write("gp4", page(EY.format(4), "Government Failure and Choosing the Right Policy",
