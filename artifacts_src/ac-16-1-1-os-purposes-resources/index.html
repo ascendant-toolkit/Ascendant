@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Operating Systems: Purposes and Resources</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
+
+table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
+.synd{margin:8px 0;overflow-x:auto}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 16.1.1</div>
+  <h1>Operating Systems: Purposes and Resources</h1>
+  <p class="cbook">Coursebook: Chapter 16 · System software, section 16.1 Purposes of an operating system</p>
+  <p class="lead">What an operating system does: managing resources, multi-tasking, the user interface and device drivers hiding the hardware, and the kernel; animations, labs and the real Paper 3 questions from 2021 to 2025.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>An <b>operating system (OS)</b> is the system software that manages the hardware and provides a platform on which application programs run. It <b>manages the resources</b> of the computer (processor time, main memory, input and output devices and storage) and shares them between the programs that want them. It <b>maximises the use of those resources</b> by multi-tasking, scheduling processes, and using virtual memory so the processor is kept busy and memory is used well. It <b>hides the complexity of the hardware</b> from the user with a user interface, device drivers and a file system, so that the user clicks an icon instead of writing code that deals with memory addresses and buses. At the centre is the <b>kernel</b>, which handles interrupts and starts and stops processes.</p></div>
+
+  <h2>1 · What the OS manages</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Resource</th><th>What the OS does</th></tr>
+    <tr><td><b>Processor (CPU)</b></td><td>Decides which process runs next and for how long (scheduling), so the CPU is rarely idle.</td></tr>
+    <tr><td><b>Main memory</b></td><td>Gives each process the memory it needs, keeps processes apart, and uses virtual memory when RAM is short.</td></tr>
+    <tr><td><b>Input and output devices</b></td><td>Controls keyboards, screens and printers through device drivers; queues requests.</td></tr>
+    <tr><td><b>Secondary storage and files</b></td><td>Organises files in folders, tracks where each file is stored, and controls access.</td></tr>
+    <tr><td><b>Users and security</b></td><td>Logs users in, sets permissions, and stops one process changing another's data.</td></tr>
+  </table></div>
+
+  <h2>2 · Maximising the use of resources</h2>
+  <ul>
+    <li><b>Multi-tasking</b> means running more than one process at the same time, or appearing to. The processor is shared by giving each process a short <b>time slice</b> in turn, so many tasks make progress instead of one task having to finish before the next starts. While one process waits for a slow input or output device, the CPU runs another.</li>
+    <li><b>Scheduling</b> chooses which process gets the CPU. Good scheduling keeps the CPU busy all the time, gives all processes fair access, and lets high-priority jobs finish first (16.1.3).</li>
+    <li><b>Memory management</b> shares RAM between processes, and uses <b>virtual memory</b> (part of the disk) so that more programs can be open than fit in RAM at once (16.1.4).</li>
+    <li>The OS also <b>monitors the state of every process</b> so that tasks do not clash over the same resource.</li>
+  </ul>
+
+  <h2>3 · Hiding the complexity of the hardware</h2>
+  <p>The hardware is complicated: buses, memory addresses, controllers, disk sectors. The OS hides this by <b>abstraction</b>, so the user and the application program only see simple things.</p>
+  <ul>
+    <li>The <b>user interface</b> (a graphical user interface with windows, icons, menus and a pointer, or a command-line interface) lets the user control the computer in an intuitive way, by clicking an icon rather than writing code that handles memory locations and hardware. Different interfaces also give appropriate access to users with different needs.</li>
+    <li><b>Device drivers</b> are small programs that translate the OS's general instructions into the commands a particular printer, disk or screen understands. Applications ask the OS to print; the driver deals with the printer.</li>
+    <li>The <b>file system</b> lets the user work with named files and folders; the OS keeps track of the sectors on the disk.</li>
+    <li>The <b>application layer</b> idea: the user only sees the top layer, and the lower layers' details are hidden.</li>
+  </ul>
+
+  <h2>4 · The kernel</h2>
+  <p>The <b>kernel</b> is the central part of the OS, loaded first and kept in memory. It runs in a privileged (kernel) mode with full access to the hardware. It starts, stops and switches processes, manages memory, and acts as the <b>interrupt handler</b> (16.1.2): when an interrupt arrives, the kernel saves the state of the current process, runs the right routine and restores the state afterwards.</p>
+
+  <h2>5 · Common ways to lose marks</h2>
+  <ul>
+    <li>Saying the OS "runs the computer" with no detail. Name a resource and what is done with it.</li>
+    <li>Describing a user interface only as "easy to use". Say that it hides the complexity of the hardware, with an example such as clicking an icon instead of writing code.</li>
+    <li>Describing multi-tasking as "doing two things at exactly the same time" on one processor. It <b>appears</b> to run several processes by sharing the processor.</li>
+    <li>Mixing up multi-tasking (the aim) and scheduling (how the OS decides which process to run).</li>
+    <li>Writing "paging" when the question asks about virtual memory: virtual memory is the idea, paging is one way to do it.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Layers: what happens when you press Save</h2>
+  <p>Press Play. The request passes down through the layers; the user never sees the lower ones.</p>
+  <div id="stA"></div>
+  <h2>2 · Multi-tasking: sharing the CPU</h2>
+  <div id="stB"></div>
+  <h2>3 · One resource, three programs</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Is the CPU busy?</h2>
+  <p>Each program uses the CPU for 2 units, then waits 3 units for the disk. Choose how many programs the OS runs together.</p>
+  <div class="card"><div id="mS"></div><div id="mT"></div><div class="readout"><div><small>CPU busy</small><strong id="m1"></strong></div><div><small>CPU idle</small><strong id="m2"></strong></div></div></div>
+
+  <h2>Lab 2 · What does the OS do for this task?</h2>
+  <div class="card"><div id="oB" class="btnrow"></div><div id="oO"></div></div>
+
+  <h2>Lab 3 · Time slices</h2>
+  <p>Three processes share one CPU. Change the time slice and see how often the OS switches.</p>
+  <div class="card"><div id="tS"></div><div id="tT"></div><div class="verdict" id="tV"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which part of the OS?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Does it hide hardware complexity?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Match the OS term to its description</h2><div id="m1" class="card"></div>
+  <h2>4 · What happens when you print a document?</h2><div id="o1" class="card"></div>
+  <h2>5 · Working out</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Having many windows open</h3><p>You can listen to music, type a document and download a file at once. The OS gives each a tiny slice of the processor many times a second, so they all seem to run together.</p><div class="use"><b>Exam use:</b> multi-tasking with time slices.</div></div>
+  <div class="rw"><h3>Plugging in a new printer</h3><p>The computer asks for or installs a driver. After that every program can print without knowing anything about this printer's commands.</p><div class="use"><b>Exam use:</b> device drivers hide the details of the hardware.</div></div>
+  <div class="rw"><h3>Dragging a file to the bin</h3><p>You never type the disk sector numbers. The OS finds, moves or frees the data for you.</p><div class="use"><b>Exam use:</b> a user interface hides hardware complexity.</div></div>
+  <div class="rw"><h3>Phone running out of memory</h3><p>When many apps are open, the OS moves apps that are not in use out of RAM and brings them back when you return to them.</p><div class="use"><b>Exam use:</b> memory management shares RAM between processes.</div></div>
+  <div class="rw"><h3>Different accounts on a shared computer</h3><p>Each user sees only their own files and settings. The OS controls who may open what.</p><div class="use"><b>Exam use:</b> the OS manages users and security.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on what an operating system does, multi-tasking and the user interface (Paper 3), 2021 to 2025. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2021</td><td>31, 32, 33</td><td>3(a)</td><td>5</td><td>Connect five OS terms (multi-tasking, paging, interrupt handling, scheduling, virtual memory) to descriptions</td></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>7(a)</td><td>2</td><td>A benefit of a user interface and an example</td></tr>
+    <tr><td>M/J 2025</td><td>31</td><td>8(a)</td><td>2</td><td>Multi-tasking and how it benefits process management</td></tr>
+    <tr><td>O/N 2024</td><td>32</td><td>9(b)</td><td>1 + 2</td><td>State what multi-tasking is; describe how it is implemented</td></tr>
+    <tr><td>O/N 2025</td><td>31</td><td>4(b)</td><td>4</td><td>Two ways the complexities of the hardware are hidden from the user</td></tr>
+    <tr><td>O/N 2025</td><td>33</td><td>5</td><td>1 + 3</td><td>Purpose of multi-tasking; how the OS ensures it is efficient</td></tr>
+  </table></div>
+  <p class="note">Operating-system questions appear in Paper 3 in most series from 2021 to 2025. Multi-tasking and the user interface are the most common. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+  <details class="eq"><summary><span class="src">M/J 2021 · 9618/31/32/33 · Q3(a)</span> <span class="cmd">Match</span> <span class="mark">5 marks</span> Draw one line to connect each Operating System (OS) term to the most appropriate description about it. Terms: multi-tasking, paging, interrupt handling, scheduling, virtual memory. Descriptions: (A) using secondary storage to simulate additional main memory; (B) managing the processes running on the CPU; (C) managing the execution of many programs that appear to run at the same time; (D) locating non-contiguous blocks of data and relocating them; (E) transferring control to another routine when a service is required; (F) reading and writing same-size blocks of data from and to secondary storage when required.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One description is a distractor.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Multi-tasking → C</span> <span class="mk k" data-t="2">Paging → F</span> <span class="mk k" data-t="3">Interrupt handling → E</span> <span class="mk k" data-t="4">Scheduling → B</span> <span class="mk k" data-t="5">Virtual memory → A</span></p><p>Description D is not used: it describes defragmentation, which is utility software, not one of these OS terms.</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Joining paging to A. Paging is the reading and writing of fixed-size blocks (pages); virtual memory is the idea of using storage as extra memory.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31/33 · Q7(a)</span> <span class="cmd">State / Give</span> <span class="mark">2 marks</span> A student buys a new computer. State one benefit to the student of a user interface and give an example.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Benefit: it hides the complexity of the hardware. Example: clicking an icon.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Benefit (one): it hides the complexities of the computer hardware or operating system from the user; or it gives appropriate access systems for users with differing needs; or complex commands involving memory locations, buses or hardware are avoided</span> <span class="mk a" data-t="1">Example (one): clicking on an icon rather than writing code; or using a graphical user interface / icons for navigation</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving only 'it is easy to use' as the benefit. Say what is made easier: the user does not have to deal with the hardware.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/31 · Q8(a)</span> <span class="cmd">Describe</span> <span class="mark">2 marks</span> Describe what is meant by multi-tasking and how it benefits process management.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Meaning, then the benefit.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Running multiple processes concurrently (at the same time, or appearing to)</span> <span class="mk a" data-t="1">which benefits process management by allowing more tasks to complete than if they had to run one task after another</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/32 · Q9(b)</span> <span class="cmd">State / Describe</span> <span class="mark">1 + 2 marks</span> (i) State what is meant by the term multi-tasking in an Operating System. (ii) Describe how multi-tasking is implemented in an Operating System.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(ii) sharing, scheduling, priority interrupts.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">Multi-tasking allows computers to carry out, or seem to carry out, more than one process at a time</span></p><p><b>(ii)</b> Any two: <span class="mk k" data-t="1">Processor time and common hardware and resources are shared between tasks</span> <span class="mk k" data-t="2">Scheduling is used to decide which processes are carried out, so multi-tasking operates correctly without clashes</span> <span class="mk k" data-t="3">A task of higher priority can interrupt a task that is currently running</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/31 · Q4(b)</span> <span class="cmd">Describe</span> <span class="mark">4 marks</span> Describe two ways in which the complexities of the computer hardware are hidden from the user.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Each way is a name (1) and a description (1).</div>
+    <div class="ans"><p>Two ways, each with identification and description: <span class="mk k" data-t="1">A user interface (a graphical user interface)</span> <span class="mk k" data-t="2">lets the user interact with the computer intuitively, using icons and menus to control devices by pointing and clicking</span> <span class="mk a" data-t="1">Device drivers</span> <span class="mk a" data-t="2">make it easier to control peripherals such as printers within the operating system rather than on the device itself</span></p><p>Also accepted: device mapping (devices are easy to identify, check or use on a network), or the user working only with the application layer of a protocol suite with the lower layers hidden.</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Naming a way and giving no description, or describing it without naming it. Each way is worth a mark for each.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/33 · Q5</span> <span class="cmd">State / Explain</span> <span class="mark">1 + 3 marks</span> (a) State the purpose of multi-tasking. (b) Explain how an operating system ensures that multi-tasking operates efficiently.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Think of monitoring, scheduling, no clashes.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">To enable multiple programs or processes to be executed at the same time</span></p><p><b>(b)</b> <span class="mk k" data-t="1">The OS monitors the state of each task or process</span> <span class="mk k" data-t="2">using scheduling to ensure hardware resources are used efficiently</span> <span class="mk k" data-t="3">and making sure that tasks or processes do not clash</span></p></div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">3 marks</span> Describe three resources managed by an operating system and one thing it does with each.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Processor, memory, devices, files.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Processor: decides which process runs and for how long</span> <span class="mk k" data-t="2">Memory: allocates memory to processes and keeps them apart</span> <span class="mk k" data-t="3">Input and output devices (or files): controls them through drivers (or tracks where files are stored)</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why a computer with only one processor can seem to run several programs at once.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Time slices.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The OS gives each process a very short time slice of the processor in turn</span> <span class="mk k" data-t="2">The switching is so fast that the user sees all the programs making progress together</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State two ways in which a user interface hides the complexity of the hardware.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Icons, menus, drivers.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Icons and menus mean the user does not type commands that deal with memory locations or devices</span> <span class="mk k" data-t="2">Device drivers let the user print or save without knowing how the device works</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> A program is waiting for data to be read from a disk. Explain how multi-tasking makes better use of the processor.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>What would the CPU do otherwise?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Reading from the disk is slow compared with the processor</span> <span class="mk k" data-t="2">Without multi-tasking the processor would be idle until the data arrived</span> <span class="mk k" data-t="3">With multi-tasking the OS gives the processor to another ready process while this one waits</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State the role of the kernel of an operating system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The core.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">It is the central part of the OS, with direct access to the hardware</span> <span class="mk k" data-t="2">It manages processes and memory and handles interrupts</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Name the resource.</b> Processor, memory, devices, files: say what the OS does with each.</li>
+    <li><b>User interface: hides hardware.</b> Benefit plus an example such as clicking an icon.</li>
+    <li><b>Multi-tasking: appears at the same time.</b> The processor is shared; more tasks complete.</li>
+    <li><b>Two marks: name and describe.</b> A way to hide the hardware needs both.</li>
+    <li><b>Do not mix terms.</b> Virtual memory is the idea, paging is the method, scheduling chooses the process.</li>
+    <li><b>Kernel.</b> The core: loads first, handles interrupts, controls processes.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>an operating system</td><td>"System software that manages the hardware resources and provides a platform for application software."</td></tr>
+    <tr><td>multi-tasking</td><td>"Running more than one process at a time, or appearing to, by sharing the processor."</td></tr>
+    <tr><td>a device driver</td><td>"Software that lets the OS control a particular device."</td></tr>
+    <tr><td>the kernel</td><td>"The central component of the OS that manages processes, memory and interrupts."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State</td><td>Give the answer only.</td></tr>
+    <tr><td>Describe</td><td>Say what it is or how it works in several points.</td></tr>
+    <tr><td>Explain</td><td>Give the reasons as well.</td></tr>
+    <tr><td>Match</td><td>Join each term to one description only.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+(function () {
+  const L = [["User", "clicks Save"], ["Application", "asks the OS to save the file"], ["Operating system", "finds free space, chooses the file's place"], ["Device driver", "gives the disk its own commands"], ["Hardware", "the disk records the data"]];
+  const draw = (s) => { const k = Math.round(s.i); let o = "";
+    L.forEach(([n, t], i) => { const y = 14 + i * 58, on = i <= k, cur = i === k; o += SV.rect(20, y, 220, 46, cur ? "cell-warn" : on ? "cell-ok" : "cell", { rx: 8 }) + SV.text(34, y + 29, n, "lbl bd") + (on ? SV.text(264, y + 29, t, "lbl") : "") ; if (i < 4) o += SV.path("M130," + (y + 46) + " V" + (y + 58), "ax"); });
+    o += SV.text(588, 40, "the user sees", "sm", { "text-anchor": "middle" }) + SV.text(588, 56, "only this", "sm", { "text-anchor": "middle" }); return o; };
+  Lib.stepper($("#stA"), { w: 640, h: 306, label: "Layers", base: { i: 0 }, draw, tween: 150, dwell: 2400, steps: [
+    { cap: "The user clicks <b>Save</b>. This is all the user does.", s: { i: 0 } }, { cap: "The application does not touch the disk. It asks the <b>operating system</b> to save the file.", s: { i: 1 } },
+    { cap: "The OS chooses where on the disk the file goes and records its name in the file system.", s: { i: 2 } }, { cap: "The <b>device driver</b> turns the OS's request into the commands this disk understands.", s: { i: 3 } },
+    { cap: "The hardware stores the data. The user never dealt with sectors, buses or commands: the OS hid the complexity.", s: { i: 4 } }] });
+})();
+(function () {
+  const P = [["A", "f1"], ["B", "f2"], ["C", "f3"]];
+  const draw = (s) => { const k = Math.round(s.i); let o = SV.text(20, 22, "one processor", "sm");
+    const seq = [0, 1, 2, 0, 1, 2], slice = 56; o += SV.text(20, 44, "multi-tasking: time slices", "lbl bd");
+    for (let i = 0; i < 6; i++) { const on = i < k; if (on) o += SV.rect(20 + i * slice, 56, slice - 4, 36, P[seq[i]][1], { rx: 4 }) + SV.rect(20 + i * slice, 56, slice - 4, 36, "ax", { rx: 4, fill: "none" }) + SV.text(20 + i * slice + (slice - 4) / 2, 79, P[seq[i]][0], "lbl bd", { "text-anchor": "middle" }); }
+    o += SV.text(20, 130, "no multi-tasking: one at a time", "lbl bd");
+    const w3 = 112; for (let i = 0; i < 3; i++) { const on = i * 2 < k; if (on) o += SV.rect(20 + i * w3, 142, w3 - 4, 36, P[i][1], { rx: 4 }) + SV.rect(20 + i * w3, 142, w3 - 4, 36, "ax", { rx: 4, fill: "none" }) + SV.text(20 + i * w3 + (w3 - 4) / 2, 165, P[i][0], "lbl bd", { "text-anchor": "middle" }); }
+    if (k === 6) o += SV.text(20, 210, "With time slices A, B and C all make progress early; one at a time, C waits for A and B to finish.", "lbl bd t3", { style: "font-size:12.5px" }); return o; };
+  Lib.stepper($("#stB"), { w: 640, h: 232, label: "Multi-tasking", base: { i: 0 }, draw, tween: 150, dwell: 1600, steps: [0, 1, 2, 3, 4, 5, 6].map((i) => ({ cap: i === 0 ? "Three programs A, B and C want the one processor. Compare the two ways of sharing it." : i === 6 ? "After six slices each program has had two turns. The OS switches between them so quickly that they seem to run together." : "Slice " + i + ": the processor runs " + "ABCABC"[i - 1] + " for a short time, then the OS switches to the next process.", s: { i } })) });
+})();
+(function () {
+  const items = [["CPU time", "scheduler shares it"], ["Memory", "memory manager allocates it"], ["Printer", "queue and driver"], ["Disk", "file system tracks files"]];
+  const draw = (s) => { const k = Math.round(s.i); let o = SV.rect(20, 20, 180, 190, "cell", { rx: 10 }) + SV.text(110, 46, "Operating system", "lbl bd", { "text-anchor": "middle" });
+    items.forEach(([n, t], i) => { const on = i < k; o += SV.rect(34, 62 + i * 36, 152, 28, on ? "cell-ok" : "cell", { rx: 6, ...op(on ? 1 : 0.35) }) + SV.text(110, 81 + i * 36, n, "lbl", { "text-anchor": "middle", ...op(on ? 1 : 0.5) }); });
+    ["Program A", "Program B", "Program C"].forEach((p, i) => { o += SV.rect(330, 30 + i * 62, 130, 40, "f" + (i + 1), { rx: 8 }) + SV.rect(330, 30 + i * 62, 130, 40, "ax", { rx: 8, fill: "none" }) + SV.text(395, 55 + i * 62, p, "lbl bd", { "text-anchor": "middle" }) + SV.path("M200," + (110 + (i - 1) * 0) + " L330," + (50 + i * 62), "edge", { ...op(k > 0 ? 0.5 : 0.1) }); });
+    if (k > 0) o += SV.text(250, 232, items[k - 1][0] + ": " + items[k - 1][1], "lbl bd t3"); return o; };
+  Lib.stepper($("#stC"), { w: 520, h: 250, label: "Resources", base: { i: 0 }, draw, tween: 150, dwell: 2200, steps: [{ cap: "Programs A, B and C all want the computer's resources.", s: { i: 0 } }, { cap: "The OS shares the <b>processor</b> between them by scheduling.", s: { i: 1 } }, { cap: "It gives each program its own part of <b>memory</b> and keeps them apart.", s: { i: 2 } }, { cap: "It queues requests for the <b>printer</b> and uses a driver to control it.", s: { i: 3 } }, { cap: "It tracks the files on the <b>disk</b>. All the sharing is hidden from the user.", s: { i: 4 } }] });
+})();
+
+(function () {
+  let n = 1;
+  const paint = () => { let o = ""; const busy = Math.min(100, Math.round(40 * n)); const cols = 10; let t = '<div class="tw"><table class="t mono"><tr><th>unit</th>' + Array.from({ length: 10 }, (_, i) => "<th>" + (i + 1) + "</th>").join("") + "</tr><tr><td>CPU</td>";
+    // each program: 2 CPU units then 3 waiting units, starts offset by 2 units per program
+    const cpu = Array(10).fill("");
+    for (let p = 0; p < n; p++) for (let u = 0; u < 10; u++) { const ph = (u - 2 * p + 100) % 5; if (u >= 2 * p && ph < 2 && cpu[u] === "") cpu[u] = "P" + (p + 1); }
+    let b = 0; cpu.forEach((c) => { t += "<td" + (c ? ' style="background:var(--good-soft)"' : ' style="background:var(--bad-soft)"') + ">" + (c || "idle") + "</td>"; if (c) b++; });
+    $("#mT").innerHTML = t + "</tr></table></div>"; $("#m1").textContent = b * 10 + "%"; $("#m2").textContent = 100 - b * 10 + "%"; };
+  Lib.slider($("#mS"), { id: "ms", label: "Programs running together ", min: 1, max: 3, value: n, fmt: (x) => x, onInput: (v) => { n = v; paint(); } }); paint();
+})();
+btnTable("oB", "oO", [
+  ["Print a document", "Queues the job, loads the printer driver, sends data to the printer", "Device management and drivers"],
+  ["Open two programs", "Allocates memory to each and shares the processor", "Memory and process management"],
+  ["Save a file", "Finds free space on the disk and records the file name", "File management"],
+  ["Log in", "Checks the user name and password and sets permissions", "User and security management"],
+  ["Press a key", "Handles the interrupt and passes the key to the program", "Kernel as interrupt handler"],
+  ["Click an icon", "Turns the click into the right action; the user need not know the hardware", "User interface"]
+], ["Task", "What the OS does", "Part"]);
+(function () {
+  let q = 4;
+  const paint = () => { const total = 12, nSw = Math.ceil(total / q); let t = '<div class="tw"><table class="t mono"><tr><th>CPU timeline (units)</th></tr><tr><td>'; const seq = []; let rem = [4, 4, 4], i = 0; while (rem.some((x) => x > 0)) { if (rem[i % 3] > 0) { const u = Math.min(q, rem[i % 3]); seq.push("P" + (i % 3 + 1) + "×" + u); rem[i % 3] -= u; } i++; }
+    $("#tT").innerHTML = t + seq.join(" → ") + "</td></tr></table></div>"; $("#tV").innerHTML = "Time slice " + q + " unit" + (q > 1 ? "s" : "") + ": the OS switches process <b>" + (seq.length - 1) + "</b> times. A very short slice means many switches (more overhead); a very long slice makes the processes wait for each other."; };
+  Lib.slider($("#tS"), { id: "ts", label: "Time slice (units) ", min: 1, max: 4, value: q, fmt: (x) => x, onInput: (v) => { q = v; paint(); } }); paint();
+})();
+Lib.classify($("#cl1"), { prompt: "Which part of the OS does the task belong to?", buckets: [{"label": "Process management"}, {"label": "Memory management"}, {"label": "File management"}, {"label": "Device management"}], items: [{"text": "Choosing which program gets the CPU next", "b": 0}, {"text": "Giving a program a block of RAM", "b": 1}, {"text": "Recording where a file is on the disk", "b": 2}, {"text": "Using a driver to control a printer", "b": 3}, {"text": "Switching between two programs many times a second", "b": 0}, {"text": "Moving unused data out of RAM to the disk", "b": 1}], done: "Processes, memory, files, devices." });
+Lib.classify($("#cl2"), { prompt: "Does it help to hide the complexity of the hardware?", buckets: [{"label": "Yes"}, {"label": "No"}], items: [{"text": "A graphical user interface with icons", "b": 0}, {"text": "A device driver for a printer", "b": 0}, {"text": "Being able to save a file by name", "b": 0}, {"text": "The speed of the processor", "b": 1}, {"text": "The size of the RAM", "b": 1}, {"text": "Typing a command that sets a memory address", "b": 1}], done: "Interfaces, drivers and the file system hide the hardware." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Multi-tasking", "Many programs that appear to run at the same time"], ["Scheduling", "Managing the processes running on the CPU"], ["Interrupt handling", "Transferring control to another routine when a service is required"], ["Paging", "Reading and writing same-size blocks to and from secondary storage"], ["Virtual memory", "Using secondary storage to simulate additional main memory"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the steps in order for printing a document.", items: ["The user clicks Print", "The application asks the OS to print", "The OS queues the print job", "The printer driver converts the data into printer commands", "The printer prints the page"], done: "Click, application, OS, driver, hardware." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "Each program uses the CPU for 2 units and waits 3 units. With one program, what percentage of the time is the CPU busy?", "a": 40, "unit": "%", "tol": 0.5, "hint": "2 out of 5 units.", "sol": "<b>40</b>%."},
+  {"q": "With three such programs run together and perfectly spaced, how many units out of 5 is the CPU busy?", "a": 5, "unit": "", "tol": 0.01, "hint": "Each adds 2 units, up to 5 in a cycle.", "sol": "<b>5</b>: the CPU is fully used."},
+  {"q": "Three processes each need 4 units and the time slice is 2 units. How many slices does the CPU run in total?", "a": 6, "unit": "", "tol": 0.01, "hint": "Two slices each.", "sol": "<b>6</b>."},
+  {"q": "Three processes each need 4 units and the time slice is 4. How many switches between processes?", "a": 2, "unit": "", "tol": 0.01, "hint": "Three slices, so two switches.", "sol": "<b>2</b>."},
+  {"q": "How many resources are listed in the table in the Learn tab (processor, memory, input and output devices, storage, users)?", "a": 5, "unit": "", "tol": 0.01, "hint": "Count the rows.", "sol": "<b>5</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "What does multi-tasking let the computer do?", opts: ["Run exactly one program", "Run, or appear to run, several programs at a time", "Make the screen larger", "Delete old files"], a: 1, why: "It shares the processor." },
+  { q: "A device driver is:", opts: ["Hardware", "Software that controls a particular device", "A kind of memory", "A file"], a: 1, why: "It lets the OS control a device." },
+  { q: "The kernel:", opts: ["Is the central part of the OS", "Is a printer", "Is an application", "Is a type of cable"], a: 0, why: "The core of the OS." },
+  { q: "Which hides hardware complexity?", opts: ["A graphical user interface", "A bigger monitor", "A faster disk", "A longer cable"], a: 0, why: "The interface." },
+  { q: "Why does the OS give each process a time slice?", opts: ["To save paper", "So all processes make progress", "To make the disk smaller", "To stop interrupts"], a: 1, why: "Sharing the processor." },
+  { q: "Virtual memory uses:", opts: ["Secondary storage", "A printer", "The keyboard", "The power supply"], a: 0, why: "Disk space as extra memory." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["OS", "Manages the hardware and provides a platform for applications."],
+  ["Resources", "Processor, memory, devices, files and users."],
+  ["Multi-tasking", "Several processes appear to run at once by sharing the CPU."],
+  ["User interface", "Hides the hardware: icons and menus."],
+  ["Device driver", "Lets the OS control a specific device."],
+  ["Kernel", "Core of the OS: processes, memory, interrupts."],
+  ["Time slice", "A short turn of the CPU for one process."],
+  ["Abstraction", "Showing the user only what they need."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

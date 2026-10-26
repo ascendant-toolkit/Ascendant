@@ -188,7 +188,7 @@ function pipeGrid(n, upto, discardFrom) {
 
 (function () {
   const draw = (s) => {
-    const k = Math.round(s.i); let o = SV.text(30, 18, "clock cycle →", "sm");
+    const k = Math.round(s.i); let o = SV.text(30, 18, "cycle →", "sm");
     for (let c = 1; c <= 10; c++) o += SV.text(94 + (c - 1) * 62, 18, String(c), "sm", { "text-anchor": "middle" });
     ST.forEach((st, si) => { o += SV.text(30, 52 + si * 38, st, "lbl bd"); for (let c = 1; c <= 10; c++) { const i = c - si; if (i >= 1 && i <= 6 && c <= k) o += SV.rect(66 + (c - 1) * 62, 32 + si * 38, 56, 30, ["f1", "f2", "f3", "f4", "f1", "f2"][i - 1], { rx: 5 }) + SV.text(94 + (c - 1) * 62, 52 + si * 38, "I" + i, "lbl bd", { "text-anchor": "middle", style: "font-size:13px" }); } });
     if (k === 5) o += SV.text(30, 245, "cycle 5: the pipeline is full; instruction 1 finishes", "lbl bd t3", { style: "font-size:14px" });

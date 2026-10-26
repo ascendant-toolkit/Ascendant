@@ -1,0 +1,202 @@
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 16.1.4</div>
+  <h1>Virtual Memory, Paging and Segmentation</h1>
+  <p class="cbook">Coursebook: Chapter 16 · System software, section 16.1 Purposes of an operating system</p>
+  <p class="lead">Virtual memory, paging with page tables, segmentation, page replacement and disk thrashing; animations, address-translation and page-replacement labs and the real Paper 3 questions from 2022 to 2024.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p><b>Virtual memory</b> uses part of secondary storage (the disk) to extend main memory (RAM), so the CPU appears to be able to use more memory than is physically installed; only the data in use needs to be in RAM and the rest is swapped in and out as necessary. It is managed by <b>paging</b>, which divides memory into <b>fixed-size</b> blocks (pages in the logical address space, frames in physical memory), or by <b>segmentation</b>, which divides it into <b>variable-size</b> logical segments such as code, data and stack. A page or segment <b>table</b> maps the logical address the program uses onto a physical address in RAM. When RAM is full a page has to be <b>replaced</b>: the OS chooses one to move out to disk to make room. If too much swapping takes place the computer suffers <b>disk thrashing</b>: more time is spent moving pages than running programs.</p></div>
+
+  <h2>1 · Why virtual memory is needed</h2>
+  <ul>
+    <li>RAM is limited, and running many processes at once could need more memory than is installed.</li>
+    <li>Programs and data that are not needed immediately can be <b>moved from RAM to virtual memory</b> on the disk, which makes efficient use of RAM and the processor.</li>
+    <li>Virtual memory is created <b>temporarily</b> when it is needed, using space on the disk.</li>
+    <li>It is slower than RAM, because the disk is much slower.</li>
+  </ul>
+
+  <h2>2 · Paging</h2>
+  <p>In <b>paging</b> the memory is divided into blocks of the <b>same fixed size</b>. The program's (logical) address space is divided into <b>pages</b>; physical memory into <b>frames</b> of the same size. Any page can go in any free frame, so the frames used by a program need not be next to each other.</p>
+  <ul>
+    <li>A <b>page table</b> records, for each page, the frame it is in (or that it is not in memory).</li>
+    <li>A logical address is a <b>page number</b> and an <b>offset</b> within that page. The OS uses the page table to find the frame, then adds the offset: physical address = frame number × page size + offset.</li>
+    <li>Only the pages in use need to be in RAM. If the CPU needs a page that is not in RAM there is a <b>page fault</b>: the OS reads the page from the disk into a free frame (or into a frame freed by replacing another page).</li>
+    <li>The OS divides memory into pages (not the programmer).</li>
+  </ul>
+  <p>Example. Page size 1024 bytes. Logical address 3000 is in page 3000 ÷ 1024 = 2 (remainder 952): page 2, offset 952. If the page table says page 2 is in frame 7, the physical address is 7 × 1024 + 952 = 8120.</p>
+
+  <h2>3 · Segmentation</h2>
+  <p>In <b>segmentation</b> the logical address space is divided into <b>segments of varying size</b>, usually the logical parts of a program such as the main code, a procedure, the data or the stack. The size of each segment is decided by the program or the compiler, not by the OS.</p>
+  <ul>
+    <li>Each segment has a <b>name or number</b> and a <b>size</b>. Segments are numbered, and the number is used as an index in a <b>segment map table</b> that maps logical addresses to physical addresses.</li>
+    <li>A logical address is a <b>segment number and an offset</b>. The offset must be within the size of the segment.</li>
+    <li>During execution, segments from virtual memory are loaded into physical memory.</li>
+  </ul>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Paging</th><th>Segmentation</th></tr>
+    <tr><td><b>Size of block</b></td><td>Fixed-size pages and frames</td><td>Variable-size segments</td></tr>
+    <tr><td><b>Who decides the division</b></td><td>The operating system</td><td>The programmer or compiler (logical units)</td></tr>
+    <tr><td><b>Address</b></td><td>Page number + offset</td><td>Segment number + offset</td></tr>
+    <tr><td><b>Table</b></td><td>Page table</td><td>Segment map table</td></tr>
+    <tr><td><b>Access time</b></td><td>Generally faster</td><td>Slower</td></tr>
+  </table></div>
+
+  <h2>4 · Replacing pages</h2>
+  <p>When a page fault occurs and no frame is free, the OS must pick a page to remove (a <b>victim</b>). If that page has been changed since it was loaded, it is written back to the disk first. The syllabus does not name the algorithm; two common ones are <b>first in first out</b> (replace the page that has been in memory longest) and <b>least recently used</b> (replace the page not used for the longest time). A good choice keeps the pages that are about to be needed in RAM.</p>
+  <p>Reference string 1 2 3 4 1 2 5 1 2 3 4 5 with 3 frames. F marks a page fault.</p>
+  <h3>First in first out: 9 faults</h3>
+  <div class="tw"><table class="t mono"><tr><th>Page</th><td>1</td><td>2</td><td>3</td><td>4</td><td>1</td><td>2</td><td>5</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr><tr><th>frame 1</th><td>1</td><td>1</td><td>1</td><td>2</td><td>3</td><td>4</td><td>1</td><td>1</td><td>1</td><td>2</td><td>5</td><td>5</td></tr><tr><th>frame 2</th><td></td><td>2</td><td>2</td><td>3</td><td>4</td><td>1</td><td>2</td><td>2</td><td>2</td><td>5</td><td>3</td><td>3</td></tr><tr><th>frame 3</th><td></td><td></td><td>3</td><td>4</td><td>1</td><td>2</td><td>5</td><td>5</td><td>5</td><td>3</td><td>4</td><td>4</td></tr><tr><th>fault</th><td>F</td><td>F</td><td>F</td><td>F</td><td>F</td><td>F</td><td>F</td><td></td><td></td><td>F</td><td>F</td><td></td></tr></table></div>
+  <h3>Least recently used: 10 faults</h3>
+  <div class="tw"><table class="t mono"><tr><th>Page</th><td>1</td><td>2</td><td>3</td><td>4</td><td>1</td><td>2</td><td>5</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr><tr><th>frame 1</th><td>1</td><td>1</td><td>1</td><td>2</td><td>3</td><td>4</td><td>1</td><td>1</td><td>1</td><td>1</td><td>2</td><td>3</td></tr><tr><th>frame 2</th><td></td><td>2</td><td>2</td><td>3</td><td>4</td><td>1</td><td>2</td><td>2</td><td>2</td><td>2</td><td>3</td><td>4</td></tr><tr><th>frame 3</th><td></td><td></td><td>3</td><td>4</td><td>1</td><td>2</td><td>5</td><td>5</td><td>5</td><td>3</td><td>4</td><td>5</td></tr><tr><th>fault</th><td>F</td><td>F</td><td>F</td><td>F</td><td>F</td><td>F</td><td>F</td><td></td><td></td><td>F</td><td>F</td><td>F</td></tr></table></div>
+  <p>Neither is always better: here FIFO happens to give fewer faults. You will not be asked to run an algorithm in the exam, but you should be able to explain what page replacement does.</p>
+
+  <h2>5 · Disk thrashing</h2>
+  <p><b>Disk thrashing</b> can occur when virtual memory is being used and <b>main memory is full</b>. More and more pages have to be swapped between RAM and the disk, so there is a very high rate of disk accesses and the read/write head moves constantly. Moving the head takes a long time, so eventually <b>more time is spent swapping pages than processing data</b> (the thrash point), and programs may freeze or fail to run.</p>
+  <p>It can be reduced by installing <b>more RAM</b> or by running <b>fewer programs</b> at once.</p>
+
+  <h2>6 · Common ways to lose marks</h2>
+  <ul>
+    <li>Saying virtual memory is "the same as RAM" or "a type of RAM". It is disk space used as an extension of memory.</li>
+    <li>Giving the difference between paging and segmentation without both sides: pages are fixed size, segments are variable size.</li>
+    <li>Describing segmentation without the segment number, the offset and the segment map table.</li>
+    <li>Explaining thrashing as "the disk wearing out". It is excessive swapping, so more time is spent on swapping than on processing.</li>
+    <li>Forgetting the cause of thrashing: main memory is full while virtual memory is in use.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Paging: pages, frames and the page table</h2>
+  <p>Press Play. The program's pages sit in different frames; the page table records where.</p>
+  <div id="stA"></div>
+  <h2>2 · Segmentation: variable-size segments</h2>
+  <div id="stB"></div>
+  <h2>3 · How thrashing develops</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Translate an address</h2>
+  <p>The page size is 1024 bytes. Choose a logical address; see its page, offset and physical address.</p>
+  <div class="card"><div id="aS"></div><div id="aO"></div></div>
+
+  <h2>Lab 2 · Page replacement</h2>
+  <p>The reference string is 1 2 3 4 1 2 5 1 2 3 4 5. Choose the number of frames and the replacement rule.</p>
+  <div class="card"><div id="rB" class="btnrow"></div><div id="rS"></div><div id="rO"></div></div>
+
+  <h2>Lab 3 · How many programs before thrashing?</h2>
+  <p>The computer has 12 frames of RAM. Each program needs 3 frames at a time.</p>
+  <div class="card"><div id="tS"></div><div id="tO"></div><div class="verdict" id="tV"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Paging or segmentation?</h2><div id="cl1" class="card"></div>
+  <h2>2 · True or false about virtual memory?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>4 · Put what happens in a page fault in order</h2><div id="o1" class="card"></div>
+  <h2>5 · Calculations</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A computer slows down when you open too many programs</h3><p>The OS moves pages out to the disk to make room. If you open even more, it spends its time moving pages back and forth: thrashing. Closing programs or adding RAM helps.</p><div class="use"><b>Exam use:</b> disk thrashing: more time swapping than processing.</div></div>
+  <div class="rw"><h3>A very large game on a computer with little RAM</h3><p>Only the parts of the game in use are kept in RAM; the rest wait on the disk and are paged in when needed. The game runs, but loading pauses are noticeable.</p><div class="use"><b>Exam use:</b> virtual memory extends RAM.</div></div>
+  <div class="rw"><h3>A library with a few reading desks</h3><p>The desks are RAM and the stacks are the disk. You keep only the books you are using on the desk and fetch others when needed. If you keep swapping books, you spend more time walking than reading.</p><div class="use"><b>Exam use:</b> swapping and thrashing.</div></div>
+  <div class="rw"><h3>Chapters and pages of a book</h3><p>Paging splits the book into equal pages whatever is on them. Segmentation splits it into chapters of different lengths because each chapter is a logical unit.</p><div class="use"><b>Exam use:</b> fixed size against variable size.</div></div>
+  <div class="rw"><h3>Fitting furniture into rooms</h3><p>Paging is like cutting everything into identical boxes so they fit anywhere; segmentation keeps each piece whole, so it needs a space big enough for it.</p><div class="use"><b>Exam use:</b> frames can be anywhere; segments need contiguous blocks.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on virtual memory, paging, segmentation and disk thrashing (Paper 3), 2022 to 2024. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>O/N 2022</td><td>31, 33</td><td>8(a), 8(b)</td><td>3 + 1</td><td>Explain virtual memory; one difference between paging and segmentation</td></tr>
+    <tr><td>O/N 2023</td><td>32</td><td>5(a), 5(b)</td><td>2 + 3</td><td>Reasons the OS may need virtual memory; circumstances for disk thrashing</td></tr>
+    <tr><td>O/N 2024</td><td>31, 33</td><td>8(a), 8(b)</td><td>4 + 3</td><td>Describe segmentation; explain disk thrashing</td></tr>
+    <tr><td>M/J 2021</td><td>31, 32, 33</td><td>3(a)</td><td>5</td><td>Paging and virtual memory matched to descriptions (on the 16.1.1 page)</td></tr>
+  </table></div>
+  <p class="note">Virtual memory, paging, segmentation and thrashing have appeared in Paper 3 in Oct/Nov 2022, 2023 and 2024. Page replacement algorithms have not been asked. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/31/33 · Q8</span> <span class="cmd">Explain / State</span> <span class="mark">3 + 1 marks</span> Virtual memory, paging and segmentation are used in memory management. (a) Explain what is meant by virtual memory. (b) State one difference between paging and segmentation in the way memory is divided.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) disk extends RAM, so the CPU appears to have more memory, swapped as necessary.</div>
+    <div class="ans"><p><b>(a)</b> Any three: <span class="mk k" data-t="1">Disk or secondary storage is used to extend the RAM available</span> <span class="mk k" data-t="2">so the CPU appears to be able to access more memory space than the available RAM</span> <span class="mk k" data-t="3">Only the data in use needs to be in main memory, so data can be swapped between RAM and virtual memory as necessary</span> <span class="mk k" data-t="4">Virtual memory is created temporarily</span></p><p><b>(b)</b> One: <span class="mk a" data-t="1">Paging divides memory into fixed-size blocks; segmentation divides it into variable-size blocks</span> <span class="mk a" data-t="2">The OS divides memory into pages; the compiler is responsible for calculating the segment sizes</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing that virtual memory is 'extra RAM'. It is space on the disk that is used as if it were RAM.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/32 · Q5</span> <span class="cmd">Outline / Explain</span> <span class="mark">2 + 3 marks</span> (a) Outline the reasons why an operating system may need to use virtual memory. (b) Explain the circumstances in which disk thrashing could occur.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) RAM running low, many processes; (b) frequent swapping, heads moving, more time swapping than processing.</div>
+    <div class="ans"><p><b>(a)</b> Any two: <span class="mk k" data-t="1">Virtual memory is used when RAM is running low</span> <span class="mk k" data-t="2">such as when a computer is running many processes at once</span> <span class="mk k" data-t="3">It may be used for efficient use of RAM and the processor</span> <span class="mk k" data-t="4">such as when data or programs are not immediately needed, they can be moved from RAM to virtual memory</span></p><p><b>(b)</b> Any three: <span class="mk k" data-t="1">Disk thrashing may occur when frequent transfers take place between main memory and secondary memory, or when virtual memory is being used</span> <span class="mk k" data-t="2">As main memory fills up, more pages need to be swapped in and out of virtual memory</span> <span class="mk k" data-t="3">This swapping leads to a very high rate of hard disk head movements</span> <span class="mk k" data-t="4">Eventually more time is spent swapping the pages than processing the data</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Describing the effect (the computer is slow) without the circumstance (main memory is full and pages are swapped constantly).</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/31/33 · Q8</span> <span class="cmd">Describe / Explain</span> <span class="mark">4 + 3 marks</span> (a) Describe the process of segmentation for memory management. (b) Explain what is meant by disk thrashing.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) variable sizes, segment number and offset, segment map table.</div>
+    <div class="ans"><p><b>(a)</b> Any four: <span class="mk k" data-t="1">In segmented memory the logical (virtual) address space is broken into varying-sized blocks called segments</span> <span class="mk k" data-t="2">Each segment has a name and size</span> <span class="mk k" data-t="3">During execution, segments from logical memory are loaded into physical memory</span> <span class="mk k" data-t="4">The address is specified by the user and contains the segment name and an offset value</span> <span class="mk k" data-t="5">Segments are numbered, and this number is used as an index in the segment map table</span> <span class="mk k" data-t="6">The offset value determines the size of the segment</span> <span class="mk k" data-t="7">A segment map table maps logical addresses to physical addresses</span></p><p><b>(b)</b> Any three: <span class="mk k" data-t="1">Disk thrashing is a problem that may occur when virtual memory is being used</span> <span class="mk k" data-t="2">As main memory fills up, more and more pages need to be swapped in and out of virtual memory</span> <span class="mk k" data-t="3">This leads to a very high rate of hard disk access or head movement</span> <span class="mk k" data-t="4">Moving the read/write head takes a relatively long time</span> <span class="mk k" data-t="5">Eventually more time is spent swapping pages than processing data (the thrash point), which can cause the program to freeze or not run</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Describing segmentation as 'splitting memory into equal parts'. That is paging. Segments vary in size.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain how a page table is used to find the physical address for a logical address.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Page number, frame, offset.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The logical address is split into a page number and an offset</span> <span class="mk k" data-t="2">The page table is looked up with the page number to give the frame the page is in</span> <span class="mk k" data-t="3">The physical address is the frame's start address plus the offset</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Calculate</span> <span class="mark">3 marks</span> The page size is 1024 bytes. A program uses the logical address 2100. State the page number and offset. Page 2 is in frame 5. Give the physical address.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Divide by 1024.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Page number 2 (2100 ÷ 1024 = 2 remainder 52)</span> <span class="mk k" data-t="2">Offset 52</span> <span class="mk k" data-t="3">Physical address 5 × 1024 + 52 = 5172</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain what happens when a page fault occurs.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The needed page is not in RAM.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The OS finds that the page needed is not in main memory</span> <span class="mk k" data-t="2">It reads the page from the disk into a free frame, replacing another page if there is none free</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State two ways of reducing disk thrashing.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Memory and processes.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Add more RAM</span> <span class="mk k" data-t="2">Run fewer programs at the same time</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Distinguish</span> <span class="mark">2 marks</span> Distinguish between a page and a segment.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Size.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A page is a fixed-size block of the logical address space chosen by the OS</span> <span class="mk k" data-t="2">A segment is a variable-size logical part of the program, such as code or data, with its size chosen by the programmer or compiler</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Virtual memory uses the disk.</b> It extends RAM; the CPU appears to have more memory.</li>
+    <li><b>Paging: fixed. Segmentation: variable.</b> Pages and frames are the same size; segments differ.</li>
+    <li><b>Segmentation answers.</b> Segment number, offset, segment map table.</li>
+    <li><b>Page fault.</b> The page is not in RAM: load it from the disk, replacing another if RAM is full.</li>
+    <li><b>Thrashing needs a cause.</b> Main memory full, constant swapping, more time swapping than processing.</li>
+    <li><b>Fix thrashing.</b> More RAM or fewer programs.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>virtual memory</td><td>"Disk space used to extend main memory."</td></tr>
+    <tr><td>a page</td><td>"A fixed-size block of the logical address space."</td></tr>
+    <tr><td>a segment</td><td>"A variable-size logical part of a program."</td></tr>
+    <tr><td>disk thrashing</td><td>"Excess swapping so more time is spent swapping than processing."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Explain</td><td>Give the reasons as well.</td></tr>
+    <tr><td>Describe</td><td>Say how it works, in several points.</td></tr>
+    <tr><td>Outline</td><td>Give the main points.</td></tr>
+    <tr><td>State</td><td>One short answer.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>

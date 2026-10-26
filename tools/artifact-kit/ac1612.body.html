@@ -1,0 +1,191 @@
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 16.1.2</div>
+  <h1>Process States and Interrupt Handling</h1>
+  <p class="cbook">Coursebook: Chapter 16 · System software, section 16.1 Purposes of an operating system</p>
+  <p class="lead">Processes, the running, ready and blocked states and the changes between them, and how the kernel handles interrupts for low-level scheduling; animations, labs and the real Paper 3 questions from 2023 to 2025.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A <b>process</b> is a program that is being executed, together with its data and the values in the registers. A process is always in one of three states: <b>running</b> (using the CPU), <b>ready</b> (able to run and waiting for the CPU) or <b>blocked</b> (waiting for an input or output operation or some other event). A running process moves to ready when its <b>time slice runs out</b> or a higher-priority process <b>pre-empts</b> it, and to blocked when it must wait for I/O; a blocked process becomes ready when the event it waited for has happened. The <b>kernel</b> acts as the <b>interrupt handler</b>: it saves the state of the running process, uses an interrupt table to find the right routine, runs it, then restores the state. This is how <b>low-level scheduling</b> reacts to events such as a timer or a finished disk transfer.</p></div>
+
+  <h2>1 · Processes and multi-tasking</h2>
+  <p>A <b>program</b> is a set of instructions stored on disk. A <b>process</b> is a program that has been loaded and is being run. With <b>multi-tasking</b> there may be many processes at once but, on a processor with one core, only one can be using the CPU at any instant. The OS keeps a record of each process (its state, the program counter, the register contents, its priority) so that a process can be stopped and later carry on exactly where it left off.</p>
+
+  <h2>2 · The three process states</h2>
+  <div class="tw"><table class="t">
+    <tr><th>State</th><th>Meaning</th><th>Example</th></tr>
+    <tr><td><b>Running</b></td><td>The CPU has been allocated and the process is being executed.</td><td>A word processor is checking spelling.</td></tr>
+    <tr><td><b>Ready</b></td><td>The process could run and is waiting in the ready queue for a slice of CPU time.</td><td>A music player waiting its turn, or one that was pre-empted by a higher-priority process.</td></tr>
+    <tr><td><b>Blocked</b></td><td>The process is waiting for an I/O operation or other event to be completed, so it cannot run even if the CPU is free.</td><td>A program waiting for the user to type, or for a file to load from disk.</td></tr>
+  </table></div>
+  <h3>Changing state</h3>
+  <ul>
+    <li><b>Ready → running</b>: the scheduler picks the process and gives it the CPU.</li>
+    <li><b>Running → ready</b>: the process's <b>time slice has expired</b> (round robin), a <b>higher-priority process</b> arrives in the ready queue and pre-empts it, or an <b>interrupt</b> arrives and the running process is pre-empted. The process is not waiting for anything: it could run again at once.</li>
+    <li><b>Running → blocked</b>: the process needs input or output that will take time, so it waits for the event.</li>
+    <li><b>Blocked → ready</b>: the event has happened (the I/O is complete); the process joins the ready queue. It never goes straight from blocked to running.</li>
+  </ul>
+
+  <h2>3 · Interrupts and the kernel</h2>
+  <p>An <b>interrupt</b> is a signal to the processor that something needs attention at once: a timer, a key press, a disk finishing a transfer, a hardware fault. The <b>kernel</b> acts as the <b>interrupt handler</b>:</p>
+  <ol>
+    <li>The kernel receives a <b>signal</b> when the interrupt is generated.</li>
+    <li>It checks the <b>priority</b> of the interrupt against the process that is running. If the interrupt has higher priority the system enters <b>kernel mode</b>.</li>
+    <li>It <b>saves the state</b> of the interrupted process (the contents of the registers, including the program counter) on the kernel stack.</li>
+    <li>It consults the <b>interrupt dispatch table</b> (also called the interrupt vector table, IVT, or interrupt descriptor table, IDT), which maps each interrupt to its <b>interrupt service routine (ISR)</b>, and runs that routine.</li>
+    <li>When the ISR has finished the kernel <b>restores the state</b> of the process, which carries on, or the scheduler picks another process.</li>
+  </ol>
+  <h3>Interrupts and low-level scheduling</h3>
+  <p>The low-level scheduler (dispatcher) is the part of the OS that moves processes between the ready and running states. It is driven by interrupts: a <b>timer interrupt</b> marks the end of a time slice, an <b>I/O interrupt</b> tells the OS that a blocked process can become ready, and a priority interrupt can pre-empt the running process. Handling the interrupts by priority ensures that critical events are dealt with without delay.</p>
+
+  <h2>4 · Common ways to lose marks</h2>
+  <ul>
+    <li>Saying a process goes from blocked straight to running. It goes to ready first and waits for the scheduler.</li>
+    <li>Describing "ready" as waiting for input. That is blocked; ready means able to run, waiting for the CPU.</li>
+    <li>Describing what the interrupt is for, instead of what the kernel does: receive the signal, check priority, save the state, look up the ISR, restore the state.</li>
+    <li>Forgetting that the state of the interrupted process has to be saved and restored.</li>
+    <li>Giving only "time ran out" for running to ready. Other valid reasons: a higher-priority process arrives, or an interrupt pre-empts it.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · One process through its states</h2>
+  <p>Press Play. The highlighted box is the state the process is in.</p>
+  <div id="stA"></div>
+  <h2>2 · The kernel handles an interrupt</h2>
+  <div id="stB"></div>
+  <h2>3 · A higher-priority process pre-empts</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Move a process between states</h2>
+  <p>Use the buttons. Only the changes that are possible from the current state are enabled.</p>
+  <div class="card"><div id="stL"></div><div class="btnrow" id="stB1"></div><div class="verdict" id="stV"></div></div>
+
+  <h2>Lab 2 · Four processes and one CPU</h2>
+  <p>Only one process can be running. Click a process to give it the CPU: the others return to ready, or stay blocked.</p>
+  <div class="card"><div id="pL"></div><div class="verdict" id="pV"></div></div>
+
+  <h2>Lab 3 · Does the interrupt win?</h2>
+  <p>Choose the priority of the running process and of the interrupt.</p>
+  <div class="card"><div id="iS1"></div><div id="iS2"></div><div class="verdict" id="iV"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which process state?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Which change of state?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>4 · Put the steps of interrupt handling in order</h2><div id="o1" class="card"></div>
+  <h2>5 · Working out</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A download that stalls</h3><p>A program waiting for data from the network is blocked. It does not use the CPU while it waits, so other programs run faster.</p><div class="use"><b>Exam use:</b> blocked means waiting for an event.</div></div>
+  <div class="rw"><h3>Typing while a video plays</h3><p>Each key press is an interrupt. The kernel saves the video player's state, passes the key to the editor, then lets the video carry on.</p><div class="use"><b>Exam use:</b> the kernel saves and restores state around an interrupt.</div></div>
+  <div class="rw"><h3>The spinning wheel</h3><p>A program that stops responding is usually waiting for an event that never arrives, so it stays blocked.</p><div class="use"><b>Exam use:</b> a blocked process cannot run until its event happens.</div></div>
+  <div class="rw"><h3>Fire alarm in a building</h3><p>The fire alarm interrupts everything. Work stops, people follow the alarm routine, and normal work resumes afterwards. The higher-priority event wins.</p><div class="use"><b>Exam use:</b> interrupts are handled by priority.</div></div>
+  <div class="rw"><h3>A queue at a till</h3><p>People waiting in the queue are ready; the one being served is running; a person who has gone to find the price of something is blocked until they come back.</p><div class="use"><b>Exam use:</b> ready, running and blocked.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on process states and interrupt handling (Paper 3), 2021 to 2025. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>7(b), (c)</td><td>1 + 2</td><td>Identify the third process state; when a process changes from running to ready</td></tr>
+    <tr><td>O/N 2024</td><td>32</td><td>9(a)</td><td>2</td><td>How the kernel acts as an interrupt handler</td></tr>
+    <tr><td>M/J 2025</td><td>32</td><td>5(a)</td><td>3</td><td>Identify three process states</td></tr>
+    <tr><td>O/N 2025</td><td>32</td><td>5(a), (b)</td><td>2 + 3</td><td>How interrupt handling is used in low-level scheduling; a reason for each process state</td></tr>
+    <tr><td>M/J 2021</td><td>31, 32, 33</td><td>3(a)</td><td>5</td><td>Interrupt handling and scheduling as OS terms (on the 16.1.1 page)</td></tr>
+  </table></div>
+  <p class="note">Process states and interrupt handling are asked in Paper 3 almost every year. The states question is usually a straight recall mark; the interrupt question is about what the kernel does. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/32 · Q5(a)</span> <span class="cmd">Identify</span> <span class="mark">3 marks</span> The management and scheduling of processes are tasks carried out by an operating system. Identify three process states.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Running, ready and blocked.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Running state</span> <span class="mk k" data-t="2">Ready state</span> <span class="mk k" data-t="3">Blocked state</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing 'waiting' for blocked, 'idle' or 'sleeping'. Use the syllabus words: running, ready, blocked.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31/33 · Q7(b)(c)</span> <span class="cmd">Identify / Outline</span> <span class="mark">1 + 2 marks</span> Two of the process states are the running state and the ready state. (b) Identify one other process state. (c) Outline conditions under which a process could change from the running state to the ready state.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(c) Time slice, higher priority, interrupt.</div>
+    <div class="ans"><p><b>(b)</b> <span class="mk k" data-t="1">Blocked (state)</span></p><p><b>(c)</b> Any two: <span class="mk k" data-t="1">When the time slice of the running process expires (round robin)</span> <span class="mk k" data-t="2">When a process with a higher priority is in the ready queue, so the running process is pre-empted</span> <span class="mk k" data-t="3">When an interrupt arrives at the CPU and the running process is pre-empted</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying the process moves to ready because it is waiting for input. That is blocked. A process is ready when it could run but has lost the CPU.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/32 · Q5</span> <span class="cmd">Describe / Complete</span> <span class="mark">2 + 3 marks</span> (a) Describe how interrupt handling is used in low-level scheduling. (b) In process management, a process can be in one of three process states: running, ready or blocked. Complete the table to identify one reason why a process could be in each of the three states.<div class="tw"><table class="t"><tr><th>Process state</th><th>Reason</th></tr><tr><td>running</td><td></td></tr><tr><td>ready</td><td></td></tr><tr><td>blocked</td><td></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) priority, critical events, the interrupt table, the ISR.</div>
+    <div class="ans"><p><b>(a)</b> Any two: <span class="mk k" data-t="1">The low-level scheduler manages the handling of interrupts based on priority</span> <span class="mk k" data-t="2">ensuring that critical events are handled without delay</span> <span class="mk k" data-t="3">It uses an Interrupt Vector Table (IVT) or Interrupt Descriptor / Dispatch Table (IDT) lookup</span> <span class="mk k" data-t="4">to map the interrupt to the specific handling routine or ISR</span></p><p><b>(b)</b> One mark per correct reason: <span class="mk k" data-t="1">running: CPU time has been allocated and the process is being executed</span> <span class="mk k" data-t="2">ready: the process is waiting in the ready queue for a slice of CPU time; it could run, or it was pre-empted by a higher-priority process</span> <span class="mk k" data-t="3">blocked: the process is waiting for an I/O operation, or some event, to be completed</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving the same reason for ready and blocked. Ready means it could run now; blocked means it cannot until an event happens.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/32 · Q9(a)</span> <span class="cmd">Outline</span> <span class="mark">2 marks</span> The kernel is the central component of an Operating System (OS). Outline how the kernel of an OS acts as an interrupt handler.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Receive, check priority, look up the table, save and restore state.</div>
+    <div class="ans"><p>Any two: <span class="mk k" data-t="1">The kernel receives a signal when an interrupt is generated</span> <span class="mk k" data-t="2">It checks the priority and reviews the status or priority of the current interrupts</span> <span class="mk k" data-t="3">The system enters kernel mode if the interrupt is of higher priority than the current process</span> <span class="mk k" data-t="4">The kernel consults the interrupt dispatch table (IDT)</span> <span class="mk k" data-t="5">and saves the state of the interrupted process, the contents of the registers, on the kernel stack</span> <span class="mk k" data-t="6">The kernel restores the process state, for example the register contents, once the interrupt has been serviced</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing about what the interrupt is (a signal from a device) and not what the kernel does with it.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">3 marks</span> A process is running. It asks for data from the disk. Describe what happens to the process state, and then when the data arrives.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Running, blocked, ready.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The process moves from running to blocked because it must wait for the I/O</span> <span class="mk k" data-t="2">When the I/O completes the process moves to ready, not straight to running</span> <span class="mk k" data-t="3">It waits in the ready queue until the scheduler gives it the CPU, then it is running again</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why the state of the interrupted process is saved before an interrupt service routine runs.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>What would be lost otherwise?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The registers and program counter hold the process's progress, and the ISR will overwrite them</span> <span class="mk k" data-t="2">Restoring them afterwards lets the process carry on exactly where it stopped</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State two events that can cause a running process to be moved to the ready state.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Time, priority.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Its time slice expires</span> <span class="mk k" data-t="2">A process of higher priority joins the ready queue (it is pre-empted), or an interrupt arrives</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Outline</span> <span class="mark">3 marks</span> Outline the steps the kernel takes when a key-press interrupt arrives while a game is running.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Save, ISR, restore.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The kernel saves the game's state (registers and program counter)</span> <span class="mk k" data-t="2">It uses the interrupt table to find and run the keyboard's interrupt service routine</span> <span class="mk k" data-t="3">It restores the game's state so it continues from where it stopped</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Distinguish</span> <span class="mark">2 marks</span> Distinguish between the ready state and the blocked state.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Could it run right now?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Ready: the process could run and is waiting for the CPU</span> <span class="mk k" data-t="2">Blocked: the process cannot run until an event (such as I/O completing) happens</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Three states.</b> Running, ready, blocked. Use those words.</li>
+    <li><b>Ready can run; blocked cannot.</b> Ready is waiting for the CPU. Blocked is waiting for an event.</li>
+    <li><b>Blocked goes to ready.</b> Never straight to running.</li>
+    <li><b>Running to ready: three causes.</b> Time slice ends, higher priority arrives, interrupt.</li>
+    <li><b>Interrupt handling by the kernel.</b> Signal, priority check, save state, table lookup, ISR, restore.</li>
+    <li><b>Name the table.</b> Interrupt dispatch / vector table (IDT or IVT).</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>a process</td><td>"A program in execution."</td></tr>
+    <tr><td>blocked</td><td>"A process waiting for an I/O operation or event."</td></tr>
+    <tr><td>pre-empted</td><td>"A running process that is stopped so another can run."</td></tr>
+    <tr><td>an ISR</td><td>"The interrupt service routine that handles one kind of interrupt."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Identify</td><td>Give the names only.</td></tr>
+    <tr><td>Outline</td><td>Give the main points briefly.</td></tr>
+    <tr><td>Describe</td><td>Say what happens, in several points.</td></tr>
+    <tr><td>Complete</td><td>Fill the table with a reason for each row.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>

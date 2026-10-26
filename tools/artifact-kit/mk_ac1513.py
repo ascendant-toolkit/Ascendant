@@ -144,7 +144,7 @@ js = AKJS + AK20JS + r'''
   const layers = [["Physical hardware", "f1", "real processor, RAM, storage"], ["Host operating system", "f2", "controls the real resources; runs the VM software"], ["Hypervisor / VM software", "f3", "creates and runs the VMs; shares host resources"], ["Virtual machine: guest operating system", "f4", "runs inside the VM; emulated hardware"], ["Applications", "f1", "programs in the guest"]];
   const draw = (s) => {
     const k = Math.round(s.i); let o = "";
-    layers.forEach((l, i) => { const y = 200 - i * 44, v = k >= i ? 1 : 0; if (!v) return; o += SV.rect(160, y, 440, 38, k === i ? "cell-warn" : l[1], { rx: 6, ...op(k === i ? 1 : 0.7) }) + SV.text(180, y + 24, l[0], "lbl bd", { style: "font-size:14px" }) + SV.text(620, y + 24, l[2], "sm", { style: "font-size:11px" }); });
+    layers.forEach((l, i) => { const y = 200 - i * 44, v = k >= i ? 1 : 0; if (!v) return; o += SV.rect(20, y, 330, 38, k === i ? "cell-warn" : l[1], { rx: 6, ...op(k === i ? 1 : 0.7) }) + SV.text(34, y + 24, l[0], "lbl bd", { style: "font-size:14px" }) + SV.text(366, y + 24, l[2], "sm", { style: "font-size:11px" }); });
     return o;
   };
   Lib.stepper($("#stA"), { w: 760, h: 245, label: "The layers of a virtual machine", base: { i: 0 }, draw, tween: 250, dwell: 3200, steps: [
@@ -172,10 +172,10 @@ js = AKJS + AK20JS + r'''
 (function () {
   const draw = (s) => {
     const k = Math.round(s.i); let o = SV.text(30, 24, "Host RAM: 16 GB", "lbl bd");
-    o += SV.rect(30, 34, 700, 30, "cell", { rx: 6 });
+    o += SV.rect(30, 34, 560, 30, "cell", { rx: 6 });
     const vms = [4, 4, 4, 4]; let x = 30;
-    vms.slice(0, Math.min(k + 1, 4)).forEach((g, i) => { o += SV.rect(x, 34, g / 16 * 700, 30, ["f1", "f2", "f3", "f4"][i], { rx: 6 }) + SV.text(x + 10, 54, "VM" + (i + 1) + " 4 GB", "lbl bd", { style: "font-size:12px" }); x += g / 16 * 700; });
-    if (k >= 4) o += SV.rect(30 + 700, 34, 140, 30, "cell-no", { rx: 6 }) + SV.text(34 + 700, 54, "VM5 4 GB", "lbl bd", { style: "font-size:12px" });
+    vms.slice(0, Math.min(k + 1, 4)).forEach((g, i) => { o += SV.rect(x, 34, g / 16 * 560, 30, ["f1", "f2", "f3", "f4"][i], { rx: 6 }) + SV.text(x + 10, 54, "VM" + (i + 1) + " 4 GB", "lbl bd", { style: "font-size:12px" }); x += g / 16 * 560; });
+    if (k >= 4) o += SV.rect(30 + 560, 34, 140, 30, "cell-no", { rx: 6 }) + SV.text(34 + 560, 54, "VM5 4 GB", "lbl bd", { style: "font-size:12px" });
     o += SV.text(30, 110, k < 4 ? (k + 1) * 4 + " GB requested of 16 GB: fine" : "20 GB requested of 16 GB: the host runs short; every VM slows", "lbl bd" + (k < 4 ? " t3" : " t2"), { style: "font-size:15px" });
     return o;
   };
