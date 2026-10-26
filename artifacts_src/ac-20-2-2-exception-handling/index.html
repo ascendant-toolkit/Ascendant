@@ -1,0 +1,916 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Exception Handling: try and except</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 20.2.2</div>
+  <h1>Exception Handling: try and except</h1>
+  <p class="cbook">Coursebook: Chapter 20 · Further programming, section 20.2 File processing and exception handling</p>
+  <p class="lead">What an exception is, its causes, why and when to use exception handling, try, except and finally in Python, the patterns the exam uses with files and input; animations, labs and the real Paper 3 and Paper 4 questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>An <b>exception</b> is an unexpected event that happens while a program is running and disrupts its normal flow, and unless something responds to it the program <b>halts</b>. <b>Exception handling</b> is the process of responding to the unwanted event so the program does not stop unexpectedly: the risky statements go in a <code>try</code> block and the response goes in an <code>except</code> block. Exceptions have three common causes: <b>programming errors</b> (dividing by zero, an index outside an array), <b>user errors</b> (typing text where a number is expected, a wrong file name) and <b>hardware failure</b> (a disk crash, a lost connection to a printer). Use exception handling when something outside the program's control could go wrong, especially opening and reading files and converting user input. Paper 3 asks you to define and describe it; Paper 4 awards marks for writing it round a file.</p></div>
+
+  <h2>1 · What an exception is</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Cause</th><th>Example</th><th>Python exception</th></tr>
+    <tr><td><b>Programming error</b></td><td>Divide by zero; read an array element that does not exist; a variable of the wrong type</td><td><code>ZeroDivisionError</code>, <code>IndexError</code>, <code>TypeError</code></td></tr>
+    <tr><td><b>User error</b></td><td>Typing <code>abc</code> when a number is asked for; giving a file name that does not exist</td><td><code>ValueError</code>, <code>FileNotFoundError</code></td></tr>
+    <tr><td><b>Hardware or system failure</b></td><td>A disk crash; the file is on a device that has been unplugged; the disk is full; a printer is disconnected</td><td><code>OSError</code> (which <code>IOError</code> is an alias of)</td></tr>
+  </table></div>
+  <p>Without handling, Python stops at the line where it happened and prints an error message. Statements after it never run, and files may be left open.</p>
+
+  <h2>2 · Why use exception handling?</h2>
+  <ul>
+    <li>To <b>trap runtime errors</b> and stop the program halting unexpectedly.</li>
+    <li>To <b>show a meaningful message</b> to the user instead of a system error.</li>
+    <li>To let the program <b>recover or carry on</b>: ask again, use a default, or close down safely.</li>
+  </ul>
+  <p>The mark scheme's wording: <i>exception handling is a process that responds to unwanted or unexpected events when a program runs, to prevent the program or computer from stopping unexpectedly.</i></p>
+
+  <h2>3 · try and except in Python</h2>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">try:</span><span class="ln">    File = open(&quot;Data.txt&quot;, &quot;r&quot;)          # might fail: file missing</span><span class="ln">    for Line in File:</span><span class="ln">        Numbers.append(int(Line))         # might fail: a line is not a number</span><span class="ln">    File.close()</span><span class="ln">except IOError:                           # the response when the file cannot be opened</span><span class="ln">    print(&quot;Could not find the file&quot;)</span><span class="ln">except ValueError:                        # the response when int() fails</span><span class="ln">    print(&quot;The file contains something that is not a number&quot;)</span></pre></div>
+  <ol>
+    <li>Python runs the statements in the <b><code>try</code></b> block.</li>
+    <li>If one of them causes an exception, the rest of the block is <b>skipped</b> and the matching <b><code>except</code></b> block runs.</li>
+    <li>If nothing goes wrong, the <code>except</code> blocks are skipped.</li>
+    <li>The program then carries on after the whole <code>try</code> statement.</li>
+  </ol>
+  <div class="tw"><table class="t">
+    <tr><th>Part</th><th>Use</th></tr>
+    <tr><td><code>try:</code></td><td>The statements that might cause the exception</td></tr>
+    <tr><td><code>except IOError:</code> / <code>except:</code></td><td>What to do if it happens. Naming the exception is best; a bare <code>except:</code> catches everything and is accepted in the exam</td></tr>
+    <tr><td><code>else:</code></td><td>Runs only if no exception happened</td></tr>
+    <tr><td><code>finally:</code></td><td>Runs whether or not an exception happened, for example to close a file</td></tr>
+  </table></div>
+  <p>The syllabus pseudocode form is the same idea:</p>
+  <pre class="plain">TRY
+   OPENFILE "Data.txt" FOR READ
+   READFILE "Data.txt", Line
+EXCEPT
+   OUTPUT "File not found"
+FINALLY
+   CLOSEFILE "Data.txt"
+ENDTRY</pre>
+
+  <h2>4 · When to use it</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Use exception handling for</th><th>Use ordinary checks (IF, validation) for</th></tr>
+    <tr><td>Opening, reading and writing files</td><td>A value that must be in a range: <code>IF Age &lt; 0 THEN</code></td></tr>
+    <tr><td>Converting user input: <code>int(input())</code></td><td>A list index you can test with <code>IF Index &lt; len(List)</code></td></tr>
+    <tr><td>Network, printer or disk problems</td><td>Menu choices from a known set</td></tr>
+    <tr><td>Division where the divisor comes from the user</td><td>Logic errors in your own algorithm (fix the code)</td></tr>
+  </table></div>
+  <p>Use it where the problem comes from <b>outside the program</b> and cannot be ruled out in advance. It does not replace validation, and it does not fix a logic error.</p>
+
+  <h2>5 · Patterns the exams use</h2>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln"># 1. Reading a file: the paper says &quot;use exception handling when opening and reading&quot;</span><span class="ln">def LoadAvatars():</span><span class="ln">    global AvailableAvatars</span><span class="ln">    try:</span><span class="ln">        TheFile = open(&quot;AvatarFile.txt&quot;)</span><span class="ln">        for Line in TheFile:</span><span class="ln">            Data = Line.strip().split(&quot; &quot;)</span><span class="ln">            AvailableAvatars.append(Avatar(Data[0], Data[1] == &quot;True&quot;, Data[2], int(Data[3])))</span><span class="ln">        TheFile.close()</span><span class="ln">    except:</span><span class="ln">        print(&quot;File not found&quot;)</span><span class="ln"> </span><span class="ln"># 2. Writing a file</span><span class="ln">try:</span><span class="ln">    File = open(&quot;Tree.txt&quot;, &quot;w&quot;)</span><span class="ln">    File.write(&quot;-1,20,1\n&quot;)</span><span class="ln">    File.close()</span><span class="ln">except:</span><span class="ln">    print(&quot;Cannot write to file&quot;)</span><span class="ln"> </span><span class="ln"># 3. Input: ask again until it is valid</span><span class="ln">Valid = False</span><span class="ln">while not Valid:</span><span class="ln">    try:</span><span class="ln">        Age = int(input(&quot;Enter your age: &quot;))</span><span class="ln">        Valid = True</span><span class="ln">    except ValueError:</span><span class="ln">        print(&quot;Please enter a whole number&quot;)</span></pre></div>
+  <p>The mark scheme awards separate marks for: the <b>try</b> structure, the <b>except</b> (catch) block, an <b>appropriate output message</b>, and for the file work inside it (open, loop, read, close).</p>
+
+  <h2>6 · Common ways to lose marks</h2>
+  <ul>
+    <li>Defining an exception as "an error". Say it is an unexpected event during execution that can make the program halt.</li>
+    <li>Listing a cause that is not an exception cause (for example "the program is slow"). Use programming errors, user errors or hardware failure.</li>
+    <li>Writing <code>try</code> without <code>except</code>, or an <code>except</code> with no message or action.</li>
+    <li>Putting <code>try</code> round the wrong lines: the file opening and reading must be <i>inside</i> it.</li>
+    <li>Describing validation (an <code>IF</code> check) as exception handling.</li>
+    <li>In Paper 4, leaving out the exception handling when the question says "use exception handling". It is usually worth a mark or two.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Without handling, the program halts</h2>
+  <p>Press Play, or click the steps. The same program runs with a bad input, first with no handling and then with try and except.</p>
+  <div id="stA"></div>
+  <h2>2 · With try and except, the program carries on</h2>
+  <div id="stB"></div>
+  <h2>3 · Which except block runs?</h2>
+  <div id="stC"></div>
+  <h2>4 · finally always runs</h2>
+  <div id="stD"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Run the program</h2>
+  <p>The program asks for a file name, reads a number from the first line and divides 100 by it. Choose the situation, then turn exception handling on or off.</p>
+  <div class="card"><div id="sB" class="btnrow"></div><div class="btnrow"><button class="b" id="sT">Exception handling: off</button></div><div id="sC"></div><div class="verdict" id="sV"></div></div>
+
+  <h2>Lab 2 · Which exception, which cause?</h2>
+  <p>Choose a situation to see the exception, the type of cause and the handler.</p>
+  <div class="card"><div id="eB" class="btnrow"></div><div id="eO"></div></div>
+
+  <h2>Lab 3 · Mistakes in exception handling</h2>
+  <div class="card"><div id="mB" class="btnrow"></div><div id="mO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · What kind of cause is it?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Exception handling or an ordinary check?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the steps of try and except in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>5 · What is output?</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A web form that asks for a quantity</h3><p>If a customer types ten instead of 10, converting it to a number would normally crash the page. The code catches the error and shows 'Please enter a whole number'.</p><div class="use"><b>Exam use:</b> user error handled by an exception handler with a helpful message.</div></div>
+  <div class="rw"><h3>A spreadsheet opening a missing file</h3><p>When a linked file has been moved or deleted, the program says it cannot find the file and offers to browse for it instead of closing.</p><div class="use"><b>Exam use:</b> file not found: caught so the program can carry on.</div></div>
+  <div class="rw"><h3>A game saving to a full disk</h3><p>If there is no space left, the save fails. The game reports it and keeps running so the player does not lose their progress in memory.</p><div class="use"><b>Exam use:</b> hardware or system failure: the response protects the data.</div></div>
+  <div class="rw"><h3>A banking program dividing by a count</h3><p>An average is total divided by the number of transactions. With no transactions that would divide by zero, so the program handles it and reports 'no transactions'.</p><div class="use"><b>Exam use:</b> a programming error that can be caught (or checked first with IF).</div></div>
+  <div class="rw"><h3>An app losing its network connection</h3><p>A download stops when the Wi-Fi drops. The app catches the connection error, tells the user, and lets them retry.</p><div class="use"><b>Exam use:</b> failure outside the program's control, reported rather than crashing.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on exceptions and exception handling: the Paper 3 theory questions and four Paper 4 questions where exception handling is part of the marks. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2022</td><td>32</td><td>9</td><td>4</td><td>State the reasons for including exception handling, with an example</td></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>8(b), 8(c)</td><td>1 + 2</td><td>Define exception handling; state two causes of an exception</td></tr>
+    <tr><td>O/N 2023</td><td>32</td><td>12(a)</td><td>2</td><td>Describe, with an example, what is meant by an exception</td></tr>
+    <tr><td>O/N 2025</td><td>31</td><td>10</td><td>3</td><td>Explain exception handling with an example of a cause</td></tr>
+    <tr><td>O/N 2025</td><td>32</td><td>10(a), 10(b)</td><td>2 + 2</td><td>Describe how termination due to an exception is avoided; identify two causes</td></tr>
+    <tr><td>O/N 2025</td><td>33</td><td>12(a), 12(b)</td><td>3 + 2</td><td>Explain an exception; give an example and why it causes a problem</td></tr>
+    <tr><td>O/N 2022</td><td>41, 43</td><td>1(b)</td><td>6</td><td>ReadFile(): read 100 integers from IntegerData.txt with exception handling</td></tr>
+    <tr><td>M/J 2023</td><td>41, 43</td><td>1(a)(ii)</td><td>4</td><td>Read 25 integers from Data.txt into an array with exception handling</td></tr>
+    <tr><td>O/N 2025</td><td>42</td><td>3(c)</td><td>4</td><td>Read 50 integers from TreeData.txt into a binary tree, with exception handling</td></tr>
+    <tr><td>M/J 2026</td><td>42</td><td>2(b)</td><td>7 + 1</td><td>LoadAvatars(): read objects from AvatarFile.txt with exception handling</td></tr>
+  </table></div>
+  <p class="note">Exception handling is tested in Paper 3 as a short theory question (definition, causes, why) in May/June 2022, Oct/Nov 2023 and Oct/Nov 2025. In Paper 4 it is a mark inside the file questions, and appears in most papers; four are shown here and the rest are on the previous page. Python is shown for Paper 4. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+
+  <h3>Paper 3: define, describe and explain</h3>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/32 · Q9</span> <span class="cmd">State</span> <span class="mark">4 marks</span> State the reasons for including exception handling routines when writing a program. Include an example of an exception in your answer.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Reasons: trap errors, stop the halt, give a helpful message. One mark for an example.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">To trap (some) runtime errors</span> <span class="mk k" data-t="2">To prevent a program halting unexpectedly</span> <span class="mk k" data-t="3">To produce meaningful error messages for these errors</span> <span class="mk k" data-t="4">Example: divide by zero / end of file / file not found</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving only the example. The question asks for the reasons as well.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31, 33 · Q8(b), (c)</span> <span class="cmd">Define / State</span> <span class="mark">1 + 2 marks</span> (b) Define the term exception handling. (c) State two possible causes of an exception.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(b) A response to an unexpected event so the program does not halt. (c) Two of programming, user and hardware.</div>
+    <div class="ans"><p><b>(b)</b> <span class="mk k" data-t="1">(Exception handling is the process of) responding to an unexpected event when the program is running so it does not halt unexpectedly</span> <b>(c)</b> <span class="mk a" data-t="1">Programming errors</span> <span class="mk a" data-t="2">User errors / hardware failure / runtime errors</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Defining it as 'catching errors' without saying the program must not halt unexpectedly.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/32 · Q12(a)</span> <span class="cmd">Describe</span> <span class="mark">2 marks</span> Describe, with an example, what is meant by an exception.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One mark for the description and one for the example.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">An exception is an event that occurs during the execution of a program that disrupts the normal flow of instructions / causes the program to halt</span> <span class="mk k" data-t="2">Example: hardware failure, a programming error such as an out-of-bounds array element or divide by zero, or a user error such as a wrong file name</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/31 · Q10</span> <span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain what is meant by exception handling. Include an example of a possible cause of an exception in your answer.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two marks for the explanation, one for the cause.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Exception handling is a process that responds to unwanted / unexpected events when a program runs</span> <span class="mk k" data-t="2">to prevent the program / computer from stopping unexpectedly</span> <span class="mk k" data-t="3">Cause: programming errors, user errors or hardware failure (such as losing the connection to a printer)</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/32 · Q10</span> <span class="cmd">Describe / Identify</span> <span class="mark">2 + 2 marks</span> An exception is an error that may cause a program to halt unexpectedly. (a) Describe how program termination due to an exception can be avoided. (b) Identify two possible causes of exceptions.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) use an exception handling routine, and name try ... except or an error message.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Use an exception handling routine (to respond to unwanted / unexpected events while the program runs)</span> <span class="mk k" data-t="2">using try ... except / catch, or by generating an error message</span> <b>(b)</b> <span class="mk a" data-t="1">Coding errors</span> <span class="mk a" data-t="2">User errors / hardware failure</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/33 · Q12</span> <span class="cmd">Explain / Identify</span> <span class="mark">3 + 2 marks</span> An exception can occur when running a program. (a) Explain what is meant by an exception. (b) Identify one example of an exception and give one reason why the exception may cause a problem.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) unexpected event at run time, caused by something not detected earlier, and the effect. (b) one example and its consequence.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">An unplanned / unexpected event that occurs when a program is running</span> <span class="mk k" data-t="2">due to an error in the programming or logic that was not detected during construction or compilation</span> <span class="mk k" data-t="3">The effect can be that the program halts unexpectedly</span></p><p><b>(b)</b> <span class="mk a" data-t="1">Example: division by zero</span> <span class="mk a" data-t="2">Reason: the processor cannot evaluate the answer, so the program cannot continue</span></p></div>
+  </div></details>
+
+  <h3>Paper 4: exception handling inside file questions (Python)</h3>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/41, 43 · Q1(b)</span> <span class="cmd">Write</span> <span class="mark">6 marks</span> The text file IntegerData.txt stores 100 integer numbers between 1 and 100 inclusive, one on each line. The procedure ReadFile() must read in the numbers from the text file and store each one in the global array DataArray, which has space for 100 integers. Use appropriate exception handling. Write program code for the procedure ReadFile().</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Header, open to read, loop 100 times or to the end of the file, convert and store each value, close, and try and except with a message.</div>
+    <div class="ans"><p>Marks: <span class="mk k" data-t="1">procedure ReadFile() header</span> <span class="mk k" data-t="2">opening IntegerData.txt for read</span> <span class="mk k" data-t="3">looping through the 100 elements / to the end of the file</span> <span class="mk k" data-t="4">reading each value from the file and storing it in the array</span> <span class="mk k" data-t="5">closing the file in an appropriate place</span> <span class="mk k" data-t="6">exception handling round the file opening or reading, with an appropriate message</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">def ReadFile():</span><span class="ln">    global DataArray</span><span class="ln">    try:</span><span class="ln">        File = open(&quot;IntegerData.txt&quot;, &quot;r&quot;)</span><span class="ln">        for X in range(0, 100):</span><span class="ln">            DataArray[X] = int(File.readline())</span><span class="ln">        File.close()</span><span class="ln">    except IOError:</span><span class="ln">        print(&quot;Could not find the file&quot;)</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Putting the <code>try</code> only round the <code>open</code>, so an error while reading is not caught, or leaving out the message in the <code>except</code> block.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/41, 43 · Q1(a)</span> <span class="cmd">Write</span> <span class="mark">1 + 4 marks</span> A program reads data from a file and searches for specific data. (a)(i) Write program code to declare the local 1D array DataArray, which holds 25 integers. (ii) Amend the main program to read the 25 integer data items from the text file Data.txt into DataArray.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open for reading, loop through the lines, append each as an integer, close, and handle the missing file.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">1D array named DataArray (with 25 elements of type integer)</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">DataArray = []    # 25 elements of type integer</span></pre><p><b>(ii)</b> Four marks: <span class="mk a" data-t="1">opening Data.txt to read</span> <span class="mk a" data-t="2">looping through all 25 / to the end of the file, reading each line and appending it to the array</span> <span class="mk a" data-t="3">exception handling with an appropriate output</span> <span class="mk a" data-t="4">closing the file (in an appropriate place)</span></p><pre class="cp" style="counter-reset:l 1"><span class="ln">try:</span><span class="ln">    DataFile = open(&quot;Data.txt&quot;, &quot;r&quot;)</span><span class="ln">    for Line in DataFile:</span><span class="ln">        DataArray.append(int(Line))</span><span class="ln">    DataFile.close()</span><span class="ln">except IOError:</span><span class="ln">    print(&quot;Could not find file&quot;)</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Appending the line as a string. The array holds integers, so convert with <code>int()</code>.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/42 · Q3(c)</span> <span class="cmd">Write</span> <span class="mark">4 marks</span> The text file TreeData.txt stores 50 integers, one on each line. The main program reads each integer from the file and stores it in the binary tree in the order read, using the procedure AddNode() (which takes the integer as its parameter). Write program code for the main program. Use exception handling.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open, loop through the lines, call AddNode() with each integer, close, and try and except.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">opening the file to read, and closing it in an appropriate place</span> <span class="mk k" data-t="2">looping 50 times / through the file / until the end of the file, reading each line</span> <span class="mk k" data-t="3">calling AddNode() with each value read</span> <span class="mk k" data-t="4">exception handling (try ... except) with an appropriate message</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">try:</span><span class="ln">    File = open(&quot;TreeData.txt&quot;)</span><span class="ln">    for Line in File:</span><span class="ln">        AddNode(int(Line.strip()))</span><span class="ln">    File.close()</span><span class="ln">except:</span><span class="ln">    print(&quot;Error: cannot open file&quot;)</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Reading the lines but never calling AddNode(), or reading a string instead of converting to an integer.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/42 · Q2(b)</span> <span class="cmd">Write</span> <span class="mark">7 + 1 marks</span> The text file AvatarFile.txt stores data for 30 avatars. Each avatar is on a new line, in the order: name, glasses, hair colour, age, with each value separated by a space. For example, the first line is <code>Kit True blonde 21</code>. The class Avatar has a constructor that takes the name, a Boolean for glasses, the hair colour and the age. (i) The procedure LoadAvatars() reads the data from the text file, creates a new object for each avatar and stores the objects in a global array AvailableAvatars. The procedure uses exception handling when opening and reading from the file. Write program code for LoadAvatars(). (ii) Write the main program to call LoadAvatars().</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Split each line on spaces, convert the glasses text and the age, create an Avatar and store it. Everything that touches the file is inside the try.</div>
+    <div class="ans"><p><b>(i)</b> Seven marks: <span class="mk k" data-t="1">procedure header and appropriate exception handling with output</span> <span class="mk k" data-t="2">opening the text file (to read) and closing it</span> <span class="mk k" data-t="3">looping until the end of the file / 30 times</span> <span class="mk k" data-t="4">reading in each line</span> <span class="mk k" data-t="5">splitting each line by space</span> <span class="mk k" data-t="6">creating an object with the correct values</span> <span class="mk k" data-t="7">storing each object in the global array</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">def LoadAvatars():</span><span class="ln">    global AvailableAvatars</span><span class="ln">    try:</span><span class="ln">        TheFile = open(&quot;AvatarFile.txt&quot;)</span><span class="ln">        for Line in TheFile:</span><span class="ln">            DataSplit = Line.strip().split(&quot; &quot;)</span><span class="ln">            Glasses = DataSplit[1] == &quot;True&quot;</span><span class="ln">            AvailableAvatars.append(Avatar(DataSplit[0], Glasses, DataSplit[2], int(DataSplit[3])))</span><span class="ln">        TheFile.close()</span><span class="ln">    except:</span><span class="ln">        print(&quot;File not found&quot;)</span></pre><p><b>(ii)</b> <span class="mk a" data-t="1">LoadAvatars()</span></p><pre class="cp" style="counter-reset:l 13"><span class="ln">LoadAvatars()</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Treating the glasses value <code>"True"</code> as a Boolean directly. A string from a file is always a string: compare it to <code>"True"</code>.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Distinguish</span> <span class="mark">2 marks</span> Distinguish between an exception and a logic error.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One happens when something unexpected occurs at run time; the other is a mistake in the algorithm.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">An exception is an unexpected event during execution (such as a missing file) that disrupts the program and can be handled.</span> <span class="mk k" data-t="2">A logic error is a mistake in the program's design that gives wrong results without stopping it; it has to be fixed in the code.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">3 marks</span> Write Python that asks the user for a whole number and keeps asking until a whole number is entered.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Loop, try int(input()), catch ValueError.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">a loop that repeats until the input is valid</span> <span class="mk k" data-t="2">try ... int(input(...)) so conversion is inside the try</span> <span class="mk k" data-t="3">except ValueError with a message, and the loop continuing</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">Valid = False</span><span class="ln">while not Valid:</span><span class="ln">    try:</span><span class="ln">        Number = int(input(&quot;Enter a whole number: &quot;))</span><span class="ln">        Valid = True</span><span class="ln">    except ValueError:</span><span class="ln">        print(&quot;That was not a whole number&quot;)</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Setting <code>Valid = True</code> before the conversion, so a bad input ends the loop.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> Name two possible causes of an exception when a program reads a file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Think user and hardware.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The file does not exist or the wrong file name was given (user error).</span> <span class="mk k" data-t="2">The disk or device fails or the file is corrupted (hardware failure).</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Complete</span> <span class="mark">3 marks</span> The code below crashes when the user enters 0. Rewrite it so that it outputs 'Cannot divide by zero' instead.<pre class="plain">Number = int(input(&quot;Enter a number: &quot;))
+print(100 / Number)</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The risky statement goes in the try; the response goes in the except.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">try block round the division (and the input)</span> <span class="mk k" data-t="2">except ZeroDivisionError (or a general except)</span> <span class="mk k" data-t="3">OUTPUT of the message 'Cannot divide by zero'</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">try:</span><span class="ln">    Number = int(input(&quot;Enter a number: &quot;))</span><span class="ln">    print(100 / Number)</span><span class="ln">except ZeroDivisionError:</span><span class="ln">    print(&quot;Cannot divide by zero&quot;)</span></pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why checking a file exists with an IF statement is not always enough, and why exception handling is used as well.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Think of what can go wrong after the check.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The file may be removed, locked or damaged between the check and the open, or fail part-way through reading.</span> <span class="mk k" data-t="2">Exception handling responds to the problem whenever it occurs, so the program does not halt.</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Define it fully.</b> An exception is an unexpected event during execution that disrupts normal flow and can make the program halt. Exception handling responds to it so the program does not stop unexpectedly.</li>
+    <li><b>Give causes in three groups.</b> Programming errors, user errors, hardware failure. Name one example of each.</li>
+    <li><b>Put the risky code inside try.</b> File opening, reading and converting input all go in the try block.</li>
+    <li><b>Always add a message.</b> An except block that does nothing gets no mark. Output an appropriate message.</li>
+    <li><b>Handle what is outside your control.</b> Files, input, devices. Use IF for ranges and logic.</li>
+    <li><b>Read the question for 'use exception handling'.</b> It is a separate mark in Paper 4 file questions.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>what exception handling does</td><td>"It responds to an unexpected event while the program is running so the program does not halt unexpectedly."</td></tr>
+    <tr><td>a cause of an exception</td><td>"A user error, such as entering a file name that does not exist."</td></tr>
+    <tr><td>how to avoid termination</td><td>"Use a try ... except block with an appropriate message."</td></tr>
+    <tr><td>why use it</td><td>"To trap runtime errors, prevent the program halting and give a meaningful message."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Define</td><td>Give the exact meaning in one sentence.</td></tr>
+    <tr><td>State / Identify</td><td>Give a fact, cause or example in a few words.</td></tr>
+    <tr><td>Describe / Explain</td><td>Say what happens and why, with an example.</td></tr>
+    <tr><td>Write program code</td><td>Python with try, except and a message.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+(function () {
+  const L = ["Number = int(input(\"Enter a number: \"))", "Result = 100 / Number", "print(Result)", "print(\"Finished\")"];
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = codeList(20, 20, L, k === 0 ? -1 : k === 1 ? 0 : k >= 2 ? 1 : -1, 1, 36, 410);
+    o += SV.text(450, 40, "Input: 0", "lbl bd", { style: "font-family:var(--mono);font-size:16px" });
+    if (k >= 2) o += SV.rect(450, 70, 290, 80, "cell-no", { rx: 8 }) + SV.text(464, 98, "ZeroDivisionError", "lbl bd t2", { style: "font-family:var(--mono);font-size:15px" }) + SV.text(464, 124, "program halts here", "lbl");
+    if (k >= 3) o += SV.text(20, 190, "print(Result) and print(\"Finished\") never run", "lbl bd t2");
+    return o;
+  };
+  Lib.stepper($("#stA"), { w: 760, h: 215, label: "A program with no exception handling", base: { i: 0 }, draw, tween: 300, dwell: 2800, steps: [
+    { cap: "A short program that divides 100 by a number the user types. The user types <b>0</b>.", s: { i: 0 } },
+    { cap: "Line 1 works: Number = 0.", s: { i: 1 } },
+    { cap: "Line 2 divides 100 by 0. That is impossible, so Python raises a <b>ZeroDivisionError</b> exception. With nothing to respond to it, the program <b>halts</b>.", s: { i: 2 } },
+    { cap: "The remaining lines never run, and the user sees a system error. That is the unexpected halt that exception handling prevents.", s: { i: 3 } }] });
+})();
+
+(function () {
+  const L = ["try:", "    Number = int(input(\"Enter a number: \"))", "    print(100 / Number)", "except ZeroDivisionError:", "    print(\"Cannot divide by zero\")", "print(\"Finished\")"];
+  const draw = (s) => {
+    const k = Math.round(s.i); const hl = [-1, 1, 2, 3, 4, 5][k]; let o = codeList(20, 10, L, hl, 1, 34, 420);
+    o += SV.text(470, 36, "Input: 0", "lbl bd", { style: "font-family:var(--mono);font-size:16px" });
+    if (k >= 2) o += SV.rect(470, 56, 270, 64, "cell-no", { rx: 8 }) + SV.text(484, 84, "ZeroDivisionError", "lbl bd t2", { style: "font-family:var(--mono);font-size:14px" }) + SV.text(484, 106, "jump to the matching except", "sm");
+    if (k >= 4) o += SV.rect(470, 130, 270, 40, "cell-ok", { rx: 8 }) + SV.text(484, 156, "Cannot divide by zero", "lbl bd t3", { style: "font-family:var(--mono);font-size:14px" });
+    if (k >= 5) o += SV.rect(470, 178, 270, 36, "cell-ok", { rx: 8 }) + SV.text(484, 202, "Finished", "lbl bd t3", { style: "font-family:var(--mono);font-size:14px" });
+    return o;
+  };
+  Lib.stepper($("#stB"), { w: 760, h: 235, label: "The same program with try and except", base: { i: 0 }, draw, tween: 300, dwell: 2800, steps: [
+    { cap: "The risky lines are placed in a <code>try</code> block, followed by an <code>except</code> block that says what to do.", s: { i: 0 } },
+    { cap: "The try block starts: the user types 0 and <code>Number</code> is 0.", s: { i: 1 } },
+    { cap: "<code>100 / Number</code> raises <b>ZeroDivisionError</b>. The rest of the try block is skipped.", s: { i: 2 } },
+    { cap: "Python looks for an <code>except</code> that matches and finds <code>except ZeroDivisionError</code>.", s: { i: 3 } },
+    { cap: "The handler runs and the user sees a meaningful message, not a system error.", s: { i: 4 } },
+    { cap: "The program <b>carries on</b> after the try statement and prints Finished. It did not halt unexpectedly.", s: { i: 5 } }] });
+})();
+
+(function () {
+  const cases = [["abc", "ValueError", "int(\"abc\") fails: the text is not a number", "Please enter a whole number"], ["0", "ZeroDivisionError", "100 / 0 is impossible", "Cannot divide by zero"], ["4", "(none)", "everything works: 100 / 4", "25.0"]];
+  const draw = (s) => {
+    const k = Math.round(s.i); const c = cases[Math.max(0, k - 1)]; let o = SV.text(20, 26, "try:  Number = int(input(...));  print(100 / Number)", "lbl bd", { style: "font-family:var(--mono);font-size:14px" });
+    o += SV.rect(20, 50, 400, 44, k === 1 ? "cell-warn" : "cell", { rx: 6 }) + SV.text(34, 78, "except ValueError:  \"Please enter a whole number\"", "lbl", { style: "font-family:var(--mono);font-size:12px" });
+    o += SV.rect(20, 104, 400, 44, k === 2 ? "cell-warn" : "cell", { rx: 6 }) + SV.text(34, 132, "except ZeroDivisionError:  \"Cannot divide by zero\"", "lbl", { style: "font-family:var(--mono);font-size:12px" });
+    if (k >= 1) o += SV.text(440, 70, "User types: " + c[0], "lbl bd", { style: "font-family:var(--mono);font-size:15px" }) + SV.text(440, 100, "Exception: " + c[1], "lbl bd " + (k === 3 ? "t3" : "t2"), { style: "font-family:var(--mono);font-size:14px" }) + SV.text(440, 128, c[2], "sm", { style: "font-size:11px" }) + SV.text(440, 160, "Output: " + c[3], "lbl bd t3", { style: "font-family:var(--mono);font-size:13px" });
+    return o;
+  };
+  Lib.stepper($("#stC"), { w: 760, h: 190, label: "Several except blocks", base: { i: 0 }, draw, tween: 250, dwell: 3000, steps: [
+    { cap: "Different problems can have different responses: one <code>except</code> for each exception type.", s: { i: 0 } },
+    { cap: "The user types <b>abc</b>. <code>int()</code> raises a <b>ValueError</b>, so that handler runs.", s: { i: 1 } },
+    { cap: "The user types <b>0</b>. The division raises <b>ZeroDivisionError</b>, so the other handler runs.", s: { i: 2 } },
+    { cap: "The user types <b>4</b>. No exception happens, so no except block runs and the answer is printed.", s: { i: 3 } }] });
+})();
+
+(function () {
+  const L = ["try:", "    File = open(\"Data.txt\")", "    Line = File.readline()", "except IOError:", "    print(\"Problem with the file\")", "finally:", "    print(\"Done\")"];
+  const draw = (s) => {
+    const k = Math.round(s.i); const hl = [-1, 1, 3, 4, 5, 6][k]; let o = codeList(20, 10, L, hl, 1, 34, 360);
+    if (k >= 2) o += SV.rect(420, 40, 310, 40, "cell-no", { rx: 8 }) + SV.text(434, 66, "IOError: file not found", "lbl bd t2", { style: "font-family:var(--mono);font-size:14px" });
+    if (k >= 3) o += SV.rect(420, 92, 310, 40, "cell-ok", { rx: 8 }) + SV.text(434, 118, "Problem with the file", "lbl bd t3", { style: "font-family:var(--mono);font-size:14px" });
+    if (k >= 5) o += SV.rect(420, 144, 310, 40, "cell-ok", { rx: 8 }) + SV.text(434, 170, "Done  (always runs)", "lbl bd t3", { style: "font-family:var(--mono);font-size:14px" });
+    return o;
+  };
+  Lib.stepper($("#stD"), { w: 760, h: 255, label: "The finally block", base: { i: 0 }, draw, tween: 250, dwell: 2800, steps: [
+    { cap: "A <code>finally</code> block runs <b>whether or not</b> an exception happened. It is used for clean-up, such as closing a file.", s: { i: 0 } },
+    { cap: "The file cannot be opened.", s: { i: 1 } },
+    { cap: "An IOError is raised, so the try block stops and the matching except runs.", s: { i: 2 } },
+    { cap: "The except block outputs its message.", s: { i: 3 } },
+    { cap: "Then the <code>finally</code> block.", s: { i: 4 } },
+    { cap: "It would also have run if the file had opened without error. The mark scheme does not require <code>finally</code>, but it is a correct use.", s: { i: 5 } }] });
+})();
+
+/* Lab 1 */
+(function () {
+  let sit = 0, on = false;
+  const sits = [["File exists, first line 5", "5"], ["File exists, first line is the word five", "five"], ["File exists, first line 0", "0"], ["File does not exist", ""]];
+  const run = () => {
+    const s = sits[sit], out = []; let halted = null;
+    try {
+      if (sit === 3) throw ["FileNotFoundError", "Could not find the file"];
+      const v = s[1]; if (isNaN(parseInt(v, 10)) || !/^-?\d+$/.test(v)) throw ["ValueError", "The file does not hold a number"];
+      if (+v === 0) throw ["ZeroDivisionError", "Cannot divide by zero"];
+      out.push("100 / " + v + " = " + 100 / +v);
+    } catch (e) { if (on) out.push(e[1]); else { halted = e[0]; } }
+    return { out, halted };
+  };
+  const paint = () => {
+    $$("#sB button").forEach((b, i) => b.classList.toggle("pri", i === sit)); $("#sT").textContent = "Exception handling: " + (on ? "on" : "off"); $("#sT").classList.toggle("pri", on);
+    const r = run(), code = ['File = open("Data.txt")', "Number = int(File.readline())", "print(100 / Number)"];
+    const lines = on ? ["try:", ...code.map((c) => "    " + c), "except:", '    print("An error occurred")'] : code;
+    $("#sC").innerHTML = '<div class="code"><pre class="cp">' + lines.map((l) => `<span class="ln">${l.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</span>`).join("") + "</pre></div>";
+    $("#sV").innerHTML = r.halted ? "<b>Output:</b> the program <b>halts</b> with " + r.halted + ". Nothing after the error runs." : "<b>Output:</b> " + r.out.join("<br>") + (on && !/^100/.test(r.out[0] || "") ? "<br>The program carries on after the try statement." : "");
+  };
+  $("#sB").innerHTML = sits.map((s, i) => `<button class="b" data-i="${i}">${s[0]}</button>`).join("");
+  $$("#sB button").forEach((b) => (b.onclick = () => { sit = +b.dataset.i; paint(); })); $("#sT").onclick = () => { on = !on; paint(); };
+  paint();
+})();
+
+btnTable("eB", "eO", [
+  ["User types text for a number", "ValueError", "User error", "except ValueError: print(\"Please enter a whole number\")"],
+  ["Divide by a zero entered by the user", "ZeroDivisionError", "User error shown as a programming error", "except ZeroDivisionError: print(\"Cannot divide by zero\")"],
+  ["Open a file that does not exist", "FileNotFoundError (an IOError)", "User error (wrong name) or system error", "except IOError: print(\"File not found\")"],
+  ["Read element 10 of a list of 5", "IndexError", "Programming error", "Check the index with IF, or except IndexError"],
+  ["Disk full while saving", "OSError", "Hardware / system failure", "except OSError: print(\"Cannot save\")"],
+  ["Add a string to an integer", "TypeError", "Programming error", "Fix the code: convert with str() or int()"]
+], ["Situation", "Exception", "Type of cause", "Handler"]);
+
+(function () {
+  const rows = [
+    ["try with no except", "try:\n    File = open(\"Data.txt\")", "A SyntaxError: a try needs at least one except (or finally)", "Add except IOError: with a message"],
+    ["Empty except", "except:\n    pass", "The error is hidden, nothing is shown to the user, and no mark for a message", "print(\"File not found\")"],
+    ["Open outside the try", "File = open(\"Data.txt\")\ntry:\n    ...", "The most likely failure is not protected, so the program can still halt", "Put the open inside the try"],
+    ["Using try for a range check", "try:\n    Age = int(Age)\nexcept:\n    print(\"Too old\")", "A value that is too large is not an exception: it needs IF", "IF Age > 120 THEN"],
+    ["Closing the file only in the try", "try:\n    File = open(...)\n    ...\n    File.close()", "If an error happens, the file is not closed; use finally or close it as well", "finally: File.close()"]
+  ];
+  const paint = (i) => { $$("#mB button").forEach((b, k) => b.classList.toggle("pri", k === i)); const r = rows[i]; $("#mO").innerHTML = '<div class="tw"><table class="t"><tr><th>Mistake</th><th>What goes wrong</th><th>Fix</th></tr><tr><td><b>' + r[0] + "</b><pre class=\"plain\">" + r[1].replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</pre></td><td>" + r[2] + "</td><td>" + r[3] + "</td></tr></table></div>"; };
+  $("#mB").innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  $$("#mB button").forEach((b) => (b.onclick = () => paint(+b.dataset.i))); paint(0);
+})();
+Lib.classify($("#cl1"), { prompt: "What type of cause is each situation?", buckets: [{"label": "Programming error"}, {"label": "User error"}, {"label": "Hardware failure"}], items: [{"text": "Dividing by a variable that holds zero", "b": 0}, {"text": "Typing a file name that does not exist", "b": 1}, {"text": "A hard disk crashes", "b": 2}, {"text": "Reading element 12 of a 10-element array", "b": 0}, {"text": "Entering letters where a number is expected", "b": 1}, {"text": "A printer is disconnected during printing", "b": 2}, {"text": "Adding a string to an integer in code", "b": 0}, {"text": "The network cable is pulled out", "b": 2}], done: "Programming errors are mistakes the program makes; user errors are bad input; hardware failure is a device problem." });
+Lib.classify($("#cl2"), { prompt: "Exception handling or an ordinary IF check?", buckets: [{"label": "Exception handling"}, {"label": "IF check"}], items: [{"text": "Opening a file that might not exist", "b": 0}, {"text": "Making sure a mark is between 0 and 100", "b": 1}, {"text": "Converting text typed by the user to an integer", "b": 0}, {"text": "Checking a menu choice is 1, 2 or 3", "b": 1}, {"text": "Reading from a network that might disconnect", "b": 0}, {"text": "Checking an index is less than the length of the list", "b": 1}, {"text": "Writing to a disk that might be full", "b": 0}, {"text": "Making sure a name is not empty", "b": 1}], done: "Use exception handling for events outside the program's control. Use IF to check values you can test." });
+Lib.order($("#o1"), { prompt: "Put the steps of a try and except in order.", items: ["The statements in the try block start to run", "One of them causes an exception", "The rest of the try block is skipped", "The matching except block runs", "The program carries on after the try statement"], done: "Try, exception, skip, handle, carry on." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Exception", "An unexpected event that disrupts a running program"], ["Exception handling", "Responding to the event so the program does not halt unexpectedly"], ["try", "The block of statements that might cause the exception"], ["except", "The block that responds to the exception"], ["finally", "Runs whether or not an exception happened"]], done: "Learn these terms." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "A try block has 4 statements. The 2nd causes an exception. How many statements of the try block run completely?", "a": 1, "unit": "", "tol": 0.01, "hint": "Only the 1st finishes; the 2nd fails.", "sol": "<b>1</b>."},
+  {"q": "A loop reads 10 lines in a try block. The 6th line is not a number, which raises ValueError. How many lines were converted successfully?", "a": 5, "unit": "", "tol": 0.01, "hint": "Lines 1 to 5.", "sol": "<b>5</b>."},
+  {"q": "A program prints Done after a try/except. How many times is Done printed if an exception occurs and is handled?", "a": 1, "unit": "", "tol": 0.01, "hint": "The program carries on after the try statement.", "sol": "<b>1</b>."},
+  {"q": "The user enters 5, then 0, then abc into a program with a handler for ValueError and a handler for ZeroDivisionError. How many handler blocks run in total?", "a": 2, "unit": "", "tol": 0.01, "hint": "5 causes no exception; 0 and abc each cause one.", "sol": "<b>2</b>."},
+  {"q": "A file has 30 lines. A loop reads each line inside a try, with the file closed afterwards. If the file does not exist, how many lines are read?", "a": 0, "unit": "", "tol": 0.01, "hint": "The open fails.", "sol": "<b>0</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "What is an exception?", opts: ["A programming language", "An unexpected event during execution that disrupts the program", "A type of loop", "An error in the design"], a: 1, why: "It happens at run time." },
+  { q: "Which is the best definition of exception handling?", opts: ["Preventing all errors", "Responding to unexpected events so the program does not halt unexpectedly", "Printing a program's errors", "Ignoring errors"], a: 1, why: "The program responds and carries on." },
+  { q: "Which is a hardware cause of an exception?", opts: ["Dividing by zero", "Typing a wrong file name", "A disk crash", "A missing bracket"], a: 2, why: "Disk crash or a lost device connection." },
+  { q: "Where should the file opening go?", opts: ["Outside the try", "Inside the try", "In the except", "After the program"], a: 1, why: "It is the statement that might fail." },
+  { q: "What does the except block do?", opts: ["Runs the risky code", "Responds to the exception, e.g. with a message", "Closes the program", "Creates a file"], a: 1, why: "It is the response." },
+  { q: "Which should use an IF check rather than exception handling?", opts: ["Opening a file", "Converting user input", "Checking that a score is between 0 and 100", "Reading a network connection"], a: 2, why: "A range can be tested directly." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Exception", "An unexpected event during execution that disrupts the program."],
+  ["Exception handling", "Responding to it so the program does not halt unexpectedly."],
+  ["try", "Statements that might cause an exception."],
+  ["except", "Statements that respond to the exception."],
+  ["Causes", "Programming errors, user errors, hardware failure."],
+  ["finally", "Runs whether or not an exception happened."],
+  ["Always add", "An output message in the except block."],
+  ["Use for", "Files, input, devices: things outside the program's control."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

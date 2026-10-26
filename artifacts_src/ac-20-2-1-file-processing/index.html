@@ -1,0 +1,1076 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>File Processing: Text, Serial, Sequential and Random Files</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 20.2.1</div>
+  <h1>File Processing: Text, Serial, Sequential and Random Files</h1>
+  <p class="cbook">Coursebook: Chapter 20 · Further programming, section 20.2 File processing and exception handling</p>
+  <p class="lead">Opening, reading, writing and closing text files; serial, sequential and random files; SEEK, GETRECORD and PUTRECORD; Python for Paper 4; animations, labs and the real Paper 3 and Paper 4 file questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A program's variables disappear when it ends, so data that must last is stored in a <b>file</b> on secondary storage. To use a file you <b>open</b> it in a mode (read, write, append, or random), <b>read</b> or <b>write</b> one record or line at a time, and then <b>close</b> it. A <b>text file</b> is processed from the start in order: <b>serial</b> files hold records in the order they were added and <b>sequential</b> files hold them in key order, so both are read one record after another until the end of the file. A <b>random</b> file lets the program jump straight to a record: <b>SEEK</b> moves to a position, then <b>GETRECORD</b> reads it or <b>PUTRECORD</b> writes it. Paper 3 asks you to complete this pseudocode; Paper 4 asks you to read and write files in Python.</p></div>
+
+  <h2>1 · Opening, reading, writing and closing</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Pseudocode</th><th>What it does</th><th>Python</th></tr>
+    <tr><td><code>OPENFILE "Data.txt" FOR READ</code></td><td>Opens an existing file to read from the start</td><td><code>f = open("Data.txt", "r")</code></td></tr>
+    <tr><td><code>OPENFILE "Out.txt" FOR WRITE</code></td><td>Opens a file to write. A new file is created; an existing file is <b>overwritten</b></td><td><code>f = open("Out.txt", "w")</code></td></tr>
+    <tr><td><code>OPENFILE "Log.txt" FOR APPEND</code></td><td>Opens a file and adds new data to the <b>end</b></td><td><code>f = open("Log.txt", "a")</code></td></tr>
+    <tr><td><code>READFILE "Data.txt", Line</code></td><td>Reads the next line into the variable</td><td><code>Line = f.readline()</code> or <code>for Line in f:</code></td></tr>
+    <tr><td><code>WRITEFILE "Out.txt", Line</code></td><td>Writes the value as the next line</td><td><code>f.write(Line + "\n")</code></td></tr>
+    <tr><td><code>EOF("Data.txt")</code></td><td>True when there is nothing left to read</td><td>the <code>for</code> loop ends; <code>readline()</code> returns <code>""</code></td></tr>
+    <tr><td><code>CLOSEFILE "Data.txt"</code></td><td>Closes the file so all data is saved and it can be reused</td><td><code>f.close()</code></td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Always close</b>Every file that is opened must be closed, in an appropriate place (after the loop, not inside it). Closing a written file makes sure the data is actually saved. Python's <code>with open(...) as f:</code> closes it for you; the mark scheme accepts it.</div>
+
+  <h2>2 · Reading a text file into an array</h2>
+  <p>Each line of a text file is one string. Convert it to the type you need (<code>int(Line)</code>), and remove the newline with <code>strip()</code> if you will compare or split it.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">DataArray = []                                   # 25 elements of type integer</span><span class="ln">DataFile = open(&quot;Data.txt&quot;, &quot;r&quot;)</span><span class="ln">for Line in DataFile:                            # one pass for each line, until the end of file</span><span class="ln">    DataArray.append(int(Line))</span><span class="ln">DataFile.close()</span></pre></div>
+  <p>When a record is spread over several lines, read the lines in the order they were written, or keep the fields on one line and split them:</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">File = open(&quot;HighScore.txt&quot;, &quot;r&quot;)</span><span class="ln">for x in range(0, 10):</span><span class="ln">    FileData[x][0] = File.readline()[:3]        # line 1: three-character player name</span><span class="ln">    FileData[x][1] = File.readline().strip()    # line 2: the score</span><span class="ln">File.close()</span><span class="ln"> </span><span class="ln"># a record on one line, fields separated by spaces:   &quot;Aria True 12 3&quot;</span><span class="ln">Parts = Line.strip().split(&quot; &quot;)                 # [&quot;Aria&quot;, &quot;True&quot;, &quot;12&quot;, &quot;3&quot;]</span></pre></div>
+
+  <h2>3 · Writing and appending</h2>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">File = open(&quot;NewHighScore.txt&quot;, &quot;w&quot;)             # write: creates or overwrites</span><span class="ln">for x in range(0, 10):</span><span class="ln">    File.write(str(FileData[x][0]) + &quot;\n&quot;)</span><span class="ln">    File.write(str(FileData[x][1]) + &quot;\n&quot;)</span><span class="ln">File.close()</span><span class="ln"> </span><span class="ln">Log = open(&quot;Log.txt&quot;, &quot;a&quot;)                       # append: adds to the end</span><span class="ln">Log.write(&quot;Game finished\n&quot;)</span><span class="ln">Log.close()</span></pre></div>
+  <p><code>write</code> needs a string, so convert numbers with <code>str()</code>, and add <code>"\n"</code> to start a new line. A comma-separated line such as the tree example is built by joining the fields: <code>str(A) + "," + str(B) + "," + str(C) + "\n"</code>.</p>
+
+  <h2>4 · Serial, sequential and random files</h2>
+  <div class="tw"><table class="t">
+    <tr><th>File</th><th>How records are stored</th><th>How you find a record</th><th>Adding a record</th></tr>
+    <tr><td><b>Serial</b></td><td>In the order they were added, with no ordering on a key</td><td>Read from the start until found (or to the end to process all)</td><td>Append to the end</td></tr>
+    <tr><td><b>Sequential</b></td><td>In order of a key field</td><td>Read in order; can stop once the key has been passed</td><td>Write a new file, inserting the record in the right place</td></tr>
+    <tr><td><b>Random</b></td><td>At an address calculated from the key (position, or a hash)</td><td>Go straight to the address with SEEK, then GETRECORD</td><td>SEEK to the address, then PUTRECORD</td></tr>
+  </table></div>
+  <p>For a serial or sequential file the program loops: open, repeat <code>READFILE</code> until <code>EOF</code>, close. Processing a file means doing something to each record in that loop (copying, totalling, searching). To <b>delete</b> or <b>change</b> a record in a text file, write every record to a new file, changing or leaving out the one required.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;ActiveFile.txt&quot; FOR READ</span><span class="ln">OPENFILE &quot;ArchiveFile.txt&quot; FOR WRITE</span><span class="ln">WHILE NOT EOF(&quot;ActiveFile.txt&quot;)</span><span class="ln">   READFILE &quot;ActiveFile.txt&quot;, Account</span><span class="ln">   IF Account = &quot;&quot; THEN</span><span class="ln">      WRITEFILE &quot;ArchiveFile.txt&quot;, &quot;Account not present&quot;</span><span class="ln">   ELSE</span><span class="ln">      WRITEFILE &quot;ArchiveFile.txt&quot;, Account</span><span class="ln">   ENDIF</span><span class="ln">ENDWHILE</span><span class="ln">CLOSEFILE &quot;ActiveFile.txt&quot;</span><span class="ln">CLOSEFILE &quot;ArchiveFile.txt&quot;</span></pre></div>
+
+  <h2>5 · Random files: SEEK, GETRECORD and PUTRECORD</h2>
+  <p>A random file is opened with <code>FOR RANDOM</code>. Each record has the same size, so the program can work out where record number <i>n</i> starts and jump there.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Command</th><th>What it does</th></tr>
+    <tr><td><code>OPENFILE "Stock.dat" FOR RANDOM</code></td><td>Opens the file for reading and writing at any position</td></tr>
+    <tr><td><code>SEEK "Stock.dat", Location</code></td><td>Moves the file pointer to the record at that location</td></tr>
+    <tr><td><code>GETRECORD "Stock.dat", Item</code></td><td>Reads the record at the pointer into the variable</td></tr>
+    <tr><td><code>PUTRECORD "Stock.dat", Item</code></td><td>Writes the variable as the record at the pointer</td></tr>
+  </table></div>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;StockList.dat&quot; FOR RANDOM</span><span class="ln">OUTPUT &quot;Enter a location between 1 and 500: &quot;</span><span class="ln">INPUT Location</span><span class="ln">SEEK &quot;StockList.dat&quot;, Location        // always SEEK before GETRECORD or PUTRECORD</span><span class="ln">GETRECORD &quot;StockList.dat&quot;, Item</span><span class="ln">IF Item = &quot;&quot; THEN</span><span class="ln">   OUTPUT &quot;This record is missing.&quot;</span><span class="ln">ELSE</span><span class="ln">   OUTPUT &quot;The item in stock is &quot;, Item</span><span class="ln">ENDIF</span><span class="ln">CLOSEFILE &quot;StockList.dat&quot;</span></pre></div>
+  <p>The location is often calculated from the key with a <b>hash function</b> (for example the account number MOD the number of slots), so a record can be found without searching: <code>Location ← Hash(Customer.AccountNumber)</code>, <code>SEEK AccountFile, Location</code>, <code>GETRECORD AccountFile, Customer</code>. A random file has empty locations, which is why a record that reads back as <code>""</code> means "nothing stored here".</p>
+  <div class="tw"><table class="t">
+    <tr><th>Task</th><th>Pattern</th></tr>
+    <tr><td>Read a record at a known place</td><td>OPEN RANDOM, SEEK, GETRECORD, CLOSE</td></tr>
+    <tr><td>Store a record at a known place</td><td>OPEN RANDOM, SEEK, PUTRECORD, CLOSE</td></tr>
+    <tr><td>Find the first empty slot</td><td>loop: SEEK, GETRECORD, if empty then PUTRECORD and stop, else add 1 to the location</td></tr>
+    <tr><td>Copy records from one file to another</td><td>FOR each position: SEEK, GETRECORD from the first file, SEEK, PUTRECORD in the second</td></tr>
+  </table></div>
+
+  <h2>6 · Common ways to lose marks</h2>
+  <ul>
+    <li>Forgetting <code>CLOSEFILE</code>, or closing inside the loop, or before the last read.</li>
+    <li>Using <code>FOR WRITE</code> when the data must be added to what is already there (that is <code>APPEND</code>), or <code>FOR READ</code> on a file you also write to.</li>
+    <li>Leaving out <code>SEEK</code> before <code>GETRECORD</code> or <code>PUTRECORD</code> in a random file.</li>
+    <li>Not converting what was read: a line is a string. Use <code>int()</code> before adding or comparing as numbers.</li>
+    <li>Not removing the newline, so the data never equals what it should.</li>
+    <li>Writing a number without <code>str()</code>, or forgetting the new line, so everything ends up on one line.</li>
+    <li>Looping a fixed number of times when the question says "until the end of the file".</li>
+    <li>In Paper 4, forgetting the exception handling mark for opening or reading the file (see the next page).</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Reading a text file into an array</h2>
+  <p>Press Play, or click the steps.</p>
+  <div id="stA"></div>
+  <h2>2 · Write overwrites, append adds</h2>
+  <div id="stB"></div>
+  <h2>3 · Copying a file one line at a time</h2>
+  <div id="stC"></div>
+  <h2>4 · Reaching record 600: serial or random?</h2>
+  <div id="stD"></div>
+  <h2>5 · A random file lookup with a hash</h2>
+  <div id="stE"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · What does the open mode do?</h2>
+  <p>Choose a mode and whether the file already exists. The file holds the lines Ana, Ben, Cho. The program then writes the line Dev.</p>
+  <div class="card"><div id="mB" class="btnrow"></div><div id="mE" class="btnrow"></div><div id="mO"></div><div class="verdict" id="mV"></div></div>
+
+  <h2>Lab 2 · Step through a read loop</h2>
+  <p>The file Scores.txt holds five numbers, one per line. Press Step to run each statement of the loop and watch the pointer, the variable and the total.</p>
+  <div class="card"><div id="rS"></div><div class="btnrow"><button class="b pri" id="rN">Step</button><button class="b" id="rR">Reset</button></div><div class="verdict" id="rV"></div></div>
+
+  <h2>Lab 3 · Find a record with a hash</h2>
+  <p>Account records are stored in a random file with 11 locations, using Location = AccountNumber MOD 11. Enter an account number to see where it is stored, then try two numbers that map to the same place.</p>
+  <div class="card"><div id="hS"></div><div id="hT"></div><div class="verdict" id="hV"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Read, write, append or random?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Serial, sequential or random file?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the steps for processing a text file in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the command to its job</h2><div id="m1" class="card"></div>
+  <h2>5 · Count the operations</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A high score table</h3><p>A game saves the top ten names and scores in a text file when it closes and reads them back when it starts. Writing replaces the old file with the new table.</p><div class="use"><b>Exam use:</b> WRITE overwrites the file; read it back in the same order it was written.</div></div>
+  <div class="rw"><h3>A log of events</h3><p>A server adds one line to a log every time something happens. The program opens the file in append mode so earlier lines are never lost.</p><div class="use"><b>Exam use:</b> APPEND adds to the end of an existing file.</div></div>
+  <div class="rw"><h3>A bank's account file</h3><p>Millions of account records are stored in a random file. The account number is turned into a location by a hash function, so one record can be fetched without reading the rest.</p><div class="use"><b>Exam use:</b> random access: SEEK to the location and GETRECORD.</div></div>
+  <div class="rw"><h3>A payroll run</h3><p>A program reads each employee's hours from a file, line by line, calculates pay and writes a payslip line to a new file. It stops at the end of the file.</p><div class="use"><b>Exam use:</b> serial processing: read until EOF, process, write, close.</div></div>
+  <div class="rw"><h3>Backing up a file</h3><p>A copy of every record is written one at a time from the live file to a stored file. Anything that is blank is replaced with a standard message.</p><div class="use"><b>Exam use:</b> copying with SEEK, GETRECORD and PUTRECORD for random files, or READFILE and WRITEFILE for text.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on file processing: Paper 3 pseudocode for text and random files, and Paper 4 Python for text files. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2023</td><td>31, 33</td><td>10</td><td>5</td><td>Complete the copy of ActiveFile.txt to ArchiveFile.txt, replacing blank lines</td></tr>
+    <tr><td>M/J 2023</td><td>32</td><td>6(b)</td><td>5</td><td>Complete the read of every record in the random file DentalFile.dat</td></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>8(a)</td><td>5</td><td>Complete a random file lookup using a hash function</td></tr>
+    <tr><td>O/N 2023</td><td>32</td><td>12(b)</td><td>7</td><td>Complete a search of a random file for a customer by name</td></tr>
+    <tr><td>M/J 2025</td><td>31</td><td>12</td><td>5</td><td>Complete a check of a location in StockList.dat</td></tr>
+    <tr><td>M/J 2025</td><td>32</td><td>13</td><td>5</td><td>Complete the copy of 50 records between two random files</td></tr>
+    <tr><td>M/J 2025</td><td>33</td><td>11</td><td>5</td><td>Complete the insertion of a new stock item into the next empty location</td></tr>
+    <tr><td>M/J 2026</td><td>32</td><td>10(b)</td><td>6</td><td>Complete TempCheck() using SEEK and GETRECORD</td></tr>
+    <tr><td>M/J 2022</td><td>41, 43</td><td>1(b), 1(f)</td><td>6 + 4</td><td>Read pairs of lines from HighScore.txt; write the table to NewHighScore.txt</td></tr>
+    <tr><td>O/N 2025</td><td>42</td><td>3(d)</td><td>5</td><td>Write the contents of TreeArray to a new text file, one comma-separated line each</td></tr>
+  </table></div>
+  <p class="note">Paper 3 asks you to complete file-handling <b>pseudocode</b> (text and random files). Paper 4 asks you to read and write text files as <b>Python</b>, in almost every paper; the Paper 4 questions that award marks for exception handling are on the next page, and two that are mainly about reading and writing are here. Python is shown for Paper 4; Paper 3 answers are in the pseudocode the exam uses. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+
+  <h3>Paper 3: text files</h3>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/31, 33 · Q10</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> The pseudocode algorithm copies an active accounts text file ActiveFile.txt to an archive accounts text file ArchiveFile.txt, one line at a time. Any blank lines found in the active accounts file are replaced with the words "Account not present" in the archive file. Complete this file-handling pseudocode.<pre class="plain">DECLARE Account : STRING
+...
+OPENFILE &quot;ArchiveFile.txt&quot; FOR WRITE
+WHILE NOT ...
+   READFILE &quot;ActiveFile.txt&quot;, Account
+   IF Account = &quot;&quot; THEN
+      WRITEFILE &quot;ArchiveFile.txt&quot;, &quot; ...&quot;
+   ELSE
+      WRITEFILE &quot;ArchiveFile.txt&quot;, ...
+   ENDIF
+ENDWHILE
+...
+CLOSEFILE &quot;ArchiveFile.txt&quot;</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open the active file for reading, loop until its end, close both files at the end.</div>
+    <div class="ans"><p>One mark for each correctly completed line (maximum 5): <span class="mk k" data-t="1">OPENFILE "ActiveFile.txt" FOR READ</span> <span class="mk k" data-t="2">WHILE NOT EOF("ActiveFile.txt")</span> <span class="mk k" data-t="3">WRITEFILE "ArchiveFile.txt", "Account not present"</span> <span class="mk k" data-t="4">WRITEFILE "ArchiveFile.txt", Account</span> <span class="mk k" data-t="5">CLOSEFILE "ActiveFile.txt"</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">DECLARE Account : STRING</span><span class="ln">OPENFILE &quot;ActiveFile.txt&quot; FOR READ</span><span class="ln">OPENFILE &quot;ArchiveFile.txt&quot; FOR WRITE</span><span class="ln">WHILE NOT EOF(&quot;ActiveFile.txt&quot;)</span><span class="ln">   READFILE &quot;ActiveFile.txt&quot;, Account</span><span class="ln">   IF Account = &quot;&quot; THEN</span><span class="ln">      WRITEFILE &quot;ArchiveFile.txt&quot;, &quot;Account not present&quot;</span><span class="ln">   ELSE</span><span class="ln">      WRITEFILE &quot;ArchiveFile.txt&quot;, Account</span><span class="ln">   ENDIF</span><span class="ln">ENDWHILE</span><span class="ln">CLOSEFILE &quot;ActiveFile.txt&quot;</span><span class="ln">CLOSEFILE &quot;ArchiveFile.txt&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Closing only the archive file. Both files that were opened must be closed.</div>
+  </div></details>
+
+  <h3>Paper 3: random files</h3>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/32 · Q6(b)</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> The pseudocode reads dental records stored in a random file using the user-defined data type TAppointments and prints the contents of the file, one record at a time. Complete this file-handling pseudocode.<pre class="plain">DECLARE DentalRecord : ARRAY[1:250] OF TAppointments
+DECLARE DentalFile : STRING
+DECLARE Count : INTEGER
+DentalFile ← &quot;DentalFile.dat&quot;
+OUTPUT &quot;The file &quot;, DentalFile, &quot; contains these records:&quot;
+OPENFILE ...
+...  ← 1
+REPEAT
+   SEEK DentalFile, Count
+   ...
+   OUTPUT DentalRecord[Count]
+   Count ← Count + 1
+UNTIL ...
+...</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A random file needs OPENFILE FOR RANDOM, a SEEK before each read, GETRECORD into the array element, and a stop at the end of the file.</div>
+    <div class="ans"><p>One mark for each correctly completed line (maximum 5): <span class="mk k" data-t="1">OPENFILE DentalFile FOR RANDOM</span> <span class="mk k" data-t="2">Count ← 1</span> <span class="mk k" data-t="3">GETRECORD DentalFile, DentalRecord[Count]</span> <span class="mk k" data-t="4">UNTIL EOF(DentalFile)</span> <span class="mk k" data-t="5">CLOSEFILE DentalFile</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE DentalFile FOR RANDOM</span><span class="ln">Count ← 1</span><span class="ln">REPEAT</span><span class="ln">   SEEK DentalFile, Count</span><span class="ln">   GETRECORD DentalFile, DentalRecord[Count]</span><span class="ln">   OUTPUT DentalRecord[Count]</span><span class="ln">   Count ← Count + 1</span><span class="ln">UNTIL EOF(DentalFile)</span><span class="ln">CLOSEFILE DentalFile</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using READFILE on a random file. Random files are read with SEEK and GETRECORD.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31, 33 · Q8(a)</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> A pseudocode algorithm finds a customer account record in a random file and outputs it. The records are stored using the user-defined data type TAccount (AccountNumber : INTEGER, LastName, FirstName, Address, ContactNumber : STRING). The function Hash() takes the customer account number as a parameter, calculates and returns the hash value. Complete the file-handling pseudocode.<pre class="plain">DECLARE Customer : TAccount
+DECLARE Location : INTEGER
+DECLARE AccountFile : STRING
+...      &quot;AccountRecords.dat&quot;
+... AccountFile ...
+OUTPUT &quot;Please enter an account number&quot;
+INPUT Customer.AccountNumber
+Location ← Hash( ...)
+SEEK ... , Location
+... AccountFile, ...
+OUTPUT Customer                // output customer record
+CLOSEFILE AccountFile</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Assign the filename, open for random access, hash the account number, SEEK, then read the record into Customer.</div>
+    <div class="ans"><p>One mark for each correctly completed line (maximum 5): <span class="mk k" data-t="1">AccountFile ← "AccountRecords.dat"</span> <span class="mk k" data-t="2">OPENFILE AccountFile FOR RANDOM</span> <span class="mk k" data-t="3">Hash(Customer.AccountNumber)</span> <span class="mk k" data-t="4">SEEK AccountFile, Location</span> <span class="mk k" data-t="5">GETRECORD AccountFile, Customer</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">AccountFile ← &quot;AccountRecords.dat&quot;</span><span class="ln">OPENFILE AccountFile FOR RANDOM</span><span class="ln">OUTPUT &quot;Please enter an account number&quot;</span><span class="ln">INPUT Customer.AccountNumber</span><span class="ln">Location ← Hash(Customer.AccountNumber)</span><span class="ln">SEEK AccountFile, Location</span><span class="ln">GETRECORD AccountFile, Customer</span><span class="ln">OUTPUT Customer</span><span class="ln">CLOSEFILE AccountFile</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Missing the SEEK. Without it GETRECORD reads from wherever the pointer already is.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/32 · Q12(b)</span> <span class="cmd">Complete</span> <span class="mark">7 marks</span> A pseudocode algorithm searches for a customer record in the random file AccountRecord.dat. A user inputs the name of the customer. The records use the type TAccount (AccountNumber : INTEGER, Name, Address, Telephone : STRING). If the record is found it is output, otherwise an error message is displayed. Complete the file-handling pseudocode.<pre class="plain">MaxSize ← 1000
+OPENFILE ...
+Location ← 1
+...  ← FALSE
+OUTPUT &quot;Enter the customer&#x27;s name&quot;
+...
+... AND Location &lt;= MaxSize
+   ... &quot;AccountRecord.dat&quot;, ...
+   GETRECORD &quot;AccountRecord.dat&quot;, Customer
+   IF SearchCustomer = Customer.Name THEN
+      OUTPUT &quot;Customer found: &quot;
+      OUTPUT Customer
+      FoundFlag ← TRUE
+   ENDIF
+   Location ← Location + 1
+ENDWHILE
+IF NOT FoundFlag THEN
+   OUTPUT &quot;...&quot;
+ENDIF</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A search loop with a flag: stop when found or when the end of the file is reached.</div>
+    <div class="ans"><p>One mark for each correctly completed blank (maximum 7): <span class="mk k" data-t="1">OPENFILE "AccountRecord.dat" FOR RANDOM</span> <span class="mk k" data-t="2">FoundFlag</span> <span class="mk k" data-t="3">INPUT SearchCustomer</span> <span class="mk k" data-t="4">WHILE NOT FoundFlag</span> <span class="mk k" data-t="5">SEEK</span> <span class="mk k" data-t="6">Location</span> <span class="mk k" data-t="7">OUTPUT "Customer does not exist."</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;AccountRecord.dat&quot; FOR RANDOM</span><span class="ln">Location ← 1</span><span class="ln">FoundFlag ← FALSE</span><span class="ln">OUTPUT &quot;Enter the customer&#x27;s name&quot;</span><span class="ln">INPUT SearchCustomer</span><span class="ln">WHILE NOT FoundFlag AND Location &lt;= MaxSize</span><span class="ln">   SEEK &quot;AccountRecord.dat&quot;, Location</span><span class="ln">   GETRECORD &quot;AccountRecord.dat&quot;, Customer</span><span class="ln">   IF SearchCustomer = Customer.Name THEN</span><span class="ln">      OUTPUT &quot;Customer found: &quot;</span><span class="ln">      OUTPUT Customer</span><span class="ln">      FoundFlag ← TRUE</span><span class="ln">   ENDIF</span><span class="ln">   Location ← Location + 1</span><span class="ln">ENDWHILE</span><span class="ln">IF NOT FoundFlag THEN</span><span class="ln">   OUTPUT &quot;Customer does not exist.&quot;</span><span class="ln">ENDIF</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Not closing the file, or leaving the flag unset so the loop never uses it.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/31 · Q12</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> The pseudocode algorithm checks whether a location in a stock file StockList.dat is empty or not. The location is given by the user. If the location is empty, a suitable message is displayed, otherwise the item stored at that location is displayed. Complete this file-handling pseudocode algorithm.<pre class="plain">DECLARE Location : INTEGER
+DECLARE Item : STRING
+DECLARE Continue : BOOLEAN
+DECLARE Answer : CHAR
+Continue ← TRUE
+OPENFILE ...
+WHILE Continue
+   OUTPUT &quot;Enter a location between 1 and 500: &quot;
+   INPUT Location
+   ...
+   GETRECORD ...
+   IF Item = &quot;&quot; THEN
+      OUTPUT &quot;This record is missing.&quot;
+   ELSE
+      OUTPUT &quot;The item in stock is &quot;, ...
+   ENDIF
+   OUTPUT &quot;Another location (Y or N)?&quot;
+   INPUT Answer
+   IF Answer &lt;&gt; &#x27;Y&#x27; THEN
+      Continue ← FALSE
+   ENDIF
+ENDWHILE
+...
+OUTPUT &quot;End of program&quot;</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open once before the loop, SEEK and GETRECORD inside it, close after it.</div>
+    <div class="ans"><p>One mark for each correctly completed line (maximum 5): <span class="mk k" data-t="1">OPENFILE "StockList.dat" FOR RANDOM</span> <span class="mk k" data-t="2">SEEK "StockList.dat", Location</span> <span class="mk k" data-t="3">GETRECORD "StockList.dat", Item</span> <span class="mk k" data-t="4">OUTPUT "The item in stock is ", Item</span> <span class="mk k" data-t="5">CLOSEFILE "StockList.dat"</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;StockList.dat&quot; FOR RANDOM</span><span class="ln">WHILE Continue</span><span class="ln">   OUTPUT &quot;Enter a location between 1 and 500: &quot;</span><span class="ln">   INPUT Location</span><span class="ln">   SEEK &quot;StockList.dat&quot;, Location</span><span class="ln">   GETRECORD &quot;StockList.dat&quot;, Item</span><span class="ln">   ...</span><span class="ln">ENDWHILE</span><span class="ln">CLOSEFILE &quot;StockList.dat&quot;</span><span class="ln">OUTPUT &quot;End of program&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Placing CLOSEFILE inside the loop, so the file is closed after the first location checked.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/32 · Q13</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> The pseudocode uses random file access to copy 50 records from a live file CurrentResults.dat to a stored file StoredResults.dat one record at a time, using the type StudentResult (LastName, FirstName, ExamGrade : STRING). If any grades are missing in CurrentResults.dat, the text "Missing grade" is put in the ExamGrade field in StoredResults.dat. Complete this file-handling pseudocode.<pre class="plain">DECLARE Grade : StudentResult
+DECLARE Position : INTEGER
+...
+OPENFILE &quot;StoredResults.dat&quot; FOR RANDOM
+...
+   SEEK &quot;CurrentResults.dat&quot;, Position
+   GETRECORD &quot;CurrentResults.dat&quot;, Grade
+   IF Grade.ExamGrade = &quot;&quot; THEN
+      ...
+   ENDIF
+   ...
+   ...
+NEXT Position
+CLOSEFILE &quot;CurrentResults.dat&quot;
+CLOSEFILE &quot;StoredResults.dat&quot;</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two files open, so two OPENFILE statements. A FOR loop over 50 positions. Replace a blank grade, then SEEK and PUTRECORD in the stored file.</div>
+    <div class="ans"><p>One mark for each correctly completed line: <span class="mk k" data-t="1">OPENFILE "CurrentResults.dat" FOR RANDOM</span> <span class="mk k" data-t="2">FOR Position ← 1 TO 50</span> <span class="mk k" data-t="3">Grade.ExamGrade ← "Missing grade"</span> <span class="mk k" data-t="4">SEEK "StoredResults.dat", Position</span> <span class="mk k" data-t="5">PUTRECORD "StoredResults.dat", Grade</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;CurrentResults.dat&quot; FOR RANDOM</span><span class="ln">OPENFILE &quot;StoredResults.dat&quot; FOR RANDOM</span><span class="ln">FOR Position ← 1 TO 50</span><span class="ln">   SEEK &quot;CurrentResults.dat&quot;, Position</span><span class="ln">   GETRECORD &quot;CurrentResults.dat&quot;, Grade</span><span class="ln">   IF Grade.ExamGrade = &quot;&quot; THEN</span><span class="ln">      Grade.ExamGrade ← &quot;Missing grade&quot;</span><span class="ln">   ENDIF</span><span class="ln">   SEEK &quot;StoredResults.dat&quot;, Position</span><span class="ln">   PUTRECORD &quot;StoredResults.dat&quot;, Grade</span><span class="ln">NEXT Position</span><span class="ln">CLOSEFILE &quot;CurrentResults.dat&quot;</span><span class="ln">CLOSEFILE &quot;StoredResults.dat&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing to the stored file without a SEEK first. PUTRECORD writes at the pointer, which is not Position.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/33 · Q11</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> The pseudocode allows a user to input a new stock item. The random file is searched for the next empty location and the new item is inserted there. A suitable message is displayed if the file is full. Complete this pseudocode.<pre class="plain">Max ← 100000
+Stored ← FALSE
+Location ← 1
+...
+OUTPUT &quot;Enter the new item you wish to store: &quot;
+INPUT NewStock
+WHILE NOT Stored AND Location &lt;= Max
+   ...
+   GETRECORD &quot;StockList.dat&quot;, ...
+   IF CurrentStock = &quot;&quot; THEN
+      ... &quot;StockList.dat&quot;, NewStock
+      Stored ← TRUE
+   ELSE
+      Location ← Location + 1
+   ENDIF
+ENDWHILE
+IF ... THEN
+   OUTPUT &quot;The new item has not been stored as the file was full.&quot;
+ENDIF
+...</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the first empty location by reading each one in turn; the empty one is where PUTRECORD stores the item.</div>
+    <div class="ans"><p>One mark for each correctly completed line: <span class="mk k" data-t="1">OPENFILE "StockList.dat" FOR RANDOM</span> <span class="mk k" data-t="2">SEEK "StockList.dat", Location</span> <span class="mk k" data-t="3">GETRECORD ..., CurrentStock</span> <span class="mk k" data-t="4">PUTRECORD "StockList.dat", NewStock</span> <span class="mk k" data-t="5">IF Stored = FALSE THEN ... CLOSEFILE "StockList.dat"</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;StockList.dat&quot; FOR RANDOM</span><span class="ln">...</span><span class="ln">WHILE NOT Stored AND Location &lt;= Max</span><span class="ln">   SEEK &quot;StockList.dat&quot;, Location</span><span class="ln">   GETRECORD &quot;StockList.dat&quot;, CurrentStock</span><span class="ln">   IF CurrentStock = &quot;&quot; THEN</span><span class="ln">      PUTRECORD &quot;StockList.dat&quot;, NewStock</span><span class="ln">      Stored ← TRUE</span><span class="ln">   ELSE</span><span class="ln">      Location ← Location + 1</span><span class="ln">   ENDIF</span><span class="ln">ENDWHILE</span><span class="ln">IF Stored = FALSE THEN</span><span class="ln">   OUTPUT &quot;The new item has not been stored as the file was full.&quot;</span><span class="ln">ENDIF</span><span class="ln">CLOSEFILE &quot;StockList.dat&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Putting the record with PUTRECORD without having done SEEK to the empty location in this pass of the loop.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/32 · Q10(b)</span> <span class="cmd">Complete</span> <span class="mark">6 marks</span> A temperature in degrees Celsius is recorded every minute for one day in a random file, Temperatures.dat. The position of each temperature corresponds to the number of minutes after midnight (10:00 am is at position 600). Complete the algorithm to check a temperature, by passing its position in the file as a parameter and using file-handling commands to find the data item. If it is above freezing return "Not freezing", otherwise "Freezing". Some blank lines may not be used.<pre class="plain">FUNCTION TempCheck( ...
+   DECLARE Temperature : REAL
+   DECLARE Response : STRING
+   OPENFILE ...
+   ...
+   ...
+   ...
+ENDFUNCTION</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Header with the parameter and return type, open, SEEK, GETRECORD, IF, CLOSE, RETURN. The close must come before the RETURN.</div>
+    <div class="ans"><p>Up to six marks: <span class="mk k" data-t="1">correct FUNCTION header</span> <span class="mk k" data-t="2">OPENFILE statement</span> <span class="mk k" data-t="3">SEEK with the position</span> <span class="mk k" data-t="4">GETRECORD into Temperature</span> <span class="mk k" data-t="5">a complete IF ... ELSE ... ENDIF that gives the right messages</span> <span class="mk k" data-t="6">CLOSEFILE before the RETURN (and a correct RETURN)</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">FUNCTION TempCheck(Position : INTEGER) RETURNS STRING</span><span class="ln">   DECLARE Temperature : REAL</span><span class="ln">   DECLARE Response : STRING</span><span class="ln">   OPENFILE &quot;Temperatures.dat&quot; FOR RANDOM</span><span class="ln">   SEEK &quot;Temperatures.dat&quot;, Position</span><span class="ln">   GETRECORD &quot;Temperatures.dat&quot;, Temperature</span><span class="ln">   IF Temperature &gt; 0 THEN</span><span class="ln">      Response ← &quot;Not freezing&quot;</span><span class="ln">   ELSE</span><span class="ln">      Response ← &quot;Freezing&quot;</span><span class="ln">   ENDIF</span><span class="ln">   CLOSEFILE &quot;Temperatures.dat&quot;</span><span class="ln">   RETURN Response</span><span class="ln">ENDFUNCTION</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing RETURN before CLOSEFILE. The function ends at the RETURN, so the file is never closed.</div>
+  </div></details>
+
+  <h3>Paper 4: reading and writing text files in Python</h3>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/41, 43 · Q1(b), (f)</span> <span class="cmd">Write</span> <span class="mark">6 + 4 marks</span> The text file HighScore.txt stores the top ten players in a game in descending order of score. For each player it stores the 3-character name and the integer score, in the order: player, score (two lines per player). The program stores the players and scores in the global array FileData, 11 rows and 2 columns, declared as <code>FileData = [[""] * 2 for i in range(11)]</code>. (b) The procedure ReadHighScores() opens HighScore.txt and reads the data into the data structure. Use exception handling. Write program code for ReadHighScores(). (f) The procedure WriteTopTen() stores the new top ten player names and scores in a text file called NewHighScore.txt. Write program code for WriteTopTen().</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(b) read two lines for each of 10 players. (f) write two lines for each, with a new line after each value. Use try/except round the file handling.</div>
+    <div class="ans"><p><b>(b)</b> Up to six marks: <span class="mk k" data-t="1">procedure header</span> <span class="mk k" data-t="2">opening the text file to read</span> <span class="mk k" data-t="3">looping 10 times, or to the end of the file</span> <span class="mk k" data-t="4">reading each pair of lines</span> <span class="mk k" data-t="5">storing player name and score in the data structure</span> <span class="mk k" data-t="6">closing the file</span> plus try and catch on the file handling with suitable output (maximum 6 in total).</p><pre class="cp" style="counter-reset:l 0"><span class="ln">def ReadHighScores():</span><span class="ln">    Filename = &quot;HighScore.txt&quot;</span><span class="ln">    try:</span><span class="ln">        File = open(Filename, &quot;r&quot;)</span><span class="ln">        for x in range(0, 10):</span><span class="ln">            FileData[x][0] = File.readline()[:3]       # player name</span><span class="ln">            FileData[x][1] = File.readline().strip()   # score</span><span class="ln">        File.close()</span><span class="ln">    except IOError:</span><span class="ln">        print(&quot;File not found&quot;)</span></pre><p><b>(f)</b> Four marks: <span class="mk a" data-t="1">procedure header, opening NewHighScore.txt to write</span> <span class="mk a" data-t="2">closing the file</span> <span class="mk a" data-t="3">looping through all 10 array values</span> <span class="mk a" data-t="4">writing the player name, then the score</span> and exception handling with an appropriate output.</p><pre class="cp" style="counter-reset:l 11"><span class="ln">def WriteTopTen():</span><span class="ln">    try:</span><span class="ln">        File = open(&quot;NewHighScore.txt&quot;, &quot;w&quot;)</span><span class="ln">        for x in range(0, 10):</span><span class="ln">            File.write(str(FileData[x][0]) + &quot;\n&quot;)</span><span class="ln">            File.write(str(FileData[x][1]) + &quot;\n&quot;)</span><span class="ln">        File.close()</span><span class="ln">    except IOError:</span><span class="ln">        print(&quot;Cannot write to file&quot;)</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using <code>readline()</code> without <code>strip()</code> and comparing the score as a number, or leaving off the <code>\n</code> so the two values are joined on one line.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/42 · Q3(d)</span> <span class="cmd">Write</span> <span class="mark">5 marks</span> The procedure WriteAllToFile() stores the content of TreeArray in a new text file with the filename Tree.txt. The file is not provided. Each node in TreeArray is stored on one line with a comma separating each value. For example, if the rows of the 50-row array are (−1, 20, 1), (−1, 30, −1) and so on, the file will contain the lines <code>−1,20,1</code> and <code>−1,30,−1</code> and so on. Write program code for WriteAllToFile(). Include exception handling when writing to the file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A loop over the 50 rows, build one string with commas and a new line, and write it. Try and except round it.</div>
+    <div class="ans"><p>One mark each: <span class="mk k" data-t="1">procedure header with exception handling for writing (try / except with a message)</span> <span class="mk k" data-t="2">opening Tree.txt to write and closing it in an appropriate place</span> <span class="mk k" data-t="3">looping through each element of the array</span> <span class="mk k" data-t="4">creating the correct string</span> <span class="mk k" data-t="5">writing each string to the file</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">def WriteAllToFile():</span><span class="ln">    try:</span><span class="ln">        File = open(&quot;Tree.txt&quot;, &quot;w&quot;)</span><span class="ln">        for x in range(0, 50):</span><span class="ln">            Line = str(TreeArray[x][0]) + &quot;,&quot; + str(TreeArray[x][1]) + &quot;,&quot; + str(TreeArray[x][2]) + &quot;\n&quot;</span><span class="ln">            File.write(Line)</span><span class="ln">        File.close()</span><span class="ln">    except:</span><span class="ln">        print(&quot;Cannot write to file&quot;)</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting <code>str()</code> on the numbers, or leaving out the commas, which are part of the file format.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Distinguish</span> <span class="mark">2 marks</span> Distinguish between opening a file for WRITE and opening it for APPEND.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>What happens to the data already in the file?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">WRITE creates the file, or replaces the existing contents, so earlier data is lost.</span> <span class="mk k" data-t="2">APPEND keeps the existing contents and adds the new data at the end.</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying write 'adds' data. It overwrites.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Complete</span> <span class="mark">3 marks</span> Scores.txt holds one integer on each line. Write pseudocode to output the total of all the scores in the file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Read until the end of the file, converting nothing in pseudocode but adding to a total.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">OPENFILE "Scores.txt" FOR READ and CLOSEFILE</span> <span class="mk k" data-t="2">WHILE NOT EOF("Scores.txt") with READFILE inside</span> <span class="mk k" data-t="3">Total ← Total + Score, with Total set to 0 first, and output</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">Total ← 0</span><span class="ln">OPENFILE &quot;Scores.txt&quot; FOR READ</span><span class="ln">WHILE NOT EOF(&quot;Scores.txt&quot;)</span><span class="ln">   READFILE &quot;Scores.txt&quot;, Score</span><span class="ln">   Total ← Total + Score</span><span class="ln">ENDWHILE</span><span class="ln">CLOSEFILE &quot;Scores.txt&quot;</span><span class="ln">OUTPUT Total</span></pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">3 marks</span> Write Python to read the numbers in Scores.txt into the list Scores and then print the largest.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Convert each line to an integer.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">opening the file to read and closing it</span> <span class="mk k" data-t="2">reading each line and appending int(Line) to the list</span> <span class="mk k" data-t="3">outputting the largest value, e.g. print(max(Scores))</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">Scores = []</span><span class="ln">File = open(&quot;Scores.txt&quot;, &quot;r&quot;)</span><span class="ln">for Line in File:</span><span class="ln">    Scores.append(int(Line))</span><span class="ln">File.close()</span><span class="ln">print(max(Scores))</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Appending the line without <code>int()</code>: <code>max</code> would then compare strings, so "9" beats "10".</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why a random file is better than a serial file for finding one customer's record in a very large file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Searching against going straight there.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">In a serial file records must be read one after another from the start until the one wanted is found.</span> <span class="mk k" data-t="2">In a random file the record's location is calculated (for example by a hash), so SEEK moves straight to it without reading the others.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">4 marks</span> Write pseudocode to store the string "Sold" in location 25 of the random file Stock.dat.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open, SEEK, PUTRECORD, close.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">OPENFILE "Stock.dat" FOR RANDOM</span> <span class="mk k" data-t="2">SEEK "Stock.dat", 25</span> <span class="mk k" data-t="3">PUTRECORD "Stock.dat", "Sold"</span> <span class="mk k" data-t="4">CLOSEFILE "Stock.dat"</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;Stock.dat&quot; FOR RANDOM</span><span class="ln">SEEK &quot;Stock.dat&quot;, 25</span><span class="ln">PUTRECORD &quot;Stock.dat&quot;, &quot;Sold&quot;</span><span class="ln">CLOSEFILE &quot;Stock.dat&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using WRITEFILE. WRITEFILE is for text files; PUTRECORD is for random files.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> A text file holds names in alphabetical order. State the file organisation, and one drawback of inserting a new name in the right place.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Ordered by a key.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Sequential</span> <span class="mk k" data-t="2">The new record cannot just be added to the end: the file must be rewritten (copied) with the record inserted in the correct position.</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Match the file to the command.</b> Text files: READFILE and WRITEFILE. Random files: SEEK with GETRECORD and PUTRECORD.</li>
+    <li><b>Open once, close once.</b> OPENFILE before the loop, CLOSEFILE after it. Close every file you opened.</li>
+    <li><b>SEEK first.</b> In a random file, SEEK to the position before every GETRECORD and PUTRECORD.</li>
+    <li><b>Pick the right mode.</b> READ to read. WRITE replaces. APPEND adds. RANDOM to jump about.</li>
+    <li><b>Check what the loop depends on.</b> 'Until the end of the file' is EOF. A set number of records is a FOR loop.</li>
+    <li><b>Convert what you read.</b> Lines are strings: int(Line), and strip() the newline.</li>
+    <li><b>Convert what you write.</b> write() takes a string: str(value) + "\n".</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>read until the end of the file</td><td>"WHILE NOT EOF("File.txt") with READFILE inside the loop."</td></tr>
+    <tr><td>go straight to a record</td><td>"SEEK File, Location, then GETRECORD File, Item."</td></tr>
+    <tr><td>add to a file without losing data</td><td>"Open it FOR APPEND, then WRITEFILE."</td></tr>
+    <tr><td>save the changes</td><td>"CLOSEFILE, so the data is written to the file."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Complete</td><td>Fill in the missing lines of the given pseudocode.</td></tr>
+    <tr><td>Write program code</td><td>Produce Python that opens, reads or writes and closes the file.</td></tr>
+    <tr><td>Explain</td><td>Say why one organisation suits a task, with a reason.</td></tr>
+    <tr><td>State</td><td>Give the file mode or organisation asked for.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+(function () {
+  const lines = ["Ana", "Ben", "Cho", "Dev", "Eli"];
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = SV.text(30, 22, "Names.txt", "sm");
+    lines.forEach((l, i) => { o += SV.rect(30, 30 + i * 40, 160, 34, i === k - 1 ? "cell-warn" : i < k - 1 ? "cell-ok" : "cell", { rx: 6 }) + SV.text(46, 53 + i * 40, l, "lbl", { style: "font-family:var(--mono);font-size:15px" }); });
+    if (k >= 1 && k <= 5) o += SV.text(200, 53 + (k - 1) * 40, "◀ file pointer", "sm");
+    o += SV.text(300, 22, "Names array", "sm");
+    for (let i = 0; i < 5; i++) o += memCell(300, 30 + i * 40, i, i < k ? lines[i] : "", i === k - 1 ? "cell-warn" : "f3", 1, 160, 34);
+    o += SV.text(520, 60, "Line", "sm") + SV.rect(520, 66, 140, 40, "f2", { rx: 6, ...op(0.55) }) + SV.text(590, 93, k >= 1 && k <= 5 ? lines[k - 1] : "", "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:17px" });
+    if (k >= 6) o += SV.text(520, 150, "end of file", "lbl bd t3") + SV.text(520, 172, "the loop stops", "sm");
+    return o;
+  };
+  Lib.stepper($("#stA"), { w: 760, h: 250, label: "Reading a text file into an array", base: { i: 0 }, draw, tween: 400, dwell: 2600, steps: [
+    { cap: "<code>OPENFILE \"Names.txt\" FOR READ</code>: the pointer is at the start. The array is empty.", s: { i: 0 } },
+    { cap: "<code>READFILE</code> reads line 1 into <code>Line</code> and moves the pointer on. <code>Line</code> is added to the array.", s: { i: 1 } },
+    { cap: "The loop reads line 2, then adds it. One line each time round.", s: { i: 2 } },
+    { cap: "Line 3.", s: { i: 3 } },
+    { cap: "Line 4.", s: { i: 4 } },
+    { cap: "Line 5. The pointer is now at the end.", s: { i: 5 } },
+    { cap: "<code>EOF(\"Names.txt\")</code> is now true, so <code>WHILE NOT EOF</code> stops. <code>CLOSEFILE</code> then closes the file.", s: { i: 6 } }] });
+})();
+
+(function () {
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "";
+    const box = (x, title, rows, cls) => SV.text(x, 22, title, "sm") + rows.map((r, i) => SV.rect(x, 30 + i * 36, 150, 30, cls, { rx: 6 }) + SV.text(x + 14, 51 + i * 36, r, "lbl", { style: "font-family:var(--mono);font-size:14px" })).join("");
+    o += box(20, "Before", ["Ana", "Ben", "Cho"], "cell");
+    const w = k >= 2 ? ["Dev"] : ["Ana", "Ben", "Cho"], a = k >= 1 ? ["Ana", "Ben", "Cho", "Dev"] : ["Ana", "Ben", "Cho"];
+    o += box(230, "After FOR WRITE \"Dev\"", k >= 2 ? ["Dev"] : ["(open)"], k >= 2 ? "cell-no" : "cell");
+    o += box(480, "After FOR APPEND \"Dev\"", k >= 1 ? ["Ana", "Ben", "Cho", "Dev"] : ["(open)"], k >= 1 ? "cell-ok" : "cell");
+    if (k >= 2) o += SV.text(230, 190, "old lines lost", "lbl bd t2") + SV.text(480, 190, "old lines kept, Dev added at the end", "lbl bd t3");
+    return o;
+  };
+  Lib.stepper($("#stB"), { w: 760, h: 215, label: "Write against append", base: { i: 0 }, draw, tween: 350, dwell: 3000, steps: [
+    { cap: "The file Names.txt already holds Ana, Ben and Cho. The program wants to add the line Dev.", s: { i: 0 } },
+    { cap: "Opened <b>FOR APPEND</b>, the existing lines are kept and <code>WRITEFILE</code> adds Dev at the <b>end</b>.", s: { i: 1 } },
+    { cap: "Opened <b>FOR WRITE</b>, the file is emptied first, so after writing Dev only <b>Dev</b> is left. Choose WRITE only when the whole file is being replaced.", s: { i: 2 } }] });
+})();
+
+(function () {
+  const src = ["Eli", "", "Fay", "", "Gus"];
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = SV.text(30, 22, "ActiveFile.txt", "sm") + SV.text(330, 22, "ArchiveFile.txt", "sm");
+    src.forEach((l, i) => { o += SV.rect(30, 30 + i * 38, 220, 32, i === k - 1 ? "cell-warn" : "cell", { rx: 6 }) + SV.text(44, 52 + i * 38, l === "" ? "(blank)" : l, "lbl", { style: "font-family:var(--mono);font-size:14px" }); });
+    for (let i = 0; i < Math.min(5, k); i++) { const t = src[i] === "" ? "Account not present" : src[i]; o += SV.rect(330, 30 + i * 38, 260, 32, src[i] === "" ? "cell-ok" : "f3", { rx: 6 }) + SV.text(344, 52 + i * 38, t, "lbl", { style: "font-family:var(--mono);font-size:14px" }); }
+    if (k >= 1 && k <= 5) o += SV.text(620, 52 + (k - 1) * 38, "READFILE: " + (src[k - 1] === "" ? "\"\"" : src[k - 1]), "sm");
+    if (k >= 6) o += SV.text(330, 240, "EOF reached: both files closed", "lbl bd t3");
+    return o;
+  };
+  Lib.stepper($("#stC"), { w: 760, h: 255, label: "Copying a file and replacing blank lines", base: { i: 0 }, draw, tween: 300, dwell: 2400, steps: [
+    { cap: "Both files are opened: Active for READ, Archive for WRITE. The loop runs until <code>EOF(\"ActiveFile.txt\")</code>.", s: { i: 0 } },
+    { cap: "Line 1 is not blank: <code>WRITEFILE</code> copies it.", s: { i: 1 } },
+    { cap: "Line 2 is blank, so the IF is true: <code>WRITEFILE ... \"Account not present\"</code>.", s: { i: 2 } },
+    { cap: "Line 3 is copied.", s: { i: 3 } },
+    { cap: "Line 4 is blank: replaced.", s: { i: 4 } },
+    { cap: "Line 5 is copied.", s: { i: 5 } },
+    { cap: "The end of the file is reached. Both files must be closed: <code>CLOSEFILE</code> twice.", s: { i: 6 } }] });
+})();
+
+(function () {
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "";
+    o += SV.text(30, 30, "Serial / sequential: read from the start", "lbl bd") + SV.rect(30, 40, 700, 26, "cell", { rx: 6 });
+    const w = k >= 1 ? Math.min(1, s.p) * 600 : 0;
+    o += SV.rect(30, 40, w + 2, 26, "f3", { rx: 6, ...op(0.7) }) + SV.text(30, 90, k >= 1 ? "records read: " + Math.round(s.p * 600) + " before record 600 is reached" : "", "sm");
+    o += SV.text(30, 140, "Random: SEEK straight to the position", "lbl bd") + SV.rect(30, 150, 700, 26, "cell", { rx: 6 });
+    if (k >= 2) o += SV.rect(30 + 600 - 2, 150, 6, 26, "cell-ok", { rx: 3 }) + arrow(632, 200, 632, 180, "u", "c2", 1) + SV.text(730, 222, "SEEK 600, then GETRECORD: 1 record read", "lbl bd t3", { "text-anchor": "end" });
+    return o;
+  };
+  Lib.stepper($("#stD"), { w: 760, h: 240, label: "Serial against random access", base: { i: 0, p: 0 }, draw, tween: 1200, dwell: 3500, steps: [
+    { cap: "The temperature at position <b>600</b> is wanted from a file of 1440 records.", s: { i: 0, p: 0 } },
+    { cap: "In a <b>serial</b> or <b>sequential</b> file the program reads from the start: 599 records are read and thrown away before the 600th.", s: { i: 1, p: 1 } },
+    { cap: "In a <b>random</b> file, <code>SEEK</code> moves the pointer straight to position 600 and <code>GETRECORD</code> reads it. One read.", s: { i: 2, p: 1 } }] });
+})();
+
+(function () {
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "";
+    o += SV.text(30, 28, "AccountNumber = 4719", "lbl bd", { style: "font-family:var(--mono);font-size:16px" });
+    if (k >= 1) o += SV.text(30, 62, "Location ← Hash(4719) = 4719 MOD 11 = 6", "lbl", { style: "font-family:var(--mono);font-size:15px" });
+    if (k >= 2) o += SV.text(30, 92, "SEEK AccountFile, 6", "lbl", { style: "font-family:var(--mono);font-size:15px" });
+    for (let i = 0; i < 11; i++) o += memCell(430, 20 + i * 21, i, i === 6 && k >= 3 ? "4719 Hall" : i === 2 ? "1202 Ito" : i === 9 ? "7745 Ray" : "", i === 6 && k >= 2 ? "cell-warn" : "f3", 1, 280, 19);
+    if (k >= 3) o += SV.text(30, 122, "GETRECORD AccountFile, Customer", "lbl", { style: "font-family:var(--mono);font-size:15px" }) + SV.text(30, 152, "Customer = 4719 Hall", "lbl bd t3", { style: "font-family:var(--mono);font-size:16px" });
+    return o;
+  };
+  Lib.stepper($("#stE"), { w: 760, h: 260, label: "Finding a record in a random file with a hash", base: { i: 0 }, draw, tween: 400, dwell: 3200, steps: [
+    { cap: "A customer enters an account number. The file has 11 locations, numbered 0 to 10.", s: { i: 0 } },
+    { cap: "The hash function turns the key into a location: 4719 MOD 11 = <b>6</b>.", s: { i: 1 } },
+    { cap: "<code>SEEK</code> moves the file pointer to location 6.", s: { i: 2 } },
+    { cap: "<code>GETRECORD</code> reads the record there into <code>Customer</code>. No other record was read.", s: { i: 3 } }] });
+})();
+
+/* Lab 1 */
+(function () {
+  let mode = 0, exists = true;
+  const modes = ["READ", "WRITE", "APPEND"];
+  const paint = () => {
+    $$("#mB button").forEach((b, i) => b.classList.toggle("pri", i === mode)); $$("#mE button").forEach((b, i) => b.classList.toggle("pri", (i === 0) === exists));
+    let rows, msg;
+    if (mode === 0) { rows = exists ? ["Ana", "Ben", "Cho"] : null; msg = exists ? "FOR READ: the contents are unchanged. WRITEFILE is not allowed on a file opened for reading, so Dev is not added." : "FOR READ: the file does not exist, so the OPENFILE fails. This is the case exception handling is for."; }
+    if (mode === 1) { rows = ["Dev"]; msg = exists ? "FOR WRITE: the old lines are lost. Only Dev is in the file." : "FOR WRITE: a new file is created containing only Dev."; }
+    if (mode === 2) { rows = exists ? ["Ana", "Ben", "Cho", "Dev"] : ["Dev"]; msg = exists ? "FOR APPEND: the old lines are kept and Dev is added at the end." : "FOR APPEND: the file is created, and Dev is its first line."; }
+    $("#mO").innerHTML = rows ? '<div class="tw"><table class="t mono"><tr><th>Names.txt afterwards</th></tr>' + rows.map((r) => `<tr><td>${r}</td></tr>`).join("") + "</table></div>" : '<div class="tw"><table class="t mono"><tr><th>Names.txt afterwards</th></tr><tr><td>error: file not found</td></tr></table></div>';
+    $("#mV").textContent = msg;
+  };
+  $("#mB").innerHTML = modes.map((m, i) => `<button class="b" data-i="${i}">FOR ${m}</button>`).join(""); $("#mE").innerHTML = '<button class="b">File exists (Ana, Ben, Cho)</button><button class="b">File does not exist</button>';
+  $$("#mB button").forEach((b) => (b.onclick = () => { mode = +b.dataset.i; paint(); })); $$("#mE button").forEach((b, i) => (b.onclick = () => { exists = i === 0; paint(); }));
+  paint();
+})();
+
+/* Lab 2 */
+(function () {
+  const data = [12, 7, 30, 5, 18]; let st;
+  const reset = () => { st = { pc: 0, ptr: 0, line: "", total: 0, open: false, msg: "Press Step to run the first statement." }; paint(); };
+  const prog = ["OPENFILE \"Scores.txt\" FOR READ", "WHILE NOT EOF(\"Scores.txt\")", "   READFILE \"Scores.txt\", Line", "   Total ← Total + Line", "ENDWHILE", "CLOSEFILE \"Scores.txt\"", "OUTPUT Total"];
+  const paint = () => {
+    $("#rS").innerHTML = '<div class="code"><pre class="cp">' + prog.map((l, i) => `<span class="ln${i === st.pc ? " on" : ""}">${l.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</span>`).join("") + '</pre></div><div class="tw"><table class="t mono"><tr><th>pointer</th><th>Line</th><th>Total</th><th>EOF?</th></tr><tr><td>' + st.ptr + " of 5</td><td>" + st.line + "</td><td>" + st.total + "</td><td>" + (st.open ? (st.ptr >= 5) : "-") + "</td></tr></table></div>";
+    $("#rV").textContent = st.msg;
+  };
+  $("#rN").onclick = () => {
+    const p = st.pc;
+    if (p === 0) { st.open = true; st.msg = "File opened for reading, pointer at the start."; st.pc = 1; }
+    else if (p === 1) { if (st.ptr >= 5) { st.msg = "EOF is true: leave the loop."; st.pc = 5; } else { st.msg = "Not at the end of the file: enter the loop."; st.pc = 2; } }
+    else if (p === 2) { st.line = data[st.ptr]; st.ptr++; st.msg = "READFILE reads " + st.line + " and moves the pointer on."; st.pc = 3; }
+    else if (p === 3) { st.total += st.line; st.msg = "Total is now " + st.total + "."; st.pc = 1; }
+    else if (p === 5) { st.open = false; st.msg = "File closed."; st.pc = 6; }
+    else if (p === 6) { st.msg = "OUTPUT " + st.total + ": the sum of 12 + 7 + 30 + 5 + 18."; st.pc = 7; }
+    paint();
+  };
+  $("#rR").onclick = reset; reset();
+})();
+
+/* Lab 3 */
+(function () {
+  let key = 4719;
+  const slots = { 2: "1202 Ito", 9: "7745 Ray", 6: "4719 Hall" };
+  const paint = () => {
+    const loc = key % 11;
+    $("#hT").innerHTML = '<div class="tw"><table class="t mono"><tr><th>Location</th>' + Array.from({ length: 11 }, (_, i) => `<td${i === loc ? ' style="background:var(--warn-soft);font-weight:700"' : ""}>${i}</td>`).join("") + "</tr><tr><th>Stored</th>" + Array.from({ length: 11 }, (_, i) => `<td>${slots[i] ? slots[i].split(" ")[0] : ""}</td>`).join("") + "</tr></table></div>";
+    const occ = slots[loc];
+    $("#hV").innerHTML = `Hash(${key}) = ${key} MOD 11 = <b>${loc}</b>. ` + (occ ? (occ.startsWith(key + " ") ? "SEEK " + loc + " finds the record for this account." : `Location ${loc} is already used by account ${occ.split(" ")[0]}: a <b>collision</b>, so another method is needed to place this record.`) : `Location ${loc} is empty, so a new record would be stored here.`);
+  };
+  Lib.slider($("#hS"), { id: "hsl", label: "Account number ", min: 1000, max: 9999, value: key, fmt: (x) => x, onInput: (v) => { key = v; paint(); } });
+  paint();
+})();
+Lib.classify($("#cl1"), { prompt: "Which open mode or file command fits?", buckets: [{"label": "Read a text file"}, {"label": "Replace a text file"}, {"label": "Add to a text file"}, {"label": "Random file"}], items: [{"text": "OPENFILE \"Data.txt\" FOR READ", "b": 0}, {"text": "OPENFILE \"Out.txt\" FOR WRITE", "b": 1}, {"text": "OPENFILE \"Log.txt\" FOR APPEND", "b": 2}, {"text": "SEEK \"Stock.dat\", 25", "b": 3}, {"text": "GETRECORD \"Stock.dat\", Item", "b": 3}, {"text": "READFILE \"Data.txt\", Line", "b": 0}, {"text": "open(\"Log.txt\", \"a\")", "b": 2}, {"text": "open(\"Data.txt\", \"r\")", "b": 0}, {"text": "open(\"Out.txt\", \"w\")", "b": 1}], done: "r reads, w replaces, a adds. SEEK, GETRECORD and PUTRECORD are for random files." });
+Lib.classify($("#cl2"), { prompt: "Is it serial, sequential or random?", buckets: [{"label": "Serial"}, {"label": "Sequential"}, {"label": "Random"}], items: [{"text": "Records are stored in the order they were added", "b": 0}, {"text": "Records are stored in order of a key field", "b": 1}, {"text": "The record's location is calculated from its key", "b": 2}, {"text": "A new record is simply appended to the end", "b": 0}, {"text": "Adding a record means writing a new file with it in the right place", "b": 1}, {"text": "SEEK takes you straight to the record", "b": 2}], done: "Serial: order added. Sequential: key order. Random: direct access by address." });
+Lib.order($("#o1"), { prompt: "Put the steps for processing a text file in order.", items: ["Open the file in the correct mode", "Read the first line", "Process it (add, copy, compare)", "Repeat until the end of the file", "Close the file"], done: "Open, read, process, repeat to EOF, close." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["EOF", "True when there is nothing more to read"], ["SEEK", "Moves the file pointer to a record"], ["GETRECORD", "Reads the record at the pointer"], ["PUTRECORD", "Writes a record at the pointer"], ["CLOSEFILE", "Ends file use and saves written data"]], done: "Learn these terms." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "A text file has 25 lines. How many times does READFILE run in a loop that reads until the end of the file?", "a": 25, "unit": "", "tol": 0.01, "hint": "One read for each line.", "sol": "<b>25</b>."},
+  {"q": "A random file has 500 records and you want record 350. How many records does GETRECORD read after SEEK 350?", "a": 1, "unit": "", "tol": 0.01, "hint": "SEEK moves straight there.", "sol": "<b>1</b>."},
+  {"q": "A serial file has 500 records. How many records are read to reach record 350 from the start (including it)?", "a": 350, "unit": "", "tol": 0.01, "hint": "Read 1, 2, ... 350.", "sol": "<b>350</b>."},
+  {"q": "Hash(Key) = Key MOD 11. At which location is account number 5000 stored?", "a": 6, "unit": "", "tol": 0.01, "hint": "11 × 454 = 4994, so the remainder is 5000 - 4994.", "sol": "<b>6</b> (5000 MOD 11 = 6)."},
+  {"q": "A file is opened FOR APPEND. It has 8 lines. Two WRITEFILE statements run. How many lines does it have after?", "a": 10, "unit": "", "tol": 0.01, "hint": "8 + 2.", "sol": "<b>10</b>."},
+  {"q": "A file with 8 lines is opened FOR WRITE and two lines are written. How many lines does it have after?", "a": 2, "unit": "", "tol": 0.01, "hint": "WRITE replaces the old contents.", "sol": "<b>2</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "Which statement must come before GETRECORD in a random file?", opts: ["READFILE", "SEEK", "EOF", "OPENFILE FOR APPEND"], a: 1, why: "SEEK moves the pointer to the record." },
+  { q: "A program must add new lines to the end of an existing log. Which mode?", opts: ["READ", "WRITE", "APPEND", "RANDOM"], a: 2, why: "APPEND keeps the old lines." },
+  { q: "What does EOF tell you?", opts: ["The file is empty", "There is nothing more to read", "The file is closed", "The file is full"], a: 1, why: "End of file." },
+  { q: "What type is a line read from a text file in Python?", opts: ["integer", "string", "boolean", "real"], a: 1, why: "Convert with int() if you need a number." },
+  { q: "Why must a file be closed?", opts: ["To delete it", "So written data is saved and the file can be reused", "To make it random", "To sort it"], a: 1, why: "Closing finishes the writes." },
+  { q: "Which file organisation stores records in order of a key?", opts: ["Serial", "Sequential", "Random", "Text"], a: 1, why: "Sequential files are ordered by key." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["OPENFILE ... FOR READ", "Open an existing file to read from the start."],
+  ["... FOR WRITE", "Create or overwrite the file."],
+  ["... FOR APPEND", "Add to the end of the file."],
+  ["... FOR RANDOM", "Open for direct access to records."],
+  ["READFILE / WRITEFILE", "Read or write one line of a text file."],
+  ["EOF(File)", "True when no more data to read."],
+  ["SEEK / GETRECORD / PUTRECORD", "Random access: move, read, write."],
+  ["CLOSEFILE", "Always close what you open."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

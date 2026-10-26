@@ -1,0 +1,1061 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Object-Oriented Programming: Terminology and Class Design</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 20.1.2</div>
+  <h1>Object-Oriented Programming: Terminology and Class Design</h1>
+  <p class="cbook">Coursebook: Chapter 20 · Further programming, section 20.1 Programming paradigms</p>
+  <p class="lead">Classes, objects, encapsulation, getters and setters, inheritance, polymorphism and containment; how to read, complete and design class diagrams; animations, labs and the real past paper questions on OOP.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>In <b>object-oriented programming (OOP)</b> a program is built from <b>objects</b>, each created from a <b>class</b> that defines its <b>properties</b> (attributes) and <b>methods</b>. A <b>constructor</b> sets up a new object, and <b>encapsulation</b> keeps the properties private so they can only be read or changed through <b>getters</b> and <b>setters</b>. <b>Inheritance</b> lets a new class take the properties and methods of a parent class, and <b>polymorphism</b> lets the same method name behave differently in different classes. When one class holds objects of another, that is <b>containment (aggregation)</b>. To solve a problem you decide the classes, their properties and their methods before writing any code; the next page turns the designs into working code.</p></div>
+
+  <h2>1 · The terms you must know</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Term</th><th>Meaning</th><th>Example</th></tr>
+    <tr><td><b>Class</b></td><td>A template that defines the properties and methods that its objects will have</td><td><code>Pet</code></td></tr>
+    <tr><td><b>Object / instance</b></td><td>One occurrence of a class, with its own values. Creating it is <b>instantiation</b></td><td>The pet called Rex</td></tr>
+    <tr><td><b>Property / attribute</b></td><td>A data item stored in an object, with a data type</td><td><code>PetName : STRING</code></td></tr>
+    <tr><td><b>Method</b></td><td>A procedure or function defined in the class that acts on the object's properties</td><td><code>GetPetName()</code></td></tr>
+    <tr><td><b>Constructor</b></td><td>The method that runs when an object is created and sets its starting values</td><td><code>NEW(...)</code>, Python <code>__init__</code></td></tr>
+    <tr><td><b>Encapsulation</b></td><td>Putting the properties and methods together in a class and hiding the data, so it can only be reached through the class's own methods</td><td>Properties declared <code>PRIVATE</code></td></tr>
+    <tr><td><b>Getter</b></td><td>A method that returns the value of a property</td><td><code>GetPetName()</code></td></tr>
+    <tr><td><b>Setter</b></td><td>A method that updates the value of a property</td><td><code>SetPetName(NewName)</code></td></tr>
+    <tr><td><b>Inheritance</b></td><td>A new (child, derived) class takes the properties and methods of a parent (base, super) class and can add its own or override methods</td><td><code>Parrot</code> inherits from <code>Animal</code></td></tr>
+    <tr><td><b>Polymorphism</b></td><td>Methods with the same name are redefined in derived classes, so the same call behaves differently depending on the object</td><td><code>Description()</code> in Animal and in Parrot</td></tr>
+    <tr><td><b>Containment (aggregation)</b></td><td>One class contains objects of another class: a "has a" relationship</td><td>A <code>Hand</code> holds <code>Card</code> objects</td></tr>
+  </table></div>
+
+  <h2>2 · Why encapsulation?</h2>
+  <p>If every part of a program can change an object's data directly, any bug or careless line can corrupt it. With <b>private</b> properties the only way in is through the methods, so the class can check values (a priority must be 1 to 5), a property can be made read-only by providing a getter but no setter, and the inside of the class can change without breaking the rest of the program. The mark scheme answer is short: <b>so the attributes can only be accessed using the class's own methods</b>.</p>
+
+  <h2>3 · Class diagrams</h2>
+  <p>A class diagram is a box in three parts: the class name, the properties with their data types, and the methods. Exams ask you to <b>complete</b> one from a description. The pattern is nearly always the same:</p>
+  <ul>
+    <li>one property for each data item, with a sensible name and the right data type (STRING, INTEGER, DATE, BOOLEAN, REAL)</li>
+    <li>a <b>constructor</b> if the question says objects are created with their values set</li>
+    <li>a <b>setter</b> for each property that can change: <code>SetPriority(Urgency : INTEGER)</code>, with a parameter and its data type</li>
+    <li>a <b>getter</b> for each property that has to be read: <code>GetPriority()</code>, with no parameter</li>
+    <li>names that match the property they work with (<code>Priority</code>, <code>SetPriority</code>, <code>GetPriority</code>)</li>
+  </ul>
+  <pre class="plain">             Pet
+PetID : STRING
+PetName : STRING
+DateRegistered : DATE
+Constructor()
+SetPetID(APetID : STRING)
+SetDateRegistered(RegDate : DATE)
+GetPetName()</pre>
+  <p>For <b>inheritance</b>, draw the child classes below the parent with an arrow pointing up to it. Show only what is new in the child: properties it adds, and methods it adds or overrides (such as its own constructor). Do not repeat what it inherits.</p>
+
+  <h2>4 · Designing classes to solve a problem</h2>
+  <ol>
+    <li><b>Find the things</b> the problem talks about (customers, vehicles, yarn). Each kind of thing is a class.</li>
+    <li><b>List the data</b> each one stores. Each item is a property with a data type.</li>
+    <li><b>List what each one does</b>: displays itself, changes its stock, moves. Each action is a method.</li>
+    <li><b>Look for sharing.</b> If several classes share properties and methods and one "is a" kind of the other, put the shared parts in a parent class (inheritance). If one thing "has" others inside it, use containment.</li>
+    <li><b>Decide access.</b> Make properties private and add getters and setters only where they are needed.</li>
+  </ol>
+  <div class="tip"><b class="h">Is a, or has a?</b>A Parrot <i>is an</i> Animal: inheritance. A Hand <i>has</i> Cards: containment. If you can put "is a" between the two names and it makes sense, it is inheritance.</div>
+
+  <h2>5 · Pseudocode for a class</h2>
+  <p>Cambridge pseudocode declares a class like this. Python does the same job with <code>class</code> and <code>__init__</code>; the next page covers it.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">CLASS Animal</span><span class="ln">   PRIVATE Name : STRING</span><span class="ln">   PRIVATE Size : INTEGER</span><span class="ln">   PUBLIC PROCEDURE NEW(NewName : STRING, NewSize : INTEGER)</span><span class="ln">      Name ← NewName</span><span class="ln">      Size ← NewSize</span><span class="ln">   ENDPROCEDURE</span><span class="ln">   PUBLIC FUNCTION GetName() RETURNS STRING</span><span class="ln">      RETURN Name</span><span class="ln">   ENDFUNCTION</span><span class="ln">   PUBLIC PROCEDURE SetSize(NewSize : INTEGER)</span><span class="ln">      Size ← NewSize</span><span class="ln">   ENDPROCEDURE</span><span class="ln">ENDCLASS</span><span class="ln"> </span><span class="ln">CLASS Parrot INHERITS Animal</span><span class="ln">   PRIVATE WingSpan : INTEGER</span><span class="ln">   PUBLIC PROCEDURE NEW(NewName : STRING, NewSize : INTEGER, NewSpan : INTEGER)</span><span class="ln">      SUPER.NEW(NewName, NewSize)</span><span class="ln">      WingSpan ← NewSpan</span><span class="ln">   ENDPROCEDURE</span><span class="ln">ENDCLASS</span><span class="ln"> </span><span class="ln">MyBird ← NEW Parrot(&quot;Chewie&quot;, 1, 30)</span></pre></div>
+
+  <h2>6 · Common ways to lose marks</h2>
+  <ul>
+    <li>Defining encapsulation as "hiding things". Say the properties and methods are in one class and the data can only be reached through the class's own methods.</li>
+    <li>Mixing up <b>class</b> (the template) and <b>object</b> (an instance of it).</li>
+    <li>Writing a setter with no parameter, or a getter with one. A setter takes the new value; a getter takes nothing.</li>
+    <li>Giving a getter or setter a name that does not match its property.</li>
+    <li>Repeating the parent's properties in the child class diagram, or drawing the arrow the wrong way.</li>
+    <li>Describing polymorphism as "many classes". It is the same method name redefined, with different behaviour, in derived classes.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · One class, many objects</h2>
+  <p>Press Play, or click the steps. The class is the template; each object has its own values.</p>
+  <div id="stA"></div>
+  <h2>2 · Encapsulation: private data, public methods</h2>
+  <div id="stB"></div>
+  <h2>3 · Inheritance: the yarn shop</h2>
+  <p>From the May/June 2022 question: three types of yarn share most of their data.</p>
+  <div id="stC"></div>
+  <h2>4 · Polymorphism: same call, different behaviour</h2>
+  <div id="stD"></div>
+  <h2>5 · Containment: a hand has cards</h2>
+  <div id="stE"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Public or private?</h2>
+  <p>A Pet object stores an age. Choose how the property is declared, then try to read it and to set it to an impossible value.</p>
+  <div class="card"><div id="vB" class="btnrow"></div><div class="btnrow"><button class="b" id="vR">Read Age directly</button><button class="b" id="vG">Call GetAge()</button><button class="b" id="vN">Set Age to 25 directly</button><button class="b" id="vS">Call SetAge(25)</button><button class="b" id="vC">Call SetAge(-3)</button></div>
+    <div class="readout"><div><small>Age stored</small><strong id="v1"></strong></div></div><div class="verdict" id="vv"></div></div>
+
+  <h2>Lab 2 · What does each class have?</h2>
+  <p>Choose a yarn class. The table shows what it inherits and what it adds, using the class diagram from the exam.</p>
+  <div class="card"><div id="iB" class="btnrow"></div><div id="iO"></div></div>
+
+  <h2>Lab 3 · The terms in an exam answer</h2>
+  <div class="card"><div id="eB" class="btnrow"></div><div id="eO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Attribute, method, getter, setter or constructor?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Inheritance or containment?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the steps of class design in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>5 · Count the members</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A school management system</h3><p>Student, Teacher and Substitute can share a parent class Person with a name and a telephone number, and each adds its own data. Records are private and changed through setters, so a telephone number is always stored in the same format.</p><div class="use"><b>Exam use:</b> inheritance for shared data, encapsulation for safe changes, setters that check values.</div></div>
+  <div class="rw"><h3>A video game</h3><p>Every character has a position and a name, but a magic character also has spells and a bike character has a speed. They inherit from Character, and each overrides a method such as Move() to behave in its own way.</p><div class="use"><b>Exam use:</b> polymorphism: one call to Move() on a list of characters does the right thing for each.</div></div>
+  <div class="rw"><h3>A card game</h3><p>A Hand object contains five Card objects, and the game can ask each card for its number and colour through getters without ever touching the card's private data.</p><div class="use"><b>Exam use:</b> containment (a Hand has Cards) and getters.</div></div>
+  <div class="rw"><h3>A bank account</h3><p>Balance is private. You cannot set it to any number you like: Deposit() and Withdraw() are the only ways in, and Withdraw() refuses to go below the overdraft limit.</p><div class="use"><b>Exam use:</b> encapsulation protects the data; methods enforce the rules.</div></div>
+  <div class="rw"><h3>A medical records system</h3><p>An Appointment records the patient, doctor, treatments and medications. The date seen has a setter and a getter, but the patient number is set once and only read, so it has a getter but no setter.</p><div class="use"><b>Exam use:</b> choose getters and setters to match what is allowed to change.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on OOP terminology and class design (Paper 3), 2021 to 2026. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2022</td><td>31, 33</td><td>7(a), 7(b)</td><td>5 + 6</td><td>Complete a class inheritance diagram; describe properties, methods, inheritance</td></tr>
+    <tr><td>M/J 2022</td><td>32</td><td>1(c)</td><td>1 + 2</td><td>Declare a private property; explain why properties are private</td></tr>
+    <tr><td>O/N 2022</td><td>31, 33</td><td>11(a), 11(b)</td><td>3 + 5</td><td>Define instance, inheritance, polymorphism; complete the Car class in pseudocode</td></tr>
+    <tr><td>O/N 2022</td><td>32</td><td>10(a), 10(b)</td><td>3 + 3</td><td>Define encapsulation, getter, setter; complete the SubstituteTeacher diagram</td></tr>
+    <tr><td>M/J 2023</td><td>32</td><td>4</td><td>4</td><td>Match four OOP terms to descriptions</td></tr>
+    <tr><td>O/N 2024</td><td>31, 33</td><td>9(a), 9(b)</td><td>1 + 5</td><td>Why private attributes; complete the Pet class diagram</td></tr>
+    <tr><td>M/J 2025</td><td>31</td><td>11(a), 11(b)</td><td>5 + 1 + 2</td><td>Complete the Appointment diagram; name encapsulation; describe inheritance</td></tr>
+    <tr><td>M/J 2025</td><td>32</td><td>12(a), 12(b)</td><td>5 + 1 + 2</td><td>Complete the Patient diagram; name instance; describe polymorphism</td></tr>
+    <tr><td>M/J 2025</td><td>33</td><td>5</td><td>4</td><td>Complete a table of OOP terms and descriptions</td></tr>
+    <tr><td>M/J 2026</td><td>32</td><td>11(a), 11(b)</td><td>5 + 4</td><td>Write pseudocode for the Node class; complete a table including aggregation and inheritance</td></tr>
+  </table></div>
+  <p class="note">Class diagrams, the OOP terms and pseudocode for a class are tested in Paper 3. Writing the classes as program code is tested in Paper 4 (next page). Questions below are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+
+  <h3>Class diagrams</h3>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/31, 33 · Q7(a), (b)</span> <span class="cmd">Complete / Describe</span> <span class="mark">5 + 6 marks</span> A program for a shop that sells knitting yarn uses OOP. There are three types of yarn: acrylic, wool and mix. Each stores a name, colour, batch code, weight, number of balls in stock (can be edited) and type of yarn. Acrylic can be soft or not soft. Wool can be lamb, merino or alpaca. Mix contains a percentage of acrylic. Each type has a method that displays all the information about the yarn. (a) Complete the class inheritance diagram below to show the properties, methods and inheritance. (b) Describe what is meant by the terms properties, methods and inheritance.<pre class="plain">                    Yarn
+         Name : STRING
+         Colour : STRING
+         BatchCode : STRING
+         Weight : INTEGER
+         NumberBalls : INTEGER
+         Type : STRING
+         Constructor()
+         EditNumberBalls()
+         YarnInfo()
+
+   Acrylic           Wool              Mix
+                                       Percentage : INTEGER
+                                       Constructor()
+                                       YarnInfo()
+   Constructor()     Constructor()</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Add only what is new in each child class. Soft is a BOOLEAN; the wool type is a STRING. Acrylic and Wool also need YarnInfo(). Arrows from every child to Yarn.</div>
+    <div class="ans"><p><b>(a)</b> Five marks: <span class="mk k" data-t="1">Acrylic has an attribute Soft : BOOLEAN</span> <span class="mk k" data-t="2">Wool has an attribute for the wool type with a suitable data type</span> <span class="mk k" data-t="3">Acrylic and Wool both have the method YarnInfo()</span> <span class="mk k" data-t="4">at least one child inherits from Yarn (one arrow correct)</span> <span class="mk k" data-t="5">all three children inherit from Yarn (all arrows correct)</span></p><pre class="plain">                    Yarn
+         (Name, Colour, BatchCode, Weight, NumberBalls, Type,
+          Constructor(), EditNumberBalls(), YarnInfo())
+           ^               ^                  ^
+   Acrylic         Wool                Mix
+   Soft : BOOLEAN  WoolType : STRING   Percentage : INTEGER
+   Constructor()   Constructor()       Constructor()
+   YarnInfo()      YarnInfo()          YarnInfo()</pre><p><b>(b)</b> Two marks each, up to 6: <span class="mk a" data-t="1">Properties: the data items / attributes</span> <span class="mk a" data-t="2">with their data types</span> <span class="mk a" data-t="3">defined in a class</span> <span class="mk a" data-t="1">Methods: the procedures or functions</span> <span class="mk a" data-t="2">that act on the properties / implement the behaviours of the class</span> <span class="mk a" data-t="1">Inheritance: the methods and properties of one (parent / super) class</span> <span class="mk a" data-t="2">are made available to, or reused by, another (derived / child) class</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Drawing the arrows from Yarn down to the children. The arrow points from the child to the parent it inherits from.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/31, 33 · Q9</span> <span class="cmd">State / Complete</span> <span class="mark">1 + 5 marks</span> A veterinary surgery wants a class for individual pets. Some of the attributes are PetID (STRING, unique ID assigned at registration), PetType (STRING), OwnerTelephone (STRING) and DateRegistered (DATE). (a) State one reason why the attributes would be declared as PRIVATE. (b) Complete the class diagram for Pet to include: an attribute and data type for the name of the pet; an attribute and data type for the name of the owner; a method to create a Pet object and set attributes at registration; a method to assign a pet ID; a method to assign the date of registration; a method to return the pet name; a method to return the owner's telephone number.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two new attributes, a constructor, two setters, two getters. Setters take a parameter with a data type; getters take none.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">So the attributes can only be accessed using the class's own methods / within the class.</span></p><p><b>(b)</b> Five marks: <span class="mk a" data-t="1">two correct attributes with sensible names and data types</span> <span class="mk a" data-t="2">a constructor is present</span> <span class="mk a" data-t="3">two correct setters with exact names and parameters with data types</span> <span class="mk a" data-t="4">two correct getters with appropriate names</span> <span class="mk a" data-t="5">the name used for the pet-name getter matches the attribute</span></p><pre class="plain">                    Pet
+PetID : STRING
+PetType : STRING
+OwnerTelephone : STRING
+DateRegistered : DATE
+PetName : STRING
+OwnerName : STRING
+Constructor()
+SetPetID(APetID : STRING)
+SetDateRegistered(RegDate : DATE)
+GetPetName()
+GetOwnerTelephone()</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving the getters parameters, or forgetting the data type on a setter parameter.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/31 · Q11</span> <span class="cmd">Complete / Identify / Describe</span> <span class="mark">5 + 1 + 2 marks</span> A medical centre uses objects of the class Appointment. Attributes given: DateSeen (DATE), Treatments (STRING), Medications (STRING). Patients are identified by a unique 8-digit number beginning with the year of birth, for example 20108989. Doctors are identified by their name, for example A N Other. (a) Complete the class diagram for Appointment to include: an attribute and data type for the patient; an attribute and data type for the doctor; methods to assign the date seen, treatments and medications; methods to return the date seen and the patient and doctor attributes. (b) (i) Identify the OOP feature whose function includes restricting external access to the data. (ii) Describe what is meant by inheritance.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The 8-digit number is stored as an INTEGER; the doctor's name is a STRING. Check you have a setter for each assign and a getter for each return.</div>
+    <div class="ans"><p><b>(a)</b> Five marks: <span class="mk k" data-t="1">two correct attributes (PatientID : INTEGER, Doctor : STRING)</span> <span class="mk k" data-t="2">SetTreatments() and SetMedications() seen</span> <span class="mk k" data-t="3">with appropriate STRING parameters</span> <span class="mk k" data-t="4">GetPatientID() and GetDoctor() seen</span> <span class="mk k" data-t="5">SetDateSeen() and GetDateSeen() fully correct, with a DATE parameter</span></p><pre class="plain">                 Appointment
+DateSeen : DATE
+PatientID : INTEGER
+Doctor : STRING
+Treatments : STRING
+Medications : STRING
+SetDateSeen(NewDate : DATE)
+SetPatientID(PatientNumber : INTEGER)
+SetDoctor(DoctorID : STRING)
+SetTreatments(NewTreatments : STRING)
+SetMedications(NewMedications : STRING)
+GetDateSeen()
+GetPatientID()
+GetDoctor()</pre><p><b>(b)(i)</b> <span class="mk a" data-t="1">Encapsulation</span> <b>(ii)</b> <span class="mk a" data-t="1">A derived class takes the properties / methods</span> <span class="mk a" data-t="2">of a parent (super / base) class</span> <span class="mk a" data-t="3">and these can also be extended, used or overridden in the subclass</span> (maximum 2)</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Storing the patient number as a STRING without a reason. The question says it is an 8-digit number, and INTEGER is what the mark scheme gives.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/32 · Q12</span> <span class="cmd">Complete / Identify / Describe</span> <span class="mark">5 + 1 + 2 marks</span> A medical clinic uses objects of the class Patient to assign a priority and a doctor to a patient. Attributes given: PatientID (STRING), Name (STRING, full name surname first), DoctorID (STRING). Treatment is prioritised with a numeric scale of 1 to 5. (a) Complete the class diagram for Patient to include: an attribute and data type for the date of birth; an attribute and data type for the priority; methods to assign the patient ID, priority and doctor ID; methods to return the patient ID, date of birth and the priority. (b) (i) Identify the OOP term described as 'an occurrence of an object'. (ii) Describe what is meant by polymorphism.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Priority 1 to 5 is an INTEGER. Name the setter and getter after the attribute.</div>
+    <div class="ans"><p><b>(a)</b> Five marks: <span class="mk k" data-t="1">DateOfBirth : DATE and a priority attribute with an INTEGER type</span> <span class="mk k" data-t="2">SetPatientID() and SetDoctorID() seen</span> <span class="mk k" data-t="3">with appropriate STRING parameters</span> <span class="mk k" data-t="4">GetPatientID() and GetDateOfBirth() seen</span> <span class="mk k" data-t="5">setter and getter for Priority fully correct, matching the attribute, with an INTEGER parameter</span></p><pre class="plain">                 Patient
+PatientID : STRING
+Name : STRING
+DateOfBirth : DATE
+Priority : INTEGER
+DoctorID : STRING
+SetPatientID(PatientNumber : STRING)
+SetDateOfBirth(DOB : DATE)
+SetPriority(Urgency : INTEGER)
+SetDoctorID(DocID : STRING)
+GetPatientID()
+GetDateOfBirth()
+GetPriority()</pre><p><b>(b)(i)</b> <span class="mk a" data-t="1">Instance (or instantiation)</span> <b>(ii)</b> <span class="mk a" data-t="1">Methods with the same name are redefined / behave differently</span> <span class="mk a" data-t="2">in derived (inherited) classes / subclasses</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Describing polymorphism as 'having many forms' without saying the same method name is redefined in derived classes.</div>
+  </div></details>
+
+  <h3>Defining the terms</h3>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/31, 33 · Q11(a)</span> <span class="cmd">Define</span> <span class="mark">3 marks</span> Define these OOP terms: instance, inheritance, polymorphism.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One mark each. Use the words occurrence of an object, parent class and redefined.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Instance: an occurrence of an object / a specific object based on the class / an instantiation of a class</span> <span class="mk k" data-t="2">Inheritance: the capability of defining a new class that has all the attributes and methods of a parent class</span> <span class="mk k" data-t="3">Polymorphism: the same method takes on different behaviours depending on which class is instantiated / methods can be redefined for derived classes</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Defining an instance as 'a class'. An instance is an object made from a class.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/32 · Q10(a)</span> <span class="cmd">Define</span> <span class="mark">3 marks</span> Define these OOP terms: encapsulation, getter, setter.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One mark each.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Encapsulation: putting properties and methods inside a class, so sensitive data is hidden by keeping the values inside the class</span> <span class="mk k" data-t="2">Getter: a method used to return the value of a property</span> <span class="mk k" data-t="3">Setter: a method used to update the value of a property</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing that a getter 'gets the data' with no mention that it is a method that returns a property's value.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/32 · Q4</span> <span class="cmd">Match</span> <span class="mark">4 marks</span> Draw one line from each OOP term to its most appropriate description. Terms: encapsulation, getters, polymorphism, setters. Descriptions: (A) methods used to return the value of a property; (B) the process of putting data and methods together as a single unit; (C) methods used to update the value of a property; (D) allows methods to be redefined for derived classes; (E) enables the defining of a new class that inherits from a parent class.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Four terms, five descriptions: one description (inheritance) is not asked for.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Encapsulation matches (B) data and methods together as a single unit</span> <span class="mk k" data-t="2">Getters match (A) return the value of a property</span> <span class="mk k" data-t="3">Polymorphism matches (D) methods redefined for derived classes</span> <span class="mk k" data-t="4">Setters match (C) update the value of a property</span></p><p>Description (E) describes inheritance, which is the odd one out.</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Matching setters to the description of getters. Setters change a value; getters return it.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/33 · Q5</span> <span class="cmd">Complete</span> <span class="mark">4 marks</span> Complete the table by filling in the missing OOP terms and descriptions. Known: a method that accesses the value of a property (term missing); a method that changes the value of a property (term missing); Object (description missing); Method (description missing).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One mark each (maximum 4).</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Getter: a method that accesses the value of a property</span> <span class="mk k" data-t="2">Setter: a method that changes the value of a property</span> <span class="mk k" data-t="3">Object: an instantiation / instance of a class</span> <span class="mk k" data-t="4">Method: a programmed function / procedure / subroutine defined as part of a class</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/32 · Q11(b)</span> <span class="cmd">Complete</span> <span class="mark">4 marks</span> Complete the table of OOP terms and descriptions. Terms given: aggregation, inheritance. Descriptions given: 'a method used to change values in private attributes in a class' (term missing) and 'an occurrence of a class during the execution of a program' (term missing). Write the missing terms and the missing descriptions for aggregation and inheritance.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Aggregation is a has-a relationship. Inheritance is an is-a relationship where the child reuses the parent.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Setter: a method used to change values in private attributes in a class</span> <span class="mk k" data-t="2">Instance / object: an occurrence of a class during the execution of a program</span> <span class="mk k" data-t="3">Aggregation: one class or object contains another / a hierarchy of nested objects / a 'has a' relationship</span> <span class="mk k" data-t="4">Inheritance: a class takes the attributes and methods of another (parent) class</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Describing aggregation as inheritance. Aggregation is 'has a', inheritance is 'is a'.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/32 · Q1(c)</span> <span class="cmd">Write / Explain</span> <span class="mark">1 + 2 marks</span> A program is rewritten using OOP. The record type BuildingRecord becomes the class BuildingClass, with properties BuildingID, BuildingGroup, OwnerName, BuildingAddress, DateLastSold and PriceLastSold, all PRIVATE, for example <code>PRIVATE PriceLastSold : REAL</code>. (i) Write the declaration in pseudocode for OwnerName as PRIVATE. (ii) Explain why the properties have been set to PRIVATE.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(i) follow the example. (ii) say who can reach the data and what that protects.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">PRIVATE OwnerName : STRING</span></p><p><b>(ii)</b> <span class="mk a" data-t="1">To ensure the attributes can only be accessed by the class's own methods</span> <span class="mk a" data-t="2">so that the data cannot be changed by mistake or by other parts of the program (it is protected / encapsulated)</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Leaving out the data type, or writing PUBLIC.</div>
+  </div></details>
+
+  <h3>Writing a class in pseudocode</h3>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/31, 33 · Q11(b)</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> In OOP, a class contains attributes and methods. Complete the pseudocode for the class Car to enable objects to be created. The class needs string attributes for the make, model, body type and fuel type, and an integer attribute for the number of cars of that type built. The attributes must be available only through the methods of the class.<pre class="plain">CLASS ...
+   PRIVATE Make : STRING
+   PRIVATE ...
+   PUBLIC PROCEDURE New(CarMake : STRING, ... ,
+      Make ← ...
+      Model ← ...
+   ...</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Private for all five. The constructor sets the attributes from its parameters. Use the same identifiers in the declarations and the assignments.</div>
+    <div class="ans"><p>Five marks: <span class="mk k" data-t="1">CLASS Car and ENDCLASS</span> <span class="mk k" data-t="2">four declarations using the identifiers used in the assignments</span> <span class="mk k" data-t="3">constructor header using CarBodyType</span> <span class="mk k" data-t="4">two assignments using CarMake</span> <span class="mk k" data-t="5">the constructor identifier for the model and the identifier in the Model assignment match</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">CLASS Car</span><span class="ln">   PRIVATE Make : STRING</span><span class="ln">   PRIVATE Model : STRING</span><span class="ln">   PRIVATE BodyType : STRING</span><span class="ln">   PRIVATE Fuel : STRING</span><span class="ln">   PRIVATE NumberBuilt : INTEGER</span><span class="ln">   PUBLIC PROCEDURE NEW(CarMake : STRING, CarModel : STRING, CarBodyType : STRING)</span><span class="ln">      Make ← CarMake</span><span class="ln">      Model ← CarModel</span><span class="ln">      BodyType ← CarBodyType</span><span class="ln">      Fuel ← &quot;&quot;</span><span class="ln">      NumberBuilt ← 0</span><span class="ln">   ENDPROCEDURE</span><span class="ln">ENDCLASS</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using a parameter name in the declaration (PRIVATE CarMake) or leaving the model assignment using a different name from the parameter.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/32 · Q11(a)</span> <span class="cmd">Write</span> <span class="mark">5 marks</span> Object-oriented programming is used to design a class called Node. A partial design includes the STRING attribute Content and the INTEGER attribute Pointer, together with their getters and setters. The class also includes a constructor with two parameters to set the values of these attributes. Write pseudocode statements to declare the Node class, its attributes and the constructor.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Class and ENDCLASS, two private attributes, a public constructor with two parameters, two assignments.</div>
+    <div class="ans"><p>Five marks: <span class="mk k" data-t="1">CLASS Node and ENDCLASS</span> <span class="mk k" data-t="2">attribute declarations (Content : STRING, Pointer : INTEGER) before the constructor</span> <span class="mk k" data-t="3">the constructor started and ended as PUBLIC PROCEDURE NEW ... ENDPROCEDURE</span> <span class="mk k" data-t="4">two parameters with appropriate names and data types</span> <span class="mk k" data-t="5">the parameters assigned to the attributes</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">CLASS Node</span><span class="ln">   PRIVATE Content : STRING</span><span class="ln">   PRIVATE Pointer : INTEGER</span><span class="ln">   PUBLIC PROCEDURE NEW(NewContent : STRING, NewPointer : INTEGER)</span><span class="ln">      Content ← NewContent</span><span class="ln">      Pointer ← NewPointer</span><span class="ln">   ENDPROCEDURE</span><span class="ln">ENDCLASS</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using the attribute names for the parameters, so the assignment does nothing useful in some languages.</div>
+  </div></details>
+
+  <h3>Getters and setters in a diagram</h3>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/32 · Q10(b)</span> <span class="cmd">Complete</span> <span class="mark">3 marks</span> A school's OOP program stores the details of substitute teachers: full name, telephone number and whether they are in school today, for example SubName: Sarah Jones, Telephone: 01223658721, InSchool: TRUE. Complete the diagram for the object SubstituteTeacher, including appropriate properties and their getters and setters.<pre class="plain">            SubstituteTeacher
+SubName : STRING
+InSchool : BOOLEAN
+SetTelephone(Tel : STRING)</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Complete the three properties first, then one setter and one getter for each.</div>
+    <div class="ans"><p>Three marks: <span class="mk k" data-t="1">properties correct (the missing Telephone : STRING)</span> <span class="mk k" data-t="2">setters correct for all three</span> <span class="mk k" data-t="3">getters correct for all three</span></p><pre class="plain">            SubstituteTeacher
+SubName : STRING
+Telephone : STRING
+InSchool : BOOLEAN
+SetSubName(StaffName : STRING)
+SetTelephone(Tel : STRING)
+SetInSchool(Present : BOOLEAN)
+GetSubName()
+GetTelephone()
+GetInSchool()</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Storing the telephone number as an INTEGER. The leading 0 would be lost, so it is a STRING.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State two benefits of keeping the properties of a class private.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Think about protection and control.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The data can only be changed through the class's methods, so it cannot be corrupted by other parts of the program.</span> <span class="mk k" data-t="2">The class can validate values in its setters, and can be changed internally without affecting other code.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Complete</span> <span class="mark">3 marks</span> A class Book has the properties Title (STRING), Pages (INTEGER) and OnLoan (BOOLEAN). The title never changes after the book is created. Write the class diagram.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A property that never changes has a getter but no setter.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">three properties with correct data types</span> <span class="mk k" data-t="2">a constructor, and setters for Pages and OnLoan only</span> <span class="mk k" data-t="3">getters for all three</span></p><pre class="plain">                  Book
+Title : STRING
+Pages : INTEGER
+OnLoan : BOOLEAN
+Constructor()
+SetPages(NewPages : INTEGER)
+SetOnLoan(Status : BOOLEAN)
+GetTitle()
+GetPages()
+GetOnLoan()</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Adding SetTitle(). The question says the title never changes.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Distinguish</span> <span class="mark">2 marks</span> Distinguish between a class and an object.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Template against occurrence.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A class is a template that defines the properties and methods.</span> <span class="mk k" data-t="2">An object is an instance of the class: one occurrence with its own values.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> A class Vehicle has child classes Car and Lorry. Explain how inheritance helps the programmer.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>What is written once, and where it is reused.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Properties and methods common to all vehicles are written once, in Vehicle.</span> <span class="mk k" data-t="2">Car and Lorry reuse them, so less code is written and tested.</span> <span class="mk k" data-t="3">Each child adds only what is different, or overrides a method, and a change to Vehicle reaches both.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Identify</span> <span class="mark">2 marks</span> A Garage class holds a list of Vehicle objects. State the OOP relationship and say why it is not inheritance.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Has a, or is a?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Containment (aggregation): a Garage has vehicles.</span> <span class="mk k" data-t="2">A Garage is not a kind of Vehicle, so the 'is a' test of inheritance fails.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">3 marks</span> Class Shape has a method Area() returning 0. Circle and Rectangle each define their own Area(). Describe how this shows polymorphism.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Same name, different behaviour.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Circle and Rectangle both have a method called Area().</span> <span class="mk k" data-t="2">Each redefines (overrides) the method in the parent class.</span> <span class="mk k" data-t="3">Calling Area() on a Circle or on a Rectangle runs the version for that class, giving different results.</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Use the exact definitions.</b> Instance: an occurrence of an object. Inheritance: a new class takes the properties and methods of a parent class. Polymorphism: the same method is redefined in derived classes.</li>
+    <li><b>Setters take, getters give.</b> SetX(NewValue : TYPE) has a parameter. GetX() has none and returns the value.</li>
+    <li><b>Match the names.</b> Property Priority, setter SetPriority, getter GetPriority. The mark scheme checks that they match.</li>
+    <li><b>Read the data types from the text.</b> A number with a leading zero or a unique ID is usually a STRING. A scale of 1 to 5 is an INTEGER.</li>
+    <li><b>Private is the default.</b> If the question says attributes must be private, say so in the declaration, and say why: only reached by the class's own methods.</li>
+    <li><b>Draw inheritance arrows upward.</b> Child to parent, and show only the new members.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>what encapsulation does</td><td>"The properties are private, so they can only be accessed through the class's own methods."</td></tr>
+    <tr><td>what inheritance means</td><td>"A derived class takes the properties and methods of a parent class, and can extend or override them."</td></tr>
+    <tr><td>what polymorphism means</td><td>"A method with the same name is redefined in a derived class, so it behaves differently for different objects."</td></tr>
+    <tr><td>what a setter does</td><td>"It is a method that updates the value of a private property, and it can check the value first."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Identify</td><td>Give the term or the one fact asked for.</td></tr>
+    <tr><td>Define</td><td>Give the exact meaning, using the standard words.</td></tr>
+    <tr><td>Describe</td><td>Say what it is and what it does, in two or three points.</td></tr>
+    <tr><td>Complete</td><td>Fill in the diagram or pseudocode with names and data types that match.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+/* class box: x, y, w, title, rows (strings), v (opacity), cls fill */
+function classBox(x, y, w, title, rows, v = 1, cls = "f1", lh = 20) {
+  const h = 30 + rows.length * lh + 8;
+  let o = SV.rect(x, y, w, h, "cell", { rx: 6, ...op(v) }) + SV.rect(x, y, w, 28, cls, { rx: 6, ...op(v * 0.6) }) + SV.text(x + w / 2, y + 19, title, "lbl bd", { "text-anchor": "middle", style: "font-size:15px", ...op(v) });
+  rows.forEach((r, i) => { o += SV.text(x + 8, y + 46 + i * lh, r, "sm", { style: "font-family:var(--mono);font-size:11.5px", ...op(v) }); });
+  return o;
+}
+
+(function () {
+  const objs = [["Rex", "Dog", "2021"], ["Tilly", "Cat", "2023"], ["Kiwi", "Parrot", "2024"]];
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = classBox(20, 30, 210, "class Pet", ["PetName : STRING", "PetType : STRING", "YearBorn : INTEGER", "Constructor()", "GetPetName()"], 1, "f1");
+    objs.forEach((ob, n) => {
+      const v = k > n ? 1 : 0, x = 280 + n * 160;
+      if (v) { o += classBox(x, 60, 140, n === 1 && k === 4 ? "object p2" : "object p" + (n + 1), ["PetName: " + (n === 1 && k === 4 ? "Mittens" : ob[0]), "PetType: " + ob[1], "YearBorn: " + ob[2]], 1, "f2", 24) + SV.line(230, 100, x, 110, "dash", op(0.6)); }
+    });
+    if (k >= 1) o += SV.text(20, 22, "template", "sm");
+    if (k >= 4) o += SV.text(440, 38, "p2 changed; p1 and p3 are not affected", "sm");
+    return o;
+  };
+  Lib.stepper($("#stA"), { w: 760, h: 230, label: "One class and three objects", base: { i: 0 }, draw, tween: 500, dwell: 3800, steps: [
+    { cap: "The <b>class</b> Pet is a template: it lists the properties and methods every pet will have. It holds no particular pet's data.", s: { i: 0 } },
+    { cap: "<code>p1 ← NEW Pet(\"Rex\", \"Dog\", 2021)</code> runs the <b>constructor</b> and creates an <b>object</b>, an <b>instance</b> of Pet, with its own values.", s: { i: 1 } },
+    { cap: "A second instance with different values. Each object has its own copy of the properties.", s: { i: 2 } },
+    { cap: "A third. Creating objects from a class is called <b>instantiation</b>.", s: { i: 3 } },
+    { cap: "Changing p2's name changes only p2. The objects share the class's methods but not their data.", s: { i: 4 } }] });
+})();
+
+(function () {
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "";
+    o += SV.rect(30, 50, 170, 140, "cell", { rx: 8 }) + SV.text(115, 40, "rest of the program", "sm", { "text-anchor": "middle" }) + SV.text(115, 110, "main program", "lbl bd", { "text-anchor": "middle" });
+    o += SV.rect(390, 30, 340, 195, "f2", { rx: 10, ...op(0.18) }) + SV.rect(390, 30, 340, 195, "ax", { rx: 10, fill: "none" }) + SV.text(560, 22, "object of class Pet", "sm", { "text-anchor": "middle" });
+    o += memCell(440, 60, "Age", k >= 3 ? 12 : 4, k >= 1 ? "cell-ok" : "f3", 1, 160) + SV.text(440, 52, "PRIVATE Age : INTEGER", "sm");
+    o += SV.rect(360, 60, 18, 40, "cell-no", { rx: 3, ...op(k >= 1 ? 1 : 0) });
+    o += SV.rect(440, 112, 170, 34, "f1", { rx: 6, ...op(0.55) }) + SV.text(525, 134, "GetAge()", "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:13px" });
+    o += SV.rect(440, 156, 170, 34, "f1", { rx: 6, ...op(0.55) }) + SV.text(525, 178, "SetAge(n)", "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:13px" });
+    if (k === 2) o += arrow(200, 90, 355, 80, "r", "c3", 1) + SV.text(210, 80, "pet.Age ✗", "lbl bd c3") + SV.text(210, 130, "blocked: the property is private", "sm");
+    if (k === 3) o += arrow(200, 120, 440, 128, "r", "c1", 1) + SV.text(210, 112, "pet.GetAge()", "lbl bd") + arrow(525, 100, 525, 110, "d", "c2", 1);
+    if (k === 4) o += arrow(200, 120, 440, 172, "r", "c1", 1) + SV.text(210, 112, "pet.SetAge(12)", "lbl bd") + SV.text(560, 212, "SetAge checks 0 to 30, then stores 12", "sm", { "text-anchor": "middle" });
+    if (k === 5) o += arrow(200, 120, 440, 172, "r", "c1", 1) + SV.text(210, 112, "pet.SetAge(-3)", "lbl bd") + SV.text(560, 212, "rejected: -3 is not valid, Age stays 12", "sm", { "text-anchor": "middle" });
+    return o;
+  };
+  Lib.stepper($("#stB"), { w: 760, h: 240, label: "Encapsulation with a getter and a setter", base: { i: 0 }, draw, tween: 500, dwell: 3800, steps: [
+    { cap: "A Pet object stores an <b>Age</b>. The programmer declares it <code>PRIVATE</code> and writes two public methods.", s: { i: 0 } },
+    { cap: "Because Age is private, a wall surrounds it. Only methods of the class can reach it.", s: { i: 1 } },
+    { cap: "Code outside the class that tries to read or write <code>Age</code> directly is <b>blocked</b>.", s: { i: 2 } },
+    { cap: "The <b>getter</b> <code>GetAge()</code> is the allowed way to read the value.", s: { i: 3 } },
+    { cap: "The <b>setter</b> <code>SetAge(n)</code> is the allowed way to change it. The method can check the value first.", s: { i: 4 } },
+    { cap: "A silly value is rejected, so the data stays valid. That is the point of <b>encapsulation</b>.", s: { i: 5 } }] });
+})();
+
+(function () {
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "";
+    o += classBox(230, 10, 300, "Yarn (parent)", ["Name, Colour, BatchCode : STRING", "Weight, NumberBalls : INTEGER", "Type : STRING", "Constructor()  EditNumberBalls()", "YarnInfo()"], 1, "f1", 19);
+    const kids = [["Acrylic", "Soft : BOOLEAN", "Constructor()", "YarnInfo()"], ["Wool", "WoolType : STRING", "Constructor()", "YarnInfo()"], ["Mix", "Percentage : INTEGER", "Constructor()", "YarnInfo()  (overrides)"]];
+    kids.forEach((c, n) => {
+      const v = k > n ? 1 : 0, x = 20 + n * 245; if (!v) return;
+      o += classBox(x, 160, 225, c[0] + " (child)", [c[1], c[2], c[3]], 1, ["f2", "f3", "f4"][n], 19) + arrow(x + 112, 160, 380, 142, "u", "c1", 1);
+    });
+    return o;
+  };
+  Lib.stepper($("#stC"), { w: 760, h: 270, label: "Inheritance with three child classes", base: { i: 0 }, draw, tween: 500, dwell: 4000, steps: [
+    { cap: "The <b>parent class</b> Yarn holds everything the three types share: name, colour, batch code, weight, number of balls, type, and the methods.", s: { i: 0 } },
+    { cap: "<b>Acrylic</b> inherits all of it and adds only what is new: <code>Soft : BOOLEAN</code>. The arrow points from the child to the parent.", s: { i: 1 } },
+    { cap: "<b>Wool</b> inherits the same and adds its own <code>WoolType</code> (lamb, merino or alpaca).", s: { i: 2 } },
+    { cap: "<b>Mix</b> adds <code>Percentage</code> of acrylic. Each child has its own constructor and its own <code>YarnInfo()</code> because each shows extra data. Nothing in Yarn is written three times.", s: { i: 3 } }] });
+})();
+
+(function () {
+  const animals = [["Dog", "Woof"], ["Cat", "Meow"], ["Cow", "Moo"]];
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "";
+    o += codeList(20, 30, ["FOR EACH a IN Animals", "   OUTPUT a.Speak()", "NEXT a"], k === 0 ? -1 : 1, 1, 34, 230);
+    animals.forEach((a, n) => {
+      const x = 310 + n * 140, on = k === n + 1;
+      o += classBox(x, 40, 120, a[0], ["Speak()"], 1, on ? "f3" : "f1", 20);
+      if (k > n) o += SV.text(x + 60, 140, '"' + a[1] + '"', "lbl bd", { "text-anchor": "middle", style: "font-size:20px" }) + arrow(x + 60, 100, x + 60, 124, "d", "c2", 1);
+    });
+    if (k === 4) o += SV.text(310, 190, "one call, three different results", "lbl bd t3");
+    return o;
+  };
+  Lib.stepper($("#stD"), { w: 760, h: 215, label: "Polymorphism: the same method call", base: { i: 0 }, draw, tween: 400, dwell: 3200, steps: [
+    { cap: "Dog, Cat and Cow each <b>redefine</b> the method <code>Speak()</code>. The loop calls the same method name on every object.", s: { i: 0 } },
+    { cap: "On the Dog object, <code>Speak()</code> runs the Dog version.", s: { i: 1 } },
+    { cap: "On the Cat object, the same call runs the Cat version.", s: { i: 2 } },
+    { cap: "On the Cow object, the Cow version.", s: { i: 3 } },
+    { cap: "That is <b>polymorphism</b>: the same method name, redefined in derived classes, behaves differently depending on the object.", s: { i: 4 } }] });
+})();
+
+(function () {
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "";
+    o += classBox(30, 20, 200, "Card", ["Number : INTEGER", "Colour : STRING", "GetNumber()", "GetColour()"], 1, "f2");
+    if (k >= 1) {
+      o += SV.rect(300, 20, 430, 150, "cell", { rx: 8 }) + SV.rect(300, 20, 430, 28, "f1", { rx: 8, ...op(0.6) }) + SV.text(515, 39, "object of class Hand", "lbl bd", { "text-anchor": "middle", style: "font-size:15px" });
+      for (let c = 0; c < 5; c++) o += SV.rect(315 + c * 82, 64, 70, 70, "f2", { rx: 6, ...op(0.45) }) + SV.text(350 + c * 82, 92, "Card", "sm", { "text-anchor": "middle" }) + SV.text(350 + c * 82, 112, (c + 1) + " red", "sm", { "text-anchor": "middle", style: "font-size:11px" });
+      o += SV.text(315, 156, "Cards : ARRAY[0:9] OF Card", "sm", { style: "font-family:var(--mono);font-size:11.5px" });
+    }
+    if (k >= 2) o += SV.text(30, 200, "Hand HAS Cards: containment (aggregation)", "lbl bd t3") + SV.text(30, 226, "Parrot IS AN Animal: inheritance", "lbl bd t1", op(k >= 3 ? 1 : 0.3));
+    return o;
+  };
+  Lib.stepper($("#stE"), { w: 760, h: 240, label: "Containment: a hand of cards", base: { i: 0 }, draw, tween: 500, dwell: 3800, steps: [
+    { cap: "A <b>Card</b> class stores a number and a colour.", s: { i: 0 } },
+    { cap: "A <b>Hand</b> object holds an array of <b>Card</b> objects. The Hand class has a property whose type is another class.", s: { i: 1 } },
+    { cap: "This is <b>containment (aggregation)</b>: a Hand <i>has</i> cards.", s: { i: 2 } },
+    { cap: "Compare inheritance: a Parrot <i>is an</i> Animal. Ask 'has a' or 'is a' to choose between them.", s: { i: 3 } }] });
+})();
+
+/* Lab 1 */
+(function () {
+  let priv = true, age = 4;
+  const paint = (msg) => {
+    $$("#vB button").forEach((b, i) => b.classList.toggle("pri", (i === 0) === priv));
+    $("#v1").textContent = age; $("#vv").textContent = msg || (priv ? "Age is PRIVATE: only GetAge() and SetAge() can reach it." : "Age is PUBLIC: any code can reach it directly.");
+  };
+  $("#vB").innerHTML = '<button class="b">PRIVATE Age</button><button class="b">PUBLIC Age</button>';
+  $$("#vB button").forEach((b, i) => (b.onclick = () => { priv = i === 0; paint(); }));
+  $("#vR").onclick = () => paint(priv ? "Blocked: Age is private, so outside code cannot read it directly." : "Read directly: " + age + ". It works, but nothing protects the data.");
+  $("#vG").onclick = () => paint("GetAge() returns " + age + ". This is the allowed way to read a private property.");
+  $("#vN").onclick = () => { if (priv) return paint("Blocked: outside code cannot set a private property directly."); age = 25; paint("Age is now 25. Directly set, so no check was made."); };
+  $("#vS").onclick = () => { age = 25; paint("SetAge(25): checked (0 to 30 is allowed) and stored. Age is 25."); };
+  $("#vC").onclick = () => paint(priv ? "SetAge(-3): the setter rejects it, so Age stays " + age + ". The setter protects the data." : "SetAge(-3): the setter rejects it. But with a PUBLIC Age, outside code could still set -3 directly, which is why properties are made private.");
+  paint();
+})();
+
+/* Lab 2 */
+(function () {
+  const parent = ["Name, Colour, BatchCode : STRING", "Weight, NumberBalls, Type", "EditNumberBalls()"];
+  const rows = [
+    ["Yarn (parent)", "Everything: Name, Colour, BatchCode, Weight, NumberBalls, Type and the methods Constructor(), EditNumberBalls(), YarnInfo()", "Nothing: this is the parent class", "Nothing to override"],
+    ["Acrylic", "All of Yarn: " + parent.join("; "), "Soft : BOOLEAN; its own Constructor()", "YarnInfo(), to show the Soft value as well"],
+    ["Wool", "All of Yarn: " + parent.join("; "), "WoolType : STRING; its own Constructor()", "YarnInfo(), to show the wool type"],
+    ["Mix", "All of Yarn: " + parent.join("; "), "Percentage : INTEGER; its own Constructor()", "YarnInfo(), to show the percentage of acrylic"]
+  ];
+  btnTable("iB", "iO", rows, ["Class", "Inherited", "Adds", "Overrides"]);
+})();
+
+btnTable("eB", "eO", [
+  ["Class", "A template that defines the properties and methods of its objects", "Pet", "Calling it 'an object'"],
+  ["Object / instance", "One occurrence of a class, with its own values", "p1 ← NEW Pet(...)", "Saying an instance is a class"],
+  ["Constructor", "The method that runs when an object is created and sets its starting values", "PUBLIC PROCEDURE NEW(...)", "Forgetting it takes parameters for the values"],
+  ["Encapsulation", "Properties and methods together in one class; data private and reached only through the class's own methods", "PRIVATE Age : INTEGER", "'Hiding' without saying how it is accessed"],
+  ["Getter / setter", "A getter returns the value of a property; a setter updates it", "GetAge() / SetAge(n)", "Giving a getter a parameter"],
+  ["Inheritance", "A derived class takes the properties and methods of a parent class", "CLASS Parrot INHERITS Animal", "Arrows the wrong way round"],
+  ["Polymorphism", "A method with the same name is redefined in derived classes, so behaviour differs by class", "Speak() in Dog and Cat", "Writing 'many forms' only"],
+  ["Containment (aggregation)", "A class contains objects of another class: 'has a'", "Hand contains Cards", "Confusing it with inheritance"]
+], ["Term", "Meaning", "Example", "Trap"]);
+Lib.classify($("#cl1"), { prompt: "What kind of class member is each item?", buckets: [{"label": "Attribute"}, {"label": "Constructor"}, {"label": "Getter"}, {"label": "Setter"}, {"label": "Method (other)"}], items: [{"text": "PetName : STRING", "b": 0}, {"text": "NEW(NewName : STRING)", "b": 1}, {"text": "GetPetName()", "b": 2}, {"text": "SetPetName(NewName : STRING)", "b": 3}, {"text": "EditNumberBalls()", "b": 4}, {"text": "YearBorn : INTEGER", "b": 0}, {"text": "__init__(self, name)", "b": 1}, {"text": "GetYearBorn()", "b": 2}, {"text": "SetPriority(Urgency : INTEGER)", "b": 3}, {"text": "Description()", "b": 4}], done: "Attributes have a data type and no brackets. Getters start Get and take nothing. Setters start Set and take the new value. The constructor creates the object." });
+Lib.classify($("#cl2"), { prompt: "Is the relationship inheritance (is a) or containment (has a)?", buckets: [{"label": "Inheritance"}, {"label": "Containment"}], items: [{"text": "A Parrot and an Animal", "b": 0}, {"text": "A Hand and its Cards", "b": 1}, {"text": "A Manager and an Employee", "b": 0}, {"text": "A Library and its Books", "b": 1}, {"text": "A Car and its Engine", "b": 1}, {"text": "A Helicopter and a Vehicle", "b": 0}, {"text": "A Garage and its Cars", "b": 1}, {"text": "A Circle and a Shape", "b": 0}], done: "Try 'is a': a Parrot is an Animal. Try 'has a': a Hand has Cards." });
+Lib.order($("#o1"), { prompt: "Put the steps for designing classes in order.", items: ["Find the things the problem describes: each kind is a class", "List the data each class stores, with data types", "List the actions each class performs: its methods", "Look for shared parts and put them in a parent class", "Make the properties private and add getters and setters where needed"], done: "Things, data, actions, sharing, access." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Constructor", "Sets up a new object when it is created"], ["Getter", "Returns the value of a property"], ["Setter", "Updates the value of a property"], ["Polymorphism", "The same method redefined in derived classes"], ["Instance", "An occurrence of an object made from a class"]], done: "Learn these terms." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "A class has 6 properties, all private, all of which must be readable from outside. How many getters are needed?", "a": 6, "unit": "", "tol": 0.01, "hint": "One getter per readable property.", "sol": "<b>6</b>."},
+  {"q": "A class has 6 properties. The ID never changes; the other 5 can be updated. How many setters?", "a": 5, "unit": "", "tol": 0.01, "hint": "No setter for the ID.", "sol": "<b>5</b>."},
+  {"q": "Yarn has 6 properties and 3 methods. Mix inherits from Yarn and adds 1 property. How many properties does a Mix object have?", "a": 7, "unit": "", "tol": 0.01, "hint": "Inherited plus new.", "sol": "<b>7</b>."},
+  {"q": "A Hand contains 5 Card objects. Each Card has 2 properties. How many Card properties exist across the hand?", "a": 10, "unit": "", "tol": 0.01, "hint": "5 × 2.", "sol": "<b>10</b>."},
+  {"q": "Classes: Animal, Dog, Cat, Cow, with Dog, Cat and Cow inheriting from Animal. How many inheritance arrows are drawn?", "a": 3, "unit": "", "tol": 0.01, "hint": "One from each child.", "sol": "<b>3</b>."},
+  {"q": "Three objects are created from the class Pet. How many classes are there?", "a": 1, "unit": "", "tol": 0.01, "hint": "Many objects, one class.", "sol": "<b>1</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "What is encapsulation?", opts: ["Writing code in a class", "Keeping data private so it can only be accessed through the class's own methods", "Creating an object", "Copying a class"], a: 1, why: "Data and methods together, with the data reached only through methods." },
+  { q: "What is a setter?", opts: ["A method that returns a property", "A method that updates the value of a property", "A method that creates an object", "A private property"], a: 1, why: "A setter updates; a getter returns." },
+  { q: "In a class diagram, which is a getter?", opts: ["SetPriority(Urgency : INTEGER)", "GetPriority()", "Priority : INTEGER", "Constructor()"], a: 1, why: "Getters take no parameter and start with Get." },
+  { q: "What does polymorphism mean?", opts: ["A class has many objects", "A method is redefined in derived classes, behaving differently", "A class has many properties", "A property has many types"], a: 1, why: "Same method name, different behaviour." },
+  { q: "Which relationship is containment?", opts: ["A Parrot is an Animal", "A Hand has Cards", "A Manager is an Employee", "A Circle is a Shape"], a: 1, why: "Has a." },
+  { q: "What is an instance?", opts: ["A template", "A type of method", "An occurrence of an object created from a class", "A private property"], a: 2, why: "Instances are created from classes." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Class", "A template for objects: their properties and methods."],
+  ["Object / instance", "One occurrence of a class, with its own values."],
+  ["Constructor", "Sets up a new object. NEW in pseudocode, __init__ in Python."],
+  ["Encapsulation", "Data private; accessed only by the class's own methods."],
+  ["Getter", "Method that returns the value of a property."],
+  ["Setter", "Method that updates the value of a property."],
+  ["Inheritance", "A derived class takes properties and methods of a parent class."],
+  ["Polymorphism", "Same method name redefined in derived classes."],
+  ["Containment", "One class holds objects of another: has a."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

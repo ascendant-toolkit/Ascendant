@@ -1,0 +1,386 @@
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 20.2.1</div>
+  <h1>File Processing: Text, Serial, Sequential and Random Files</h1>
+  <p class="cbook">Coursebook: Chapter 20 · Further programming, section 20.2 File processing and exception handling</p>
+  <p class="lead">Opening, reading, writing and closing text files; serial, sequential and random files; SEEK, GETRECORD and PUTRECORD; Python for Paper 4; animations, labs and the real Paper 3 and Paper 4 file questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A program's variables disappear when it ends, so data that must last is stored in a <b>file</b> on secondary storage. To use a file you <b>open</b> it in a mode (read, write, append, or random), <b>read</b> or <b>write</b> one record or line at a time, and then <b>close</b> it. A <b>text file</b> is processed from the start in order: <b>serial</b> files hold records in the order they were added and <b>sequential</b> files hold them in key order, so both are read one record after another until the end of the file. A <b>random</b> file lets the program jump straight to a record: <b>SEEK</b> moves to a position, then <b>GETRECORD</b> reads it or <b>PUTRECORD</b> writes it. Paper 3 asks you to complete this pseudocode; Paper 4 asks you to read and write files in Python.</p></div>
+
+  <h2>1 · Opening, reading, writing and closing</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Pseudocode</th><th>What it does</th><th>Python</th></tr>
+    <tr><td><code>OPENFILE "Data.txt" FOR READ</code></td><td>Opens an existing file to read from the start</td><td><code>f = open("Data.txt", "r")</code></td></tr>
+    <tr><td><code>OPENFILE "Out.txt" FOR WRITE</code></td><td>Opens a file to write. A new file is created; an existing file is <b>overwritten</b></td><td><code>f = open("Out.txt", "w")</code></td></tr>
+    <tr><td><code>OPENFILE "Log.txt" FOR APPEND</code></td><td>Opens a file and adds new data to the <b>end</b></td><td><code>f = open("Log.txt", "a")</code></td></tr>
+    <tr><td><code>READFILE "Data.txt", Line</code></td><td>Reads the next line into the variable</td><td><code>Line = f.readline()</code> or <code>for Line in f:</code></td></tr>
+    <tr><td><code>WRITEFILE "Out.txt", Line</code></td><td>Writes the value as the next line</td><td><code>f.write(Line + "\n")</code></td></tr>
+    <tr><td><code>EOF("Data.txt")</code></td><td>True when there is nothing left to read</td><td>the <code>for</code> loop ends; <code>readline()</code> returns <code>""</code></td></tr>
+    <tr><td><code>CLOSEFILE "Data.txt"</code></td><td>Closes the file so all data is saved and it can be reused</td><td><code>f.close()</code></td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Always close</b>Every file that is opened must be closed, in an appropriate place (after the loop, not inside it). Closing a written file makes sure the data is actually saved. Python's <code>with open(...) as f:</code> closes it for you; the mark scheme accepts it.</div>
+
+  <h2>2 · Reading a text file into an array</h2>
+  <p>Each line of a text file is one string. Convert it to the type you need (<code>int(Line)</code>), and remove the newline with <code>strip()</code> if you will compare or split it.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">DataArray = []                                   # 25 elements of type integer</span><span class="ln">DataFile = open(&quot;Data.txt&quot;, &quot;r&quot;)</span><span class="ln">for Line in DataFile:                            # one pass for each line, until the end of file</span><span class="ln">    DataArray.append(int(Line))</span><span class="ln">DataFile.close()</span></pre></div>
+  <p>When a record is spread over several lines, read the lines in the order they were written, or keep the fields on one line and split them:</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">File = open(&quot;HighScore.txt&quot;, &quot;r&quot;)</span><span class="ln">for x in range(0, 10):</span><span class="ln">    FileData[x][0] = File.readline()[:3]        # line 1: three-character player name</span><span class="ln">    FileData[x][1] = File.readline().strip()    # line 2: the score</span><span class="ln">File.close()</span><span class="ln"> </span><span class="ln"># a record on one line, fields separated by spaces:   &quot;Aria True 12 3&quot;</span><span class="ln">Parts = Line.strip().split(&quot; &quot;)                 # [&quot;Aria&quot;, &quot;True&quot;, &quot;12&quot;, &quot;3&quot;]</span></pre></div>
+
+  <h2>3 · Writing and appending</h2>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">File = open(&quot;NewHighScore.txt&quot;, &quot;w&quot;)             # write: creates or overwrites</span><span class="ln">for x in range(0, 10):</span><span class="ln">    File.write(str(FileData[x][0]) + &quot;\n&quot;)</span><span class="ln">    File.write(str(FileData[x][1]) + &quot;\n&quot;)</span><span class="ln">File.close()</span><span class="ln"> </span><span class="ln">Log = open(&quot;Log.txt&quot;, &quot;a&quot;)                       # append: adds to the end</span><span class="ln">Log.write(&quot;Game finished\n&quot;)</span><span class="ln">Log.close()</span></pre></div>
+  <p><code>write</code> needs a string, so convert numbers with <code>str()</code>, and add <code>"\n"</code> to start a new line. A comma-separated line such as the tree example is built by joining the fields: <code>str(A) + "," + str(B) + "," + str(C) + "\n"</code>.</p>
+
+  <h2>4 · Serial, sequential and random files</h2>
+  <div class="tw"><table class="t">
+    <tr><th>File</th><th>How records are stored</th><th>How you find a record</th><th>Adding a record</th></tr>
+    <tr><td><b>Serial</b></td><td>In the order they were added, with no ordering on a key</td><td>Read from the start until found (or to the end to process all)</td><td>Append to the end</td></tr>
+    <tr><td><b>Sequential</b></td><td>In order of a key field</td><td>Read in order; can stop once the key has been passed</td><td>Write a new file, inserting the record in the right place</td></tr>
+    <tr><td><b>Random</b></td><td>At an address calculated from the key (position, or a hash)</td><td>Go straight to the address with SEEK, then GETRECORD</td><td>SEEK to the address, then PUTRECORD</td></tr>
+  </table></div>
+  <p>For a serial or sequential file the program loops: open, repeat <code>READFILE</code> until <code>EOF</code>, close. Processing a file means doing something to each record in that loop (copying, totalling, searching). To <b>delete</b> or <b>change</b> a record in a text file, write every record to a new file, changing or leaving out the one required.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;ActiveFile.txt&quot; FOR READ</span><span class="ln">OPENFILE &quot;ArchiveFile.txt&quot; FOR WRITE</span><span class="ln">WHILE NOT EOF(&quot;ActiveFile.txt&quot;)</span><span class="ln">   READFILE &quot;ActiveFile.txt&quot;, Account</span><span class="ln">   IF Account = &quot;&quot; THEN</span><span class="ln">      WRITEFILE &quot;ArchiveFile.txt&quot;, &quot;Account not present&quot;</span><span class="ln">   ELSE</span><span class="ln">      WRITEFILE &quot;ArchiveFile.txt&quot;, Account</span><span class="ln">   ENDIF</span><span class="ln">ENDWHILE</span><span class="ln">CLOSEFILE &quot;ActiveFile.txt&quot;</span><span class="ln">CLOSEFILE &quot;ArchiveFile.txt&quot;</span></pre></div>
+
+  <h2>5 · Random files: SEEK, GETRECORD and PUTRECORD</h2>
+  <p>A random file is opened with <code>FOR RANDOM</code>. Each record has the same size, so the program can work out where record number <i>n</i> starts and jump there.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Command</th><th>What it does</th></tr>
+    <tr><td><code>OPENFILE "Stock.dat" FOR RANDOM</code></td><td>Opens the file for reading and writing at any position</td></tr>
+    <tr><td><code>SEEK "Stock.dat", Location</code></td><td>Moves the file pointer to the record at that location</td></tr>
+    <tr><td><code>GETRECORD "Stock.dat", Item</code></td><td>Reads the record at the pointer into the variable</td></tr>
+    <tr><td><code>PUTRECORD "Stock.dat", Item</code></td><td>Writes the variable as the record at the pointer</td></tr>
+  </table></div>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;StockList.dat&quot; FOR RANDOM</span><span class="ln">OUTPUT &quot;Enter a location between 1 and 500: &quot;</span><span class="ln">INPUT Location</span><span class="ln">SEEK &quot;StockList.dat&quot;, Location        // always SEEK before GETRECORD or PUTRECORD</span><span class="ln">GETRECORD &quot;StockList.dat&quot;, Item</span><span class="ln">IF Item = &quot;&quot; THEN</span><span class="ln">   OUTPUT &quot;This record is missing.&quot;</span><span class="ln">ELSE</span><span class="ln">   OUTPUT &quot;The item in stock is &quot;, Item</span><span class="ln">ENDIF</span><span class="ln">CLOSEFILE &quot;StockList.dat&quot;</span></pre></div>
+  <p>The location is often calculated from the key with a <b>hash function</b> (for example the account number MOD the number of slots), so a record can be found without searching: <code>Location ← Hash(Customer.AccountNumber)</code>, <code>SEEK AccountFile, Location</code>, <code>GETRECORD AccountFile, Customer</code>. A random file has empty locations, which is why a record that reads back as <code>""</code> means "nothing stored here".</p>
+  <div class="tw"><table class="t">
+    <tr><th>Task</th><th>Pattern</th></tr>
+    <tr><td>Read a record at a known place</td><td>OPEN RANDOM, SEEK, GETRECORD, CLOSE</td></tr>
+    <tr><td>Store a record at a known place</td><td>OPEN RANDOM, SEEK, PUTRECORD, CLOSE</td></tr>
+    <tr><td>Find the first empty slot</td><td>loop: SEEK, GETRECORD, if empty then PUTRECORD and stop, else add 1 to the location</td></tr>
+    <tr><td>Copy records from one file to another</td><td>FOR each position: SEEK, GETRECORD from the first file, SEEK, PUTRECORD in the second</td></tr>
+  </table></div>
+
+  <h2>6 · Common ways to lose marks</h2>
+  <ul>
+    <li>Forgetting <code>CLOSEFILE</code>, or closing inside the loop, or before the last read.</li>
+    <li>Using <code>FOR WRITE</code> when the data must be added to what is already there (that is <code>APPEND</code>), or <code>FOR READ</code> on a file you also write to.</li>
+    <li>Leaving out <code>SEEK</code> before <code>GETRECORD</code> or <code>PUTRECORD</code> in a random file.</li>
+    <li>Not converting what was read: a line is a string. Use <code>int()</code> before adding or comparing as numbers.</li>
+    <li>Not removing the newline, so the data never equals what it should.</li>
+    <li>Writing a number without <code>str()</code>, or forgetting the new line, so everything ends up on one line.</li>
+    <li>Looping a fixed number of times when the question says "until the end of the file".</li>
+    <li>In Paper 4, forgetting the exception handling mark for opening or reading the file (see the next page).</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Reading a text file into an array</h2>
+  <p>Press Play, or click the steps.</p>
+  <div id="stA"></div>
+  <h2>2 · Write overwrites, append adds</h2>
+  <div id="stB"></div>
+  <h2>3 · Copying a file one line at a time</h2>
+  <div id="stC"></div>
+  <h2>4 · Reaching record 600: serial or random?</h2>
+  <div id="stD"></div>
+  <h2>5 · A random file lookup with a hash</h2>
+  <div id="stE"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · What does the open mode do?</h2>
+  <p>Choose a mode and whether the file already exists. The file holds the lines Ana, Ben, Cho. The program then writes the line Dev.</p>
+  <div class="card"><div id="mB" class="btnrow"></div><div id="mE" class="btnrow"></div><div id="mO"></div><div class="verdict" id="mV"></div></div>
+
+  <h2>Lab 2 · Step through a read loop</h2>
+  <p>The file Scores.txt holds five numbers, one per line. Press Step to run each statement of the loop and watch the pointer, the variable and the total.</p>
+  <div class="card"><div id="rS"></div><div class="btnrow"><button class="b pri" id="rN">Step</button><button class="b" id="rR">Reset</button></div><div class="verdict" id="rV"></div></div>
+
+  <h2>Lab 3 · Find a record with a hash</h2>
+  <p>Account records are stored in a random file with 11 locations, using Location = AccountNumber MOD 11. Enter an account number to see where it is stored, then try two numbers that map to the same place.</p>
+  <div class="card"><div id="hS"></div><div id="hT"></div><div class="verdict" id="hV"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Read, write, append or random?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Serial, sequential or random file?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the steps for processing a text file in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the command to its job</h2><div id="m1" class="card"></div>
+  <h2>5 · Count the operations</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A high score table</h3><p>A game saves the top ten names and scores in a text file when it closes and reads them back when it starts. Writing replaces the old file with the new table.</p><div class="use"><b>Exam use:</b> WRITE overwrites the file; read it back in the same order it was written.</div></div>
+  <div class="rw"><h3>A log of events</h3><p>A server adds one line to a log every time something happens. The program opens the file in append mode so earlier lines are never lost.</p><div class="use"><b>Exam use:</b> APPEND adds to the end of an existing file.</div></div>
+  <div class="rw"><h3>A bank's account file</h3><p>Millions of account records are stored in a random file. The account number is turned into a location by a hash function, so one record can be fetched without reading the rest.</p><div class="use"><b>Exam use:</b> random access: SEEK to the location and GETRECORD.</div></div>
+  <div class="rw"><h3>A payroll run</h3><p>A program reads each employee's hours from a file, line by line, calculates pay and writes a payslip line to a new file. It stops at the end of the file.</p><div class="use"><b>Exam use:</b> serial processing: read until EOF, process, write, close.</div></div>
+  <div class="rw"><h3>Backing up a file</h3><p>A copy of every record is written one at a time from the live file to a stored file. Anything that is blank is replaced with a standard message.</p><div class="use"><b>Exam use:</b> copying with SEEK, GETRECORD and PUTRECORD for random files, or READFILE and WRITEFILE for text.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on file processing: Paper 3 pseudocode for text and random files, and Paper 4 Python for text files. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2023</td><td>31, 33</td><td>10</td><td>5</td><td>Complete the copy of ActiveFile.txt to ArchiveFile.txt, replacing blank lines</td></tr>
+    <tr><td>M/J 2023</td><td>32</td><td>6(b)</td><td>5</td><td>Complete the read of every record in the random file DentalFile.dat</td></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>8(a)</td><td>5</td><td>Complete a random file lookup using a hash function</td></tr>
+    <tr><td>O/N 2023</td><td>32</td><td>12(b)</td><td>7</td><td>Complete a search of a random file for a customer by name</td></tr>
+    <tr><td>M/J 2025</td><td>31</td><td>12</td><td>5</td><td>Complete a check of a location in StockList.dat</td></tr>
+    <tr><td>M/J 2025</td><td>32</td><td>13</td><td>5</td><td>Complete the copy of 50 records between two random files</td></tr>
+    <tr><td>M/J 2025</td><td>33</td><td>11</td><td>5</td><td>Complete the insertion of a new stock item into the next empty location</td></tr>
+    <tr><td>M/J 2026</td><td>32</td><td>10(b)</td><td>6</td><td>Complete TempCheck() using SEEK and GETRECORD</td></tr>
+    <tr><td>M/J 2022</td><td>41, 43</td><td>1(b), 1(f)</td><td>6 + 4</td><td>Read pairs of lines from HighScore.txt; write the table to NewHighScore.txt</td></tr>
+    <tr><td>O/N 2025</td><td>42</td><td>3(d)</td><td>5</td><td>Write the contents of TreeArray to a new text file, one comma-separated line each</td></tr>
+  </table></div>
+  <p class="note">Paper 3 asks you to complete file-handling <b>pseudocode</b> (text and random files). Paper 4 asks you to read and write text files as <b>Python</b>, in almost every paper; the Paper 4 questions that award marks for exception handling are on the next page, and two that are mainly about reading and writing are here. Python is shown for Paper 4; Paper 3 answers are in the pseudocode the exam uses. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+
+  <h3>Paper 3: text files</h3>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/31, 33 · Q10</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> The pseudocode algorithm copies an active accounts text file ActiveFile.txt to an archive accounts text file ArchiveFile.txt, one line at a time. Any blank lines found in the active accounts file are replaced with the words "Account not present" in the archive file. Complete this file-handling pseudocode.<pre class="plain">DECLARE Account : STRING
+...
+OPENFILE &quot;ArchiveFile.txt&quot; FOR WRITE
+WHILE NOT ...
+   READFILE &quot;ActiveFile.txt&quot;, Account
+   IF Account = &quot;&quot; THEN
+      WRITEFILE &quot;ArchiveFile.txt&quot;, &quot; ...&quot;
+   ELSE
+      WRITEFILE &quot;ArchiveFile.txt&quot;, ...
+   ENDIF
+ENDWHILE
+...
+CLOSEFILE &quot;ArchiveFile.txt&quot;</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open the active file for reading, loop until its end, close both files at the end.</div>
+    <div class="ans"><p>One mark for each correctly completed line (maximum 5): <span class="mk k" data-t="1">OPENFILE "ActiveFile.txt" FOR READ</span> <span class="mk k" data-t="2">WHILE NOT EOF("ActiveFile.txt")</span> <span class="mk k" data-t="3">WRITEFILE "ArchiveFile.txt", "Account not present"</span> <span class="mk k" data-t="4">WRITEFILE "ArchiveFile.txt", Account</span> <span class="mk k" data-t="5">CLOSEFILE "ActiveFile.txt"</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">DECLARE Account : STRING</span><span class="ln">OPENFILE &quot;ActiveFile.txt&quot; FOR READ</span><span class="ln">OPENFILE &quot;ArchiveFile.txt&quot; FOR WRITE</span><span class="ln">WHILE NOT EOF(&quot;ActiveFile.txt&quot;)</span><span class="ln">   READFILE &quot;ActiveFile.txt&quot;, Account</span><span class="ln">   IF Account = &quot;&quot; THEN</span><span class="ln">      WRITEFILE &quot;ArchiveFile.txt&quot;, &quot;Account not present&quot;</span><span class="ln">   ELSE</span><span class="ln">      WRITEFILE &quot;ArchiveFile.txt&quot;, Account</span><span class="ln">   ENDIF</span><span class="ln">ENDWHILE</span><span class="ln">CLOSEFILE &quot;ActiveFile.txt&quot;</span><span class="ln">CLOSEFILE &quot;ArchiveFile.txt&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Closing only the archive file. Both files that were opened must be closed.</div>
+  </div></details>
+
+  <h3>Paper 3: random files</h3>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/32 · Q6(b)</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> The pseudocode reads dental records stored in a random file using the user-defined data type TAppointments and prints the contents of the file, one record at a time. Complete this file-handling pseudocode.<pre class="plain">DECLARE DentalRecord : ARRAY[1:250] OF TAppointments
+DECLARE DentalFile : STRING
+DECLARE Count : INTEGER
+DentalFile ← &quot;DentalFile.dat&quot;
+OUTPUT &quot;The file &quot;, DentalFile, &quot; contains these records:&quot;
+OPENFILE ...
+...  ← 1
+REPEAT
+   SEEK DentalFile, Count
+   ...
+   OUTPUT DentalRecord[Count]
+   Count ← Count + 1
+UNTIL ...
+...</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A random file needs OPENFILE FOR RANDOM, a SEEK before each read, GETRECORD into the array element, and a stop at the end of the file.</div>
+    <div class="ans"><p>One mark for each correctly completed line (maximum 5): <span class="mk k" data-t="1">OPENFILE DentalFile FOR RANDOM</span> <span class="mk k" data-t="2">Count ← 1</span> <span class="mk k" data-t="3">GETRECORD DentalFile, DentalRecord[Count]</span> <span class="mk k" data-t="4">UNTIL EOF(DentalFile)</span> <span class="mk k" data-t="5">CLOSEFILE DentalFile</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE DentalFile FOR RANDOM</span><span class="ln">Count ← 1</span><span class="ln">REPEAT</span><span class="ln">   SEEK DentalFile, Count</span><span class="ln">   GETRECORD DentalFile, DentalRecord[Count]</span><span class="ln">   OUTPUT DentalRecord[Count]</span><span class="ln">   Count ← Count + 1</span><span class="ln">UNTIL EOF(DentalFile)</span><span class="ln">CLOSEFILE DentalFile</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using READFILE on a random file. Random files are read with SEEK and GETRECORD.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31, 33 · Q8(a)</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> A pseudocode algorithm finds a customer account record in a random file and outputs it. The records are stored using the user-defined data type TAccount (AccountNumber : INTEGER, LastName, FirstName, Address, ContactNumber : STRING). The function Hash() takes the customer account number as a parameter, calculates and returns the hash value. Complete the file-handling pseudocode.<pre class="plain">DECLARE Customer : TAccount
+DECLARE Location : INTEGER
+DECLARE AccountFile : STRING
+...      &quot;AccountRecords.dat&quot;
+... AccountFile ...
+OUTPUT &quot;Please enter an account number&quot;
+INPUT Customer.AccountNumber
+Location ← Hash( ...)
+SEEK ... , Location
+... AccountFile, ...
+OUTPUT Customer                // output customer record
+CLOSEFILE AccountFile</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Assign the filename, open for random access, hash the account number, SEEK, then read the record into Customer.</div>
+    <div class="ans"><p>One mark for each correctly completed line (maximum 5): <span class="mk k" data-t="1">AccountFile ← "AccountRecords.dat"</span> <span class="mk k" data-t="2">OPENFILE AccountFile FOR RANDOM</span> <span class="mk k" data-t="3">Hash(Customer.AccountNumber)</span> <span class="mk k" data-t="4">SEEK AccountFile, Location</span> <span class="mk k" data-t="5">GETRECORD AccountFile, Customer</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">AccountFile ← &quot;AccountRecords.dat&quot;</span><span class="ln">OPENFILE AccountFile FOR RANDOM</span><span class="ln">OUTPUT &quot;Please enter an account number&quot;</span><span class="ln">INPUT Customer.AccountNumber</span><span class="ln">Location ← Hash(Customer.AccountNumber)</span><span class="ln">SEEK AccountFile, Location</span><span class="ln">GETRECORD AccountFile, Customer</span><span class="ln">OUTPUT Customer</span><span class="ln">CLOSEFILE AccountFile</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Missing the SEEK. Without it GETRECORD reads from wherever the pointer already is.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/32 · Q12(b)</span> <span class="cmd">Complete</span> <span class="mark">7 marks</span> A pseudocode algorithm searches for a customer record in the random file AccountRecord.dat. A user inputs the name of the customer. The records use the type TAccount (AccountNumber : INTEGER, Name, Address, Telephone : STRING). If the record is found it is output, otherwise an error message is displayed. Complete the file-handling pseudocode.<pre class="plain">MaxSize ← 1000
+OPENFILE ...
+Location ← 1
+...  ← FALSE
+OUTPUT &quot;Enter the customer&#x27;s name&quot;
+...
+... AND Location &lt;= MaxSize
+   ... &quot;AccountRecord.dat&quot;, ...
+   GETRECORD &quot;AccountRecord.dat&quot;, Customer
+   IF SearchCustomer = Customer.Name THEN
+      OUTPUT &quot;Customer found: &quot;
+      OUTPUT Customer
+      FoundFlag ← TRUE
+   ENDIF
+   Location ← Location + 1
+ENDWHILE
+IF NOT FoundFlag THEN
+   OUTPUT &quot;...&quot;
+ENDIF</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A search loop with a flag: stop when found or when the end of the file is reached.</div>
+    <div class="ans"><p>One mark for each correctly completed blank (maximum 7): <span class="mk k" data-t="1">OPENFILE "AccountRecord.dat" FOR RANDOM</span> <span class="mk k" data-t="2">FoundFlag</span> <span class="mk k" data-t="3">INPUT SearchCustomer</span> <span class="mk k" data-t="4">WHILE NOT FoundFlag</span> <span class="mk k" data-t="5">SEEK</span> <span class="mk k" data-t="6">Location</span> <span class="mk k" data-t="7">OUTPUT "Customer does not exist."</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;AccountRecord.dat&quot; FOR RANDOM</span><span class="ln">Location ← 1</span><span class="ln">FoundFlag ← FALSE</span><span class="ln">OUTPUT &quot;Enter the customer&#x27;s name&quot;</span><span class="ln">INPUT SearchCustomer</span><span class="ln">WHILE NOT FoundFlag AND Location &lt;= MaxSize</span><span class="ln">   SEEK &quot;AccountRecord.dat&quot;, Location</span><span class="ln">   GETRECORD &quot;AccountRecord.dat&quot;, Customer</span><span class="ln">   IF SearchCustomer = Customer.Name THEN</span><span class="ln">      OUTPUT &quot;Customer found: &quot;</span><span class="ln">      OUTPUT Customer</span><span class="ln">      FoundFlag ← TRUE</span><span class="ln">   ENDIF</span><span class="ln">   Location ← Location + 1</span><span class="ln">ENDWHILE</span><span class="ln">IF NOT FoundFlag THEN</span><span class="ln">   OUTPUT &quot;Customer does not exist.&quot;</span><span class="ln">ENDIF</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Not closing the file, or leaving the flag unset so the loop never uses it.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/31 · Q12</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> The pseudocode algorithm checks whether a location in a stock file StockList.dat is empty or not. The location is given by the user. If the location is empty, a suitable message is displayed, otherwise the item stored at that location is displayed. Complete this file-handling pseudocode algorithm.<pre class="plain">DECLARE Location : INTEGER
+DECLARE Item : STRING
+DECLARE Continue : BOOLEAN
+DECLARE Answer : CHAR
+Continue ← TRUE
+OPENFILE ...
+WHILE Continue
+   OUTPUT &quot;Enter a location between 1 and 500: &quot;
+   INPUT Location
+   ...
+   GETRECORD ...
+   IF Item = &quot;&quot; THEN
+      OUTPUT &quot;This record is missing.&quot;
+   ELSE
+      OUTPUT &quot;The item in stock is &quot;, ...
+   ENDIF
+   OUTPUT &quot;Another location (Y or N)?&quot;
+   INPUT Answer
+   IF Answer &lt;&gt; &#x27;Y&#x27; THEN
+      Continue ← FALSE
+   ENDIF
+ENDWHILE
+...
+OUTPUT &quot;End of program&quot;</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open once before the loop, SEEK and GETRECORD inside it, close after it.</div>
+    <div class="ans"><p>One mark for each correctly completed line (maximum 5): <span class="mk k" data-t="1">OPENFILE "StockList.dat" FOR RANDOM</span> <span class="mk k" data-t="2">SEEK "StockList.dat", Location</span> <span class="mk k" data-t="3">GETRECORD "StockList.dat", Item</span> <span class="mk k" data-t="4">OUTPUT "The item in stock is ", Item</span> <span class="mk k" data-t="5">CLOSEFILE "StockList.dat"</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;StockList.dat&quot; FOR RANDOM</span><span class="ln">WHILE Continue</span><span class="ln">   OUTPUT &quot;Enter a location between 1 and 500: &quot;</span><span class="ln">   INPUT Location</span><span class="ln">   SEEK &quot;StockList.dat&quot;, Location</span><span class="ln">   GETRECORD &quot;StockList.dat&quot;, Item</span><span class="ln">   ...</span><span class="ln">ENDWHILE</span><span class="ln">CLOSEFILE &quot;StockList.dat&quot;</span><span class="ln">OUTPUT &quot;End of program&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Placing CLOSEFILE inside the loop, so the file is closed after the first location checked.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/32 · Q13</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> The pseudocode uses random file access to copy 50 records from a live file CurrentResults.dat to a stored file StoredResults.dat one record at a time, using the type StudentResult (LastName, FirstName, ExamGrade : STRING). If any grades are missing in CurrentResults.dat, the text "Missing grade" is put in the ExamGrade field in StoredResults.dat. Complete this file-handling pseudocode.<pre class="plain">DECLARE Grade : StudentResult
+DECLARE Position : INTEGER
+...
+OPENFILE &quot;StoredResults.dat&quot; FOR RANDOM
+...
+   SEEK &quot;CurrentResults.dat&quot;, Position
+   GETRECORD &quot;CurrentResults.dat&quot;, Grade
+   IF Grade.ExamGrade = &quot;&quot; THEN
+      ...
+   ENDIF
+   ...
+   ...
+NEXT Position
+CLOSEFILE &quot;CurrentResults.dat&quot;
+CLOSEFILE &quot;StoredResults.dat&quot;</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two files open, so two OPENFILE statements. A FOR loop over 50 positions. Replace a blank grade, then SEEK and PUTRECORD in the stored file.</div>
+    <div class="ans"><p>One mark for each correctly completed line: <span class="mk k" data-t="1">OPENFILE "CurrentResults.dat" FOR RANDOM</span> <span class="mk k" data-t="2">FOR Position ← 1 TO 50</span> <span class="mk k" data-t="3">Grade.ExamGrade ← "Missing grade"</span> <span class="mk k" data-t="4">SEEK "StoredResults.dat", Position</span> <span class="mk k" data-t="5">PUTRECORD "StoredResults.dat", Grade</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;CurrentResults.dat&quot; FOR RANDOM</span><span class="ln">OPENFILE &quot;StoredResults.dat&quot; FOR RANDOM</span><span class="ln">FOR Position ← 1 TO 50</span><span class="ln">   SEEK &quot;CurrentResults.dat&quot;, Position</span><span class="ln">   GETRECORD &quot;CurrentResults.dat&quot;, Grade</span><span class="ln">   IF Grade.ExamGrade = &quot;&quot; THEN</span><span class="ln">      Grade.ExamGrade ← &quot;Missing grade&quot;</span><span class="ln">   ENDIF</span><span class="ln">   SEEK &quot;StoredResults.dat&quot;, Position</span><span class="ln">   PUTRECORD &quot;StoredResults.dat&quot;, Grade</span><span class="ln">NEXT Position</span><span class="ln">CLOSEFILE &quot;CurrentResults.dat&quot;</span><span class="ln">CLOSEFILE &quot;StoredResults.dat&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing to the stored file without a SEEK first. PUTRECORD writes at the pointer, which is not Position.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/33 · Q11</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> The pseudocode allows a user to input a new stock item. The random file is searched for the next empty location and the new item is inserted there. A suitable message is displayed if the file is full. Complete this pseudocode.<pre class="plain">Max ← 100000
+Stored ← FALSE
+Location ← 1
+...
+OUTPUT &quot;Enter the new item you wish to store: &quot;
+INPUT NewStock
+WHILE NOT Stored AND Location &lt;= Max
+   ...
+   GETRECORD &quot;StockList.dat&quot;, ...
+   IF CurrentStock = &quot;&quot; THEN
+      ... &quot;StockList.dat&quot;, NewStock
+      Stored ← TRUE
+   ELSE
+      Location ← Location + 1
+   ENDIF
+ENDWHILE
+IF ... THEN
+   OUTPUT &quot;The new item has not been stored as the file was full.&quot;
+ENDIF
+...</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the first empty location by reading each one in turn; the empty one is where PUTRECORD stores the item.</div>
+    <div class="ans"><p>One mark for each correctly completed line: <span class="mk k" data-t="1">OPENFILE "StockList.dat" FOR RANDOM</span> <span class="mk k" data-t="2">SEEK "StockList.dat", Location</span> <span class="mk k" data-t="3">GETRECORD ..., CurrentStock</span> <span class="mk k" data-t="4">PUTRECORD "StockList.dat", NewStock</span> <span class="mk k" data-t="5">IF Stored = FALSE THEN ... CLOSEFILE "StockList.dat"</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;StockList.dat&quot; FOR RANDOM</span><span class="ln">...</span><span class="ln">WHILE NOT Stored AND Location &lt;= Max</span><span class="ln">   SEEK &quot;StockList.dat&quot;, Location</span><span class="ln">   GETRECORD &quot;StockList.dat&quot;, CurrentStock</span><span class="ln">   IF CurrentStock = &quot;&quot; THEN</span><span class="ln">      PUTRECORD &quot;StockList.dat&quot;, NewStock</span><span class="ln">      Stored ← TRUE</span><span class="ln">   ELSE</span><span class="ln">      Location ← Location + 1</span><span class="ln">   ENDIF</span><span class="ln">ENDWHILE</span><span class="ln">IF Stored = FALSE THEN</span><span class="ln">   OUTPUT &quot;The new item has not been stored as the file was full.&quot;</span><span class="ln">ENDIF</span><span class="ln">CLOSEFILE &quot;StockList.dat&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Putting the record with PUTRECORD without having done SEEK to the empty location in this pass of the loop.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/32 · Q10(b)</span> <span class="cmd">Complete</span> <span class="mark">6 marks</span> A temperature in degrees Celsius is recorded every minute for one day in a random file, Temperatures.dat. The position of each temperature corresponds to the number of minutes after midnight (10:00 am is at position 600). Complete the algorithm to check a temperature, by passing its position in the file as a parameter and using file-handling commands to find the data item. If it is above freezing return "Not freezing", otherwise "Freezing". Some blank lines may not be used.<pre class="plain">FUNCTION TempCheck( ...
+   DECLARE Temperature : REAL
+   DECLARE Response : STRING
+   OPENFILE ...
+   ...
+   ...
+   ...
+ENDFUNCTION</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Header with the parameter and return type, open, SEEK, GETRECORD, IF, CLOSE, RETURN. The close must come before the RETURN.</div>
+    <div class="ans"><p>Up to six marks: <span class="mk k" data-t="1">correct FUNCTION header</span> <span class="mk k" data-t="2">OPENFILE statement</span> <span class="mk k" data-t="3">SEEK with the position</span> <span class="mk k" data-t="4">GETRECORD into Temperature</span> <span class="mk k" data-t="5">a complete IF ... ELSE ... ENDIF that gives the right messages</span> <span class="mk k" data-t="6">CLOSEFILE before the RETURN (and a correct RETURN)</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">FUNCTION TempCheck(Position : INTEGER) RETURNS STRING</span><span class="ln">   DECLARE Temperature : REAL</span><span class="ln">   DECLARE Response : STRING</span><span class="ln">   OPENFILE &quot;Temperatures.dat&quot; FOR RANDOM</span><span class="ln">   SEEK &quot;Temperatures.dat&quot;, Position</span><span class="ln">   GETRECORD &quot;Temperatures.dat&quot;, Temperature</span><span class="ln">   IF Temperature &gt; 0 THEN</span><span class="ln">      Response ← &quot;Not freezing&quot;</span><span class="ln">   ELSE</span><span class="ln">      Response ← &quot;Freezing&quot;</span><span class="ln">   ENDIF</span><span class="ln">   CLOSEFILE &quot;Temperatures.dat&quot;</span><span class="ln">   RETURN Response</span><span class="ln">ENDFUNCTION</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing RETURN before CLOSEFILE. The function ends at the RETURN, so the file is never closed.</div>
+  </div></details>
+
+  <h3>Paper 4: reading and writing text files in Python</h3>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/41, 43 · Q1(b), (f)</span> <span class="cmd">Write</span> <span class="mark">6 + 4 marks</span> The text file HighScore.txt stores the top ten players in a game in descending order of score. For each player it stores the 3-character name and the integer score, in the order: player, score (two lines per player). The program stores the players and scores in the global array FileData, 11 rows and 2 columns, declared as <code>FileData = [[""] * 2 for i in range(11)]</code>. (b) The procedure ReadHighScores() opens HighScore.txt and reads the data into the data structure. Use exception handling. Write program code for ReadHighScores(). (f) The procedure WriteTopTen() stores the new top ten player names and scores in a text file called NewHighScore.txt. Write program code for WriteTopTen().</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(b) read two lines for each of 10 players. (f) write two lines for each, with a new line after each value. Use try/except round the file handling.</div>
+    <div class="ans"><p><b>(b)</b> Up to six marks: <span class="mk k" data-t="1">procedure header</span> <span class="mk k" data-t="2">opening the text file to read</span> <span class="mk k" data-t="3">looping 10 times, or to the end of the file</span> <span class="mk k" data-t="4">reading each pair of lines</span> <span class="mk k" data-t="5">storing player name and score in the data structure</span> <span class="mk k" data-t="6">closing the file</span> plus try and catch on the file handling with suitable output (maximum 6 in total).</p><pre class="cp" style="counter-reset:l 0"><span class="ln">def ReadHighScores():</span><span class="ln">    Filename = &quot;HighScore.txt&quot;</span><span class="ln">    try:</span><span class="ln">        File = open(Filename, &quot;r&quot;)</span><span class="ln">        for x in range(0, 10):</span><span class="ln">            FileData[x][0] = File.readline()[:3]       # player name</span><span class="ln">            FileData[x][1] = File.readline().strip()   # score</span><span class="ln">        File.close()</span><span class="ln">    except IOError:</span><span class="ln">        print(&quot;File not found&quot;)</span></pre><p><b>(f)</b> Four marks: <span class="mk a" data-t="1">procedure header, opening NewHighScore.txt to write</span> <span class="mk a" data-t="2">closing the file</span> <span class="mk a" data-t="3">looping through all 10 array values</span> <span class="mk a" data-t="4">writing the player name, then the score</span> and exception handling with an appropriate output.</p><pre class="cp" style="counter-reset:l 11"><span class="ln">def WriteTopTen():</span><span class="ln">    try:</span><span class="ln">        File = open(&quot;NewHighScore.txt&quot;, &quot;w&quot;)</span><span class="ln">        for x in range(0, 10):</span><span class="ln">            File.write(str(FileData[x][0]) + &quot;\n&quot;)</span><span class="ln">            File.write(str(FileData[x][1]) + &quot;\n&quot;)</span><span class="ln">        File.close()</span><span class="ln">    except IOError:</span><span class="ln">        print(&quot;Cannot write to file&quot;)</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using <code>readline()</code> without <code>strip()</code> and comparing the score as a number, or leaving off the <code>\n</code> so the two values are joined on one line.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/42 · Q3(d)</span> <span class="cmd">Write</span> <span class="mark">5 marks</span> The procedure WriteAllToFile() stores the content of TreeArray in a new text file with the filename Tree.txt. The file is not provided. Each node in TreeArray is stored on one line with a comma separating each value. For example, if the rows of the 50-row array are (−1, 20, 1), (−1, 30, −1) and so on, the file will contain the lines <code>−1,20,1</code> and <code>−1,30,−1</code> and so on. Write program code for WriteAllToFile(). Include exception handling when writing to the file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A loop over the 50 rows, build one string with commas and a new line, and write it. Try and except round it.</div>
+    <div class="ans"><p>One mark each: <span class="mk k" data-t="1">procedure header with exception handling for writing (try / except with a message)</span> <span class="mk k" data-t="2">opening Tree.txt to write and closing it in an appropriate place</span> <span class="mk k" data-t="3">looping through each element of the array</span> <span class="mk k" data-t="4">creating the correct string</span> <span class="mk k" data-t="5">writing each string to the file</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">def WriteAllToFile():</span><span class="ln">    try:</span><span class="ln">        File = open(&quot;Tree.txt&quot;, &quot;w&quot;)</span><span class="ln">        for x in range(0, 50):</span><span class="ln">            Line = str(TreeArray[x][0]) + &quot;,&quot; + str(TreeArray[x][1]) + &quot;,&quot; + str(TreeArray[x][2]) + &quot;\n&quot;</span><span class="ln">            File.write(Line)</span><span class="ln">        File.close()</span><span class="ln">    except:</span><span class="ln">        print(&quot;Cannot write to file&quot;)</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting <code>str()</code> on the numbers, or leaving out the commas, which are part of the file format.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Distinguish</span> <span class="mark">2 marks</span> Distinguish between opening a file for WRITE and opening it for APPEND.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>What happens to the data already in the file?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">WRITE creates the file, or replaces the existing contents, so earlier data is lost.</span> <span class="mk k" data-t="2">APPEND keeps the existing contents and adds the new data at the end.</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying write 'adds' data. It overwrites.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Complete</span> <span class="mark">3 marks</span> Scores.txt holds one integer on each line. Write pseudocode to output the total of all the scores in the file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Read until the end of the file, converting nothing in pseudocode but adding to a total.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">OPENFILE "Scores.txt" FOR READ and CLOSEFILE</span> <span class="mk k" data-t="2">WHILE NOT EOF("Scores.txt") with READFILE inside</span> <span class="mk k" data-t="3">Total ← Total + Score, with Total set to 0 first, and output</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">Total ← 0</span><span class="ln">OPENFILE &quot;Scores.txt&quot; FOR READ</span><span class="ln">WHILE NOT EOF(&quot;Scores.txt&quot;)</span><span class="ln">   READFILE &quot;Scores.txt&quot;, Score</span><span class="ln">   Total ← Total + Score</span><span class="ln">ENDWHILE</span><span class="ln">CLOSEFILE &quot;Scores.txt&quot;</span><span class="ln">OUTPUT Total</span></pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">3 marks</span> Write Python to read the numbers in Scores.txt into the list Scores and then print the largest.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Convert each line to an integer.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">opening the file to read and closing it</span> <span class="mk k" data-t="2">reading each line and appending int(Line) to the list</span> <span class="mk k" data-t="3">outputting the largest value, e.g. print(max(Scores))</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">Scores = []</span><span class="ln">File = open(&quot;Scores.txt&quot;, &quot;r&quot;)</span><span class="ln">for Line in File:</span><span class="ln">    Scores.append(int(Line))</span><span class="ln">File.close()</span><span class="ln">print(max(Scores))</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Appending the line without <code>int()</code>: <code>max</code> would then compare strings, so "9" beats "10".</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why a random file is better than a serial file for finding one customer's record in a very large file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Searching against going straight there.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">In a serial file records must be read one after another from the start until the one wanted is found.</span> <span class="mk k" data-t="2">In a random file the record's location is calculated (for example by a hash), so SEEK moves straight to it without reading the others.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">4 marks</span> Write pseudocode to store the string "Sold" in location 25 of the random file Stock.dat.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open, SEEK, PUTRECORD, close.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">OPENFILE "Stock.dat" FOR RANDOM</span> <span class="mk k" data-t="2">SEEK "Stock.dat", 25</span> <span class="mk k" data-t="3">PUTRECORD "Stock.dat", "Sold"</span> <span class="mk k" data-t="4">CLOSEFILE "Stock.dat"</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;Stock.dat&quot; FOR RANDOM</span><span class="ln">SEEK &quot;Stock.dat&quot;, 25</span><span class="ln">PUTRECORD &quot;Stock.dat&quot;, &quot;Sold&quot;</span><span class="ln">CLOSEFILE &quot;Stock.dat&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using WRITEFILE. WRITEFILE is for text files; PUTRECORD is for random files.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> A text file holds names in alphabetical order. State the file organisation, and one drawback of inserting a new name in the right place.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Ordered by a key.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Sequential</span> <span class="mk k" data-t="2">The new record cannot just be added to the end: the file must be rewritten (copied) with the record inserted in the correct position.</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Match the file to the command.</b> Text files: READFILE and WRITEFILE. Random files: SEEK with GETRECORD and PUTRECORD.</li>
+    <li><b>Open once, close once.</b> OPENFILE before the loop, CLOSEFILE after it. Close every file you opened.</li>
+    <li><b>SEEK first.</b> In a random file, SEEK to the position before every GETRECORD and PUTRECORD.</li>
+    <li><b>Pick the right mode.</b> READ to read. WRITE replaces. APPEND adds. RANDOM to jump about.</li>
+    <li><b>Check what the loop depends on.</b> 'Until the end of the file' is EOF. A set number of records is a FOR loop.</li>
+    <li><b>Convert what you read.</b> Lines are strings: int(Line), and strip() the newline.</li>
+    <li><b>Convert what you write.</b> write() takes a string: str(value) + "\n".</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>read until the end of the file</td><td>"WHILE NOT EOF("File.txt") with READFILE inside the loop."</td></tr>
+    <tr><td>go straight to a record</td><td>"SEEK File, Location, then GETRECORD File, Item."</td></tr>
+    <tr><td>add to a file without losing data</td><td>"Open it FOR APPEND, then WRITEFILE."</td></tr>
+    <tr><td>save the changes</td><td>"CLOSEFILE, so the data is written to the file."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Complete</td><td>Fill in the missing lines of the given pseudocode.</td></tr>
+    <tr><td>Write program code</td><td>Produce Python that opens, reads or writes and closes the file.</td></tr>
+    <tr><td>Explain</td><td>Say why one organisation suits a task, with a reason.</td></tr>
+    <tr><td>State</td><td>Give the file mode or organisation asked for.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>

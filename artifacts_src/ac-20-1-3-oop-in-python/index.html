@@ -1,0 +1,984 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Object-Oriented Programming: Writing Classes in Python</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 20.1.3</div>
+  <h1>Object-Oriented Programming: Writing Classes in Python</h1>
+  <p class="cbook">Coursebook: Chapter 20 · Further programming, section 20.1 Programming paradigms</p>
+  <p class="lead">Declaring classes with private attributes and constructors, getters and setters, a method with a limit, child classes that call the parent constructor and override a method, and containment; animations, labs and the real Paper 4 questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>Paper 4 asks you to write the classes you designed as <b>Python program code</b>: a class with private attributes and a constructor, its <b>getters and setters</b>, a method that does a calculation, then a <b>child class</b> that inherits from it and <b>overrides</b> a method. In Python a class is declared with <code>class</code>, the constructor is <code>__init__(self, ...)</code>, and an attribute is private when its name starts with two underscores. A child class is declared with the parent in brackets and calls the parent's constructor so the inherited attributes are set. Objects are created by calling the class like a function, and objects can hold other objects (containment). The mark schemes reward the same moves every time, so learn the pattern.</p></div>
+
+  <h2>1 · A class in Python</h2>
+  <p>Python does not declare attributes. They are created when the constructor assigns them, so the exam asks you to <b>include attribute declarations using comments</b> to show the name and data type. Double underscores make an attribute private.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">class Pet:</span><span class="ln">    # PetName : STRING</span><span class="ln">    # YearBorn : INTEGER</span><span class="ln">    def __init__(self, NewName, NewYear):</span><span class="ln">        self.__PetName = NewName        # private attribute</span><span class="ln">        self.__YearBorn = NewYear</span><span class="ln"> </span><span class="ln">    def GetPetName(self):               # getter: no parameter, returns the value</span><span class="ln">        return self.__PetName</span><span class="ln"> </span><span class="ln">    def SetYearBorn(self, NewYear):     # setter: takes the new value</span><span class="ln">        self.__YearBorn = NewYear</span><span class="ln"> </span><span class="ln">MyPet = Pet(&quot;Rex&quot;, 2021)                # creates an object by calling the class</span><span class="ln">print(MyPet.GetPetName())               # Rex</span></pre></div>
+  <ul>
+    <li><b><code>self</code></b> is the object the method is running on. It is the first parameter of every method, and every attribute is <code>self.Name</code>. You do not pass it when you call: <code>MyPet.GetPetName()</code>.</li>
+    <li><b><code>__init__</code></b> is the constructor. It takes the starting values as parameters and assigns them to the attributes.</li>
+    <li>A <b>private</b> attribute (<code>self.__PetName</code>) cannot be reached from outside the class as <code>MyPet.__PetName</code>; use the getter.</li>
+    <li>Parameter names should differ from attribute names (<code>NewName</code>, not <code>PetName</code>) so it is clear which is which.</li>
+  </ul>
+
+  <h2>2 · Getters and setters</h2>
+  <p>A <b>getter</b> returns a private attribute and takes no parameter. A <b>setter</b> assigns a parameter to the attribute and returns nothing. A setter can check the value first.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">def GetHorizontalPosition(self):</span><span class="ln">    return self.__HorizontalPosition</span><span class="ln"> </span><span class="ln">def SetCurrentSpeed(self, CSP):</span><span class="ln">    self.__CurrentSpeed = CSP</span><span class="ln"> </span><span class="ln">def SetPriority(self, Urgency):</span><span class="ln">    if Urgency &gt;= 1 and Urgency &lt;= 5:       # validate before storing</span><span class="ln">        self.__Priority = Urgency</span></pre></div>
+  <p>Write one getter for each attribute that must be readable and one setter for each that may change. Do not return from a setter, and do not print in a getter.</p>
+
+  <h2>3 · A method that does work</h2>
+  <p>The long Paper 4 questions add a method that changes the object's state with a limit, such as a speed that cannot exceed a maximum. Read the bullets and turn each into a line.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">def IncreaseSpeed(self):</span><span class="ln">    self.__CurrentSpeed = self.__CurrentSpeed + self.__IncreaseAmount</span><span class="ln">    if self.__CurrentSpeed &gt; self.__MaxSpeed:          # cannot exceed the maximum</span><span class="ln">        self.__CurrentSpeed = self.__MaxSpeed</span><span class="ln">    self.__HorizontalPosition = self.__HorizontalPosition + self.__CurrentSpeed   # in all cases</span></pre></div>
+  <p>The mark scheme gives separate marks for: adding the increase, checking the limit and limiting the speed, and adding the <i>updated</i> speed to the position <b>in every case</b>, not only when the limit is reached.</p>
+
+  <h2>4 · Inheritance in Python</h2>
+  <p>Put the parent in brackets. In the child's constructor, call the parent's constructor so the inherited attributes are set, then set the child's own attributes.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">class Animal:</span><span class="ln">    def __init__(self, pName, pSound):</span><span class="ln">        self.Name = pName</span><span class="ln">        self.Sound = pSound</span><span class="ln"> </span><span class="ln">class Parrot(Animal):                       # Parrot inherits from Animal</span><span class="ln">    # WingSpan : INTEGER</span><span class="ln">    def __init__(self, pName, pSound, pWingSpan):</span><span class="ln">        super().__init__(pName, pSound)     # parent constructor sets Name and Sound</span><span class="ln">        self.WingSpan = pWingSpan</span><span class="ln">        self.NumberWords = 0</span><span class="ln"> </span><span class="ln">    def ChangeNumberWords(self, Change):    # a method only Parrots have</span><span class="ln">        self.NumberWords = self.NumberWords + Change</span></pre></div>
+  <p><code>Animal.__init__(self, pName, pSound)</code> does the same as <code>super().__init__(pName, pSound)</code>; both are accepted. A child does not repeat the parent's attributes or methods.</p>
+  <div class="warn"><b class="h">Private and inheritance</b>A double-underscore attribute in the parent is not directly visible in the child class. To change it from the child, call the parent's methods (its setters, or its own method) instead of using <code>self.__Attribute</code>.</div>
+
+  <h2>5 · Overriding and polymorphism</h2>
+  <p>A child that defines a method with the <b>same name</b> as the parent's <b>overrides</b> it: Python looks in the child's class first. The parent's version can still be used with <code>super()</code>.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">class Animal:</span><span class="ln">    def Description(self):</span><span class="ln">        return &quot;The animal&#x27;s name is &quot; + self.Name</span><span class="ln"> </span><span class="ln">class Parrot(Animal):</span><span class="ln">    def Description(self):                   # overrides Animal.Description</span><span class="ln">        return super().Description() + &quot;. It can say &quot; + str(self.NumberWords) + &quot; words.&quot;</span><span class="ln"> </span><span class="ln">Zoo = [Animal(&quot;Teddy&quot;), Parrot(&quot;Chewie&quot;)]</span><span class="ln">for A in Zoo:</span><span class="ln">    print(A.Description())                   # each object runs its own version: polymorphism</span></pre></div>
+
+  <h2>6 · Containment: objects inside objects</h2>
+  <p>An attribute can be another object, or an array of objects. A Hand holding five Cards creates the Cards first and passes them to the Hand's constructor. The getter returns the object at a position.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">class Hand:</span><span class="ln">    # Cards : ARRAY[0:9] OF Card</span><span class="ln">    # FirstCard : INTEGER</span><span class="ln">    # NumberCards : INTEGER</span><span class="ln">    def __init__(self, Card1, Card2, Card3, Card4, Card5):</span><span class="ln">        self.__Cards = []</span><span class="ln">        self.__Cards.append(Card1)</span><span class="ln">        self.__Cards.append(Card2)</span><span class="ln">        self.__Cards.append(Card3)</span><span class="ln">        self.__Cards.append(Card4)</span><span class="ln">        self.__Cards.append(Card5)</span><span class="ln">        self.__FirstCard = 0</span><span class="ln">        self.__NumberCards = 5</span><span class="ln"> </span><span class="ln">    def GetCard(self, Position):</span><span class="ln">        return self.__Cards[Position]</span></pre></div>
+
+  <h2>7 · The pattern of a Paper 4 OOP question</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Part</th><th>What it asks</th><th>Marks come from</th></tr>
+    <tr><td>(a)(i) Declare the class</td><td>Class, private attributes with types, constructor with parameters</td><td>class header; attributes (comments in Python); constructor header taking the right number of parameters; every parameter assigned</td></tr>
+    <tr><td>(a)(ii) Getters</td><td>A method for each value to return</td><td>header with no parameter and returns the attribute, for each getter</td></tr>
+    <tr><td>(a)(iii) Setters</td><td>A method for each value to change</td><td>header taking a parameter; assigns it to the attribute</td></tr>
+    <tr><td>(a)(iv) A method</td><td>A calculation with a limit or condition</td><td>one mark per bullet in the question</td></tr>
+    <tr><td>(b) Child class</td><td>Inherits, new attributes, own constructor, overrides a method</td><td>class header with the parent; parent constructor called; new attributes assigned; override uses the same name</td></tr>
+  </table></div>
+
+  <h2>8 · Common ways to lose marks</h2>
+  <ul>
+    <li>Forgetting <code>self</code> in a method header or in front of an attribute.</li>
+    <li>Not calling the parent constructor, so the inherited attributes are never set.</li>
+    <li>A constructor with too few parameters: it must take every value the question says is passed in.</li>
+    <li>Returning in a setter or printing in a getter.</li>
+    <li>Writing <code>MaxSpeed</code> instead of <code>self.__MaxSpeed</code> inside a method.</li>
+    <li>Concatenating a number to a string without <code>str()</code>.</li>
+    <li>Not shortening the "Description" string exactly as the format in the question, including spaces and units.</li>
+    <li>Leaving out the attribute-declaration comments when the question asks for them.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Creating an object</h2>
+  <p>Press Play, or click the steps.</p>
+  <div id="stA"></div>
+  <h2>2 · A child class and the parent constructor</h2>
+  <div id="stB"></div>
+  <h2>3 · Which method runs? Overriding</h2>
+  <div id="stC"></div>
+  <h2>4 · A method with a limit: IncreaseSpeed</h2>
+  <p>A vehicle has MaxSpeed 100 and IncreaseAmount 40. The speed is limited; the position always grows.</p>
+  <div id="stD"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Run IncreaseSpeed</h2>
+  <p>Set the vehicle's maximum speed and increase amount, then call <code>IncreaseSpeed()</code> repeatedly. For a helicopter, also set the vertical change and maximum height.</p>
+  <div class="card"><div id="lM"></div><div id="lI"></div><div class="btnrow"><button class="b" id="lH">Helicopter: off</button></div><div id="lV"></div><div id="lX"></div>
+    <div class="btnrow"><button class="b pri" id="lGo">Call IncreaseSpeed()</button><button class="b" id="lRe">New object</button></div>
+    <div id="lT"></div><div class="verdict" id="lv"></div></div>
+
+  <h2>Lab 2 · Build the Python class</h2>
+  <p>Pick a scenario and choose which getters and setters to include. The code is written the way a mark scheme expects it.</p>
+  <div class="card"><div id="gB" class="btnrow"></div><div id="gC"></div><div id="gO"></div></div>
+
+  <h2>Lab 3 · Spot the mistake</h2>
+  <div class="card"><div id="eB" class="btnrow"></div><div id="eO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · What is this line of Python doing?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Put the steps for writing a child class in order</h2><div id="o1" class="card"></div>
+  <h2>3 · Match the Python to its meaning</h2><div id="m1" class="card"></div>
+  <h2>4 · Trace the object</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A game with different characters</h3><p>Every character has a position and moves with a method. A bike character moves faster and a magic character has spells. They inherit the position and Move() from Character and override what is different.</p><div class="use"><b>Exam use:</b> inheritance with overriding: write the common part once.</div></div>
+  <div class="rw"><h3>Cards, hands and a deck</h3><p>A Hand holds Card objects and asks them for their number and colour through getters. The Hand never needs to know how a Card stores its data.</p><div class="use"><b>Exam use:</b> containment and getters: objects work together through their methods.</div></div>
+  <div class="rw"><h3>A medical appointment system</h3><p>Appointment objects are created with the patient, doctor and date. Treatments and medications are added later with setters, and reports read them with getters.</p><div class="use"><b>Exam use:</b> constructor to create, setters to update, getters to report.</div></div>
+  <div class="rw"><h3>A linked list or a tree</h3><p>A Node class holds the data and a pointer, and a LinkedList or Tree class holds the nodes. Many Paper 4 data structure questions are written as classes.</p><div class="use"><b>Exam use:</b> the same class skills apply to data structures: Node, LinkedList, Tree.</div></div>
+  <div class="rw"><h3>A zoo of animals</h3><p>A list of Animal, Parrot and Dog objects can all be asked for a Description(). Each prints its own version without the code checking which kind it is.</p><div class="use"><b>Exam use:</b> polymorphism: the loop calls one method name and each object responds in its own way.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions where classes are written as program code (Paper 4), 2022 to 2025. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2023</td><td>41, 43</td><td>2(a), 2(b)</td><td>5 + 3 + 3 + 3 + 5 + 4</td><td>Vehicle class, getters, setters, IncreaseSpeed(); child class Helicopter with an overridden method</td></tr>
+    <tr><td>O/N 2022</td><td>41, 43</td><td>2(a), 2(b)</td><td>5 + 3 + 6 + 2</td><td>Card class with getters; Hand class that contains five Cards</td></tr>
+    <tr><td>O/N 2022</td><td>42</td><td>2(a), 2(b), 2(c)</td><td>4 + 3 + 2</td><td>Character class, three getters, ChangePosition()</td></tr>
+    <tr><td>M/J 2025</td><td>42</td><td>3(a), 3(b)</td><td>4 + 3 + 4 + 2</td><td>Animal class and Description(); child class Parrot with an overridden Description()</td></tr>
+  </table></div>
+  <p class="note">Writing classes as program code is tested in Paper 4 and appears in every Paper 4 from May/June 2021 to Oct/Nov 2025, as the second or third question: class declarations such as TreasureChest, Balloon, Card, Picture, Character, Tree, Node, Horse, Train, Bird and BoardObject, several with a child class. The four below show the skills at full length. Past paper mark schemes list Python, VB.NET and Java; only Python is shown here. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+
+  <h3>Vehicle and Helicopter: a class, its methods and a child class</h3>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/41, 43 · Q2(a)</span> <span class="cmd">Write</span> <span class="mark">5 + 3 + 3 + 3 marks</span> A computer game includes different vehicles. The class Vehicle is written with OOP.<pre class="plain">Vehicle
+ID : STRING                   stores the identification name
+MaxSpeed : INTEGER            stores the maximum speed
+CurrentSpeed : INTEGER        stores the current speed
+IncreaseAmount : INTEGER      stores the amount CurrentSpeed increases by
+HorizontalPosition : INTEGER  stores the horizontal position
+Constructor()                 initialises ID, MaxSpeed and IncreaseAmount to the
+                              parameter values; initialises CurrentSpeed and
+                              HorizontalPosition to 0
+GetCurrentSpeed()             returns the current speed
+GetIncreaseAmount()           returns the increase amount
+GetMaxSpeed()                 returns the maximum speed
+GetHorizontalPosition()       returns the horizontal position
+SetCurrentSpeed()             assigns the parameter to the current speed
+SetHorizontalPosition()       assigns the parameter to the horizontal position
+IncreaseSpeed()               calculates and stores the new speed and horizontal
+                              position of the vehicle</pre>(i) Write program code to declare the class Vehicle and its constructor. All attributes must be private. If you are writing in Python, include attribute declarations using comments. (ii) Write program code for the get methods GetCurrentSpeed(), GetIncreaseAmount(), GetMaxSpeed() and GetHorizontalPosition(). (iii) Write program code for the set methods SetCurrentSpeed() and SetHorizontalPosition(). (iv) The method IncreaseSpeed() adds IncreaseAmount to the current speed, then adds the updated current speed to the horizontal position. The current speed of a vehicle cannot exceed its maximum speed. Write program code for IncreaseSpeed().</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Five attributes with comments, a constructor taking ID, MaxSpeed and IncreaseAmount (three parameters), and the two starting values set to 0. In (iv) the position is added in every case, after the speed is limited.</div>
+    <div class="ans"><p><b>(i)</b> Five marks: <span class="mk k" data-t="1">class header</span> <span class="mk k" data-t="2">five private attribute declarations with data types</span> <span class="mk k" data-t="3">constructor header taking at least three parameters</span> <span class="mk k" data-t="4">assigning ID, MaxSpeed and IncreaseAmount to the parameters</span> <span class="mk k" data-t="5">assigning CurrentSpeed and HorizontalPosition to 0</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">class Vehicle:</span><span class="ln">    # self.__ID : STRING</span><span class="ln">    # self.__MaxSpeed : INTEGER</span><span class="ln">    # self.__CurrentSpeed : INTEGER</span><span class="ln">    # self.__IncreaseAmount : INTEGER</span><span class="ln">    # self.__HorizontalPosition : INTEGER</span><span class="ln">    def __init__(self, IDP, MaxSpeedP, IncreaseAmountP):</span><span class="ln">        self.__ID = IDP</span><span class="ln">        self.__MaxSpeed = MaxSpeedP</span><span class="ln">        self.__IncreaseAmount = IncreaseAmountP</span><span class="ln">        self.__CurrentSpeed = 0</span><span class="ln">        self.__HorizontalPosition = 0</span></pre><p><b>(ii)</b> Three marks: <span class="mk a" data-t="1">one get method with no parameter</span> <span class="mk a" data-t="2">that returns the attribute without overwriting it</span> <span class="mk a" data-t="3">three further correct get methods</span></p><pre class="cp" style="counter-reset:l 10"><span class="ln">    def GetCurrentSpeed(self):</span><span class="ln">        return self.__CurrentSpeed</span><span class="ln"> </span><span class="ln">    def GetIncreaseAmount(self):</span><span class="ln">        return self.__IncreaseAmount</span><span class="ln"> </span><span class="ln">    def GetMaxSpeed(self):</span><span class="ln">        return self.__MaxSpeed</span><span class="ln"> </span><span class="ln">    def GetHorizontalPosition(self):</span><span class="ln">        return self.__HorizontalPosition</span></pre><p><b>(iii)</b> Three marks: <span class="mk a" data-t="1">a set method taking a parameter</span> <span class="mk a" data-t="2">that assigns the parameter to the attribute</span> <span class="mk a" data-t="3">the second correct set method</span></p><pre class="cp" style="counter-reset:l 21"><span class="ln">    def SetCurrentSpeed(self, CSP):</span><span class="ln">        self.__CurrentSpeed = CSP</span><span class="ln"> </span><span class="ln">    def SetHorizontalPosition(self, HPP):</span><span class="ln">        self.__HorizontalPosition = HPP</span></pre><p><b>(iv)</b> Three marks: <span class="mk k" data-t="1">method header with no parameter, adding IncreaseAmount to CurrentSpeed</span> <span class="mk k" data-t="2">checking if MaxSpeed is exceeded and limiting the speed to it</span> <span class="mk k" data-t="3">adding the updated CurrentSpeed to HorizontalPosition in all cases</span></p><pre class="cp" style="counter-reset:l 27"><span class="ln">    def IncreaseSpeed(self):</span><span class="ln">        self.__CurrentSpeed = self.__CurrentSpeed + self.__IncreaseAmount</span><span class="ln">        if self.__CurrentSpeed &gt; self.__MaxSpeed:</span><span class="ln">            self.__CurrentSpeed = self.__MaxSpeed</span><span class="ln">        self.__HorizontalPosition = self.__HorizontalPosition + self.__CurrentSpeed</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Putting the position update inside the <code>if</code>, so it only happens when the speed is capped. Also forgetting <code>self.</code> in front of an attribute.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/41, 43 · Q2(b)</span> <span class="cmd">Write</span> <span class="mark">5 + 4 marks</span> The child class Helicopter inherits from the parent class Vehicle. A helicopter also has a vertical position and changes it when it increases speed.<pre class="plain">Helicopter
+VerticalPosition : INTEGER   stores the vertical position
+VerticalChange : INTEGER     stores the amount VerticalPosition changes by
+MaxHeight : INTEGER          stores the maximum height the helicopter can reach
+Constructor()                takes the ID, maximum speed, increase amount, vertical
+                             change and maximum height as parameters;
+                             initialises the vertical position to 0
+GetVerticalPosition()        returns the vertical position
+IncreaseSpeed()              changes the current speed, horizontal and vertical
+                             position of the helicopter</pre>(i) Write program code to declare the class Helicopter and its constructor. All attributes must be private. If you are writing in Python, include attribute declarations using comments. (ii) The Helicopter method IncreaseSpeed() overrides the method from the parent class and: adds the amount of vertical change to the vertical position; adds IncreaseAmount to the current speed; adds the updated current speed to the horizontal position. The vertical position cannot exceed the maximum height. The current speed cannot exceed the maximum speed. Write program code for IncreaseSpeed().</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(i) Inherit from Vehicle, set only the three new attributes, and pass the other values up to the parent constructor. (ii) The parent already does the speed and horizontal position, so reuse it.</div>
+    <div class="ans"><p><b>(i)</b> Five marks: <span class="mk k" data-t="1">class header inheriting from Vehicle</span> <span class="mk k" data-t="2">three private attribute declarations with data types</span> <span class="mk k" data-t="3">constructor with at least five parameters</span> <span class="mk k" data-t="4">calling the parent constructor with the right parameters</span> <span class="mk k" data-t="5">initialising VerticalPosition to 0 and assigning VerticalChange and MaxHeight</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">class Helicopter(Vehicle):</span><span class="ln">    # self.__VerticalPosition : INTEGER</span><span class="ln">    # self.__VerticalChange : INTEGER</span><span class="ln">    # self.__MaxHeight : INTEGER</span><span class="ln">    def __init__(self, IDP, MaxSpeedP, IncreaseAmountP, VertChangeP, MaxHeightP):</span><span class="ln">        Vehicle.__init__(self, IDP, MaxSpeedP, IncreaseAmountP)</span><span class="ln">        self.__VerticalPosition = 0</span><span class="ln">        self.__VerticalChange = VertChangeP</span><span class="ln">        self.__MaxHeight = MaxHeightP</span></pre><p><b>(ii)</b> Up to four marks: <span class="mk a" data-t="1">method header (overriding) with no parameter</span> <span class="mk a" data-t="2">adding the vertical change to the vertical position</span> <span class="mk a" data-t="3">limiting it to the maximum height</span> <span class="mk a" data-t="4">repeating or calling the parent's code for the horizontal increase, in every case</span></p><pre class="cp" style="counter-reset:l 9"><span class="ln">    def IncreaseSpeed(self):</span><span class="ln">        self.__VerticalPosition = self.__VerticalPosition + self.__VerticalChange</span><span class="ln">        if self.__VerticalPosition &gt; self.__MaxHeight:</span><span class="ln">            self.__VerticalPosition = self.__MaxHeight</span><span class="ln">        Vehicle.IncreaseSpeed(self)      # speed, limit and horizontal position as before</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing the Helicopter attributes as part of Vehicle, or copying all the Vehicle code into Helicopter. Inherit and call the parent's constructor and method.</div>
+  </div></details>
+
+  <h3>Card and Hand: containment</h3>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/41, 43 · Q2</span> <span class="cmd">Write</span> <span class="mark">5 + 3 + 6 + 2 marks</span> A program uses a set of cards and is written with OOP. It has two classes, Card and Hand.<pre class="plain">Card
+Number : INTEGER    stores the card number from 1 to 5 inclusive
+Colour : STRING     stores the card colour: red, blue or yellow
+Constructor()       takes a number and colour as parameters and sets the
+                    private values to these parameters
+GetNumber()         returns the card number
+GetColour()         returns the card colour
+
+Hand
+Cards : ARRAY[0:9] OF Card   1D array of type Card
+FirstCard : INTEGER          position of the first card in the hand
+NumberCards : INTEGER        number of cards in the hand
+Constructor()                takes five card objects as parameters, assigns each
+                             card to the array Cards[], initialises FirstCard to 0
+                             and NumberCards to 5
+GetCard()                    takes an index as a parameter and returns the card at
+                             that index in the array</pre>(a)(i) Write program code to declare the class Card, its attributes and constructor. All attributes must be private. In Python, include attribute declarations using comments. (ii) Write program code for the class methods GetNumber() and GetColour(). (b)(i) Write program code to declare the class Hand, its attributes and constructor. (ii) Write program code for the method GetCard().</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Card is a plain class. Hand's constructor takes five Card objects and puts them in the array. The array is a private attribute and GetCard() returns the object at the index.</div>
+    <div class="ans"><p><b>(a)(i)</b> Five marks: <span class="mk k" data-t="1">class Card declaration</span> <span class="mk k" data-t="2">private attributes: Number as integer, Colour as string</span> <span class="mk k" data-t="3">constructor header</span> <span class="mk k" data-t="4">taking two parameters</span> <span class="mk k" data-t="5">assigning the parameters to the attributes</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">class Card:</span><span class="ln">    # Number : INTEGER</span><span class="ln">    # Colour : STRING</span><span class="ln">    def __init__(self, Number1, Colour1):</span><span class="ln">        self.__Number = Number1</span><span class="ln">        self.__Colour = Colour1</span></pre><p><b>(a)(ii)</b> Three marks: <span class="mk a" data-t="1">one get method, no parameters</span> <span class="mk a" data-t="2">returning the value</span> <span class="mk a" data-t="3">the second correct get method</span></p><pre class="cp" style="counter-reset:l 5"><span class="ln">    def GetNumber(self):</span><span class="ln">        return self.__Number</span><span class="ln"> </span><span class="ln">    def GetColour(self):</span><span class="ln">        return self.__Colour</span></pre><p><b>(b)(i)</b> Six marks: <span class="mk k" data-t="1">class Hand declaration</span> <span class="mk k" data-t="2">private FirstCard and NumberCards as integers</span> <span class="mk k" data-t="3">private array Cards of type Card with 10 elements</span> <span class="mk k" data-t="4">constructor with five Card objects as parameters</span> <span class="mk k" data-t="5">assigning each Card parameter to the array</span> <span class="mk k" data-t="6">initialising FirstCard to 0 and NumberCards to 5</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">class Hand:</span><span class="ln">    # Cards : ARRAY[0:9] OF Card</span><span class="ln">    # FirstCard : INTEGER</span><span class="ln">    # NumberCards : INTEGER</span><span class="ln">    def __init__(self, Card1, Card2, Card3, Card4, Card5):</span><span class="ln">        self.__Cards = []</span><span class="ln">        self.__Cards.append(Card1)</span><span class="ln">        self.__Cards.append(Card2)</span><span class="ln">        self.__Cards.append(Card3)</span><span class="ln">        self.__Cards.append(Card4)</span><span class="ln">        self.__Cards.append(Card5)</span><span class="ln">        self.__FirstCard = 0</span><span class="ln">        self.__NumberCards = 5</span></pre><p><b>(b)(ii)</b> Two marks: <span class="mk a" data-t="1">GetCard() header taking an integer parameter</span> <span class="mk a" data-t="2">returning the card at the parameter index in the array</span></p><pre class="cp" style="counter-reset:l 10"><span class="ln">    def GetCard(self, Position):</span><span class="ln">        return self.__Cards[Position]</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Storing five separate attributes instead of one array, or making GetCard() print the card instead of returning it.</div>
+  </div></details>
+
+  <h3>Character: a class and its methods</h3>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/42 · Q2</span> <span class="cmd">Write</span> <span class="mark">4 + 3 + 2 marks</span> A computer game has characters.<pre class="plain">Character
+Name : STRING         stores the name of the character
+XCoordinate : INTEGER stores the x coordinate
+YCoordinate : INTEGER stores the y coordinate
+Constructor()         initialises Name, XCoordinate and YCoordinate from the
+                      values passed as parameters
+GetName()             returns the name of the character
+GetX()                returns the x coordinate of the character
+GetY()                returns the y coordinate of the character
+ChangePosition()      takes XChange as an integer parameter and adds it to the
+                      x coordinate; takes YChange as an integer parameter and
+                      adds it to the y coordinate</pre>(a) Write program code to declare the class Character and its constructor. All attributes must be private. In Python, include attribute declarations using comments. (b) Write program code for the three get methods. (c) Write program code for the method ChangePosition().</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Three attributes, a constructor with three parameters, three getters, and a method that adds to the stored values (not replaces).</div>
+    <div class="ans"><p><b>(a)</b> Four marks: <span class="mk k" data-t="1">class declaration for Character</span> <span class="mk k" data-t="2">three private attributes with data types</span> <span class="mk k" data-t="3">constructor taking three parameters</span> <span class="mk k" data-t="4">assigning the parameters to all three attributes</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">class Character:</span><span class="ln">    # Name : STRING</span><span class="ln">    # XCoordinate : INTEGER</span><span class="ln">    # YCoordinate : INTEGER</span><span class="ln">    def __init__(self, Namep, Xcoord, Ycoord):</span><span class="ln">        self.__Name = Namep</span><span class="ln">        self.__XCoordinate = Xcoord</span><span class="ln">        self.__YCoordinate = Ycoord</span></pre><p><b>(b)</b> Three marks: <span class="mk a" data-t="1">a get method header with no parameters</span> <span class="mk a" data-t="2">returning the correct value</span> <span class="mk a" data-t="3">the second and third get methods correct</span></p><pre class="cp" style="counter-reset:l 7"><span class="ln">    def GetName(self):</span><span class="ln">        return self.__Name</span><span class="ln"> </span><span class="ln">    def GetX(self):</span><span class="ln">        return self.__XCoordinate</span><span class="ln"> </span><span class="ln">    def GetY(self):</span><span class="ln">        return self.__YCoordinate</span></pre><p><b>(c)</b> Two marks: <span class="mk k" data-t="1">method header taking two integer parameters</span> <span class="mk k" data-t="2">adding both parameters to the existing x and y values</span></p><pre class="cp" style="counter-reset:l 16"><span class="ln">    def ChangePosition(self, XChange, YChange):</span><span class="ln">        self.__XCoordinate = self.__XCoordinate + XChange</span><span class="ln">        self.__YCoordinate = self.__YCoordinate + YChange</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Assigning the parameter instead of adding it, so the character jumps to the new value instead of moving by it.</div>
+  </div></details>
+
+  <h3>Animal and Parrot: overriding a method</h3>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/42 · Q3</span> <span class="cmd">Write</span> <span class="mark">4 + 3 + 4 + 2 marks</span> A program stores data about animals using OOP.<pre class="plain">Animal
+Name : String          stores the name of the animal
+Sound : String         stores the sound the animal makes
+Size : Integer         size, 1 (smallest) to 10 (largest)
+Intelligence : Integer intelligence, 1 (least) to 10 (most)
+Constructor()          initialises all attributes to its parameter values
+Description()          returns a string message that contains the data from
+                       the attributes
+
+Parrot (inherits from Animal; overrides Description())
+WingSpan : Integer     the width of the wings to the nearest cm
+NumberWords : Integer  the number of words the parrot can speak
+Constructor()          calls the parent constructor using its parameter values;
+                       initialises WingSpan and NumberWords to its parameters
+ChangeNumberWords()    takes an integer parameter and adds it to the number
+                       currently in NumberWords</pre>(a)(i) Write program code to declare the class Animal and its constructor. (ii) Description() returns a string in the format: <i>The animal's name is Teddy, it makes a Bark, its size is 4 and its intelligence level is 6</i>. Write program code for Description(). (b)(i) Write program code to declare the class Parrot, its constructor and the method ChangeNumberWords(). (ii) Description() in Parrot returns the same message followed by: <i>. It has a wingspan of 30cm and can say 29 words.</i> Write program code for Description().</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Four parameters, four attributes. The strings must match the format exactly and the integers need str(). The child calls the parent constructor with four values, then sets its own two.</div>
+    <div class="ans"><p><b>(a)(i)</b> Four marks: <span class="mk k" data-t="1">class header</span> <span class="mk k" data-t="2">four attributes with appropriate data types</span> <span class="mk k" data-t="3">constructor header taking at least four parameters</span> <span class="mk k" data-t="4">assigning each parameter to its attribute</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">class Animal:</span><span class="ln">    def __init__(self, pName, pSound, pSize, pIntelligence):</span><span class="ln">        self.Name = pName                 # string</span><span class="ln">        self.Sound = pSound               # string</span><span class="ln">        self.Size = pSize                 # integer</span><span class="ln">        self.Intelligence = pIntelligence # integer</span></pre><p><b>(a)(ii)</b> Three marks: <span class="mk a" data-t="1">Description() header with no parameter</span> <span class="mk a" data-t="2">concatenating the attributes with the given message</span> <span class="mk a" data-t="3">returning the created message</span></p><pre class="cp" style="counter-reset:l 5"><span class="ln">    def Description(self):</span><span class="ln">        Message = (&quot;The animal&#x27;s name is &quot; + self.Name + &quot;, it makes a &quot; + self.Sound +</span><span class="ln">                   &quot;, its size is &quot; + str(self.Size) + &quot; and its intelligence level is &quot; +</span><span class="ln">                   str(self.Intelligence))</span><span class="ln">        return Message</span></pre><p><b>(b)(i)</b> Four marks: <span class="mk k" data-t="1">class header inheriting from Animal</span> <span class="mk k" data-t="2">constructor taking six parameters and calling the parent constructor with four</span> <span class="mk k" data-t="3">WingSpan and NumberWords defined and assigned</span> <span class="mk k" data-t="4">ChangeNumberWords() taking a parameter and adding it to NumberWords</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">class Parrot(Animal):</span><span class="ln">    def __init__(self, pName, pSound, pSize, pIntelligence, pWingSpan, pNumberWords):</span><span class="ln">        super().__init__(pName, pSound, pSize, pIntelligence)</span><span class="ln">        self.WingSpan = pWingSpan         # integer</span><span class="ln">        self.NumberWords = pNumberWords   # integer</span><span class="ln"> </span><span class="ln">    def ChangeNumberWords(self, Change):</span><span class="ln">        self.NumberWords = self.NumberWords + Change</span></pre><p><b>(b)(ii)</b> Two marks: <span class="mk a" data-t="1">Description() header, no parameters, overriding the parent method</span> <span class="mk a" data-t="2">concatenating and returning the correct string</span></p><pre class="cp" style="counter-reset:l 7"><span class="ln">    def Description(self):</span><span class="ln">        Message = (super().Description() + &quot;. It has a wingspan of &quot; +</span><span class="ln">                   str(self.WingSpan) + &quot;cm and can say &quot; + str(self.NumberWords) + &quot; words.&quot;)</span><span class="ln">        return Message</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting <code>str()</code> around the integer attributes, which causes a type error when joining text and numbers.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">3 marks</span> A class Book stores a Title (STRING) and Pages (INTEGER), both private. The constructor takes both values. Write the class in Python, with a getter for each attribute.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Class header, constructor with two parameters, two getters.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">class header and the attribute comments</span> <span class="mk k" data-t="2">constructor taking two parameters and assigning both to private attributes</span> <span class="mk k" data-t="3">two getters, each with no parameter, returning the attribute</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">class Book:</span><span class="ln">    # Title : STRING</span><span class="ln">    # Pages : INTEGER</span><span class="ln">    def __init__(self, NewTitle, NewPages):</span><span class="ln">        self.__Title = NewTitle</span><span class="ln">        self.__Pages = NewPages</span><span class="ln"> </span><span class="ln">    def GetTitle(self):</span><span class="ln">        return self.__Title</span><span class="ln"> </span><span class="ln">    def GetPages(self):</span><span class="ln">        return self.__Pages</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Naming the parameters the same as the attributes without <code>self.</code>, so nothing is stored.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">2 marks</span> Add a setter SetPages() to the Book class that only accepts a positive number of pages.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A setter that checks before it stores.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">method header taking a parameter</span> <span class="mk k" data-t="2">stores the parameter only if it is greater than 0</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">    def SetPages(self, NewPages):</span><span class="ln">        if NewPages &gt; 0:</span><span class="ln">            self.__Pages = NewPages</span></pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">4 marks</span> EBook inherits from Book and adds a private attribute SizeMB (INTEGER). Write the class and its constructor, which takes the title, the number of pages and the size.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Parent in brackets, parent constructor, own attribute.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">class header with Book as the parent</span> <span class="mk k" data-t="2">constructor taking three parameters</span> <span class="mk k" data-t="3">calling the parent constructor with the title and pages</span> <span class="mk k" data-t="4">assigning SizeMB to a private attribute</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">class EBook(Book):</span><span class="ln">    # SizeMB : INTEGER</span><span class="ln">    def __init__(self, NewTitle, NewPages, NewSize):</span><span class="ln">        super().__init__(NewTitle, NewPages)</span><span class="ln">        self.__SizeMB = NewSize</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Calling <code>Book.__init__(NewTitle)</code> with too few arguments, or not calling it at all.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">2 marks</span> Write the statements to create an EBook called MyBook with the title "Algorithms", 320 pages and 5 MB, and output its title.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Create with the class name, then use a getter.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">MyBook = EBook("Algorithms", 320, 5)</span> <span class="mk k" data-t="2">print(MyBook.GetTitle())</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">MyBook = EBook(&quot;Algorithms&quot;, 320, 5)</span><span class="ln">print(MyBook.GetTitle())</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing <code>MyBook.__Title</code>: a private attribute cannot be reached directly.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">3 marks</span> Shape has a method Area() that returns 0. Circle inherits from Shape, has a private Radius set by its constructor, and overrides Area() to return 3.14 × Radius × Radius. Write both classes.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Override by using the same name in the child.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Shape with Area() returning 0</span> <span class="mk k" data-t="2">Circle inheriting from Shape with a constructor setting Radius</span> <span class="mk k" data-t="3">Circle.Area() with the same name returning the calculation</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">class Shape:</span><span class="ln">    def Area(self):</span><span class="ln">        return 0</span><span class="ln"> </span><span class="ln">class Circle(Shape):</span><span class="ln">    # Radius : REAL</span><span class="ln">    def __init__(self, NewRadius):</span><span class="ln">        self.__Radius = NewRadius</span><span class="ln"> </span><span class="ln">    def Area(self):</span><span class="ln">        return 3.14 * self.__Radius * self.__Radius</span></pre></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Start every method with self.</b> def GetName(self): and self.__Name inside. A missing self is the commonest slip.</li>
+    <li><b>Copy the attribute names exactly.</b> The question gives the names. Use them with the same spelling and data type in the comments.</li>
+    <li><b>Count the constructor parameters.</b> Every value the question says is passed in is a parameter; the others are set to 0 or empty.</li>
+    <li><b>Getters return, setters assign.</b> No printing in a getter and no return in a setter.</li>
+    <li><b>Child classes: parent first.</b> Put the parent in brackets, call its constructor, then set only the new attributes.</li>
+    <li><b>Join text and numbers with str().</b> Description() questions are mostly string concatenation. Match the format, spaces and units.</li>
+    <li><b>Use the bullets as a checklist.</b> Each bullet in a method description is a mark: one line of code for each.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>create an object</td><td>"MyPet = Pet("Rex", 2021) calls the constructor and returns a new object."</td></tr>
+    <tr><td>call the parent constructor</td><td>"super().__init__(pName, pSound) sets the inherited attributes."</td></tr>
+    <tr><td>override a method</td><td>"The child defines a method with the same name as the parent's, so the child's version runs."</td></tr>
+    <tr><td>make an attribute private</td><td>"Start its name with two underscores: self.__Name."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Write program code</td><td>Produce working Python in the form the question describes.</td></tr>
+    <tr><td>Declare the class</td><td>Class header, attributes (comments), constructor.</td></tr>
+    <tr><td>Rewrite</td><td>Same job in a new form; here, often iterative into recursive or a class into methods.</td></tr>
+    <tr><td>Test your program</td><td>Run it and show the output, which you copy into the evidence document.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+function classBox(x, y, w, title, rows, v = 1, cls = "f1", lh = 20) {
+  const h = 30 + rows.length * lh + 8;
+  let o = SV.rect(x, y, w, h, "cell", { rx: 6, ...op(v) }) + SV.rect(x, y, w, 28, cls, { rx: 6, ...op(v * 0.6) }) + SV.text(x + w / 2, y + 19, title, "lbl bd", { "text-anchor": "middle", style: "font-size:15px", ...op(v) });
+  rows.forEach((r, i) => { o += SV.text(x + 8, y + 46 + i * lh, r, "sm", { style: "font-family:var(--mono);font-size:11.5px", ...op(v) }); });
+  return o;
+}
+
+(function () {
+  const L = ["MyPet = Pet(\"Rex\", 2021)", "", "def __init__(self, NewName, NewYear):", "    self.__PetName = NewName", "    self.__YearBorn = NewYear"];
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = codeList(20, 20, [L[0], L[2], L[3], L[4]], k === 0 ? 0 : k === 1 ? 1 : k === 2 ? 2 : k === 3 ? 3 : -1, 1, 34, 310);
+    if (k >= 1) o += classBox(420, 20, 300, k >= 5 ? "object stored in MyPet" : "self (a new, empty object)", ["__PetName: " + (k >= 3 ? "\"Rex\"" : "?"), "__YearBorn: " + (k >= 4 ? "2021" : "?")], 1, k >= 5 ? "f3" : "f1", 24);
+    if (k >= 2) o += SV.text(20, 175, "parameters: NewName = \"Rex\", NewYear = 2021", "sm", { style: "font-family:var(--mono)" });
+    if (k >= 5) o += SV.text(420, 165, "MyPet now refers to the object", "lbl bd t3");
+    return o;
+  };
+  Lib.stepper($("#stA"), { w: 760, h: 200, label: "Creating an object from a class", base: { i: 0 }, draw, tween: 450, dwell: 3600, steps: [
+    { cap: "The statement <code>Pet(\"Rex\", 2021)</code> calls the class like a function. Python makes a new, empty object.", s: { i: 0 } },
+    { cap: "It runs <code>__init__</code> on the new object. Inside, the object is called <b>self</b>.", s: { i: 1 } },
+    { cap: "The arguments become the parameters <code>NewName</code> and <code>NewYear</code>.", s: { i: 2 } },
+    { cap: "<code>self.__PetName = NewName</code> creates the first private attribute on the object.", s: { i: 3 } },
+    { cap: "<code>self.__YearBorn = NewYear</code> creates the second. The constructor has finished.", s: { i: 4 } },
+    { cap: "The finished object is stored in <code>MyPet</code>. Each time the class is called a separate object is made.", s: { i: 5 } }] });
+})();
+
+(function () {
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "";
+    o += classBox(20, 20, 300, "Parrot.__init__ (child)", ["super().__init__(...)  # call parent", "self.WingSpan = pWingSpan", "self.NumberWords = pNumberWords"], 1, k === 1 || k === 4 ? "f3" : "f1", 20);
+    if (k >= 2 && k <= 2) o += classBox(20, 140, 300, "Animal.__init__ (parent)", ["self.Name = pName", "self.Sound = pSound", "self.Size = pSize", "self.Intelligence = pIntelligence"], 1, "f3", 20) + arrow(170, 100, 170, 136, "d", "c1", 1);
+    const rows = ["Name: " + (k >= 2 ? "\"Chewie\"" : "?"), "Sound: " + (k >= 2 ? "\"Squawk\"" : "?"), "Size: " + (k >= 2 ? "1" : "?"), "Intelligence: " + (k >= 2 ? "10" : "?"), "WingSpan: " + (k >= 4 ? "30" : "?"), "NumberWords: " + (k >= 4 ? "29" : "?")];
+    o += classBox(440, 20, 290, k >= 5 ? "complete Parrot object" : "self (Parrot object)", rows, 1, k >= 5 ? "f3" : "f2", 24);
+    if (k >= 2) o += SV.text(440, 226, "inherited attributes (from Animal) set first", "sm") + SV.text(440, 244, "then the Parrot's own attributes", "sm", op(k >= 4 ? 1 : 0.3));
+    return o;
+  };
+  Lib.stepper($("#stB"), { w: 760, h: 262, label: "Building a Parrot object", base: { i: 0 }, draw, tween: 450, dwell: 3800, steps: [
+    { cap: "<code>Parrot(\"Chewie\", \"Squawk\", 1, 10, 30, 29)</code> makes an empty Parrot object and runs Parrot's constructor on it.", s: { i: 0 } },
+    { cap: "The first line of the child's constructor calls the <b>parent's constructor</b> with the four inherited values.", s: { i: 1 } },
+    { cap: "<code>Animal.__init__</code> runs on the same object and sets Name, Sound, Size and Intelligence.", s: { i: 2 } },
+    { cap: "It finishes, and control returns to the Parrot constructor.", s: { i: 3 } },
+    { cap: "Now the child sets its <b>own</b> attributes: WingSpan and NumberWords.", s: { i: 4 } },
+    { cap: "One object has all six attributes. If the parent constructor were never called, the first four would not exist.", s: { i: 5 } }] });
+})();
+
+(function () {
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "";
+    o += classBox(30, 20, 250, "class Animal", ["Description()  # version A"], 1, k === 2 ? "f3" : "f1", 20);
+    o += classBox(330, 20, 380, "class Parrot(Animal)", k === 3 ? ["# no Description() here", "ChangeNumberWords()"] : ["Description()  # version B", "ChangeNumberWords()"], 1, k === 1 ? "f3" : "f2", 20);
+    o += arrow(330, 52, 284, 52, "l", "c1", 0.8);
+    const call = k === 1 ? "bird.Description()" : k === 2 ? "animal.Description()" : k === 3 ? "bird.Description()" : "";
+    if (call) o += SV.text(30, 160, call, "lbl bd", { style: "font-family:var(--mono);font-size:17px" });
+    if (k === 1) o += SV.text(30, 190, "bird is a Parrot: look in Parrot first, found: run version B", "lbl bd t3");
+    if (k === 2) o += SV.text(30, 190, "animal is an Animal: run version A", "lbl bd t3");
+    if (k === 3) o += SV.text(30, 190, "not in Parrot: look in the parent, Animal: run version A", "lbl bd t3");
+    return o;
+  };
+  Lib.stepper($("#stC"), { w: 760, h: 215, label: "Method lookup when a child overrides a method", base: { i: 0 }, draw, tween: 400, dwell: 3600, steps: [
+    { cap: "Animal defines <code>Description()</code>. Parrot inherits from Animal.", s: { i: 0 } },
+    { cap: "Parrot defines its own <code>Description()</code>, so it <b>overrides</b> the parent's. A call on a Parrot object finds the child's version first.", s: { i: 1 } },
+    { cap: "A call on a plain Animal object runs the Animal version.", s: { i: 2 } },
+    { cap: "If Parrot did not define the method, Python would search up to the parent and <b>inherit</b> that version.", s: { i: 3 } }] });
+})();
+
+(function () {
+  const L = ["speed = speed + 40", "if speed > 100:", "    speed = 100", "position = position + speed"];
+  const rows = [["1", "40", "no", "40", "40"], ["2", "80", "no", "80", "120"], ["3", "120", "yes", "100", "220"], ["4", "140", "yes", "100", "320"]];
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = codeList(20, 20, L, k === 0 ? -1 : (k % 2 === 1 ? 0 : 3), 1, 34, 250);
+    o += SV.text(310, 36, "call", "sm") + SV.text(360, 36, "speed + 40", "sm") + SV.text(470, 36, "over 100?", "sm") + SV.text(570, 36, "speed", "sm") + SV.text(650, 36, "position", "sm");
+    rows.forEach((r, i) => {
+      if (k < i + 1) return;
+      const on = k === i + 1; r.forEach((c, j) => { o += SV.text([310, 360, 470, 570, 650][j], 66 + i * 34, c, on ? "lbl bd" : "lbl", { style: "font-family:var(--mono);font-size:15px", ...(r[2] === "yes" && j === 3 ? { fill: "var(--warn)" } : {}) }); });
+    });
+    return o;
+  };
+  Lib.stepper($("#stD"), { w: 760, h: 215, label: "Four calls of IncreaseSpeed", base: { i: 0 }, draw, tween: 300, dwell: 2800, steps: [
+    { cap: "Start: speed 0, position 0, <code>MaxSpeed</code> 100, <code>IncreaseAmount</code> 40. Each call runs the four lines.", s: { i: 0 } },
+    { cap: "Call 1: 0 + 40 = 40, not over 100, speed 40. Position 0 + 40 = <b>40</b>.", s: { i: 1 } },
+    { cap: "Call 2: 80. Position 40 + 80 = <b>120</b>.", s: { i: 2 } },
+    { cap: "Call 3: 80 + 40 = 120, over 100, so the speed is limited to <b>100</b>. The position still grows: 120 + 100 = <b>220</b>.", s: { i: 3 } },
+    { cap: "Call 4: the speed stays at 100 and the position goes up by 100 again: <b>320</b>. The limit applies to the speed, never to the position.", s: { i: 4 } }] });
+})();
+
+/* Lab 1 */
+(function () {
+  let max = 100, inc = 40, heli = false, vch = 15, mh = 40, spd, hp, vp, calls;
+  const reset = () => { spd = 0; hp = 0; vp = 0; calls = []; paint(); };
+  const paint = () => {
+    $("#lH").textContent = "Helicopter: " + (heli ? "on" : "off"); $("#lH").classList.toggle("pri", heli);
+    $("#lV").style.display = heli ? "" : "none"; $("#lX").style.display = heli ? "" : "none";
+    $("#lT").innerHTML = '<div class="tw"><table class="t mono"><tr><th>Call</th><th>CurrentSpeed</th><th>HorizontalPosition</th>' + (heli ? "<th>VerticalPosition</th>" : "") + "</tr>" + calls.map((c, i) => `<tr><td>${i + 1}</td><td>${c[0]}${c[3] ? " (limited)" : ""}</td><td>${c[1]}</td>${heli ? `<td>${c[2]}${c[4] ? " (limited)" : ""}</td>` : ""}</tr>`).join("") + "</table></div>";
+    $("#lv").textContent = calls.length ? "The speed stops rising at MaxSpeed (" + max + "), but the position keeps increasing by the current speed each call." : "Press Call IncreaseSpeed() to run the method.";
+  };
+  $("#lGo").onclick = () => {
+    spd += inc; let lim = false; if (spd > max) { spd = max; lim = true; }
+    hp += spd; let vlim = false; if (heli) { vp += vch; if (vp > mh) { vp = mh; vlim = true; } }
+    calls.push([spd, hp, vp, lim, vlim]); if (calls.length > 10) calls.shift(); paint();
+  };
+  $("#lRe").onclick = reset; $("#lH").onclick = () => { heli = !heli; reset(); };
+  Lib.slider($("#lM"), { id: "lms", label: "MaxSpeed ", min: 20, max: 200, value: max, fmt: (x) => x, onInput: (v) => { max = v; reset(); } });
+  Lib.slider($("#lI"), { id: "lis", label: "IncreaseAmount ", min: 5, max: 80, value: inc, fmt: (x) => x, onInput: (v) => { inc = v; reset(); } });
+  Lib.slider($("#lV"), { id: "lvs", label: "VerticalChange ", min: 1, max: 30, value: vch, fmt: (x) => x, onInput: (v) => { vch = v; reset(); } });
+  Lib.slider($("#lX"), { id: "lxs", label: "MaxHeight ", min: 10, max: 100, value: mh, fmt: (x) => x, onInput: (v) => { mh = v; reset(); } });
+  reset();
+})();
+
+/* Lab 2: class builder */
+(function () {
+  const sc = [
+    { name: "Pet", attrs: [["PetID", "STRING"], ["PetName", "STRING"], ["DateRegistered", "DATE"]] },
+    { name: "Card", attrs: [["Number", "INTEGER"], ["Colour", "STRING"]] },
+    { name: "Appointment", attrs: [["DateSeen", "DATE"], ["PatientID", "INTEGER"], ["Doctor", "STRING"], ["Treatments", "STRING"]] }
+  ];
+  let cur = 0, pick = {};
+  const key = (i, t) => cur + "_" + i + t;
+  const paint = () => {
+    $$("#gB button").forEach((b, i) => b.classList.toggle("pri", i === cur));
+    const s = sc[cur];
+    $("#gC").innerHTML = '<div class="tw"><table class="t"><tr><th>Attribute</th><th>Getter</th><th>Setter</th></tr>' + s.attrs.map((a, i) => `<tr><td><code>${a[0]} : ${a[1]}</code></td><td><label><input type="checkbox" data-k="${i}g" ${pick[key(i, "g")] ? "checked" : ""}> Get${a[0]}</label></td><td><label><input type="checkbox" data-k="${i}s" ${pick[key(i, "s")] ? "checked" : ""}> Set${a[0]}</label></td></tr>`).join("") + "</table></div>";
+    $$("#gC input").forEach((c) => (c.onchange = () => { pick[cur + "_" + c.dataset.k] = c.checked; paint(); }));
+    const par = (a) => "New" + a[0], L = [`class ${s.name}:`];
+    s.attrs.forEach((a) => L.push(`    # ${a[0]} : ${a[1]}`));
+    L.push(`    def __init__(self, ${s.attrs.map(par).join(", ")}):`);
+    s.attrs.forEach((a) => L.push(`        self.__${a[0]} = New${a[0]}`));
+    s.attrs.forEach((a, i) => {
+      if (pick[key(i, "g")]) L.push("", `    def Get${a[0]}(self):`, `        return self.__${a[0]}`);
+      if (pick[key(i, "s")]) L.push("", `    def Set${a[0]}(self, New${a[0]}):`, `        self.__${a[0]} = New${a[0]}`);
+    });
+    const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+    $("#gO").innerHTML = '<div class="code"><pre class="cp">' + L.map((l) => `<span class="ln">${esc(l) || " "}</span>`).join("") + "</pre></div>";
+  };
+  $("#gB").innerHTML = sc.map((s, i) => `<button class="b" data-i="${i}">${s.name}</button>`).join("");
+  $$("#gB button").forEach((b) => (b.onclick = () => { cur = +b.dataset.i; paint(); }));
+  paint();
+})();
+
+btnTable("eB", "eO", [
+  ["Missing self", "def GetName(): return self.__Name", "TypeError: the method is given the object but has nowhere to put it", "def GetName(self):"],
+  ["No parent constructor", "class Parrot(Animal): def __init__(self, n, w): self.WingSpan = w", "AttributeError when Name is used: the inherited attributes were never set", "super().__init__(n) as the first line of the child's constructor"],
+  ["Attribute without self", "def __init__(self, NewName): __Name = NewName", "The value is a local variable, forgotten when the constructor ends", "self.__Name = NewName"],
+  ["Number joined to text", "return \"Size \" + self.Size", "TypeError: cannot join a string and an integer", "return \"Size \" + str(self.Size)"],
+  ["Return in a setter", "def SetAge(self, a): return a", "The attribute is never changed", "self.__Age = a"],
+  ["Calling private from outside", "print(MyPet.__Name)", "AttributeError: a private attribute is not directly reachable", "print(MyPet.GetName())"],
+  ["Overwriting instead of adding", "self.__X = XChange", "The object jumps to the new value instead of moving by it", "self.__X = self.__X + XChange"]
+], ["Mistake", "Code", "What goes wrong", "Fix"]);
+Lib.classify($("#cl1"), { prompt: "What does each line of Python do?", buckets: [{"label": "Declare a class"}, {"label": "Constructor"}, {"label": "Getter"}, {"label": "Setter"}, {"label": "Create an object"}, {"label": "Call the parent constructor"}, {"label": "Override a method"}], items: [{"text": "class Vehicle:", "b": 0}, {"text": "def __init__(self, NewID, NewMax):", "b": 1}, {"text": "def GetMaxSpeed(self):", "b": 2}, {"text": "def SetCurrentSpeed(self, CSP):", "b": 3}, {"text": "Car1 = Vehicle(\"V1\", 120)", "b": 4}, {"text": "super().__init__(pName, pSound)", "b": 5}, {"text": "class Parrot(Animal):", "b": 0}, {"text": "def Description(self): # in Parrot, also in Animal", "b": 6}, {"text": "return self.__HorizontalPosition", "b": 2}, {"text": "self.__CurrentSpeed = CSP", "b": 3}], done: "class declares, __init__ is the constructor, Get returns, Set assigns, calling the class creates, super().__init__ calls the parent, and the same method name in the child overrides." });
+Lib.order($("#o1"), { prompt: "Put the steps for writing a child class in order.", items: ["Write the class header with the parent in brackets", "Add attribute comments for the new attributes only", "Write the constructor taking the parent's values and the new ones", "Call the parent constructor with the inherited values", "Assign the new attributes", "Write or override the methods that are different"], done: "Header, comments, constructor, parent call, new attributes, methods." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["self", "The object the method is running on"], ["__init__", "The constructor, called when an object is created"], ["self.__Name", "A private attribute"], ["super().__init__(...)", "Calls the parent class constructor"], ["Same method name in the child", "Overrides the parent's method"]], done: "Learn these terms." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "A vehicle starts with speed 0 and position 0, IncreaseAmount 30 and MaxSpeed 100. After 2 calls to IncreaseSpeed(), what is the CurrentSpeed?", "a": 60, "unit": "", "tol": 0.01, "hint": "30, then 60.", "sol": "<b>60</b>."},
+  {"q": "Same vehicle: what is the HorizontalPosition after 2 calls?", "a": 90, "unit": "", "tol": 0.01, "hint": "Position 30, then 30 + 60.", "sol": "<b>90</b>."},
+  {"q": "Same vehicle: what is the CurrentSpeed after 5 calls?", "a": 100, "unit": "", "tol": 0.01, "hint": "30, 60, 90, 120 limited to 100, 100.", "sol": "<b>100</b>."},
+  {"q": "Same vehicle: what is the HorizontalPosition after 4 calls?", "a": 280, "unit": "", "tol": 0.01, "hint": "30 + 60 + 90 + 100.", "sol": "<b>280</b>."},
+  {"q": "NumberWords is 29. ChangeNumberWords(5) is called twice. What is NumberWords?", "a": 39, "unit": "", "tol": 0.01, "hint": "29 + 5 + 5.", "sol": "<b>39</b>."},
+  {"q": "A Character is at x = 10. ChangePosition(4, 0) then ChangePosition(-7, 3) are called. What is the x coordinate?", "a": 7, "unit": "", "tol": 0.01, "hint": "10 + 4 - 7.", "sol": "<b>7</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "What is the constructor in Python called?", opts: ["__new__", "__init__", "constructor", "init"], a: 1, why: "__init__ with two underscores each side." },
+  { q: "What makes an attribute private?", opts: ["The word private", "Two underscores at the start of its name", "Capital letters", "A comment"], a: 1, why: "self.__Name is private." },
+  { q: "What does super().__init__(...) do?", opts: ["Deletes the parent", "Calls the parent constructor", "Creates a new class", "Overrides a method"], a: 1, why: "It sets the inherited attributes." },
+  { q: "What is wrong with: def GetAge(): return self.__Age", opts: ["Nothing", "It is missing self as a parameter", "It should print", "__Age is public"], a: 1, why: "Every method needs self." },
+  { q: "A child class has a method with the same name as its parent's. What is this called?", opts: ["Inheritance", "Overriding", "Encapsulation", "Containment"], a: 1, why: "The child version runs for child objects." },
+  { q: "How is an object created from the class Hand?", opts: ["Hand.new()", "MyHand = Hand(Card1, Card2, Card3, Card4, Card5)", "class MyHand", "create Hand"], a: 1, why: "Call the class like a function with the constructor's arguments." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["class Name:", "Declares a class."],
+  ["__init__(self, ...)", "The constructor. Assigns the parameters to attributes."],
+  ["self.__Attr", "A private attribute."],
+  ["Getter", "def GetX(self): return self.__X"],
+  ["Setter", "def SetX(self, v): self.__X = v"],
+  ["class Child(Parent):", "Child inherits from Parent."],
+  ["super().__init__(...)", "Calls the parent constructor."],
+  ["Override", "Same method name in the child class."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

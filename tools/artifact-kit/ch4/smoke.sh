@@ -5,9 +5,10 @@ python3 - "$SRC" "$T" <<'PY'
 import sys
 h=open(sys.argv[1]).read()
 inj="""<script>
-window.__e=[];window.addEventListener('error',e=>window.__e.push(e.message+' @'+e.lineno));
+window.__e=[];window.requestAnimationFrame=cb=>setTimeout(()=>cb(performance.now()),5);window.addEventListener('error',e=>window.__e.push(e.message+' @'+e.lineno));
 window.addEventListener('load',()=>setTimeout(()=>{try{
  document.querySelectorAll('[role=tabpanel]').forEach(p=>p.hidden=false);
+ document.querySelectorAll('.stp-dots button').forEach(b=>{try{b.click()}catch(e){window.__e.push('dot '+e.message)}});
  document.querySelectorAll('button').forEach(b=>{try{b.click()}catch(e){window.__e.push('click '+e.message)}});
  document.querySelectorAll('input[type=checkbox]').forEach(b=>{try{b.click()}catch(e){}});
  document.querySelectorAll('input[type=range]').forEach(r=>{try{r.value=r.max;r.dispatchEvent(new Event('input'))}catch(e){window.__e.push('range '+e.message)}});

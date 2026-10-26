@@ -1,0 +1,256 @@
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 20.2.2</div>
+  <h1>Exception Handling: try and except</h1>
+  <p class="cbook">Coursebook: Chapter 20 · Further programming, section 20.2 File processing and exception handling</p>
+  <p class="lead">What an exception is, its causes, why and when to use exception handling, try, except and finally in Python, the patterns the exam uses with files and input; animations, labs and the real Paper 3 and Paper 4 questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>An <b>exception</b> is an unexpected event that happens while a program is running and disrupts its normal flow, and unless something responds to it the program <b>halts</b>. <b>Exception handling</b> is the process of responding to the unwanted event so the program does not stop unexpectedly: the risky statements go in a <code>try</code> block and the response goes in an <code>except</code> block. Exceptions have three common causes: <b>programming errors</b> (dividing by zero, an index outside an array), <b>user errors</b> (typing text where a number is expected, a wrong file name) and <b>hardware failure</b> (a disk crash, a lost connection to a printer). Use exception handling when something outside the program's control could go wrong, especially opening and reading files and converting user input. Paper 3 asks you to define and describe it; Paper 4 awards marks for writing it round a file.</p></div>
+
+  <h2>1 · What an exception is</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Cause</th><th>Example</th><th>Python exception</th></tr>
+    <tr><td><b>Programming error</b></td><td>Divide by zero; read an array element that does not exist; a variable of the wrong type</td><td><code>ZeroDivisionError</code>, <code>IndexError</code>, <code>TypeError</code></td></tr>
+    <tr><td><b>User error</b></td><td>Typing <code>abc</code> when a number is asked for; giving a file name that does not exist</td><td><code>ValueError</code>, <code>FileNotFoundError</code></td></tr>
+    <tr><td><b>Hardware or system failure</b></td><td>A disk crash; the file is on a device that has been unplugged; the disk is full; a printer is disconnected</td><td><code>OSError</code> (which <code>IOError</code> is an alias of)</td></tr>
+  </table></div>
+  <p>Without handling, Python stops at the line where it happened and prints an error message. Statements after it never run, and files may be left open.</p>
+
+  <h2>2 · Why use exception handling?</h2>
+  <ul>
+    <li>To <b>trap runtime errors</b> and stop the program halting unexpectedly.</li>
+    <li>To <b>show a meaningful message</b> to the user instead of a system error.</li>
+    <li>To let the program <b>recover or carry on</b>: ask again, use a default, or close down safely.</li>
+  </ul>
+  <p>The mark scheme's wording: <i>exception handling is a process that responds to unwanted or unexpected events when a program runs, to prevent the program or computer from stopping unexpectedly.</i></p>
+
+  <h2>3 · try and except in Python</h2>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">try:</span><span class="ln">    File = open(&quot;Data.txt&quot;, &quot;r&quot;)          # might fail: file missing</span><span class="ln">    for Line in File:</span><span class="ln">        Numbers.append(int(Line))         # might fail: a line is not a number</span><span class="ln">    File.close()</span><span class="ln">except IOError:                           # the response when the file cannot be opened</span><span class="ln">    print(&quot;Could not find the file&quot;)</span><span class="ln">except ValueError:                        # the response when int() fails</span><span class="ln">    print(&quot;The file contains something that is not a number&quot;)</span></pre></div>
+  <ol>
+    <li>Python runs the statements in the <b><code>try</code></b> block.</li>
+    <li>If one of them causes an exception, the rest of the block is <b>skipped</b> and the matching <b><code>except</code></b> block runs.</li>
+    <li>If nothing goes wrong, the <code>except</code> blocks are skipped.</li>
+    <li>The program then carries on after the whole <code>try</code> statement.</li>
+  </ol>
+  <div class="tw"><table class="t">
+    <tr><th>Part</th><th>Use</th></tr>
+    <tr><td><code>try:</code></td><td>The statements that might cause the exception</td></tr>
+    <tr><td><code>except IOError:</code> / <code>except:</code></td><td>What to do if it happens. Naming the exception is best; a bare <code>except:</code> catches everything and is accepted in the exam</td></tr>
+    <tr><td><code>else:</code></td><td>Runs only if no exception happened</td></tr>
+    <tr><td><code>finally:</code></td><td>Runs whether or not an exception happened, for example to close a file</td></tr>
+  </table></div>
+  <p>The syllabus pseudocode form is the same idea:</p>
+  <pre class="plain">TRY
+   OPENFILE "Data.txt" FOR READ
+   READFILE "Data.txt", Line
+EXCEPT
+   OUTPUT "File not found"
+FINALLY
+   CLOSEFILE "Data.txt"
+ENDTRY</pre>
+
+  <h2>4 · When to use it</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Use exception handling for</th><th>Use ordinary checks (IF, validation) for</th></tr>
+    <tr><td>Opening, reading and writing files</td><td>A value that must be in a range: <code>IF Age &lt; 0 THEN</code></td></tr>
+    <tr><td>Converting user input: <code>int(input())</code></td><td>A list index you can test with <code>IF Index &lt; len(List)</code></td></tr>
+    <tr><td>Network, printer or disk problems</td><td>Menu choices from a known set</td></tr>
+    <tr><td>Division where the divisor comes from the user</td><td>Logic errors in your own algorithm (fix the code)</td></tr>
+  </table></div>
+  <p>Use it where the problem comes from <b>outside the program</b> and cannot be ruled out in advance. It does not replace validation, and it does not fix a logic error.</p>
+
+  <h2>5 · Patterns the exams use</h2>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln"># 1. Reading a file: the paper says &quot;use exception handling when opening and reading&quot;</span><span class="ln">def LoadAvatars():</span><span class="ln">    global AvailableAvatars</span><span class="ln">    try:</span><span class="ln">        TheFile = open(&quot;AvatarFile.txt&quot;)</span><span class="ln">        for Line in TheFile:</span><span class="ln">            Data = Line.strip().split(&quot; &quot;)</span><span class="ln">            AvailableAvatars.append(Avatar(Data[0], Data[1] == &quot;True&quot;, Data[2], int(Data[3])))</span><span class="ln">        TheFile.close()</span><span class="ln">    except:</span><span class="ln">        print(&quot;File not found&quot;)</span><span class="ln"> </span><span class="ln"># 2. Writing a file</span><span class="ln">try:</span><span class="ln">    File = open(&quot;Tree.txt&quot;, &quot;w&quot;)</span><span class="ln">    File.write(&quot;-1,20,1\n&quot;)</span><span class="ln">    File.close()</span><span class="ln">except:</span><span class="ln">    print(&quot;Cannot write to file&quot;)</span><span class="ln"> </span><span class="ln"># 3. Input: ask again until it is valid</span><span class="ln">Valid = False</span><span class="ln">while not Valid:</span><span class="ln">    try:</span><span class="ln">        Age = int(input(&quot;Enter your age: &quot;))</span><span class="ln">        Valid = True</span><span class="ln">    except ValueError:</span><span class="ln">        print(&quot;Please enter a whole number&quot;)</span></pre></div>
+  <p>The mark scheme awards separate marks for: the <b>try</b> structure, the <b>except</b> (catch) block, an <b>appropriate output message</b>, and for the file work inside it (open, loop, read, close).</p>
+
+  <h2>6 · Common ways to lose marks</h2>
+  <ul>
+    <li>Defining an exception as "an error". Say it is an unexpected event during execution that can make the program halt.</li>
+    <li>Listing a cause that is not an exception cause (for example "the program is slow"). Use programming errors, user errors or hardware failure.</li>
+    <li>Writing <code>try</code> without <code>except</code>, or an <code>except</code> with no message or action.</li>
+    <li>Putting <code>try</code> round the wrong lines: the file opening and reading must be <i>inside</i> it.</li>
+    <li>Describing validation (an <code>IF</code> check) as exception handling.</li>
+    <li>In Paper 4, leaving out the exception handling when the question says "use exception handling". It is usually worth a mark or two.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Without handling, the program halts</h2>
+  <p>Press Play, or click the steps. The same program runs with a bad input, first with no handling and then with try and except.</p>
+  <div id="stA"></div>
+  <h2>2 · With try and except, the program carries on</h2>
+  <div id="stB"></div>
+  <h2>3 · Which except block runs?</h2>
+  <div id="stC"></div>
+  <h2>4 · finally always runs</h2>
+  <div id="stD"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Run the program</h2>
+  <p>The program asks for a file name, reads a number from the first line and divides 100 by it. Choose the situation, then turn exception handling on or off.</p>
+  <div class="card"><div id="sB" class="btnrow"></div><div class="btnrow"><button class="b" id="sT">Exception handling: off</button></div><div id="sC"></div><div class="verdict" id="sV"></div></div>
+
+  <h2>Lab 2 · Which exception, which cause?</h2>
+  <p>Choose a situation to see the exception, the type of cause and the handler.</p>
+  <div class="card"><div id="eB" class="btnrow"></div><div id="eO"></div></div>
+
+  <h2>Lab 3 · Mistakes in exception handling</h2>
+  <div class="card"><div id="mB" class="btnrow"></div><div id="mO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · What kind of cause is it?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Exception handling or an ordinary check?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the steps of try and except in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>5 · What is output?</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A web form that asks for a quantity</h3><p>If a customer types ten instead of 10, converting it to a number would normally crash the page. The code catches the error and shows 'Please enter a whole number'.</p><div class="use"><b>Exam use:</b> user error handled by an exception handler with a helpful message.</div></div>
+  <div class="rw"><h3>A spreadsheet opening a missing file</h3><p>When a linked file has been moved or deleted, the program says it cannot find the file and offers to browse for it instead of closing.</p><div class="use"><b>Exam use:</b> file not found: caught so the program can carry on.</div></div>
+  <div class="rw"><h3>A game saving to a full disk</h3><p>If there is no space left, the save fails. The game reports it and keeps running so the player does not lose their progress in memory.</p><div class="use"><b>Exam use:</b> hardware or system failure: the response protects the data.</div></div>
+  <div class="rw"><h3>A banking program dividing by a count</h3><p>An average is total divided by the number of transactions. With no transactions that would divide by zero, so the program handles it and reports 'no transactions'.</p><div class="use"><b>Exam use:</b> a programming error that can be caught (or checked first with IF).</div></div>
+  <div class="rw"><h3>An app losing its network connection</h3><p>A download stops when the Wi-Fi drops. The app catches the connection error, tells the user, and lets them retry.</p><div class="use"><b>Exam use:</b> failure outside the program's control, reported rather than crashing.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on exceptions and exception handling: the Paper 3 theory questions and four Paper 4 questions where exception handling is part of the marks. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2022</td><td>32</td><td>9</td><td>4</td><td>State the reasons for including exception handling, with an example</td></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>8(b), 8(c)</td><td>1 + 2</td><td>Define exception handling; state two causes of an exception</td></tr>
+    <tr><td>O/N 2023</td><td>32</td><td>12(a)</td><td>2</td><td>Describe, with an example, what is meant by an exception</td></tr>
+    <tr><td>O/N 2025</td><td>31</td><td>10</td><td>3</td><td>Explain exception handling with an example of a cause</td></tr>
+    <tr><td>O/N 2025</td><td>32</td><td>10(a), 10(b)</td><td>2 + 2</td><td>Describe how termination due to an exception is avoided; identify two causes</td></tr>
+    <tr><td>O/N 2025</td><td>33</td><td>12(a), 12(b)</td><td>3 + 2</td><td>Explain an exception; give an example and why it causes a problem</td></tr>
+    <tr><td>O/N 2022</td><td>41, 43</td><td>1(b)</td><td>6</td><td>ReadFile(): read 100 integers from IntegerData.txt with exception handling</td></tr>
+    <tr><td>M/J 2023</td><td>41, 43</td><td>1(a)(ii)</td><td>4</td><td>Read 25 integers from Data.txt into an array with exception handling</td></tr>
+    <tr><td>O/N 2025</td><td>42</td><td>3(c)</td><td>4</td><td>Read 50 integers from TreeData.txt into a binary tree, with exception handling</td></tr>
+    <tr><td>M/J 2026</td><td>42</td><td>2(b)</td><td>7 + 1</td><td>LoadAvatars(): read objects from AvatarFile.txt with exception handling</td></tr>
+  </table></div>
+  <p class="note">Exception handling is tested in Paper 3 as a short theory question (definition, causes, why) in May/June 2022, Oct/Nov 2023 and Oct/Nov 2025. In Paper 4 it is a mark inside the file questions, and appears in most papers; four are shown here and the rest are on the previous page. Python is shown for Paper 4. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+
+  <h3>Paper 3: define, describe and explain</h3>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/32 · Q9</span> <span class="cmd">State</span> <span class="mark">4 marks</span> State the reasons for including exception handling routines when writing a program. Include an example of an exception in your answer.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Reasons: trap errors, stop the halt, give a helpful message. One mark for an example.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">To trap (some) runtime errors</span> <span class="mk k" data-t="2">To prevent a program halting unexpectedly</span> <span class="mk k" data-t="3">To produce meaningful error messages for these errors</span> <span class="mk k" data-t="4">Example: divide by zero / end of file / file not found</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving only the example. The question asks for the reasons as well.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31, 33 · Q8(b), (c)</span> <span class="cmd">Define / State</span> <span class="mark">1 + 2 marks</span> (b) Define the term exception handling. (c) State two possible causes of an exception.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(b) A response to an unexpected event so the program does not halt. (c) Two of programming, user and hardware.</div>
+    <div class="ans"><p><b>(b)</b> <span class="mk k" data-t="1">(Exception handling is the process of) responding to an unexpected event when the program is running so it does not halt unexpectedly</span> <b>(c)</b> <span class="mk a" data-t="1">Programming errors</span> <span class="mk a" data-t="2">User errors / hardware failure / runtime errors</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Defining it as 'catching errors' without saying the program must not halt unexpectedly.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/32 · Q12(a)</span> <span class="cmd">Describe</span> <span class="mark">2 marks</span> Describe, with an example, what is meant by an exception.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One mark for the description and one for the example.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">An exception is an event that occurs during the execution of a program that disrupts the normal flow of instructions / causes the program to halt</span> <span class="mk k" data-t="2">Example: hardware failure, a programming error such as an out-of-bounds array element or divide by zero, or a user error such as a wrong file name</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/31 · Q10</span> <span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain what is meant by exception handling. Include an example of a possible cause of an exception in your answer.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two marks for the explanation, one for the cause.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Exception handling is a process that responds to unwanted / unexpected events when a program runs</span> <span class="mk k" data-t="2">to prevent the program / computer from stopping unexpectedly</span> <span class="mk k" data-t="3">Cause: programming errors, user errors or hardware failure (such as losing the connection to a printer)</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/32 · Q10</span> <span class="cmd">Describe / Identify</span> <span class="mark">2 + 2 marks</span> An exception is an error that may cause a program to halt unexpectedly. (a) Describe how program termination due to an exception can be avoided. (b) Identify two possible causes of exceptions.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) use an exception handling routine, and name try ... except or an error message.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Use an exception handling routine (to respond to unwanted / unexpected events while the program runs)</span> <span class="mk k" data-t="2">using try ... except / catch, or by generating an error message</span> <b>(b)</b> <span class="mk a" data-t="1">Coding errors</span> <span class="mk a" data-t="2">User errors / hardware failure</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/33 · Q12</span> <span class="cmd">Explain / Identify</span> <span class="mark">3 + 2 marks</span> An exception can occur when running a program. (a) Explain what is meant by an exception. (b) Identify one example of an exception and give one reason why the exception may cause a problem.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) unexpected event at run time, caused by something not detected earlier, and the effect. (b) one example and its consequence.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">An unplanned / unexpected event that occurs when a program is running</span> <span class="mk k" data-t="2">due to an error in the programming or logic that was not detected during construction or compilation</span> <span class="mk k" data-t="3">The effect can be that the program halts unexpectedly</span></p><p><b>(b)</b> <span class="mk a" data-t="1">Example: division by zero</span> <span class="mk a" data-t="2">Reason: the processor cannot evaluate the answer, so the program cannot continue</span></p></div>
+  </div></details>
+
+  <h3>Paper 4: exception handling inside file questions (Python)</h3>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/41, 43 · Q1(b)</span> <span class="cmd">Write</span> <span class="mark">6 marks</span> The text file IntegerData.txt stores 100 integer numbers between 1 and 100 inclusive, one on each line. The procedure ReadFile() must read in the numbers from the text file and store each one in the global array DataArray, which has space for 100 integers. Use appropriate exception handling. Write program code for the procedure ReadFile().</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Header, open to read, loop 100 times or to the end of the file, convert and store each value, close, and try and except with a message.</div>
+    <div class="ans"><p>Marks: <span class="mk k" data-t="1">procedure ReadFile() header</span> <span class="mk k" data-t="2">opening IntegerData.txt for read</span> <span class="mk k" data-t="3">looping through the 100 elements / to the end of the file</span> <span class="mk k" data-t="4">reading each value from the file and storing it in the array</span> <span class="mk k" data-t="5">closing the file in an appropriate place</span> <span class="mk k" data-t="6">exception handling round the file opening or reading, with an appropriate message</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">def ReadFile():</span><span class="ln">    global DataArray</span><span class="ln">    try:</span><span class="ln">        File = open(&quot;IntegerData.txt&quot;, &quot;r&quot;)</span><span class="ln">        for X in range(0, 100):</span><span class="ln">            DataArray[X] = int(File.readline())</span><span class="ln">        File.close()</span><span class="ln">    except IOError:</span><span class="ln">        print(&quot;Could not find the file&quot;)</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Putting the <code>try</code> only round the <code>open</code>, so an error while reading is not caught, or leaving out the message in the <code>except</code> block.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/41, 43 · Q1(a)</span> <span class="cmd">Write</span> <span class="mark">1 + 4 marks</span> A program reads data from a file and searches for specific data. (a)(i) Write program code to declare the local 1D array DataArray, which holds 25 integers. (ii) Amend the main program to read the 25 integer data items from the text file Data.txt into DataArray.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open for reading, loop through the lines, append each as an integer, close, and handle the missing file.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">1D array named DataArray (with 25 elements of type integer)</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">DataArray = []    # 25 elements of type integer</span></pre><p><b>(ii)</b> Four marks: <span class="mk a" data-t="1">opening Data.txt to read</span> <span class="mk a" data-t="2">looping through all 25 / to the end of the file, reading each line and appending it to the array</span> <span class="mk a" data-t="3">exception handling with an appropriate output</span> <span class="mk a" data-t="4">closing the file (in an appropriate place)</span></p><pre class="cp" style="counter-reset:l 1"><span class="ln">try:</span><span class="ln">    DataFile = open(&quot;Data.txt&quot;, &quot;r&quot;)</span><span class="ln">    for Line in DataFile:</span><span class="ln">        DataArray.append(int(Line))</span><span class="ln">    DataFile.close()</span><span class="ln">except IOError:</span><span class="ln">    print(&quot;Could not find file&quot;)</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Appending the line as a string. The array holds integers, so convert with <code>int()</code>.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/42 · Q3(c)</span> <span class="cmd">Write</span> <span class="mark">4 marks</span> The text file TreeData.txt stores 50 integers, one on each line. The main program reads each integer from the file and stores it in the binary tree in the order read, using the procedure AddNode() (which takes the integer as its parameter). Write program code for the main program. Use exception handling.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open, loop through the lines, call AddNode() with each integer, close, and try and except.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">opening the file to read, and closing it in an appropriate place</span> <span class="mk k" data-t="2">looping 50 times / through the file / until the end of the file, reading each line</span> <span class="mk k" data-t="3">calling AddNode() with each value read</span> <span class="mk k" data-t="4">exception handling (try ... except) with an appropriate message</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">try:</span><span class="ln">    File = open(&quot;TreeData.txt&quot;)</span><span class="ln">    for Line in File:</span><span class="ln">        AddNode(int(Line.strip()))</span><span class="ln">    File.close()</span><span class="ln">except:</span><span class="ln">    print(&quot;Error: cannot open file&quot;)</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Reading the lines but never calling AddNode(), or reading a string instead of converting to an integer.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/42 · Q2(b)</span> <span class="cmd">Write</span> <span class="mark">7 + 1 marks</span> The text file AvatarFile.txt stores data for 30 avatars. Each avatar is on a new line, in the order: name, glasses, hair colour, age, with each value separated by a space. For example, the first line is <code>Kit True blonde 21</code>. The class Avatar has a constructor that takes the name, a Boolean for glasses, the hair colour and the age. (i) The procedure LoadAvatars() reads the data from the text file, creates a new object for each avatar and stores the objects in a global array AvailableAvatars. The procedure uses exception handling when opening and reading from the file. Write program code for LoadAvatars(). (ii) Write the main program to call LoadAvatars().</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Split each line on spaces, convert the glasses text and the age, create an Avatar and store it. Everything that touches the file is inside the try.</div>
+    <div class="ans"><p><b>(i)</b> Seven marks: <span class="mk k" data-t="1">procedure header and appropriate exception handling with output</span> <span class="mk k" data-t="2">opening the text file (to read) and closing it</span> <span class="mk k" data-t="3">looping until the end of the file / 30 times</span> <span class="mk k" data-t="4">reading in each line</span> <span class="mk k" data-t="5">splitting each line by space</span> <span class="mk k" data-t="6">creating an object with the correct values</span> <span class="mk k" data-t="7">storing each object in the global array</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">def LoadAvatars():</span><span class="ln">    global AvailableAvatars</span><span class="ln">    try:</span><span class="ln">        TheFile = open(&quot;AvatarFile.txt&quot;)</span><span class="ln">        for Line in TheFile:</span><span class="ln">            DataSplit = Line.strip().split(&quot; &quot;)</span><span class="ln">            Glasses = DataSplit[1] == &quot;True&quot;</span><span class="ln">            AvailableAvatars.append(Avatar(DataSplit[0], Glasses, DataSplit[2], int(DataSplit[3])))</span><span class="ln">        TheFile.close()</span><span class="ln">    except:</span><span class="ln">        print(&quot;File not found&quot;)</span></pre><p><b>(ii)</b> <span class="mk a" data-t="1">LoadAvatars()</span></p><pre class="cp" style="counter-reset:l 13"><span class="ln">LoadAvatars()</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Treating the glasses value <code>"True"</code> as a Boolean directly. A string from a file is always a string: compare it to <code>"True"</code>.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Distinguish</span> <span class="mark">2 marks</span> Distinguish between an exception and a logic error.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One happens when something unexpected occurs at run time; the other is a mistake in the algorithm.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">An exception is an unexpected event during execution (such as a missing file) that disrupts the program and can be handled.</span> <span class="mk k" data-t="2">A logic error is a mistake in the program's design that gives wrong results without stopping it; it has to be fixed in the code.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">3 marks</span> Write Python that asks the user for a whole number and keeps asking until a whole number is entered.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Loop, try int(input()), catch ValueError.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">a loop that repeats until the input is valid</span> <span class="mk k" data-t="2">try ... int(input(...)) so conversion is inside the try</span> <span class="mk k" data-t="3">except ValueError with a message, and the loop continuing</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">Valid = False</span><span class="ln">while not Valid:</span><span class="ln">    try:</span><span class="ln">        Number = int(input(&quot;Enter a whole number: &quot;))</span><span class="ln">        Valid = True</span><span class="ln">    except ValueError:</span><span class="ln">        print(&quot;That was not a whole number&quot;)</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Setting <code>Valid = True</code> before the conversion, so a bad input ends the loop.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> Name two possible causes of an exception when a program reads a file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Think user and hardware.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The file does not exist or the wrong file name was given (user error).</span> <span class="mk k" data-t="2">The disk or device fails or the file is corrupted (hardware failure).</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Complete</span> <span class="mark">3 marks</span> The code below crashes when the user enters 0. Rewrite it so that it outputs 'Cannot divide by zero' instead.<pre class="plain">Number = int(input(&quot;Enter a number: &quot;))
+print(100 / Number)</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The risky statement goes in the try; the response goes in the except.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">try block round the division (and the input)</span> <span class="mk k" data-t="2">except ZeroDivisionError (or a general except)</span> <span class="mk k" data-t="3">OUTPUT of the message 'Cannot divide by zero'</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">try:</span><span class="ln">    Number = int(input(&quot;Enter a number: &quot;))</span><span class="ln">    print(100 / Number)</span><span class="ln">except ZeroDivisionError:</span><span class="ln">    print(&quot;Cannot divide by zero&quot;)</span></pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why checking a file exists with an IF statement is not always enough, and why exception handling is used as well.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Think of what can go wrong after the check.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The file may be removed, locked or damaged between the check and the open, or fail part-way through reading.</span> <span class="mk k" data-t="2">Exception handling responds to the problem whenever it occurs, so the program does not halt.</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Define it fully.</b> An exception is an unexpected event during execution that disrupts normal flow and can make the program halt. Exception handling responds to it so the program does not stop unexpectedly.</li>
+    <li><b>Give causes in three groups.</b> Programming errors, user errors, hardware failure. Name one example of each.</li>
+    <li><b>Put the risky code inside try.</b> File opening, reading and converting input all go in the try block.</li>
+    <li><b>Always add a message.</b> An except block that does nothing gets no mark. Output an appropriate message.</li>
+    <li><b>Handle what is outside your control.</b> Files, input, devices. Use IF for ranges and logic.</li>
+    <li><b>Read the question for 'use exception handling'.</b> It is a separate mark in Paper 4 file questions.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>what exception handling does</td><td>"It responds to an unexpected event while the program is running so the program does not halt unexpectedly."</td></tr>
+    <tr><td>a cause of an exception</td><td>"A user error, such as entering a file name that does not exist."</td></tr>
+    <tr><td>how to avoid termination</td><td>"Use a try ... except block with an appropriate message."</td></tr>
+    <tr><td>why use it</td><td>"To trap runtime errors, prevent the program halting and give a meaningful message."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Define</td><td>Give the exact meaning in one sentence.</td></tr>
+    <tr><td>State / Identify</td><td>Give a fact, cause or example in a few words.</td></tr>
+    <tr><td>Describe / Explain</td><td>Say what happens and why, with an example.</td></tr>
+    <tr><td>Write program code</td><td>Python with try, except and a message.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>

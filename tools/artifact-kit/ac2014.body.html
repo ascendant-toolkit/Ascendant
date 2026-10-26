@@ -1,0 +1,326 @@
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 20.1.4</div>
+  <h1>Declarative Programming: Facts, Rules and Goals</h1>
+  <p class="cbook">Coursebook: Chapter 20 · Further programming, section 20.1 Programming paradigms</p>
+  <p class="lead">Facts, rules, goals and variables in a logic language; adding facts from a description, giving the result of a goal, and writing rules with AND and NOT; animations, a goal engine you can query, and every declarative question from the 2021 to 2026 Paper 3 papers.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p><b>Declarative programming</b> tells the computer <i>what</i> is true and what answer is wanted, not <i>how</i> to find it. A program is a set of <b>facts</b> (things that are true) and <b>rules</b> (things that are true if other things are true), which together form a <b>knowledge base</b>. You run it by asking a <b>goal</b> (a query): the system searches the facts and rules and returns every answer that satisfies it. Names that start with a lower-case letter are <b>constants</b>; names that start with a capital letter are <b>variables</b> that the system fills in. In the exam you write extra facts from a description, say what a goal returns, and write a rule or a goal using AND and NOT.</p></div>
+
+  <h2>1 · What declarative means</h2>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Imperative</th><th>Declarative</th></tr>
+    <tr><td>You write</td><td>The steps, in order</td><td>Facts and rules, then a goal</td></tr>
+    <tr><td>Who decides how?</td><td>The programmer</td><td>The system, by searching the knowledge base</td></tr>
+    <tr><td>Finding the domestic cats</td><td>Loop through every cat, test its type, add it to a list</td><td><code>type(Pet, domestic).</code></td></tr>
+    <tr><td>Typical use</td><td>Most programs</td><td>Questions over knowledge: expert systems, databases, family trees</td></tr>
+  </table></div>
+  <p>Declarative languages are <b>logic</b> programming (facts, rules and goals, such as Prolog) or <b>functional</b> programming (the program is built by applying functions to arguments). The exam uses the logic style.</p>
+
+  <h2>2 · Facts</h2>
+  <p>A fact is a <b>predicate</b> with arguments in brackets and a full stop. The meaning of each argument depends on its position, and you decide the order, so be consistent.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Fact</th><th>Meaning</th></tr>
+    <tr><td><code>type(leopard, wild).</code></td><td>A leopard is a type of wild cat</td></tr>
+    <tr><td><code>hair(lion, short).</code></td><td>A lion has short hair</td></tr>
+    <tr><td><code>customer(petrov).</code></td><td>Petrov is a customer</td></tr>
+    <tr><td><code>owns(projector, petrov).</code></td><td>Petrov owns a projector (device first, owner second)</td></tr>
+  </table></div>
+  <p><b>One-argument facts</b> such as <code>customer(petrov).</code> say that something is a member of a kind. They matter: rules use them to say what kind of thing a variable can be.</p>
+  <div class="tip"><b class="h">Adding facts from a description</b>"Betty is a customer who owns a large TV and wants a Blu-ray player." This needs one fact for each statement: <code>customer(betty).</code> <code>owns(large_tv, betty).</code> <code>wants(bluray_player, betty).</code> Use the exact constants already in the knowledge base (<code>large_tv</code>, <code>bluray_player</code>), the same argument order, and lower case. A brand-new person or item also needs its "is a" fact (<code>customer(betty).</code>), and the mark scheme counts it.</div>
+
+  <h2>3 · Goals and variables</h2>
+  <p>A <b>goal</b> asks a question. Put a <b>variable</b> (capital first letter) where you want the answer. The system tries every fact with the same predicate, keeps the ones that match, and returns all the values the variable can take, in the order of the facts.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Goal</th><th>Returns</th></tr>
+    <tr><td><code>hair(Cat, medium)</code></td><td>Cat = leopard, cheetah, savannah</td></tr>
+    <tr><td><code>type(Pet, domestic)</code></td><td>Pet = persian</td></tr>
+    <tr><td><code>hair(lion, short)</code></td><td>true (no variable: a yes/no question)</td></tr>
+    <tr><td><code>hair(Cat, purple)</code></td><td>false (nothing matches)</td></tr>
+  </table></div>
+  <p>A goal can have <b>several conditions</b> joined with <code>,</code> (AND). The <b>same variable</b> in two conditions links them: it must take one value that satisfies both.</p>
+  <pre class="plain">spots(WildSpotty, yes), type(WildSpotty, wild)
+
+spots(_, yes): leopard, cheetah, savannah
+type(_, wild): leopard, lion, cheetah
+Both:          leopard, cheetah</pre>
+
+  <h2>4 · Rules</h2>
+  <p>A <b>rule</b> says that something is true <b>if</b> other conditions are true. It has a head (what is being defined), the word <code>IF</code>, and a body of conditions joined with <code>AND</code> (or a comma), and <code>NOT</code> for "is not true".</p>
+  <pre class="plain">may_buy_device(D, A)
+   IF device(D) AND customer(A) AND NOT owns(D, A).
+
+may_buy_device(D, A) IF device(D), customer(A), NOT owns(D, A).    // same rule</pre>
+  <p>Read it as: <i>D may be available for A to buy if D is a device and A is a customer and A does not own D.</i> The three marks for the conditions come from <b>device(D)</b>, <b>customer(A)</b> and <b>owns(D, A)</b>, and a fourth for correct operators and punctuation.</p>
+  <ul>
+    <li>List <b>one condition for each "is a" in the sentence</b>, then the extra condition.</li>
+    <li>Put <code>NOT</code> before the condition that must fail, and put the "is a" conditions <b>first</b>, so the variables are filled in before NOT is tested.</li>
+    <li>The mark scheme accepts <code>,</code> for AND and, for SWISH Prolog, <code>\+</code> for NOT. It does not accept extra lines of code.</li>
+  </ul>
+  <div class="tw"><table class="t">
+    <tr><th>Exam notation</th><th>Prolog</th></tr>
+    <tr><td><code>father(X, Y) IF male(X) AND parent(X, Y).</code></td><td><code>father(X, Y) :- male(X), parent(X, Y).</code></td></tr>
+    <tr><td><code>NOT owns(D, A)</code></td><td><code>\+ owns(D, A)</code></td></tr>
+  </table></div>
+
+  <h2>5 · How the system answers</h2>
+  <ol>
+    <li>Take the first condition and look through the facts for matches. Each match fills the variables.</li>
+    <li>For each match, test the next condition using the values already filled in.</li>
+    <li>A <b>NOT</b> condition succeeds only if the fact is <b>not</b> found.</li>
+    <li>Every way of satisfying all the conditions is an answer. If none exists the answer is false.</li>
+  </ol>
+
+  <h2>6 · Common ways to lose marks</h2>
+  <ul>
+    <li>Writing a constant with a capital letter (<code>Betty</code>) or a variable with a lower-case one. Capital means variable.</li>
+    <li>Leaving out the "is a" fact for a new person or item, or the full stop at the end of a fact.</li>
+    <li>Changing the argument order from the one in the knowledge base.</li>
+    <li>In a rule, forgetting a condition (for example <code>customer(A)</code>), or putting NOT on the wrong one.</li>
+    <li>Listing results in the goal answer that do not match, or leaving some out. Check every fact with that predicate.</li>
+    <li>Adding extra lines or text to a rule or goal that asks for a single line.</li>
+    <li>Describing declarative as "no loops". Say it states <b>what</b> is wanted using facts and rules, and the system works out how.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · How a goal is matched against the facts</h2>
+  <p>Press Play, or click the steps. The goal <code>hair(Cat, medium)</code> is tried against every <code>hair</code> fact.</p>
+  <div id="stA"></div>
+  <h2>2 · Two conditions with one variable</h2>
+  <div id="stB"></div>
+  <h2>3 · Evaluating a rule with NOT</h2>
+  <div id="stC"></div>
+  <h2>4 · Imperative or declarative?</h2>
+  <div id="stD"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Ask the knowledge base a goal</h2>
+  <p>Choose a knowledge base, then type a goal or pick an example. Variables start with a capital letter. Join conditions with a comma.</p>
+  <div class="card"><div id="kB" class="btnrow"></div><div id="kF"></div>
+    <div class="btnrow" id="kE"></div>
+    <p><input id="kQ" type="text" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:500 .95rem var(--mono)" aria-label="Goal"></p>
+    <div class="btnrow"><button class="b pri" id="kR">Run the goal</button></div>
+    <div class="verdict" id="kV"></div></div>
+
+  <h2>Lab 2 · Evaluate a rule</h2>
+  <p>A rule is true for every combination of values that satisfies all its conditions. Edit the conditions to see the answers change.</p>
+  <div class="card"><div id="rB" class="btnrow"></div><p><code id="rH"></code> IF</p>
+    <p><input id="rQ" type="text" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:500 .95rem var(--mono)" aria-label="Rule conditions"></p>
+    <div class="btnrow"><button class="b pri" id="rR">Evaluate the rule</button></div>
+    <div id="rO"></div><div class="verdict" id="rV"></div></div>
+
+  <h2>Lab 3 · Mistakes in facts, goals and rules</h2>
+  <div class="card"><div id="eB" class="btnrow"></div><div id="eO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Fact, goal or rule?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Constant or variable?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the steps of answering a goal in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>5 · What does the goal return? (count the answers)</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>An expert system</h3><p>A medical or car-repair helper holds facts about symptoms and rules such as 'the fault may be the battery if the lights are dim and the engine does not turn'. The user states what they see and the system reasons its way to answers.</p><div class="use"><b>Exam use:</b> declarative systems are used where knowledge is a set of facts and rules and the answer is found by search.</div></div>
+  <div class="rw"><h3>A family tree</h3><p>Facts say who is a parent of whom. A rule defines grandparent as a parent of a parent, and the same rule answers for any family without a loop being written.</p><div class="use"><b>Exam use:</b> rules built from other rules and facts: describe the relationship once.</div></div>
+  <div class="rw"><h3>A database query</h3><p>SQL is also declarative: SELECT name FROM Cat WHERE type = 'domestic' says what rows are wanted, not how to scan the table.</p><div class="use"><b>Exam use:</b> like a goal, it states the result wanted and the system works out how.</div></div>
+  <div class="rw"><h3>A timetable or planning tool</h3><p>Facts say which teachers can teach which subjects and which rooms are free. A rule defines when a lesson may be placed. The system tries combinations to find one that satisfies every rule.</p><div class="use"><b>Exam use:</b> searching for answers that satisfy all conditions at once.</div></div>
+  <div class="rw"><h3>A shop recommendation rule</h3><p>may_buy(Device, Customer) IF device(Device) AND customer(Customer) AND NOT owns(Device, Customer) finds everything a customer does not already own.</p><div class="use"><b>Exam use:</b> NOT is used for 'does not already have' conditions.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is the real 9618 declarative programming questions (Paper 3), which follow one pattern every time. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2022</td><td>31, 33</td><td>2(a), (b), (c)</td><td>2 + 1 + 1 + 2</td><td>Cats: add facts, result of a goal, write two goals</td></tr>
+    <tr><td>M/J 2022</td><td>32</td><td>2(a), (b), (c)</td><td>2 + 1 + 4</td><td>School: add facts, result of a goal, goal with a shared variable</td></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>11(a), (b), (c)</td><td>3 + 1 + 4</td><td>Subjects: add facts, result of a goal, write a rule with NOT</td></tr>
+    <tr><td>O/N 2023</td><td>32</td><td>11(a), (b), (c)</td><td>4 + 1 + 4</td><td>Hobbies: add facts, result of a goal, write a rule with NOT</td></tr>
+    <tr><td>M/J 2024</td><td>31, 33</td><td>8(a), (b), (c)</td><td>3 + 1 + 4</td><td>Car features: add facts, result of a goal, write a rule with NOT</td></tr>
+    <tr><td>M/J 2024</td><td>32</td><td>10(a), (b), (c)</td><td>4 + 1 + 4</td><td>Beach activities: add facts, result of a goal, write a rule with NOT</td></tr>
+    <tr><td>M/J 2026</td><td>31</td><td>11(a), (b), (c)</td><td>3 + 1 + 4</td><td>Home cinema: add facts, result of a goal, write a rule with NOT</td></tr>
+  </table></div>
+  <p class="note">A declarative question has appeared in Paper 3 in May/June 2022, Oct/Nov 2023, May/June 2024 and May/June 2026, always in the same three parts: add facts, give the result of a goal, write a rule or goal. Declarative programming has not been asked in Paper 4. (Paper 3 questions on the paradigm in general are on the first page of this chapter.) The knowledge bases are shortened to the facts the question needs; check the original paper for all the clauses. Questions are reworded from the papers.</p>
+
+  <h3>Cats and the school: facts, goals and a shared variable</h3>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/31, 33 · Q2</span> <span class="cmd">Write</span> <span class="mark">2 + 1 + 1 + 2 marks</span> A declarative language represents facts about cats.<pre class="plain">01 type(leopard, wild).
+02 type(lion, wild).
+03 type(cheetah, wild).
+04 type(savannah, hybrid).
+05 type(persian, domestic).
+07 hair(leopard, medium).
+08 hair(lion, short).
+09 hair(cheetah, medium).
+10 hair(savannah, medium).
+11 hair(persian, long).
+13 spots(leopard, yes).
+14 spots(lion, no).
+15 spots(cheetah, yes).
+16 spots(savannah, yes).
+17 spots(persian, no).</pre>Clause 01 means a leopard is a type of wild cat; 08, a lion has short hair; 16, a savannah has spots. (a) A caracal is a wild cat with short hair. Write the additional clauses 18 and 19. (b) Using the variable Cat, the goal <code>hair(Cat, medium)</code> returns Cat = leopard, cheetah, savannah. Write the result of the goal <code>hair(Cat, long)</code>. (c)(i) Write the goal, using the variable Pet, to find all the domestic cats. (ii) Write the goal, using the variable WildSpotty, to find all the wild cats with spots.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) two clauses, one for the type and one for the hair. (c)(ii) needs two conditions sharing one variable.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">type(caracal, wild).</span> <span class="mk k" data-t="2">hair(caracal, short).</span> <b>(b)</b> <span class="mk a" data-t="1">Cat = persian</span></p><p><b>(c)(i)</b> <span class="mk a" data-t="1">type(Pet, domestic).</span> <b>(c)(ii)</b> <span class="mk a" data-t="1">spots(WildSpotty, yes)</span> <span class="mk a" data-t="2">, type(WildSpotty, wild).</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing the facts with capital letters or changing the argument order, for example <code>wild(caracal).</code>.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/32 · Q2</span> <span class="cmd">Write</span> <span class="mark">2 + 1 + 4 marks</span> A declarative language represents facts about a school.<pre class="plain">01 teaches(alan, mathematics).      06 studies(ahmed, history).
+02 teaches(ioana, geography).      07 studies(freya, history).
+03 teaches(nina, history).         08 studies(kim, history).
+04 teaches(alan, statistics).      09 studies(freya, geography).
+                                   10 studies(hua, mathematics).
+14 tutors(alan, kim).              11 studies(hua, statistics).
+15 tutors(alan, hua).              12 studies(hua, geography).
+16 tutors(alan, freya).
+17 tutors(nina, ahmed).</pre>(a) Sam studies history and Nina is his tutor. Write the additional clauses 18 and 19. (b) Using the variable Student, the goal <code>studies(Student, history)</code> returns Student = freya, ahmed, kim. Write the result of the goal <code>studies(Student, geography)</code>. (c) Write the goal, using the variable X, to find all the students who have a tutor that teaches them. For example, Hua has Alan for a tutor and is also taught mathematics by Alan.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(c) Three conditions: a teacher R teaches a subject S, X studies S, and R tutors X. One mark each for X, two other variables in the right places, three clauses, and syntax.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">studies(sam, history).</span> <span class="mk k" data-t="2">tutors(nina, sam).</span> <b>(b)</b> <span class="mk a" data-t="1">Student = freya, hua (either order)</span></p><p><b>(c)</b> Four marks: <span class="mk k" data-t="1">correct use of X</span> <span class="mk k" data-t="2">two other variables in correct positions</span> <span class="mk k" data-t="3">three correct clauses in any order</span> <span class="mk k" data-t="4">correct syntax</span></p><pre class="plain">teaches(R, S), studies(X, S), tutors(R, X).</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using different variable names for the subject in the teaches and studies conditions, so the two are not linked.</div>
+  </div></details>
+
+  <h3>Writing rules with NOT</h3>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31, 33 · Q11</span> <span class="cmd">Write</span> <span class="mark">3 + 1 + 4 marks</span> A declarative language represents subjects that students can choose to study. Students must choose two subjects.<pre class="plain">01 subject(mathematics).   09 student(tomaz).      15 choice1(tomaz, mathematics).
+02 subject(physics).       10 student(josephine).  16 choice1(teresa, chemistry).
+03 subject(chemistry).     11 student(elspeth).    17 choice1(pietre, mathematics).
+04 subject(computer_science). 12 student(nico).    18 choice1(nico, mathematics).
+05 subject(geography).     13 student(teresa).     19 choice1(elspeth, chemistry).
+06 subject(history).       14 student(pietre).     20 choice2(tomaz, computer_science).
+07 subject(english).                               21 choice2(nico, geography).
+08 subject(biology).</pre>(a) Anthony is a student who would like to study history and geography. Write the additional clauses 22 to 24. (b) Using the variable X, the goal <code>choice1(X, chemistry)</code> returns X = teresa, elspeth. Write the result of the goal <code>choice1(X, mathematics)</code>. (c) N may choose S if N is a student and S is a subject and N has not chosen S as the first choice. Write this as a rule: <code>may_choose_subject(N, S) IF ...</code></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) A new student needs a student fact as well as the two choices. (c) Two 'is a' conditions and one NOT.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">student(anthony).</span> <span class="mk k" data-t="2">choice1(anthony, history).</span> <span class="mk k" data-t="3">choice2(anthony, geography).</span> <b>(b)</b> <span class="mk a" data-t="1">X = tomaz, pietre, nico</span></p><p><b>(c)</b> Four marks: <span class="mk k" data-t="1">student(N)</span> <span class="mk k" data-t="2">subject(S)</span> <span class="mk k" data-t="3">choice1(N, S) (with NOT)</span> <span class="mk k" data-t="4">all operators correct, with no additional code</span></p><pre class="plain">may_choose_subject(N, S)
+   IF student(N) AND subject(S) AND NOT choice1(N, S)</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing choice1(anthony, geography). He chooses history first and geography second, so geography is choice2.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/32 · Q11</span> <span class="cmd">Write</span> <span class="mark">4 + 1 + 4 marks</span> A declarative language represents facts about people and their hobbies.<pre class="plain">01 hobby(music).        07 person(toby).      13 enjoys(natasha, travelling).
+02 hobby(caving).       08 person(natasha).   14 enjoys(toby, climbing).
+03 hobby(climbing).     09 person(fatima).    15 enjoys(nina, climbing).
+04 hobby(camping).      10 person(joseph).    16 enjoys(elijah, camping).
+05 hobby(baking).       11 person(elijah).    17 enjoys(fatima, baking).
+06 hobby(travelling).   12 person(nina).      18 enjoys(joseph, camping).
+                                              19 dislikes(toby, caving).</pre>(a) Carlos is a person who enjoys the hobby of cycling but does not like music. Write the additional clauses 20 to 23. (b) Using the variable P, the goal <code>enjoys(P, camping)</code> returns P = elijah, joseph. Write the result of <code>enjoys(P, climbing)</code>. (c) N is a person who might enjoy H if H is a hobby and N does not dislike H. Write this as a rule: <code>might_enjoy(N, H)</code>.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) cycling is a new hobby, so it needs its own hobby fact. (c) NOT goes on the dislikes condition.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">person(carlos).</span> <span class="mk k" data-t="2">hobby(cycling).</span> <span class="mk k" data-t="3">enjoys(carlos, cycling).</span> <span class="mk k" data-t="4">dislikes(carlos, music).</span> <b>(b)</b> <span class="mk a" data-t="1">P = toby, nina</span></p><p><b>(c)</b> Four marks: <span class="mk k" data-t="1">person(N)</span> <span class="mk k" data-t="2">hobby(H)</span> <span class="mk k" data-t="3">dislikes(N, H) (with NOT)</span> <span class="mk k" data-t="4">all operators correct, no additional code</span></p><pre class="plain">might_enjoy(N, H)
+   IF person(N) AND hobby(H) AND NOT dislikes(N, H)</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Leaving out hobby(cycling). The hobby is new, and music already exists, so only cycling needs the fact.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/31, 33 · Q8</span> <span class="cmd">Write</span> <span class="mark">3 + 1 + 4 marks</span> A declarative language represents the features that are available and unavailable on different body styles of a car.<pre class="plain">01 feature(sunroof).            10 bodystyle(saloon).        15 available(sunroof, hatchback).
+02 feature(automatic_tailgate). 11 bodystyle(hatchback).     16 available(sunroof, minivan).
+03 feature(heated_seats).       12 bodystyle(estate).        17 available(reversing_camera, hatchback).
+04 feature(extra_seats).        13 bodystyle(minivan).       18 available(extra_seats, minivan).
+05 feature(reversing_camera).   14 bodystyle(convertible).   19 available(reversing_camera, saloon).
+06 feature(dashboard_camera).                                20 unavailable(sunroof, convertible).
+07 feature(air_conditioning).                                 21 unavailable(automatic_tailgate, saloon).
+08 feature(heated_windscreen).                                22 unavailable(extra_seats, hatchback).
+09 feature(satnav).</pre>(a) Sliding doors is a feature that is available on a minivan but unavailable on a hatchback. Write the additional clauses 23 to 25. (b) Using the variable Options, the goal <code>available(Options, saloon)</code> returns Options = reversing_camera. Write the result of <code>available(Options, hatchback)</code>. (c) F may be available for B if F is a feature and B is a body style and F is not unavailable for that body style. Write this as a rule: <code>may_choose_option(F, B) IF ...</code></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) three facts: the new feature, where it is available, where it is unavailable. (c) the NOT is on unavailable(F, B).</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">feature(sliding_doors).</span> <span class="mk k" data-t="2">available(sliding_doors, minivan).</span> <span class="mk k" data-t="3">unavailable(sliding_doors, hatchback).</span> <b>(b)</b> <span class="mk a" data-t="1">Options = sunroof, reversing_camera</span></p><p><b>(c)</b> Four marks: <span class="mk k" data-t="1">feature(F)</span> <span class="mk k" data-t="2">bodystyle(B)</span> <span class="mk k" data-t="3">unavailable(F, B) (with NOT)</span> <span class="mk k" data-t="4">all operators and punctuation correct (a comma is allowed for AND), no additional code</span></p><pre class="plain">may_choose_option(F, B)
+   IF feature(F) AND bodystyle(B) AND NOT unavailable(F, B).</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing the rule with <code>available(F, B)</code>. The rule is about features that are <i>not unavailable</i>, which includes those with no entry at all.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/32 · Q10</span> <span class="cmd">Write</span> <span class="mark">4 + 1 + 4 marks</span> A declarative language allows clients to choose daily activities at the beach.<pre class="plain">01 activity(paddleboarding).   06 client(stevie).    16 choice(petra, rowing).
+02 activity(sailing).          07 client(antonio).   17 choice(frankie, sailing).
+03 activity(rowing).           08 client(henry).     18 choice(erik, sailing).
+04 activity(kayaking).         09 client(eliza).     19 choice(eliza, rowing).
+05 activity(jetskiing).        10 client(rebeka).    20 choice(stevie, jetskiing).
+                               ...                   21 choice(henry, sailing).
+                               15 client(frankie).   22 done(henry, jetskiing).
+                                                     23 done(rebeka, jetskiing).
+                                                     24 done(antonio, kayaking).</pre>(a) Jane is a client who would like to choose the activity surfing and she has already done sailing. Write the additional clauses 25 to 28. (b) Using the variable List, the goal <code>choice(List, rowing)</code> returns List = petra, eliza. Write the result of <code>choice(List, sailing)</code>. (c) C is a client who would like to choose A if A is an activity and C has not already done A. Write this as a rule: <code>may_choose_activity(C, A) IF ...</code></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Surfing is a new activity: it needs an activity fact as well as Jane's choice.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">client(jane).</span> <span class="mk k" data-t="2">activity(surfing).</span> <span class="mk k" data-t="3">choice(jane, surfing).</span> <span class="mk k" data-t="4">done(jane, sailing).</span> <b>(b)</b> <span class="mk a" data-t="1">List = frankie, erik, henry</span></p><p><b>(c)</b> Four marks: <span class="mk k" data-t="1">client(C)</span> <span class="mk k" data-t="2">activity(A)</span> <span class="mk k" data-t="3">done(C, A) (with NOT)</span> <span class="mk k" data-t="4">all operators and punctuation correct, no additional code</span></p><pre class="plain">may_choose_activity(C, A)
+   IF client(C) AND activity(A) AND NOT done(C, A).</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Missing one of the four facts. Check the description for each thing it names: a new client, a new activity, a choice and a done.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/31 · Q11</span> <span class="cmd">Write</span> <span class="mark">3 + 1 + 4 marks</span> A declarative language shows which home cinema devices customers already have and which devices they want.<pre class="plain">01 device(projector).        10 customer(petrov).     16 owns(projector, petrov).
+02 device(large_tv).         11 customer(margaret).   17 owns(media_player, petrov).
+03 device(medium_tv).        12 customer(steffan).    18 owns(projector, susan).
+04 device(bluray_player).    13 customer(susan).      19 owns(projector, sammy).
+05 device(amplifier).        14 customer(allan).      20 owns(media_player, allan).
+06 device(media_player).     15 customer(sammy).      21 owns(bluray_player, steffan).
+07 device(main_speakers).                              22 wants(main_speakers, margaret).
+08 device(centre_speaker).                             23 wants(surround_speakers, susan).
+09 device(surround_speakers).                          24 wants(medium_tv, steffan).</pre>(a) Betty is a customer who owns a large TV and wants a Blu-ray player. Write the additional facts 25 to 27. (b) Using the variable Owner, the goal <code>owns(media_player, Owner)</code> returns Owner = petrov, allan. Write the result of <code>owns(projector, Owner)</code>. (c) D may be available for A to buy if D is a device and A is a customer and A does not own that device. Write this as a rule: <code>may_buy_device(D, A) IF ...</code></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Use the device names already given (large_tv, bluray_player). Betty is a new customer.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">customer(betty).</span> <span class="mk k" data-t="2">owns(large_tv, betty).</span> <span class="mk k" data-t="3">wants(bluray_player, betty).</span> <b>(b)</b> <span class="mk a" data-t="1">Owner = petrov, susan, sammy (any order)</span></p><p><b>(c)</b> Four marks: <span class="mk k" data-t="1">device(D)</span> <span class="mk k" data-t="2">customer(A)</span> <span class="mk k" data-t="3">owns(D, A) (with NOT)</span> <span class="mk k" data-t="4">all conditions and punctuation correct (a comma for AND is accepted; \+ is accepted for NOT)</span></p><pre class="plain">may_buy_device(D, A)
+   IF device(D) AND customer(A) AND NOT owns(D, A).</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Reversing the arguments to <code>owns(A, D)</code>. The knowledge base has the device first, so the rule must too.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Distinguish</span> <span class="mark">2 marks</span> Distinguish between a fact and a rule.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One mark each.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A fact states something that is true, e.g. type(lion, wild).</span> <span class="mk k" data-t="2">A rule states something is true if other conditions are true, using IF with AND and NOT.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">3 marks</span> Using the cats knowledge base, write the facts for Margay, a wild cat with medium hair and spots.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Three facts: type, hair, spots.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">type(margay, wild).</span> <span class="mk k" data-t="2">hair(margay, medium).</span> <span class="mk k" data-t="3">spots(margay, yes).</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing <code>spots(margay, spots)</code>. The second argument is yes or no.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">2 marks</span> Using the cats knowledge base, write a goal to find all cats with short hair, and say what it returns.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Use a variable.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">hair(Cat, short)</span> <span class="mk k" data-t="2">Cat = lion</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">4 marks</span> Using the cinema facts, write a rule: D is wanted by C if C is a customer and D is a device and C wants D and C does not own D. Name the rule needs_device(D, C).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Three 'is a' style conditions and a NOT.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">customer(C)</span> <span class="mk k" data-t="2">device(D)</span> <span class="mk k" data-t="3">wants(D, C)</span> <span class="mk k" data-t="4">NOT owns(D, C), with correct operators</span></p><pre class="plain">needs_device(D, C)
+   IF customer(C) AND device(D) AND wants(D, C) AND NOT owns(D, C).</pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain the difference between imperative and declarative programming using the problem 'find all domestic cats'.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>How versus what.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Imperative: write the steps, such as a loop through every cat that tests the type and adds matches to a list.</span> <span class="mk k" data-t="2">Declarative: state what is wanted with a goal, type(Pet, domestic), using the facts.</span> <span class="mk k" data-t="3">The declarative system works out how to find the answers itself.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">2 marks</span> Describe what the goal <code>owns(projector, Owner), customer(Owner)</code> does.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two conditions sharing the variable Owner.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">It finds each Owner who owns a projector</span> <span class="mk k" data-t="2">and keeps only those who are customers.</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Match the knowledge base.</b> Use the same predicate names, argument order and constants. Copy a similar fact and change the values.</li>
+    <li><b>One fact per statement.</b> Count the things the description says, and write a fact for each, including the 'is a' fact for anything new.</li>
+    <li><b>Capital means variable.</b> betty is a constant; Betty is a variable. Never capitalise a constant.</li>
+    <li><b>Results come in order.</b> List the answers in the order the facts appear, and check every fact with that predicate.</li>
+    <li><b>Rules: one condition per 'is a'.</b> device(D) AND customer(A) AND the extra condition. NOT only on the one that must fail.</li>
+    <li><b>Reuse the variable to link.</b> The same variable name in two conditions makes them apply to the same thing.</li>
+    <li><b>Do not add extra lines.</b> A one-line rule or goal gets no mark for extra code.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>what declarative programming is</td><td>"The program states what result is wanted using facts and rules, and the system works out how to find it."</td></tr>
+    <tr><td>what a fact is</td><td>"A statement that is true, written as a predicate with arguments, such as owns(projector, petrov)."</td></tr>
+    <tr><td>what a rule is</td><td>"A statement that is true if its conditions are true, written head IF condition AND condition."</td></tr>
+    <tr><td>what a goal does</td><td>"It is a query: the system returns every set of values that makes it true."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Write</td><td>Produce the clauses, goal or rule asked for, with the correct syntax.</td></tr>
+    <tr><td>State / Give the result</td><td>List the values returned by the goal.</td></tr>
+    <tr><td>Describe</td><td>Say what declarative means and how it differs from imperative.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
