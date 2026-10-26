@@ -1,0 +1,810 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stepwise Refinement and Structured English</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
+
+table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
+.synd{margin:8px 0;overflow-x:auto}
+.gantt{display:flex;margin:6px 0 0;font-family:var(--mono)}.gantt .gb{border:1.5px solid var(--ink);margin-left:-1.5px;text-align:center;padding:6px 0;font-weight:700;font-size:.85rem;background:var(--surface);min-width:0}
+.gantt .gb.c0{background:var(--accent-soft)}.gantt .gb.c1{background:var(--bad-soft)}.gantt .gb.c2{background:var(--good-soft)}.gantt .gb.c3{background:var(--warn-soft)}.gantt .gb.c4{background:var(--soft)}
+.gticks{display:flex;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:2px 0 10px}.gticks span{text-align:right;min-width:0}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 9.2.2</div>
+  <h1>Stepwise Refinement and Structured English</h1>
+  <p class="cbook">Coursebook: Chapter 9 · Algorithm design and problem-solving · section 9.2 Algorithms</p>
+  <p class="lead">Stepwise refinement, describing algorithms in structured English, turning a flowchart into pseudocode and words into a flowchart, with animations, a file-to-array simulator and the real Paper 2 questions from 2021 to 2026.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p><b>Stepwise refinement</b> is increasing the level of detail of an algorithm by breaking each step into smaller steps, repeatedly, <b>until the steps can be directly translated into lines of code</b>. An algorithm can be refined and written in <b>structured English</b>: numbered steps in plain words that name the variables, the loops and the decisions, but contain <b>no pseudocode statements</b>. A good description mentions the same things the mark scheme looks for: <b>open the file</b> (in the right mode) and close it, <b>initialise</b> a variable or index before the loop, a <b>loop</b> with its end condition, the <b>input or read</b> inside the loop, the <b>test</b> and its action, and the <b>increment</b>. The constructs you must identify are <b>sequence</b> (steps in order), <b>selection</b> and <b>iteration</b>. You must also be able to turn a program flowchart into pseudocode, step by step, or complete a flowchart from words.</p></div>
+
+  <h2>1 · Stepwise refinement</h2>
+  <p>Start with the problem in one line, then rewrite each step in more detail. Example: <i>copy the lines of a file into an array</i> refines to:</p>
+  <ol>
+    <li>Open the file for reading (and close it afterwards).</li>
+    <li>Set an index variable to 1 before the loop.</li>
+    <li>Repeat until the end of the file is reached:
+      <ol type="a"><li>read one line from the file into a string variable;</li><li>store that line in the array at the index;</li><li>add 1 to the index.</li></ol></li>
+    <li>Close the file.</li>
+  </ol>
+  <p>Each line is now simple enough to become one pseudocode statement. The construct needed apart from sequence is <b>iteration</b> (a conditional loop, repeating until the end of the file), and a <b>selection</b> statement tests the value returned by the EOF function or whether an element is blank.</p>
+
+  <h2>2 · Writing an algorithm in structured English</h2>
+  <ul>
+    <li>Use numbered steps and indent the steps inside a loop.</li>
+    <li>Name the variables the question gives (MyChar, MyCount).</li>
+    <li>For files: say <b>open</b>, the <b>mode</b> (read, write or <b>append</b> if the file already has data you must keep), and <b>close</b>.</li>
+    <li>Do not write pseudocode statements such as <span class="mono">WHILE</span> or <span class="mono">←</span>; use words.</li>
+  </ul>
+  <p><b>Example answer</b> for "input numbers until zero, then output the sum of the positive and the sum of the negative numbers": (1) set the two sums to zero; (2) prompt for and input a number; (3) if it is greater than zero add it to the positive sum, if it is less than zero add it to the negative sum; (4) repeat from step 2 if the number was not zero; (5) output the two sums.</p>
+
+  <h2>3 · From a flowchart to pseudocode</h2>
+  <p>Take the flowchart in order. The two boxes before a loop become initialisations. A decision whose YES branch returns to the decision itself is a <b>WHILE</b> loop with the decision as its condition. After the loop, a decision with two exits is an <b>IF</b>. A call box is <b>CALL</b>.</p>
+  <svg viewBox="0 0 560 425" style="width:560px;max-width:100%;display:block" role="img" aria-label="the ReBoot flowchart"><defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" style="fill:var(--ink,currentColor)"/></marker></defs><polyline class="w" fill="none" marker-end="url(#ah)" points="170,31 170,43"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,73 170,85"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,115 170,126"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,130 170,152"/><polyline class="w" fill="none" marker-end="url(#ah)" points="275,185 385,185"/><text class="sm" x="305" y="178" style="font-size:10px;font-weight:700">YES</text><polyline class="w" fill="none" marker-end="url(#ah)" points="440,201 440,217"/><polyline class="w" fill="none" marker-end="url(#ah)" points="440,247 440,261"/><polyline class="w" fill="none" marker-end="url(#ah)" points="365,276 340,276 340,128 172,128"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,218 170,242"/><text class="sm" x="176" y="230" style="font-size:10px;font-weight:700">NO</text><polyline class="w" fill="none" marker-end="url(#ah)" points="170,298 170,329"/><text class="sm" x="176" y="318" style="font-size:10px;font-weight:700">YES</text><polyline class="w" fill="none" marker-end="url(#ah)" points="170,361 170,385"/><polyline class="w" fill="none" marker-end="url(#ah)" points="85,270 30,270 30,400 115,400"/><text class="sm" x="36" y="262" style="font-size:10px;font-weight:700">NO</text><rect class="ax" style="fill:var(--surface)" x="115.0" y="1.0" width="110" height="30" rx="15.0"/><text class="lbl" x="170" y="19.5" text-anchor="middle" style="font-size:10px">START</text><rect class="ax" style="fill:var(--surface)" x="95.0" y="43.0" width="150" height="30"/><text class="lbl" x="170" y="61.5" text-anchor="middle" style="font-size:10px">Set Count to 1</text><rect class="ax" style="fill:var(--surface)" x="95.0" y="85.0" width="150" height="30"/><text class="lbl" x="170" y="103.5" text-anchor="middle" style="font-size:10px">Set Flag to FALSE</text><rect class="ax" style="fill:var(--surface)" x="168.0" y="126.0" width="4" height="4"/><text class="lbl" x="170" y="131.5" text-anchor="middle" style="font-size:10px"></text><polygon class="ax" style="fill:var(--surface)" points="170,152.0 275.0,185 170,218.0 65.0,185"/><text class="lbl" x="170" y="182.5" text-anchor="middle" style="font-size:10px">Is Flag = FALSE</text><text class="lbl" x="170" y="194.5" text-anchor="middle" style="font-size:10px">AND Count <= 5 ?</text><rect class="ax" style="fill:var(--surface)" x="385.0" y="169.0" width="110" height="32"/><line class="ax" x1="393.0" y1="169.0" x2="393.0" y2="201.0"/><line class="ax" x1="487.0" y1="169.0" x2="487.0" y2="201.0"/><text class="lbl" x="440" y="188.5" text-anchor="middle" style="font-size:10px">ReBoot()</text><rect class="ax" style="fill:var(--surface)" x="360.0" y="217.0" width="160" height="30"/><text class="lbl" x="440" y="235.5" text-anchor="middle" style="font-size:10px">Set Count to Count + 1</text><rect class="ax" style="fill:var(--surface)" x="365.0" y="261.0" width="150" height="30"/><text class="lbl" x="440" y="279.5" text-anchor="middle" style="font-size:10px">Set Flag to Check()</text><polygon class="ax" style="fill:var(--surface)" points="170,242.0 255.0,270 170,298.0 85.0,270"/><text class="lbl" x="170" y="273.5" text-anchor="middle" style="font-size:10px">Is Flag = FALSE ?</text><rect class="ax" style="fill:var(--surface)" x="110.0" y="329.0" width="120" height="32"/><line class="ax" x1="118.0" y1="329.0" x2="118.0" y2="361.0"/><line class="ax" x1="222.0" y1="329.0" x2="222.0" y2="361.0"/><text class="lbl" x="170" y="348.5" text-anchor="middle" style="font-size:10px">Alert(27)</text><rect class="ax" style="fill:var(--surface)" x="115.0" y="385.0" width="110" height="30" rx="15.0"/><text class="lbl" x="170" y="403.5" text-anchor="middle" style="font-size:10px">END</text></svg>
+  <p class="note" style="margin:6px 0 2px">Pseudocode for the flowchart (O/N 2021)</p><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">Count ← 1</span><span class="ln">Flag ← FALSE</span><span class="ln">WHILE Flag = FALSE AND Count &lt;= 5</span><span class="ln">   CALL ReBoot()</span><span class="ln">   Count ← Count + 1</span><span class="ln">   Flag ← Check()</span><span class="ln">ENDWHILE</span><span class="ln">IF Flag = FALSE THEN</span><span class="ln">   CALL Alert(27)</span><span class="ln">ENDIF</span></pre></div>
+
+
+  <h2>4 · From words to a flowchart</h2>
+  <p>Count pairs of values input until A has been greater than B ten times, then output the number of pairs:</p>
+  <svg viewBox="0 0 540 445" style="width:540px;max-width:100%;display:block" role="img" aria-label="count pairs until A has been greater than B 10 times"><defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" style="fill:var(--ink,currentColor)"/></marker></defs><polyline class="w" fill="none" marker-end="url(#ah)" points="170,31 170,38"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,74 170,90"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,94 170,107"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,137 170,153"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,183 170,204"/><polyline class="w" fill="none" marker-end="url(#ah)" points="235,232 325,232"/><text class="sm" x="255" y="224" style="font-size:10px;font-weight:700">YES</text><polyline class="w" fill="none" marker-end="url(#ah)" points="105,232 40,232 40,92 168,92"/><text class="sm" x="46" y="224" style="font-size:10px;font-weight:700">NO</text><polyline class="w" fill="none" marker-end="url(#ah)" points="400,247 400,277"/><polyline class="w" fill="none" marker-end="url(#ah)" points="400,333 400,355"/><text class="sm" x="406" y="340" style="font-size:10px;font-weight:700">YES</text><polyline class="w" fill="none" marker-end="url(#ah)" points="400,385 400,403"/><polyline class="w" fill="none" marker-end="url(#ah)" points="325,305 300,305 300,92 172,92"/><text class="sm" x="322" y="297" style="font-size:10px;font-weight:700">NO</text><rect class="ax" style="fill:var(--surface)" x="115.0" y="1.0" width="110" height="30" rx="15.0"/><text class="lbl" x="170" y="19.5" text-anchor="middle" style="font-size:10px">START</text><rect class="ax" style="fill:var(--surface)" x="105.0" y="38.0" width="130" height="36"/><text class="lbl" x="170" y="53.5" text-anchor="middle" style="font-size:10px">Tries ← 0</text><text class="lbl" x="170" y="65.5" text-anchor="middle" style="font-size:10px">Count ← 0</text><rect class="ax" style="fill:var(--surface)" x="168.0" y="90.0" width="4" height="4"/><text class="lbl" x="170" y="95.5" text-anchor="middle" style="font-size:10px"></text><polygon class="ax" style="fill:var(--surface)" points="109.0,107.0 245.0,107.0 231.0,137.0 95.0,137.0"/><text class="lbl" x="170" y="125.5" text-anchor="middle" style="font-size:10px">INPUT A, B</text><rect class="ax" style="fill:var(--surface)" x="95.0" y="153.0" width="150" height="30"/><text class="lbl" x="170" y="171.5" text-anchor="middle" style="font-size:10px">Tries ← Tries + 1</text><polygon class="ax" style="fill:var(--surface)" points="170,204.0 235.0,232 170,260.0 105.0,232"/><text class="lbl" x="170" y="235.5" text-anchor="middle" style="font-size:10px">A > B ?</text><rect class="ax" style="fill:var(--surface)" x="325.0" y="217.0" width="150" height="30"/><text class="lbl" x="400" y="235.5" text-anchor="middle" style="font-size:10px">Count ← Count + 1</text><polygon class="ax" style="fill:var(--surface)" points="400,277.0 475.0,305 400,333.0 325.0,305"/><text class="lbl" x="400" y="308.5" text-anchor="middle" style="font-size:10px">Count = 10 ?</text><polygon class="ax" style="fill:var(--surface)" points="349.0,355.0 465.0,355.0 451.0,385.0 335.0,385.0"/><text class="lbl" x="400" y="373.5" text-anchor="middle" style="font-size:10px">OUTPUT Tries</text><rect class="ax" style="fill:var(--surface)" x="345.0" y="403.0" width="110" height="30" rx="15.0"/><text class="lbl" x="400" y="421.5" text-anchor="middle" style="font-size:10px">END</text></svg>
+  <p>Marks: initialise both counts; increment Tries for every pair input; compare A &gt; B and increment Count if true; test for Count = 10 (the decision must have YES and NO labels); output Tries when it is, otherwise loop.</p>
+
+  <h2>Common ways to lose marks</h2>
+  <ul>
+    <li>Writing pseudocode when the question says "do not include pseudocode statements".</li>
+    <li>Forgetting to open or close the file, or using write mode when data must be kept (append).</li>
+    <li>Not initialising the index or counter before the loop.</li>
+    <li>Leaving out the end condition of the loop (until end of file, until the value is zero).</li>
+    <li>Not incrementing the index inside the loop.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Refining a step</h2>
+  <div id="stA"></div>
+  <h2>2 · A loop copying a file into an array</h2>
+  <div id="stB"></div>
+  <h2>3 · From flowchart to pseudocode</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Run the algorithm: file into array</h2>
+  <p>Step through the algorithm. The file has four lines.</p>
+  <div class="card"><div class="btnrow"><button id="fa_step">Step</button><button id="fa_reset">Reset</button></div><div id="faV"></div></div>
+  <h2>Lab 2 · Order the steps</h2>
+  <div class="card"><div id="oB" class="btnrow"></div><div id="oO"></div></div>
+  <h2>Lab 3 · Which file mode?</h2>
+  <div class="card"><div id="mB" class="btnrow"></div><div id="mO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which construct is needed?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Right step or wrong step?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>4 · Put the file-to-array steps in order</h2><div id="o1" class="card"></div>
+  <h2>5 · Working out</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Writing a recipe for a robot</h3><p>'Make a sandwich' is refined into: get two slices, spread butter, add filling... until each step is simple enough for the robot to do.</p><div class="use"><b>Exam use:</b> stepwise refinement.</div></div>
+  <div class="rw"><h3>A to-do list that keeps growing</h3><p>Opening a file to add a new line at the end, instead of replacing the file, is append mode.</p><div class="use"><b>Exam use:</b> append.</div></div>
+  <div class="rw"><h3>Tidy code from a plan</h3><p>A programmer writes the numbered steps first, then turns each step into one line of code: the plan is the structured English.</p><div class="use"><b>Exam use:</b> stepwise refinement.</div></div>
+  <div class="rw"><h3>Turning a flowchart into code</h3><p>Each box becomes a statement and each loop-back becomes a WHILE: a mechanical process once you know the shapes.</p><div class="use"><b>Exam use:</b> flowchart to pseudocode.</div></div>
+  <div class="rw"><h3>Checking an algorithm by hand</h3><p>Before coding, you work through a small example to see that the steps and the loop end work.</p><div class="use"><b>Exam use:</b> dry run.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on stepwise refinement and describing algorithms (Paper 2), 2021 to 2026. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>O/N 2021</td><td>21, 23</td><td>2(a), (b)</td><td>6 + 6</td><td>Refine and describe a sort in structured English; pseudocode for a flowchart</td></tr>
+    <tr><td>M/J 2022</td><td>22</td><td>2(a)</td><td>5 + 1 + 1</td><td>Describe the steps for appending names to a file; why a file not an array; why not write mode</td></tr>
+    <tr><td>O/N 2022</td><td>23</td><td>3</td><td>5</td><td>Describe the algorithm for summing positive and negative numbers</td></tr>
+    <tr><td>M/J 2023</td><td>21</td><td>2(a), (b)</td><td>4 + 3</td><td>Draw a flowchart for repeating a character; declare and assign a date</td></tr>
+    <tr><td>M/J 2024</td><td>21</td><td>2(a), (b)</td><td>5 + 2</td><td>Complete the flowchart counting pairs; the variable ThisSequence</td></tr>
+    <tr><td>M/J 2024</td><td>23</td><td>2</td><td>5 + 2</td><td>Five steps for copying a file into an array; another construct</td></tr>
+    <tr><td>M/J 2025</td><td>22</td><td>2(a)</td><td>2</td><td>Describe stepwise refinement</td></tr>
+    <tr><td>O/N 2025</td><td>23</td><td>2</td><td>6 + 2</td><td>Six steps for writing non-blank elements to a file; another construct</td></tr>
+  </table></div>
+  <p class="note">Stepwise refinement answers are marked on a fixed list of points: open and close the file, initialise, loop, read or test, write or store, increment. Count the points you have before you stop. Paper 2 questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/21/23 · Q2(a)</span> <span class="cmd">Apply</span> <span class="mark">6 marks</span> An algorithm to sort a 1D array into ascending order is described: move the largest value to the end; keep repeating until the array is sorted. Apply stepwise refinement to produce a more detailed description in structured English, with no pseudocode statements.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Index variable, a loop, an inner loop, compare, swap.</div>
+    <div class="ans"><p>Any six: <span class="mk k" data-t="1">Use a variable as an index to the array</span> <span class="mk k" data-t="2">A loop to iterate through the array</span> <span class="mk k" data-t="3">An inner loop with a reducing range</span> <span class="mk k" data-t="4">Test if the current element is greater than the next element</span> <span class="mk k" data-t="5">If so then swap the elements</span> <span class="mk k" data-t="6">A description of the swap (store one value in a temporary variable)</span> <span class="mk k" data-t="7">An attempt at an efficient algorithm</span></p><p>For example: (1) set a variable Last to the last position of the array; (2) set an index to 1; (3) while the index is less than Last: if the element at the index is greater than the next element, swap them using a temporary variable; add 1 to the index; (4) reduce Last by 1; (5) repeat from step 2 until Last is 1 (no swaps are needed).</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing pseudocode (WHILE, ←). The question says to use structured English.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/21/23 · Q2(b)</span> <span class="cmd">Write</span> <span class="mark">6 marks</span> The program flowchart shown: START; Set Count to 1; Set Flag to FALSE; Is Flag = FALSE AND Count <= 5? YES: ReBoot(); Set Count to Count + 1; Set Flag to Check(); back to the test; NO: Is Flag = FALSE? YES: Alert(27); NO or after: END. Write pseudocode for the algorithm.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A WHILE with both conditions, then an IF after.</div>
+    <div class="ans"><p><svg viewBox="0 0 560 425" style="width:560px;max-width:100%;display:block" role="img" aria-label="the ReBoot flowchart"><defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" style="fill:var(--ink,currentColor)"/></marker></defs><polyline class="w" fill="none" marker-end="url(#ah)" points="170,31 170,43"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,73 170,85"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,115 170,126"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,130 170,152"/><polyline class="w" fill="none" marker-end="url(#ah)" points="275,185 385,185"/><text class="sm" x="305" y="178" style="font-size:10px;font-weight:700">YES</text><polyline class="w" fill="none" marker-end="url(#ah)" points="440,201 440,217"/><polyline class="w" fill="none" marker-end="url(#ah)" points="440,247 440,261"/><polyline class="w" fill="none" marker-end="url(#ah)" points="365,276 340,276 340,128 172,128"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,218 170,242"/><text class="sm" x="176" y="230" style="font-size:10px;font-weight:700">NO</text><polyline class="w" fill="none" marker-end="url(#ah)" points="170,298 170,329"/><text class="sm" x="176" y="318" style="font-size:10px;font-weight:700">YES</text><polyline class="w" fill="none" marker-end="url(#ah)" points="170,361 170,385"/><polyline class="w" fill="none" marker-end="url(#ah)" points="85,270 30,270 30,400 115,400"/><text class="sm" x="36" y="262" style="font-size:10px;font-weight:700">NO</text><rect class="ax" style="fill:var(--surface)" x="115.0" y="1.0" width="110" height="30" rx="15.0"/><text class="lbl" x="170" y="19.5" text-anchor="middle" style="font-size:10px">START</text><rect class="ax" style="fill:var(--surface)" x="95.0" y="43.0" width="150" height="30"/><text class="lbl" x="170" y="61.5" text-anchor="middle" style="font-size:10px">Set Count to 1</text><rect class="ax" style="fill:var(--surface)" x="95.0" y="85.0" width="150" height="30"/><text class="lbl" x="170" y="103.5" text-anchor="middle" style="font-size:10px">Set Flag to FALSE</text><rect class="ax" style="fill:var(--surface)" x="168.0" y="126.0" width="4" height="4"/><text class="lbl" x="170" y="131.5" text-anchor="middle" style="font-size:10px"></text><polygon class="ax" style="fill:var(--surface)" points="170,152.0 275.0,185 170,218.0 65.0,185"/><text class="lbl" x="170" y="182.5" text-anchor="middle" style="font-size:10px">Is Flag = FALSE</text><text class="lbl" x="170" y="194.5" text-anchor="middle" style="font-size:10px">AND Count <= 5 ?</text><rect class="ax" style="fill:var(--surface)" x="385.0" y="169.0" width="110" height="32"/><line class="ax" x1="393.0" y1="169.0" x2="393.0" y2="201.0"/><line class="ax" x1="487.0" y1="169.0" x2="487.0" y2="201.0"/><text class="lbl" x="440" y="188.5" text-anchor="middle" style="font-size:10px">ReBoot()</text><rect class="ax" style="fill:var(--surface)" x="360.0" y="217.0" width="160" height="30"/><text class="lbl" x="440" y="235.5" text-anchor="middle" style="font-size:10px">Set Count to Count + 1</text><rect class="ax" style="fill:var(--surface)" x="365.0" y="261.0" width="150" height="30"/><text class="lbl" x="440" y="279.5" text-anchor="middle" style="font-size:10px">Set Flag to Check()</text><polygon class="ax" style="fill:var(--surface)" points="170,242.0 255.0,270 170,298.0 85.0,270"/><text class="lbl" x="170" y="273.5" text-anchor="middle" style="font-size:10px">Is Flag = FALSE ?</text><rect class="ax" style="fill:var(--surface)" x="110.0" y="329.0" width="120" height="32"/><line class="ax" x1="118.0" y1="329.0" x2="118.0" y2="361.0"/><line class="ax" x1="222.0" y1="329.0" x2="222.0" y2="361.0"/><text class="lbl" x="170" y="348.5" text-anchor="middle" style="font-size:10px">Alert(27)</text><rect class="ax" style="fill:var(--surface)" x="115.0" y="385.0" width="110" height="30" rx="15.0"/><text class="lbl" x="170" y="403.5" text-anchor="middle" style="font-size:10px">END</text></svg></p><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">Count ← 1</span><span class="ln">Flag ← FALSE</span><span class="ln">WHILE Flag = FALSE AND Count &lt;= 5</span><span class="ln">   CALL ReBoot()</span><span class="ln">   Count ← Count + 1</span><span class="ln">   Flag ← Check()</span><span class="ln">ENDWHILE</span><span class="ln">IF Flag = FALSE THEN</span><span class="ln">   CALL Alert(27)</span><span class="ln">ENDIF</span></pre></div>
+<p><span class="mk k" data-t="1">Initialisation of Count and Flag</span> <span class="mk k" data-t="2">WHILE ... ENDWHILE (or REPEAT ... UNTIL)</span> <span class="mk k" data-t="3">including both conditions</span> <span class="mk k" data-t="4">Call ReBoot() and increment Count inside the loop</span> <span class="mk k" data-t="5">Assign the return value from Check() to Flag inside the loop</span> <span class="mk k" data-t="6">A final test of Flag and a call to Alert(27), not in a loop</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Putting the test of Flag and Alert(27) inside the loop.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/22 · Q2(a)</span> <span class="cmd">Describe / Explain</span> <span class="mark">5 + 1 + 1 marks</span> An algorithm prompts and inputs the name and test mark for each of 35 students and adds the names of students with a mark below 20 to an existing text file Support_List.txt, which contains data from other group tests. (i) Describe the steps. Do not include pseudocode. (ii) Explain why it may be better to store the names in a file than in an array. (iii) Explain why WRITE mode cannot be used.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open in append mode; prompt and input; if mark is 20 or more skip; write the name; repeat 35 times.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">Open the file in append mode (and subsequently close it)</span> <span class="mk k" data-t="2">Prompt for and input a student name and mark</span> <span class="mk k" data-t="3">If the mark is greater than or equal to 20 jump to step 5</span> <span class="mk k" data-t="4">Write only the name to the file</span> <span class="mk k" data-t="5">Repeat from step 2 for 35 times (the number of students)</span></p><p><b>(ii)</b> <span class="mk a" data-t="1">Data in a file is saved after the computer is switched off, so it does not have to be entered again when the program is re-run</span></p><p><b>(iii)</b> <span class="mk b" data-t="1">So that the existing file data is not overwritten</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/23 · Q3</span> <span class="cmd">Describe</span> <span class="mark">5 marks</span> An algorithm processes a sequence of numbers (positive or negative, integer or decimal): prompt and input one number at a time until zero is input; sum the negative numbers; sum the positive numbers; when zero is input, output the two sums and end. Describe the algorithm needed. Do not include pseudocode.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two REAL sums set to zero; input; add to the right sum; repeat unless zero; output.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Declare two (real) variables for the two sums and initialise both to zero</span> <span class="mk k" data-t="2">Prompt for and input a number</span> <span class="mk k" data-t="3">If the number is greater than zero add it to the positive sum; if less than zero add it to the negative sum</span> <span class="mk k" data-t="4">Repeat from the input step if the number is not zero</span> <span class="mk k" data-t="5">After the loop output the positive and negative sums</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Using integers for the sums. The numbers may be decimal.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/21 · Q2(a)(b)</span> <span class="cmd">Draw / Write</span> <span class="mark">4 + 3 marks</span> (a) An algorithm: 1. prompt and input a character and store it in MyChar; 2. prompt and input an integer and store it in MyCount; 3. generate a string of MyChar repeated MyCount times; 4. output the string. Draw a program flowchart. (b) A different part of the program uses the variable StartDate. Write pseudocode to declare StartDate and assign it the date 15/11/2005.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two prompts and inputs; empty string; loop with decrement and concatenate; output.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Both prompts</span> <span class="mk k" data-t="2">Both inputs using the identifiers MyChar and MyCount</span> <span class="mk k" data-t="3">Initialise MyString to an empty string and output it after the loop</span> <span class="mk k" data-t="4">A loop of MyCount iterations including decrementing MyCount</span> <span class="mk k" data-t="5">Concatenation inside the loop</span> (max 4)</p><svg viewBox="0 0 540 420" style="width:540px;max-width:100%;display:block" role="img" aria-label="repeat a character"><defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" style="fill:var(--ink,currentColor)"/></marker></defs><polyline class="w" fill="none" marker-end="url(#ah)" points="170,31 170,41"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,71 170,81"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,111 170,121"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,151 170,161"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,191 170,201"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,231 170,244"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,248 170,264"/><polyline class="w" fill="none" marker-end="url(#ah)" points="240,292 325,292"/><text class="sm" x="250" y="285" style="font-size:10px;font-weight:700">YES</text><polyline class="w" fill="none" marker-end="url(#ah)" points="420,307 420,323"/><polyline class="w" fill="none" marker-end="url(#ah)" points="335,338 310,338 310,246 172,246"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,320 170,335"/><text class="sm" x="176" y="328" style="font-size:10px;font-weight:700">NO</text><polyline class="w" fill="none" marker-end="url(#ah)" points="170,365 170,381"/><rect class="ax" style="fill:var(--surface)" x="115.0" y="1.0" width="110" height="30" rx="15.0"/><text class="lbl" x="170" y="19.5" text-anchor="middle" style="font-size:10px">START</text><polygon class="ax" style="fill:var(--surface)" points="89.0,41.0 265.0,41.0 251.0,71.0 75.0,71.0"/><text class="lbl" x="170" y="59.5" text-anchor="middle" style="font-size:10px">OUTPUT "Enter a character"</text><polygon class="ax" style="fill:var(--surface)" points="109.0,81.0 245.0,81.0 231.0,111.0 95.0,111.0"/><text class="lbl" x="170" y="99.5" text-anchor="middle" style="font-size:10px">INPUT MyChar</text><polygon class="ax" style="fill:var(--surface)" points="89.0,121.0 265.0,121.0 251.0,151.0 75.0,151.0"/><text class="lbl" x="170" y="139.5" text-anchor="middle" style="font-size:10px">OUTPUT "Enter a count"</text><polygon class="ax" style="fill:var(--surface)" points="109.0,161.0 245.0,161.0 231.0,191.0 95.0,191.0"/><text class="lbl" x="170" y="179.5" text-anchor="middle" style="font-size:10px">INPUT MyCount</text><rect class="ax" style="fill:var(--surface)" x="95.0" y="201.0" width="150" height="30"/><text class="lbl" x="170" y="219.5" text-anchor="middle" style="font-size:10px">MyString ← ""</text><rect class="ax" style="fill:var(--surface)" x="168.0" y="244.0" width="4" height="4"/><text class="lbl" x="170" y="249.5" text-anchor="middle" style="font-size:10px"></text><polygon class="ax" style="fill:var(--surface)" points="170,264.0 240.0,292 170,320.0 100.0,292"/><text class="lbl" x="170" y="295.5" text-anchor="middle" style="font-size:10px">MyCount > 0 ?</text><rect class="ax" style="fill:var(--surface)" x="325.0" y="277.0" width="190" height="30"/><text class="lbl" x="420" y="295.5" text-anchor="middle" style="font-size:10px">MyString ← MyString & MyChar</text><rect class="ax" style="fill:var(--surface)" x="335.0" y="323.0" width="170" height="30"/><text class="lbl" x="420" y="341.5" text-anchor="middle" style="font-size:10px">MyCount ← MyCount − 1</text><polygon class="ax" style="fill:var(--surface)" points="109.0,335.0 245.0,335.0 231.0,365.0 95.0,365.0"/><text class="lbl" x="170" y="353.5" text-anchor="middle" style="font-size:10px">OUTPUT MyString</text><rect class="ax" style="fill:var(--surface)" x="115.0" y="381.0" width="110" height="30" rx="15.0"/><text class="lbl" x="170" y="399.5" text-anchor="middle" style="font-size:10px">END</text></svg><p><b>(b)</b> <span class="mk a" data-t="1">DECLARE StartDate : DATE</span> <span class="mk a" data-t="2">StartDate ← SETDATE(15, 11, 2005) (the function and its three parameters)</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/21 · Q2</span> <span class="cmd">Complete / Describe</span> <span class="mark">5 + 2 marks</span> An algorithm: 1. repeatedly input a pair of numeric values A and B; 2. count the number of pairs input until A has been greater than B 10 times; 3. output the number of pairs. (a) Complete the program flowchart. (b) Step 1 changes: a variable ThisSequence is used to enter a sequence of 10 pairs of values with a single input statement. Describe the variable ThisSequence and how the numbers are extracted.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two counters, increment, compare, test 10, output.</div>
+    <div class="ans"><p><b>(a)</b> One mark per region: <span class="mk k" data-t="1">Initialise both counts</span> <span class="mk k" data-t="2">Increment Tries every time a pair is input</span> <span class="mk k" data-t="3">Compare A > B and increment Count if TRUE</span> <span class="mk k" data-t="4">Test for Count = 10, with Yes and No labels</span> <span class="mk k" data-t="5">If so output Tries, otherwise loop</span></p><svg viewBox="0 0 540 445" style="width:540px;max-width:100%;display:block" role="img" aria-label="count pairs until A has been greater than B 10 times"><defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" style="fill:var(--ink,currentColor)"/></marker></defs><polyline class="w" fill="none" marker-end="url(#ah)" points="170,31 170,38"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,74 170,90"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,94 170,107"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,137 170,153"/><polyline class="w" fill="none" marker-end="url(#ah)" points="170,183 170,204"/><polyline class="w" fill="none" marker-end="url(#ah)" points="235,232 325,232"/><text class="sm" x="255" y="224" style="font-size:10px;font-weight:700">YES</text><polyline class="w" fill="none" marker-end="url(#ah)" points="105,232 40,232 40,92 168,92"/><text class="sm" x="46" y="224" style="font-size:10px;font-weight:700">NO</text><polyline class="w" fill="none" marker-end="url(#ah)" points="400,247 400,277"/><polyline class="w" fill="none" marker-end="url(#ah)" points="400,333 400,355"/><text class="sm" x="406" y="340" style="font-size:10px;font-weight:700">YES</text><polyline class="w" fill="none" marker-end="url(#ah)" points="400,385 400,403"/><polyline class="w" fill="none" marker-end="url(#ah)" points="325,305 300,305 300,92 172,92"/><text class="sm" x="322" y="297" style="font-size:10px;font-weight:700">NO</text><rect class="ax" style="fill:var(--surface)" x="115.0" y="1.0" width="110" height="30" rx="15.0"/><text class="lbl" x="170" y="19.5" text-anchor="middle" style="font-size:10px">START</text><rect class="ax" style="fill:var(--surface)" x="105.0" y="38.0" width="130" height="36"/><text class="lbl" x="170" y="53.5" text-anchor="middle" style="font-size:10px">Tries ← 0</text><text class="lbl" x="170" y="65.5" text-anchor="middle" style="font-size:10px">Count ← 0</text><rect class="ax" style="fill:var(--surface)" x="168.0" y="90.0" width="4" height="4"/><text class="lbl" x="170" y="95.5" text-anchor="middle" style="font-size:10px"></text><polygon class="ax" style="fill:var(--surface)" points="109.0,107.0 245.0,107.0 231.0,137.0 95.0,137.0"/><text class="lbl" x="170" y="125.5" text-anchor="middle" style="font-size:10px">INPUT A, B</text><rect class="ax" style="fill:var(--surface)" x="95.0" y="153.0" width="150" height="30"/><text class="lbl" x="170" y="171.5" text-anchor="middle" style="font-size:10px">Tries ← Tries + 1</text><polygon class="ax" style="fill:var(--surface)" points="170,204.0 235.0,232 170,260.0 105.0,232"/><text class="lbl" x="170" y="235.5" text-anchor="middle" style="font-size:10px">A > B ?</text><rect class="ax" style="fill:var(--surface)" x="325.0" y="217.0" width="150" height="30"/><text class="lbl" x="400" y="235.5" text-anchor="middle" style="font-size:10px">Count ← Count + 1</text><polygon class="ax" style="fill:var(--surface)" points="400,277.0 475.0,305 400,333.0 325.0,305"/><text class="lbl" x="400" y="308.5" text-anchor="middle" style="font-size:10px">Count = 10 ?</text><polygon class="ax" style="fill:var(--surface)" points="349.0,355.0 465.0,355.0 451.0,385.0 335.0,385.0"/><text class="lbl" x="400" y="373.5" text-anchor="middle" style="font-size:10px">OUTPUT Tries</text><rect class="ax" style="fill:var(--surface)" x="345.0" y="403.0" width="110" height="30" rx="15.0"/><text class="lbl" x="400" y="421.5" text-anchor="middle" style="font-size:10px">END</text></svg><p><b>(b)</b> <span class="mk a" data-t="1">A variable of type string is input, for example "67,72"</span> <span class="mk a" data-t="2">A special character is used to separate each numeric value, or all the numbers are a fixed length, so the string can be split into the numbers</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Leaving the Yes and No labels off the decision. The mark needs them.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/23 · Q2</span> <span class="cmd">Outline / Identify</span> <span class="mark">5 + 2 marks</span> A program uses a global 1D array of type string and a text file. An algorithm: copy the first line of the file into the first element of the array; the second into the second element; continue until all lines have been copied. Stepwise refinement is applied. (a) Outline five steps that could be used to produce pseudocode (no pseudocode statements; the array has more elements than the file has lines). (b) Identify one other construct (besides sequence) needed in the pseudocode and explain its use.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open; index; loop to end of file; read; store; increment.</div>
+    <div class="ans"><p><b>(a)</b> Any five: <span class="mk k" data-t="1">Open the file (in read mode and subsequently close it)</span> <span class="mk k" data-t="2">Initialise an index variable to 1 (or 0)</span> <span class="mk k" data-t="3">Repeat until the end of the file is reached</span> <span class="mk k" data-t="4">Read a line from the file into a string variable</span> <span class="mk k" data-t="5">Store the line in the array at the index</span> <span class="mk k" data-t="6">Increment the index in the loop</span></p><p><b>(b)</b> <span class="mk a" data-t="1">Construct: a conditional loop (iteration); use: to keep repeating until the end of the file is reached</span> <span class="mk a" data-t="2">Alternative: a selection statement; use: to test the value returned by the EOF() function</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/22 · Q2(a)</span> <span class="cmd">Describe</span> <span class="mark">2 marks</span> Stepwise refinement has been used in the design of the program that calculates employees' pay. Describe stepwise refinement.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Add detail; until steps can be coded.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">To increase the level of detail of the algorithm, or to break the problem or task into smaller steps</span> <span class="mk k" data-t="2">until the steps can be directly translated into lines of code</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/23 · Q2</span> <span class="cmd">Describe / Identify</span> <span class="mark">6 + 2 marks</span> A global 1D array of type STRING has 65 elements and an existing text file stores its data; only non-blank elements are written. An algorithm: write the first element as a new line, continue until all elements have been written, each to a new line. Stepwise refinement is applied. (a) Describe up to six steps that could be used to produce pseudocode (no pseudocode statements). (b) Iteration is one construct. Identify one other construct required and explain how it is used.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open in append; index; loop; test blank; write; increment.</div>
+    <div class="ans"><p><b>(a)</b> Any six: <span class="mk k" data-t="1">Open the file in append mode (and close it after the loop)</span> <span class="mk k" data-t="2">Initialise a variable to 1 (or 0) before the loop</span> <span class="mk k" data-t="3">Use the variable as an index to access an element of the array in the loop</span> <span class="mk k" data-t="4">Test if the element is blank or empty</span> <span class="mk k" data-t="5">If it is not blank write the value to the file</span> <span class="mk k" data-t="6">Increment the variable</span> <span class="mk k" data-t="7">Repeat until all 65 elements have been checked</span></p><p><b>(b)</b> <span class="mk a" data-t="1">Selection: to test whether the array element is blank</span> <span class="mk a" data-t="2">Alternative: sequence, to specify the order the steps must be followed</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Opening the file in write mode when the file already holds data that must be kept.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">4 marks</span> Describe an algorithm (no pseudocode) that inputs the marks of 30 students and outputs how many marks are 50 or more.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Counter; loop 30 times; test; output.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Set a counter to zero</span> <span class="mk k" data-t="2">Repeat 30 times: input a mark</span> <span class="mk k" data-t="3">If the mark is 50 or more add 1 to the counter</span> <span class="mk k" data-t="4">After the loop output the counter</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">3 marks</span> Describe the file steps to add a new name to the end of an existing list without losing the old names.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Append.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Open the file in append mode</span> <span class="mk k" data-t="2">Write the new name</span> <span class="mk k" data-t="3">Close the file</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State what stepwise refinement means.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Detail; code.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Breaking each step into smaller, more detailed steps</span> <span class="mk k" data-t="2">until each step can be translated directly into code</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">3 marks</span> Write pseudocode for: set Total to 0; input a number until it is zero, adding each to Total; output Total.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>WHILE or REPEAT.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Total ← 0 and an INPUT of the first number</span> <span class="mk k" data-t="2">A loop that stops when the number is 0, adding to Total and inputting the next</span> <span class="mk k" data-t="3">OUTPUT Total after the loop</span></p><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">Total ← 0</span><span class="ln">INPUT Number</span><span class="ln">WHILE Number &lt;&gt; 0</span><span class="ln">   Total ← Total + Number</span><span class="ln">   INPUT Number</span><span class="ln">ENDWHILE</span><span class="ln">OUTPUT Total</span></pre></div>
+</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Identify</span> <span class="mark">2 marks</span> Identify the construct used when an algorithm tests whether a mark is below 20.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Selection.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Selection</span> <span class="mk k" data-t="2">an IF statement to test the condition</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Open, initialise, loop, close.</b> The skeleton of a file algorithm.</li>
+    <li><b>End condition of the loop.</b> End of file, zero, count reached.</li>
+    <li><b>Append keeps old data.</b> Write overwrites.</li>
+    <li><b>No pseudocode when told not to.</b> Use words.</li>
+    <li><b>Increment the index.</b> Inside the loop.</li>
+    <li><b>Count your points.</b> One mark each; check you have enough.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>stepwise refinement</td><td>"Adding detail until each step can be coded."</td></tr>
+    <tr><td>structured English</td><td>"An algorithm in numbered steps in words."</td></tr>
+    <tr><td>append mode</td><td>"Opening a file to add data at the end."</td></tr>
+    <tr><td>a conditional loop</td><td>"A loop that repeats until a condition is met."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Describe</td><td>Several steps in order.</td></tr>
+    <tr><td>Outline</td><td>A short list of steps.</td></tr>
+    <tr><td>Draw</td><td>Draw the flowchart.</td></tr>
+    <tr><td>Write</td><td>Write the pseudocode.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); const lv = [["copy the file into an array"], ["open the file", "set the index", "loop until end of file", "close the file"], ["open the file", "set the index to 1", "loop until end of file:", "   read a line", "   store it at the index", "   add 1 to the index", "close the file"]][Math.min(k, 2)]; let o = ""; lv.forEach((l, i) => o += SV.rect(20, 10 + i * 24, 300, 20, k === 0 ? "f3" : k === 1 ? "f1" : "cell", { rx: 4 }) + SV.text(28, 24 + i * 24, l, "lbl", { style: "font-size:11px" })); o += SV.text(340, 40, ["one step", "refined once", "each step can now be coded"][Math.min(k, 2)], "lbl bd t3", { style: "font-size:12px" }); return o; };
+  Lib.stepper($("#stA"), { w: 560, h: 190, label: "Refinement", base: { i: 0 }, draw, tween: 100, dwell: 2800, steps: ["The problem as one step.", "<b>Refine</b> it into main steps.", "Refine again until each step can be <b>directly coded</b>."].map((c, i) => ({ cap: c, s: { i } })) });
+})();
+(function () {
+  const file = ["red", "green", "blue", "pink"]; const draw = (s) => { const k = Math.round(s.i); let o = SV.text(20, 16, "file", "sm") + SV.text(250, 16, "array", "sm"); file.forEach((l, i) => o += SV.rect(20, 22 + i * 28, 150, 24, i < k ? "f1" : "cell", { rx: 4 }) + SV.text(28, 39 + i * 28, l, "lbl", { style: "font-size:12px" })); for (let i = 0; i < 6; i++) o += SV.rect(250, 22 + i * 28, 150, 24, "cell", { rx: 4 }) + SV.text(258, 39 + i * 28, (i + 1) + (i < k ? "  " + file[i] : ""), "lbl", { style: "font-size:12px" }); o += SV.text(420, 60, "index = " + (k + 1), "lbl bd t3"); return o; };
+  Lib.stepper($("#stB"), { w: 540, h: 195, label: "File into array", base: { i: 0 }, draw, tween: 100, dwell: 1800, steps: ["Open the file; index is 1.", "Read line 1, store it at index 1, index becomes 2.", "Read line 2, store it, index becomes 3.", "Read line 3, store it, index becomes 4.", "Read line 4, store it, index becomes 5. End of file: stop and close."].map((c, i) => ({ cap: c, s: { i } })) });
+})();
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); const L = ["Count ← 1", "Flag ← FALSE", "WHILE Flag = FALSE AND Count <= 5", "   CALL ReBoot()", "   Count ← Count + 1", "   Flag ← Check()", "ENDWHILE", "IF Flag = FALSE THEN CALL Alert(27)"]; const at = [[0, 1], [2, 5], [7, 7]][Math.min(k, 2)]; let o = ""; L.forEach((l, i) => o += SV.rect(20, 8 + i * 22, 340, 20, i >= at[0] && i <= at[1] ? "f3" : "cell", { rx: 3 }) + SV.text(28, 22 + i * 22, l, "lbl", { style: "font-size:11px" })); o += SV.text(380, 40, ["before the loop: initialise", "loop-back decision: WHILE", "final decision: IF"][Math.min(k, 2)], "lbl bd t3", { style: "font-size:11px" }); return o; };
+  Lib.stepper($("#stC"), { w: 620, h: 190, label: "Flowchart to code", base: { i: 0 }, draw, tween: 100, dwell: 2800, steps: ["Initialisation boxes become assignments.", "The loop-back decision becomes a <b>WHILE</b> loop.", "The final decision becomes an <b>IF</b>."].map((c, i) => ({ cap: c, s: { i } })) });
+})();
+
+(function () {
+  const file = ["red", "green", "blue", "pink"]; let st;
+  const reset = () => { st = { phase: 0, idx: 1, arr: [], pos: 0, log: ["Ready."] }; paint(); };
+  const step = () => { const s = st; if (s.phase === 0) { s.log.push("Open the file for reading; index = 1"); s.phase = 1; } else if (s.phase === 1) { if (s.pos >= file.length) { s.log.push("End of file reached: leave the loop"); s.phase = 2; } else { const l = file[s.pos++]; s.arr[s.idx - 1] = l; s.log.push(`Read "${l}", store it in array[${s.idx}], index becomes ${s.idx + 1}`); s.idx++; } } else if (s.phase === 2) { s.log.push("Close the file. Done."); s.phase = 3; } paint(); };
+  const paint = () => { const s = st; let h = '<div class="tw"><table class="t mono"><tr><th>index</th>' + [1, 2, 3, 4, 5, 6].map((i) => `<th>${i}</th>`).join("") + "</tr><tr><td>array</td>" + [0, 1, 2, 3, 4, 5].map((i) => `<td>${s.arr[i] || ""}</td>`).join("") + "</tr></table></div>"; $("#faV").innerHTML = h + '<div class="verdict">' + s.log.slice(-3).join("<br>") + "</div>"; };
+  $("#fa_step").onclick = step; $("#fa_reset").onclick = reset; reset();
+})();
+btnTable("oB", "oO", [
+  ["Copy a file into an array", "Open, index = 1, loop until end of file (read, store, add 1), close", "Iteration with an end-of-file test"],
+  ["Write non-blank array items to a file", "Open in append mode, index = 1, loop 65 times (if not blank write; add 1), close", "Selection inside iteration"],
+  ["Sum positives and negatives until 0", "Set sums to 0, input, add to the right sum, repeat until 0, output both", "Selection inside iteration"]
+], ["Task", "Steps", "Constructs"]);
+btnTable("mB", "mO", [
+  ["Read the names in a file", "Read mode", "Nothing is changed"],
+  ["Start a new file or replace all its contents", "Write mode", "Overwrites existing data"],
+  ["Add names to a file that already has data", "Append mode", "Existing data is kept"]
+], ["Task", "Mode", "Why"]);
+Lib.classify($("#cl1"), { prompt: "Which construct is being used?", buckets: [{"label": "Sequence"}, {"label": "Selection"}, {"label": "Iteration"}], items: [{"text": "Steps carried out one after another in order", "b": 0}, {"text": "Test whether an element is blank", "b": 1}, {"text": "Repeat until the end of the file", "b": 2}, {"text": "Open the file, then read a line", "b": 0}, {"text": "Check the value returned by EOF", "b": 1}, {"text": "Repeat for 35 students", "b": 2}], done: "Order, choice, repeat." });
+Lib.classify($("#cl2"), { prompt: "Is the step correct for an algorithm that appends the names of students with a mark under 20 to an existing file?", buckets: [{"label": "Correct"}, {"label": "Wrong"}], items: [{"text": "Open the file in append mode", "b": 0}, {"text": "Open the file in write mode", "b": 1}, {"text": "Write the name if the mark is less than 20", "b": 0}, {"text": "Write the mark as well as the name", "b": 1}, {"text": "Repeat for each student", "b": 0}, {"text": "Close the file before the first student", "b": 1}], done: "Append keeps the old data." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Stepwise refinement", "Adding detail until each step can be coded"], ["Structured English", "Numbered steps in words, no pseudocode"], ["Sequence", "Steps in order"], ["Iteration", "Repeating steps"], ["Append mode", "Adds to a file without overwriting it"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the algorithm for copying a file into an array in order.", items: ["Open the file for reading", "Set the index to 1", "Repeat until the end of the file is reached", "Read a line, store it in the array at the index, add 1 to the index", "Close the file"], done: "Open, index, loop, body, close." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "A file has 4 lines copied into an array starting at index 1. What is the index after the last line is stored and incremented?", "a": 5, "unit": "", "tol": 0.01, "hint": "4 lines, then +1.", "sol": "<b>5</b>."},
+  {"q": "An array has 65 elements and the algorithm checks each once. How many loop passes?", "a": 65, "unit": "", "tol": 0.01, "hint": "One per element.", "sol": "<b>65</b>."},
+  {"q": "Of 65 elements, 40 are blank. How many lines are written to the file?", "a": 25, "unit": "", "tol": 0.01, "hint": "65 − 40.", "sol": "<b>25</b>."},
+  {"q": "A student list has 35 students and the mark under 20 for 6 of them. How many names are appended?", "a": 6, "unit": "", "tol": 0.01, "hint": "Only those under 20.", "sol": "<b>6</b>."},
+  {"q": "A string is to be built by repeating a character 5 times. How many times is the loop body run if the counter counts down from 5 to 0 (loop while counter > 0)?", "a": 5, "unit": "", "tol": 0.01, "hint": "5, 4, 3, 2, 1.", "sol": "<b>5</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "Stepwise refinement:", opts: ["Adds detail until steps can be coded", "Compiles the code", "Removes steps", "Draws the screen"], a: 0, why: "Adds detail." },
+  { q: "To keep existing data in a file, open it in:", opts: ["Append mode", "Write mode", "Read mode only", "Delete mode"], a: 0, why: "Append." },
+  { q: "A loop that repeats until the end of a file is:", opts: ["Iteration", "Selection", "Sequence", "Declaration"], a: 0, why: "Iteration." },
+  { q: "Structured English contains:", opts: ["No pseudocode statements", "Only code", "Only flowcharts", "Compiler errors"], a: 0, why: "No pseudocode." },
+  { q: "Before a counting loop you should:", opts: ["Initialise the variable", "Close the file", "Output the result", "Nothing"], a: 0, why: "Initialise." },
+  { q: "A decision with a loop back is usually a:", opts: ["WHILE loop", "FUNCTION", "DECLARE", "CASE"], a: 0, why: "WHILE." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Stepwise refinement", "More detail until directly codeable."],
+  ["Structured English", "Numbered words; no pseudocode."],
+  ["Sequence", "Steps in order."],
+  ["Selection", "A test and a choice."],
+  ["Iteration", "A loop with an end condition."],
+  ["Append", "Add to the end of a file."],
+  ["Initialise", "Set before the loop."],
+  ["Increment", "Add 1 each pass."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>
