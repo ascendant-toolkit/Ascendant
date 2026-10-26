@@ -487,7 +487,7 @@ Numbers[1] to Numbers[10] start as 2, 3, 7, 11, 15, 17, 19, 23, 0, 0.</summary><
     <div class="warn"><b class="h">Common mistake</b>Changing Numbers[9] or Numbers[10], or continuing to Index 10. At Index 9, Numbers[9] is 0, so nothing happens and the calls stop. Each element from 15 onwards is overwritten with the one after it, so the 15 is deleted and the rest shift left.</div>
   </div></details>
 
-  <details class="eq"><summary><span class="src">O/N 2021 · 9618/41 and 42 · Q1</span> <span class="cmd">Trace</span> <span class="mark">2 marks</span> Work out what is output by Unknown(10, 15), Unknown(10, 10) and Unknown(15, 10), then describe what Unknown(10, 13) does.
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/41 and 42 · Q1</span> <span class="cmd">Write / Run / Rewrite</span> <span class="mark">3 + 3 + 2 + 7 marks</span> (a) Write program code for the function Unknown(). (b) Run Unknown(10, 15), Unknown(10, 10) and Unknown(15, 10), outputting the parameters, the call’s own output and the return value of each. (c) Rewrite Unknown() as an iterative function, IterativeUnknown().
 <pre class="plain">FUNCTION Unknown(X, Y : INTEGER) RETURNS INTEGER
    IF X < Y THEN
       OUTPUT X + Y
@@ -500,9 +500,20 @@ Numbers[1] to Numbers[10] start as 2, 3, 7, 11, 15, 17, 19, 23, 0, 0.</summary><
          RETURN (Unknown(X - 1, Y) DIV 2)
       ENDIF
    ENDIF
-ENDFUNCTION</pre>DIV gives the whole-number part, so 13 DIV 2 = 6. In the paper this was a practical question: students wrote the code and ran it for the output marks.</summary><div class="body">
+ENDFUNCTION</pre>The operator DIV returns the integer value after division, e.g. 13 DIV 2 gives 6.</summary><div class="body">
     <div class="tip"><b class="h">Reminder</b>It is compound interest in disguise: a base case that returns 1 (like the principal), then a multiplication <i>after</i> the call returns (× 2, like × rate). The OUTPUT comes <i>before</i> the call, so it prints on the way down.</div>
     <div class="ans">
+      <p><b>(a)</b> Python, one mark each for the header with two parameters, the <span class="mk k" data-t="1">X &lt; Y branch</span> (output X + Y, then the recursive call × 2), the <span class="mk k" data-t="2">X = Y base case returning 1</span> and the <span class="mk k" data-t="3">else branch</span> (output X + Y, then the recursive call DIV 2):</p>
+<pre class="plain">def Unknown(X, Y):
+    if X &lt; Y:
+        print(X + Y)
+        return Unknown(X + 1, Y) * 2
+    elif X == Y:
+        return 1
+    else:
+        print(X + Y)
+        return Unknown(X - 1, Y) // 2</pre>
+      <p><b>(b)</b> Output when run:</p>
       <p><b>Unknown(10, 15):</b> <span class="mk k" data-t="1">output 25, 26, 27, 28, 29</span> on the way down, then Unknown(15, 15) returns 1 and each of the 5 waiting calls doubles it: 2, 4, 8, 16, 32, so the call returns <span class="mk k" data-t="2">32</span>.<br><b>Unknown(10, 10):</b> X = Y, nothing is output, it returns 1.<br><b>Unknown(15, 10):</b> output 25, 24, 23, 22, 21, then the base case returns 1 and each waiting call does <code>DIV 2</code>: 1 DIV 2 = 0, and 0 stays 0, so it returns 0.</p>
       <p>A shorter trace to see the pattern, Unknown(10, 13):</p>
       <div class="tw"><table class="t mono">
@@ -514,7 +525,18 @@ ENDFUNCTION</pre>DIV gives the whole-number part, so 13 DIV 2 = 6. In the paper 
         <tr style="background:var(--good-soft)"><td>3 cont</td><td>Unknown(12, 13)</td><td></td><td><b>1 * 2 = 2</b></td></tr>
         <tr style="background:var(--good-soft)"><td>2 cont</td><td>Unknown(11, 13)</td><td></td><td><b>2 * 2 = 4</b></td></tr>
         <tr style="background:var(--good-soft)"><td>1 cont</td><td>Unknown(10, 13)</td><td></td><td><b>4 * 2 = 8</b></td></tr></table></div>
-      <p>The iterative rewrite (7 marks in the paper) uses: <span class="mk a" data-t="3">a total starting at 1</span>, <span class="mk a" data-t="4">a loop while X is not equal to Y</span>, <span class="mk a" data-t="5">output X + Y each time round</span>, <span class="mk a" data-t="6">total × 2 and X + 1 when X &lt; Y; total DIV 2 and X − 1 otherwise</span>, <span class="mk a" data-t="7">return the total</span>. Same move as converting compound interest to a loop.</p></div>
+      <p><b>(c)</b> The iterative rewrite is worth 7 marks: an <span class="mk a" data-t="1">iterative function taking 2 parameters</span>, <span class="mk a" data-t="2">a total starting at 1</span>, <span class="mk a" data-t="3">a loop while X is not equal to Y</span>, <span class="mk a" data-t="4">output X + Y each time round</span>, <span class="mk a" data-t="5">total × 2 and X + 1 when X &lt; Y</span>, <span class="mk a" data-t="6">total DIV 2 and X − 1 otherwise</span>, <span class="mk a" data-t="7">return the total</span>. Same move as converting compound interest to a loop.</p>
+<pre class="plain">def IterativeUnknown(X, Y):
+    total = 1
+    while X != Y:
+        print(X + Y)
+        if X &lt; Y:
+            X = X + 1
+            total = total * 2
+        else:
+            X = X - 1
+            total = total // 2
+    return total</pre></div>
     <div class="warn"><b class="h">Common mistake</b>Printing the numbers on the way back up. The OUTPUT is before the call, so the order is 25 first. Also stopping the doubling one call early; count the waiting calls.</div>
   </div></details>
 
@@ -545,7 +567,21 @@ ENDFUNCTION</pre>DIV gives the whole-number part, so 13 DIV 2 = 6. In the paper 
   </div></details>
 
   <h3>Past papers: writing and converting recursion</h3>
-  <details class="eq"><summary><span class="src">O/N 2023 · 9618/42 · Q2(b)</span> <span class="cmd">Complete</span> <span class="mark">7 + 1 marks</span> <code>IterativeCalculate()</code> adds up the numbers from Number down to 1 that divide exactly into ToFind. Complete the recursive version, then call it with 50 and 50.
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/42 · Q2(b)</span> <span class="cmd">Complete</span> <span class="mark">7 + 1 marks</span> The iterative function <code>IterativeCalculate()</code> totals all the divisors of its parameter (for 10: 1 + 2 + 5 + 10 = 18). MODULUS gives the remainder after division.
+<pre class="plain">FUNCTION IterativeCalculate(Number : INTEGER) RETURNS INTEGER
+   DECLARE Total : INTEGER
+   DECLARE ToFind : INTEGER
+   ToFind ← Number
+   Total ← 0
+   WHILE Number &lt;&gt; 0
+      IF ToFind MODULUS Number = 0 THEN
+         Total ← Total + Number
+      ENDIF
+      Number ← Number - 1
+   ENDWHILE
+   RETURN Total
+ENDFUNCTION</pre>
+It has been rewritten as the recursive function <code>RecursiveValue()</code>, which is incomplete. Complete it as program code, then call it with 50 and 50.
 <pre class="plain">FUNCTION RecursiveValue(Number : INTEGER, ToFind : INTEGER) RETURNS INTEGER
    IF Number = ............ THEN
       RETURN 0
@@ -569,11 +605,39 @@ ENDFUNCTION</pre></summary><div class="body">
       ENDIF
    ENDIF
 ENDFUNCTION</pre>
+    <p>As program code (Python):</p>
+<pre class="plain">def RecursiveValue(Number, ToFind):
+    if Number == 0:
+        return 0
+    else:
+        if ToFind % Number == 0:
+            return Number + RecursiveValue(Number - 1, ToFind)
+        else:
+            return RecursiveValue(Number - 1, ToFind)
+
+print(RecursiveValue(50, 50))</pre>
     <p>One mark for each of the five gaps, one for the recursive calls both accurate and in the right places, one for the rest of the function with nothing extra. <span class="mk a" data-t="8">RecursiveValue(50, 50) returns 93</span>, the total of the factors 1 + 2 + 5 + 10 + 25 + 50.</p></div>
     <div class="warn"><b class="h">Common mistake</b>Leaving out RETURN in the ELSE branch. Without it the answer from the call below is thrown away.</div>
   </div></details>
 
-  <details class="eq"><summary><span class="src">O/N 2023 · 9618/41, 43 · Q1(b)(i)</span> <span class="cmd">Rewrite</span> <span class="mark">6 marks</span> Rewrite <code>IterativeVowels()</code>, which counts the vowels in a string, as a recursive function <code>RecursiveVowels()</code>.</summary><div class="body">
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/41, 43 · Q1(b)(i)</span> <span class="cmd">Rewrite</span> <span class="mark">6 marks</span> The iterative function <code>IterativeVowels()</code> counts the lower-case vowels (a, e, i, o, u) in a string. MID(X, Y, Z) returns Z characters from string X starting at position Y (the first character is position 0); LENGTH(X) returns the number of characters. Rewrite it as a recursive function <code>RecursiveVowels()</code>, then call it with "imagine" and output the result.
+<pre class="plain">FUNCTION IterativeVowels(Value : STRING) RETURNS INTEGER
+   DECLARE Total : INTEGER
+   DECLARE LengthString : INTEGER
+   DECLARE FirstCharacter : CHAR
+   Total ← 0
+   LengthString ← LENGTH(Value)
+   FOR X ← 0 TO LengthString - 1
+      FirstCharacter ← MID(Value, 0, 1)
+      IF FirstCharacter = 'a' OR FirstCharacter = 'e' OR
+         FirstCharacter = 'i' OR FirstCharacter = 'o' OR
+         FirstCharacter = 'u' THEN
+         Total ← Total + 1
+      ENDIF
+      Value ← MID(Value, 1, LENGTH(Value) - 1)
+   NEXT X
+   RETURN Total
+ENDFUNCTION</pre></summary><div class="body">
     <div class="tip"><b class="h">Reminder</b>Base case: empty string returns 0. General case: look at the first character, then recurse on the rest of the string.</div>
     <div class="ans"><p>Six marks: <span class="mk k" data-t="1">a recursive call</span>; <span class="mk k" data-t="2">function header taking a string, returning an integer</span>; <span class="mk k" data-t="3">base case: length is 0, return 0</span>; <span class="mk k" data-t="4">extract the first character and check whether it is a vowel</span>; <span class="mk k" data-t="5">vowel: return 1 + the recursive call on the string with one fewer character</span>; <span class="mk k" data-t="6">not a vowel: return the recursive call with one fewer character</span>.</p>
 <pre class="plain">def recursive_vowels(value):
@@ -581,17 +645,31 @@ ENDFUNCTION</pre>
         return 0
     if value[0] in "aeiou":
         return 1 + recursive_vowels(value[1:])
-    return recursive_vowels(value[1:])</pre></div>
+    return recursive_vowels(value[1:])
+
+print(recursive_vowels("imagine"))   # 4</pre></div>
     <div class="warn"><b class="h">Common mistake</b>A shorter string is the equivalent of years - 1: forget to shorten it and the base case is never reached.</div>
   </div></details>
 
-  <details class="eq"><summary><span class="src">O/N 2022 · 9618/42 · Q3(d)</span> <span class="cmd">Rewrite</span> <span class="mark">6 marks</span> Rewrite the iterative function <code>IterativeOutput()</code>, which adds up values in a queue, as a recursive function.</summary><div class="body">
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/42 · Q3(d)</span> <span class="cmd">Rewrite</span> <span class="mark">6 marks</span> A 1D array <code>Queue</code> stores a queue; the head pointer points to the first number. The iterative function <code>IterativeOutput()</code> totals all the values in the queue. Rewrite it as a recursive function using program code, then call it from the main program and output the value returned.
+<pre class="plain">FUNCTION IterativeOutput(Start : INTEGER) RETURNS INTEGER
+   DECLARE Total : INTEGER
+   Total ← 0
+   FOR Count ← Start - 1 TO HeadPointer STEP -1
+      Total ← Total + Queue[Count]
+   NEXT Count
+   RETURN Total
+ENDFUNCTION</pre></summary><div class="body">
     <div class="tip"><b class="h">Reminder</b>A loop with a running total becomes: base case at the end of the data, then “this item + the recursive call for the rest”.</div>
     <div class="ans"><p>Six marks: <span class="mk k" data-t="1">function header taking a parameter</span>; <span class="mk k" data-t="2">check whether at the start of the queue</span>; <span class="mk k" data-t="3">return the last value in the queue</span>; <span class="mk k" data-t="4">otherwise add the value to the result of the recursive call</span>; <span class="mk k" data-t="5">recursive call with the pointer reduced by 1</span>; <span class="mk k" data-t="6">return the final total</span>.</p>
-<pre class="plain">def recursive_output(start):
-    if start == 0:
-        return queue[start]
-    return queue[start] + recursive_output(start - 1)</pre></div>
+<pre class="plain">def RecursiveOutput(Start):
+    if Start == 0:
+        return Queue[Start]
+    else:
+        return Queue[Start] + RecursiveOutput(Start - 1)
+
+print(RecursiveOutput(TailPointer - 1))</pre>
+    <p>The call passes <code>TailPointer - 1</code>, the position of the last item, so the recursion works from the tail back to the head at position 0.</p></div>
   </div></details>
 
   <h2>2. Review questions</h2>
