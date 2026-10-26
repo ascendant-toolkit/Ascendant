@@ -370,8 +370,8 @@ ENDFUNCTION</pre><pre class="plain">def fact(n):
 <!-- EXPLORE -->
 <section id="explore" role="tabpanel" hidden>
   <h2>Lab 1 · Wind and unwind any Fact(n)</h2>
-  <p>Press Next and Previous to change n and watch the diagram. The blue arrows are the calls going down, the green arrows are the answers coming back.</p>
-  <div class="card"><div id="wlS"></div><div id="wlOut"></div></div>
+  <p><code>Fact(n)</code> is the factorial function: n × (n − 1) × … × 1, with Fact(0) = 1. Each call needs the answer from a smaller call, which is what makes it recursive. Choose n, then step through the code and the diagram together. The blue arrows are the calls going down, the green arrows are the answers coming back.</p>
+  <div class="card"><div id="wlS"></div><div id="wlAlgo"></div><div id="wlOut"></div></div>
 
   <h2>Lab 2 · Recursion explorer</h2>
   <p>Choose a function and a value of n. See the result, how many calls were made, how deep the stack went, and what a loop would have needed. Try Fibonacci with n = 16.</p>
@@ -1555,23 +1555,27 @@ const BAD = {
 })();
 
 /* ---------- static diagram: winding and unwinding (also used by lab 1) ---------- */
-function windSvg(n) {
+function windSvg(n) { return `<svg viewBox="0 0 720 270" role="img" aria-label="Winding and unwinding for Fact(${n})">${windInner(n)}</svg>`; }
+// st = {c: boxes called so far, r: boxes returned so far}; omit for the full picture
+function windInner(n, st) {
   const k = n + 1, W = 720, gap = 10, bw = Math.min(110, (W - 40 - (k - 1) * gap) / k), x0 = (W - (k * bw + (k - 1) * gap)) / 2, y = 92, bh = 44;
   const vals = []; let v = 1; vals[0] = 1; for (let i = 1; i <= n; i++) { v *= i; vals[i] = v; }
   let s = SV.text(14, 22, "WINDING: each call waits for the next", "lbl bd t1", { "text-anchor": "start" });
   s += SV.text(W - 14, 214, "UNWINDING: answers come back and are used", "lbl bd t3", { "text-anchor": "end" });
   for (let i = 0; i < k; i++) {
-    const m = n - i, x = x0 + i * (bw + gap), base = m === 0;
+    if (st && i >= st.c) break;
+    const m = n - i, x = x0 + i * (bw + gap), base = m === 0, ret = !st || i >= k - st.r;
     s += SV.rect(x, y, bw, bh, "cell " + (base ? "cell-warn" : "cell-cur"), { rx: 8 }) + SV.text(x + bw / 2, y + 27, `Fact(${m})`, "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:" + (bw < 70 ? 11 : 14) + "px" });
     s += SV.text(x + bw / 2, y - 30, base ? "base case" : `${m} × Fact(${m - 1})`, "sm bd " + (base ? "t4" : ""), { "text-anchor": "middle" });
-    if (i < k - 1) { const ax = x + bw + 1, bx = x + bw + gap - 1; s += SV.line(ax - 6, y + 12, bx + 4, y + 12, "c1", { style: "stroke-width:2.5" }) + SV.arrowHead(bx + 6, y + 12, "r", "dot1"); }
+    if (i < k - 1 && (!st || i + 1 < st.c)) { const ax = x + bw + 1, bx = x + bw + gap - 1; s += SV.line(ax - 6, y + 12, bx + 4, y + 12, "c1", { style: "stroke-width:2.5" }) + SV.arrowHead(bx + 6, y + 12, "r", "dot1"); }
     const rv = vals[base ? 0 : m]; // value Fact(m)
+    if (!ret) continue;
     s += SV.text(x + bw / 2, y + bh + 40, `= ${rv}`, "lbl bd t3", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:" + (bw < 70 ? 12 : 15) + "px" });
     s += SV.text(x + bw / 2, y + bh + 58, base ? "known: 1" : `${m} × ${vals[m - 1]}`, "sm", { "text-anchor": "middle" });
     if (i > 0) { const ax = x - gap + 1, bx = x - 1; s += SV.line(bx - 2, y + bh + 14, ax + 8, y + bh + 14, "c3", { style: "stroke-width:2.5" }) + SV.arrowHead(ax + 2, y + bh + 14, "l", "dot3"); }
   }
-  s += SV.text(W / 2, 252, `Fact(${n}) = ${vals[n]}`, "lbl bd", { "text-anchor": "middle", style: "font-size:18px;font-family:var(--mono)" });
-  return `<svg viewBox="0 0 ${W} 270" role="img" aria-label="Winding and unwinding for Fact(${n})">${s}</svg>`;
+  if (!st || st.r === k) s += SV.text(W / 2, 252, `Fact(${n}) = ${vals[n]}`, "lbl bd", { "text-anchor": "middle", style: "font-size:18px;font-family:var(--mono)" });
+  return s;
 }
 $("#windStatic").innerHTML = `<div class="card">${windSvg(3)}<p class="note" style="margin:6px 0 0">Blue arrows: calls going down until the base case. Green arrows: values returning, each used to finish the calculation that was waiting.</p></div>`;
 
@@ -1595,12 +1599,29 @@ $("#windStatic").innerHTML = `<div class="card">${windSvg(3)}<p class="note" sty
   $("#frameStatic").innerHTML = `<div class="card"><svg viewBox="0 0 ${W} 262" role="img" aria-label="Stack frames for Fact(3), Fact(2) and Fact(1)">${s}</svg></div>`;
 })();
 
-/* ---------- Explore lab 1: wind/unwind for any n ---------- */
+/* ---------- Explore lab 1: wind/unwind for any n, stepped with the code ---------- */
 (() => {
   const out = $("#wlOut");
+  function frames(n) {
+    const f = [], vals = [1]; for (let i = 1; i <= n; i++) vals[i] = vals[i - 1] * i;
+    for (let m = n; m >= 0; m--) {
+      const c = n - m + 1;
+      f.push(m === 0
+        ? { cap: `<b>Fact(0)</b> is called. n = 0, so this is the <b>base case</b>: RETURN 1. No further call.`, ps: [0, 1, 2], py: [0, 1, 2], svg: windInner(n, { c, r: 0 }) }
+        : { cap: `<b>Fact(${m})</b> is called. n = ${m}, not 0, so it must work out ${m} × Fact(${m - 1}). It calls <b>Fact(${m - 1})</b> and waits.`, ps: [0, 1, 4], py: [0, 1, 4], svg: windInner(n, { c, r: 0 }) });
+    }
+    for (let j = 1; j <= n + 1; j++) {
+      const m = j - 1;
+      f.push(m === 0
+        ? { cap: `<b>Fact(0)</b> returns <b>1</b> to its caller. Unwinding starts.`, ps: [2], py: [2], svg: windInner(n, { c: n + 1, r: j }) }
+        : { cap: `<b>Fact(${m})</b> gets ${vals[m - 1]} back from Fact(${m - 1}), works out ${m} × ${vals[m - 1]} = <b>${vals[m]}</b> and returns it.`, ps: [4], py: [4], svg: windInner(n, { c: n + 1, r: j }) });
+    }
+    return f;
+  }
   Lib.slider($("#wlS"), { id: "wl", label: "Value of n in Fact(n)", min: 0, max: 8, value: 0, onInput: (n) => {
     let f = 1; for (let i = 2; i <= n; i++) f *= i;
-    out.innerHTML = windSvg(n) + `<div class="readout"><div><small>Calls made</small><strong>${n + 1}</strong></div><div><small>Max frames on stack</small><strong>${n + 1}</strong></div><div><small>Returns made</small><strong>${n + 1}</strong></div><div><small>Result</small><strong>${f}</strong></div></div><div class="verdict">${n === 0 ? "Fact(0) is the base case: one call, answer straight away." : `Fact(${n}) makes ${n + 1} calls (n, n − 1, … 0). All ${n + 1} frames exist on the stack at the same time at the deepest point, then they pop one by one.`}</div>`;
+    Lib.algo($("#wlAlgo"), { w: 720, h: 270, label: `Stepping through Fact(${n})`, pseudo: FACT.ps, py: FACT.py, dwell: 3200, frames: frames(n) });
+    out.innerHTML = `<div class="readout"><div><small>Calls made</small><strong>${n + 1}</strong></div><div><small>Max frames on stack</small><strong>${n + 1}</strong></div><div><small>Returns made</small><strong>${n + 1}</strong></div><div><small>Result</small><strong>${f}</strong></div></div><div class="verdict">${n === 0 ? "Fact(0) is the base case: one call, answer straight away." : `Fact(${n}) makes ${n + 1} calls (n, n − 1, … 0). All ${n + 1} frames exist on the stack at the same time at the deepest point, then they pop one by one.`}</div>`;
   } });
 })();
 

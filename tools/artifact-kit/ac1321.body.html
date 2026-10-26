@@ -1,0 +1,236 @@
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 13.2.1</div>
+  <h1>File Organisation and Access</h1>
+  <p class="cbook">Coursebook: Chapter 13 · Data representation, section 13.2 File organisation and access</p>
+  <p class="lead">Serial, sequential and random file organisation, sequential and direct access, how a record is found in each, choosing a method for a problem; animations, a search simulator and the real 9618 questions from 2021 to 2026.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>File <b>organisation</b> is how the records are arranged in a file: <b>serial</b> files hold records in the order they were added, <b>sequential</b> files hold them in order of a <b>key field</b>, and <b>random</b> files place each record at a location worked out from its key. File <b>access</b> is how a program finds a record: <b>sequential access</b> reads the records one after another from the start, and <b>direct access</b> jumps straight to a record without reading the others. Serial and sequential files are normally accessed sequentially; random files are accessed directly, and a sequential file can be accessed directly if it has an index. You choose a method by thinking about how the file is used: adding, searching, updating and processing in bulk. The pseudocode commands that do this are on the chapter 20 file processing page.</p></div>
+
+  <h2>1 · The three organisations</h2>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Serial</th><th>Sequential</th><th>Random</th></tr>
+    <tr><td>Order of records</td><td>The order they were added (chronological), with no ordering on a key</td><td>In order of a <b>key field</b></td><td>No particular order; each record is at an address calculated from its key</td></tr>
+    <tr><td>Adding a record</td><td>Append to the end</td><td>Insert in the right place: write a new version of the file</td><td>Store at the calculated location (or the next free one if it is taken)</td></tr>
+    <tr><td>Finding a record</td><td>Read from the start until found or the end</td><td>Read from the start until found or until the key has been passed</td><td>Calculate the location and go there</td></tr>
+    <tr><td>Updating a record</td><td>Rewrite the file</td><td>Create a new version of the file</td><td>Update directly in place</td></tr>
+    <tr><td>Typical uses</td><td>Logs, temporary transaction files, backups, batch processing, bills and payroll</td><td>Master files processed in batches, ordered payroll or bill files</td><td>Databases, booking systems, operating system file management</td></tr>
+  </table></div>
+  <ul>
+    <li>In <b>both serial and sequential</b> files the records are stored one after the other and have to be accessed one after the other.</li>
+    <li>In a <b>sequential</b> file the position depends on the key. In a <b>serial</b> file it depends only on <i>when</i> the record was added.</li>
+    <li>A <b>random</b> file can have empty locations, and its key is turned into a location by a <b>hashing algorithm</b> (next page).</li>
+  </ul>
+
+  <h2>2 · The two methods of access</h2>
+  <h3>Sequential access</h3>
+  <p>Start at the <b>beginning</b> of the file and check each record in turn (linearly) until the record is found, the end of the file is reached, or (in a sequential file) the key of the current record is greater than the key you are looking for.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Organisation</th><th>How sequential access finds record K</th></tr>
+    <tr><td>Serial</td><td>Check every record from the start until K is found or all have been checked. It cannot stop early, because the file is not in key order</td></tr>
+    <tr><td>Sequential</td><td>Check records in key order until K is found, or the key of the current record is <b>larger</b> than K, which means K is not in the file</td></tr>
+  </table></div>
+  <h3>Direct access</h3>
+  <p>A record is found <b>without reading the other records</b>, using its key field to work out where it is.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Organisation</th><th>How direct access finds record K</th></tr>
+    <tr><td>Sequential</td><td>An <b>index</b> of all the key fields is kept. The index is searched for the key, and gives the address in the file of the record, which is then read directly</td></tr>
+    <tr><td>Random</td><td>A <b>hashing algorithm</b> is applied to the key to calculate the address; the record is read from there. If it is not there, a collision method (such as a linear search from that point) is used</td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Which method?</b>A record referenced by a unique <b>address</b> on a disk-type medium: <b>direct</b> access. A bank storing its records in ascending order of account number and processing them all: <b>sequential</b> access.</div>
+
+  <h2>3 · Choosing an organisation</h2>
+  <div class="tw"><table class="t">
+    <tr><th>If the program mostly...</th><th>Use</th><th>Because</th></tr>
+    <tr><td>Adds records as they arrive and processes everything later (logs, backups, a payroll run)</td><td>Serial</td><td>Appending is fast and no ordering is needed</td></tr>
+    <tr><td>Processes every record in key order in a batch</td><td>Sequential</td><td>Ordered records suit report and merge jobs, and a search can stop early</td></tr>
+    <tr><td>Looks up one record at a time, quickly, in a very large file (bookings, accounts)</td><td>Random</td><td>Direct access avoids reading the other records</td></tr>
+  </table></div>
+
+  <h2>4 · In code</h2>
+  <p>Text files (serial and sequential) are read with <code>READFILE</code> in a loop until <code>EOF</code>. Random files use <code>SEEK</code> and <code>GETRECORD</code> or <code>PUTRECORD</code>.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln"># sequential access to a sequential (key-ordered) text file</span><span class="ln">def Find(Key):</span><span class="ln">    File = open(&quot;Accounts.txt&quot;, &quot;r&quot;)</span><span class="ln">    for Line in File:</span><span class="ln">        Record = int(Line.strip())</span><span class="ln">        if Record == Key:</span><span class="ln">            File.close()</span><span class="ln">            return True              # found</span><span class="ln">        if Record &gt; Key:</span><span class="ln">            break                    # passed the key: not in the file</span><span class="ln">    File.close()</span><span class="ln">    return False</span></pre></div>
+
+  <h2>5 · Common ways to lose marks</h2>
+  <ul>
+    <li>Describing a serial file as "in order". It is in the order the records were <b>added</b> (chronological); a sequential file is in key order.</li>
+    <li>Saying random means "stored anywhere at random". A random file uses the key to calculate where a record goes.</li>
+    <li>Forgetting that sequential access starts at the <b>beginning</b> of the file.</li>
+    <li>For a sequential file, not saying the search can stop when the key has been exceeded.</li>
+    <li>For direct access on a sequential file, leaving out the <b>index</b>; on a random file, leaving out the <b>hashing algorithm</b>.</li>
+    <li>Writing a definition of the organisation when the question asks for an example of where it is used (the mark scheme says not to allow that).</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · A serial file: records in the order they arrive</h2>
+  <p>Press Play, or click the steps.</p>
+  <div id="stA"></div>
+  <h2>2 · A sequential file: the search can stop early</h2>
+  <div id="stB"></div>
+  <h2>3 · A random file: calculate where to go</h2>
+  <div id="stC"></div>
+  <h2>4 · Direct access to a sequential file with an index</h2>
+  <div id="stD"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · How many records are read?</h2>
+  <p>A file holds 12 account records with the keys shown. Choose the organisation and the key to find, and see how many records are read.</p>
+  <div class="card"><div id="oB" class="btnrow"></div><div id="oK" class="btnrow"></div><div id="oF"></div>
+    <div class="readout"><div><small>Records read</small><strong id="o1"></strong></div><div><small>Result</small><strong id="o2"></strong></div></div><div class="verdict" id="oV"></div></div>
+
+  <h2>Lab 2 · Which organisation and which access?</h2>
+  <p>Choose the best answer for each situation.</p>
+  <div class="card"><div id="qB" class="btnrow"></div><div id="qO"></div></div>
+
+  <h2>Lab 3 · Compare the organisations</h2>
+  <div class="card"><div id="eB" class="btnrow"></div><div id="eO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Serial, sequential or random?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Sequential access or direct access?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the steps of a sequential search in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>5 · Count the records read</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A data-logging file</h3><p>A weather station adds a reading every minute to a file. The readings are stored in the order they were taken and processed at the end of the day, so a serial file fits.</p><div class="use"><b>Exam use:</b> serial: chronological order, new records appended to the end.</div></div>
+  <div class="rw"><h3>A payroll run</h3><p>Every employee's pay is calculated once a month by reading the employee file from start to finish, in order of employee number. A sequential file is processed in a batch.</p><div class="use"><b>Exam use:</b> sequential: ordered by a key; accessed one after another.</div></div>
+  <div class="rw"><h3>An airline booking system</h3><p>Seat records are fetched and updated in a moment by flight and seat number, among millions of records. The key is turned into a location, and the record is read directly.</p><div class="use"><b>Exam use:</b> random organisation with direct access using a hashing algorithm.</div></div>
+  <div class="rw"><h3>A bank's overnight batch</h3><p>Account records stored in ascending order of account number are matched against the day's transactions, which are in the same order, in one pass.</p><div class="use"><b>Exam use:</b> sequential access suits batch processing of an ordered file.</div></div>
+  <div class="rw"><h3>A backup</h3><p>A backup copies every file from the start to the end in one go, without needing any ordering or fast lookup.</p><div class="use"><b>Exam use:</b> serial files are good for simple storage that is read in full.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on file organisation and access methods (Paper 3), 2021 to 2026. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>O/N 2021</td><td>31, 32</td><td>5</td><td>4 + 1 + 1</td><td>Compare sequential and serial organisation; choose the access method for two situations</td></tr>
+    <tr><td>M/J 2023</td><td>32</td><td>2(a)</td><td>3</td><td>Describe how records are organised and accessed in a sequential file</td></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>4</td><td>4 + 2</td><td>Describe sequential and random organisation; outline sequential access</td></tr>
+    <tr><td>M/J 2024</td><td>31, 33</td><td>4</td><td>2 + 3</td><td>Describe sequential access; explain it on serial and sequential files</td></tr>
+    <tr><td>M/J 2024</td><td>32</td><td>7</td><td>2 + 2 + 3</td><td>Outline direct access; explain it for sequential and random files</td></tr>
+    <tr><td>O/N 2024</td><td>32</td><td>2</td><td>2 + 1</td><td>Describe serial organisation; give a use</td></tr>
+    <tr><td>M/J 2026</td><td>31</td><td>2</td><td>1 + 2 + 3</td><td>Random file organisation: a use, how records are organised, how a record is found</td></tr>
+    <tr><td>M/J 2026</td><td>32</td><td>4</td><td>1 + 2 + 3</td><td>Sequential file organisation: a use, how records are organised, how a record is found</td></tr>
+    <tr><td>M/J 2026</td><td>33</td><td>3</td><td>1 + 2 + 3</td><td>Serial file organisation: a use, how records are organised, how a record is found</td></tr>
+  </table></div>
+  <p class="note">File organisation and access appear in Paper 3 in most series; each question asks you to describe or compare. The pseudocode questions that use these files are on the chapter 20 page on file processing. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+
+  <h3>Serial and sequential organisation</h3>
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/31, 32 · Q5</span> <span class="cmd">Compare / State</span> <span class="mark">4 + 1 + 1 marks</span> (a) Compare sequential and serial methods of file organisation. (b) State the most suitable method of file access when a record is referenced by a unique address on a disk-type storage medium. (c) State the most suitable method of file access when a bank stores its data records in ascending order of account number.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) say what is the same (stored one after another) and what differs (chronological or key order, and how a new record is added).</div>
+    <div class="ans"><p><b>(a)</b> Four marks: <span class="mk k" data-t="1">In both, records are stored one after the other</span> <span class="mk k" data-t="2">and need to be accessed one after the other</span> <span class="mk k" data-t="3">Serial files are stored in chronological order, sequential files with the records ordered on the key field</span> <span class="mk k" data-t="4">In serial files new records are appended; in sequential files they are inserted in the correct position</span></p><p><b>(b)</b> <span class="mk a" data-t="1">Direct (access)</span> <b>(c)</b> <span class="mk a" data-t="1">Sequential (access)</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving only differences. A comparison also needs the similarity: both store records one after another.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/32 · Q2</span> <span class="cmd">Describe / State</span> <span class="mark">2 + 1 marks</span> (a) Describe serial file organisation as a method of storing data records in a file. (b) State one example of a use for serial file organisation.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) added in order, appended to the end. (b) a use, not a definition.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Records are stored one after the other as they are collected / in chronological order</span> <span class="mk k" data-t="2">New records are appended to the end of the file</span> <b>(b)</b> <span class="mk a" data-t="1">Creating an unsorted or temporary transaction file / a data logging file / batch processing / backup</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving a use that is really a description, such as 'records are stored one after another'.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/33 · Q3</span> <span class="cmd">State / Describe / Outline</span> <span class="mark">1 + 2 + 3 marks</span> (a) State one example of where serial file organisation could be used. (b) Describe how records are organised in serial files. (c) Outline the process that is used to find a record in a serial file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(c) sequential access: each record in turn, to the end of the file or until found.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Batch processing, a transaction file for a batch, storing bills or payroll, a backup, or any case where data is added chronologically</span></p><p><b>(b)</b> <span class="mk a" data-t="1">Records are stored one after the other</span> <span class="mk a" data-t="2">in chronological order</span> <span class="mk a" data-t="3">new records are appended to the end</span> (maximum 2)</p><p><b>(c)</b> Up to three: <span class="mk k" data-t="1">sequential file access is used</span> <span class="mk k" data-t="2">each record is searched one after the other</span> <span class="mk k" data-t="3">until the end of the file is reached</span> <span class="mk k" data-t="4">or until the record is found</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/32 · Q4</span> <span class="cmd">State / Describe / Outline</span> <span class="mark">1 + 2 + 3 marks</span> (a) State one example of where sequential file organisation could be used. (b) Describe how records are organised in sequential files. (c) Outline the process of sequential file access to find a record in a sequential file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(b) in a given order based on a key field, not 'one after another' on its own. (c) one by one using the key, stopping when found or when the key has been exceeded.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Batch processing, log files, generating bills or payroll, a backup, or data stored in a specified order</span></p><p><b>(b)</b> <span class="mk a" data-t="1">Records are stored in a file one after the other / linearly</span> <span class="mk a" data-t="2">in a given order</span> <span class="mk a" data-t="3">usually based on a key field / unique identifier</span> (maximum 2)</p><p><b>(c)</b> Up to three: <span class="mk k" data-t="1">each record is searched one after the other, from the physical start of the file</span> <span class="mk k" data-t="2">using the record key</span> <span class="mk k" data-t="3">until the record is found</span> <span class="mk k" data-t="4">or until the value of the key being searched has been exceeded / the end of the file is reached</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Describing sequential as chronological. Chronological order is serial; sequential is key order.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/32 · Q2(a)</span> <span class="cmd">Describe</span> <span class="mark">3 marks</span> Describe how records are organised and accessed in a sequential file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Ordered by a key, accessed one after the other from the start.</div>
+    <div class="ans"><p>Up to three: <span class="mk k" data-t="1">records are stored in a particular order</span> <span class="mk k" data-t="2">the order is determined by the value in a key field</span> <span class="mk k" data-t="3">records are accessed one after the other / found by searching from the beginning of the file, record by record</span> <span class="mk k" data-t="4">until the required record is found or the key field value is exceeded</span></p></div>
+  </div></details>
+
+  <h3>Random organisation and access methods</h3>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31, 33 · Q4</span> <span class="cmd">Describe / Outline</span> <span class="mark">4 + 2 marks</span> (a) Describe sequential and random methods of file organisation. (b) Outline the process of sequential access for serial and sequential files.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) two points each: ordered by key and a new version of the file, against calculated location and direct update.</div>
+    <div class="ans"><p><b>(a)</b> Sequential (max 2): <span class="mk k" data-t="1">Records in the file are ordered</span> <span class="mk k" data-t="2">based on the key field</span> <span class="mk k" data-t="3">a new version of the file has to be created to update it</span> Random (max 2): <span class="mk a" data-t="1">Records are in no particular order within the file</span> <span class="mk a" data-t="2">there is a relationship between the key of the record and its location, so a hashing algorithm is used to find the location</span> <span class="mk a" data-t="3">updates can be carried out directly</span></p><p><b>(b)</b> Two marks: <span class="mk k" data-t="1">start at the beginning of the file</span> <span class="mk k" data-t="2">check the records linearly</span> <span class="mk k" data-t="3">until the desired record is found, or all are processed / the end of file</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/31, 33 · Q4</span> <span class="cmd">Describe / Explain</span> <span class="mark">2 + 3 marks</span> (a) Describe the sequential method of file access. (b) Explain how the sequential method of file access is applied to files with serial organisation and to files with sequential organisation.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(b) the difference: serial has no key order so every record is checked; sequential can stop once the key is passed.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Records are searched one after the other</span> <span class="mk k" data-t="2">from the physical start of the file until the record is found or the end of the file</span></p><p><b>(b)</b> Up to three: <span class="mk a" data-t="1">Serial files: records are in chronological order</span> <span class="mk a" data-t="2">so every record is checked until the record is found or all have been checked</span> <span class="mk a" data-t="3">Sequential files: records are in order of a key field</span> <span class="mk a" data-t="4">so every record is checked until the record is found or the key of the current record is greater than the target key</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/32 · Q7</span> <span class="cmd">Outline / Explain</span> <span class="mark">2 + 2 + 3 marks</span> (a) Outline what is meant by direct access as a method of file access. (b) Explain how direct access is used to locate a specific record in (i) sequential files and (ii) random files.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(i) an index. (ii) a hashing algorithm and what to do if the record is not at the expected location.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Direct access allows a record to be found without other records being read</span> <span class="mk k" data-t="2">records are found using the key field of the target record / its location found by hashing</span></p><p><b>(b)(i)</b> <span class="mk a" data-t="1">An index of all key fields is kept</span> <span class="mk a" data-t="2">the index is searched for the address of the file location where the target record is stored</span> <b>(ii)</b> <span class="mk a" data-t="1">A hashing algorithm is used on the key field</span> <span class="mk a" data-t="2">to calculate the address where the target record is expected to be</span> <span class="mk a" data-t="3">a method such as linear probing or searching an overflow area if it is not at the expected location</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/31 · Q2</span> <span class="cmd">State / Describe / Outline</span> <span class="mark">1 + 2 + 3 marks</span> (a) Random file organisation can be used with a database management system. State one other example of where random file organisation could be used. (b) Describe how records are organised in random files. (c) Outline the process that would be used to find a record in a random file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) not DBMS. (c) direct access, a hash function, collision handling.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">For example a booking system, an operating system's file management, a video game, an encryption or compression utility</span></p><p><b>(b)</b> <span class="mk a" data-t="1">Records are stored in no particular order / any available position</span> <span class="mk a" data-t="2">a record key is used to determine the location, generated using a hash function on the key field</span> <span class="mk a" data-t="3">new records are added in an empty location</span> (maximum 2)</p><p><b>(c)</b> Up to three: <span class="mk k" data-t="1">direct file access is used</span> <span class="mk k" data-t="2">a hashing function is used on the key field to find the location</span> <span class="mk k" data-t="3">if the record is found at the hashed location it is retrieved</span> <span class="mk k" data-t="4">if not, a collision resolution method is used, such as a linear search from that point</span></p></div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Distinguish</span> <span class="mark">2 marks</span> Distinguish between a serial file and a sequential file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Order of the records.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A serial file stores records in the order they were added (chronological), with new records appended to the end.</span> <span class="mk k" data-t="2">A sequential file stores records in order of a key field, with new records inserted in the correct position.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain why a random file is better than a serial file for a booking system with millions of records.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>How a record is found.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">In a serial file records must be read one after the other from the start until the one wanted is found.</span> <span class="mk k" data-t="2">In a random file a hashing algorithm turns the key into the address of the record.</span> <span class="mk k" data-t="3">The record is read directly without reading the others, so access is much faster.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> A sequential file holds the keys 5, 12, 20, 33, 47, 60. A program searches it for 25. State the keys read and why the search stops.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Stop when the current key exceeds the target.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">5, 12, 20 and 33 are read</span> <span class="mk k" data-t="2">the search stops at 33 because it is greater than 25, so 25 is not in the file</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Reading to the end of the file. A sequential file lets the search stop once the key is passed.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Outline</span> <span class="mark">2 marks</span> Outline how a new record is added to a sequential file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Why can it not simply be appended?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The file cannot just be appended to, because the records must stay in key order.</span> <span class="mk k" data-t="2">A new version of the file is created, with the new record written in the correct position.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Choose</span> <span class="mark">3 marks</span> For each situation, name the file organisation and access method: (a) a log of every sensor reading, processed at the end of the day; (b) a flight booking record fetched by booking reference.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Serial or random; sequential or direct.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">(a) serial organisation</span> <span class="mk k" data-t="2">with sequential access (read from the start to the end)</span> <span class="mk k" data-t="3">(b) random organisation with direct access</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Serial is chronological; sequential is key order.</b> Keep these apart. Both are read one record after another.</li>
+    <li><b>Start at the beginning.</b> Sequential access always begins at the start of the file.</li>
+    <li><b>Mention the stopping condition.</b> Found, end of file, or (sequential) key exceeded.</li>
+    <li><b>Direct access needs a tool.</b> An index for a sequential file; a hashing algorithm for a random file.</li>
+    <li><b>An example is not a definition.</b> When the question asks where it is used, name a use such as batch processing or a booking system.</li>
+    <li><b>Match the method to the use.</b> Whole-file batch: sequential access. One record quickly: direct access.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>what a serial file is</td><td>"Records are stored one after the other in the order they were added, with new records appended to the end."</td></tr>
+    <tr><td>what a sequential file is</td><td>"Records are stored in order of a key field, and a new version of the file is needed to insert one."</td></tr>
+    <tr><td>what a random file is</td><td>"Each record is stored at a location calculated from its key using a hashing algorithm."</td></tr>
+    <tr><td>what direct access is</td><td>"A record is found without reading the others, using its key to work out where it is."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State</td><td>A short fact or example.</td></tr>
+    <tr><td>Describe</td><td>Say how it is organised or works, in several points.</td></tr>
+    <tr><td>Outline</td><td>Give the main steps without detail.</td></tr>
+    <tr><td>Compare</td><td>Give similarities and differences.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
