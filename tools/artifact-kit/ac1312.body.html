@@ -1,0 +1,277 @@
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 13.1.2</div>
+  <h1>User-defined Types: Records, Sets and Classes</h1>
+  <p class="cbook">Coursebook: Chapter 13 · Data representation, section 13.1 User-defined data types</p>
+  <p class="lead">Composite types: records with dot notation, sets and their operations, classes; how to choose the right data type for each field; animations, labs and the real 9618 declaration questions from 2021 to 2026.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A <b>composite</b> user-defined type is built from other types and holds more than one value under a single identifier. A <b>record</b> groups <b>fields</b> of different types (a pet's name, age and gender), written between <code>TYPE</code> and <code>ENDTYPE</code> with a <code>DECLARE</code> for each field, and you reach a field with dot notation. A <b>set</b> is an unordered collection of unique values of one type, which supports union, intersection and difference. A <b>class</b> bundles fields with the methods that act on them, and its instances are objects. The skill the exam tests is to <b>choose and design</b> the right type: pick the fields, give each the most appropriate data type, and reuse an enumerated type where the values come from a fixed list.</p></div>
+
+  <h2>1 · Records</h2>
+  <p>A record holds the data about <b>one thing</b>, one field for each item. The fields can have different types, including an enumerated type you have declared earlier.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">TYPE Aircraft = (C300, C350, D242, E757, X380)      // an enumerated type used below</span><span class="ln"> </span><span class="ln">TYPE Flight</span><span class="ln">   DECLARE FlightNumber : STRING</span><span class="ln">   DECLARE Destination : STRING</span><span class="ln">   DECLARE DepartureDate : DATE</span><span class="ln">   DECLARE AircraftType : Aircraft                  // a field whose type is the enumerated type</span><span class="ln">ENDTYPE</span><span class="ln"> </span><span class="ln">DECLARE Flight1 : Flight                            // a variable that holds one record</span><span class="ln">Flight1.FlightNumber ← &quot;XA782&quot;                      // dot notation: variable.field</span><span class="ln">Flight1.Destination ← &quot;Cambridge&quot;</span><span class="ln">Flight1.DepartureDate ← 12/12/2022</span><span class="ln">Flight1.AircraftType ← C350                         // an enumerated value, no quotation marks</span></pre></div>
+  <ul>
+    <li>A <b>declaration</b> of the type only describes it. <b>DECLARE Flight1 : Flight</b> creates the variable.</li>
+    <li>Each field is assigned separately with <b>variable.field</b>.</li>
+    <li>Strings go in double quotation marks, characters in single quotation marks, dates are written as given, and enumerated values have no quotation marks.</li>
+    <li>For many records use an array: <code>DECLARE Flights : ARRAY[1:50] OF Flight</code> and <code>Flights[3].Gate ← "N03"</code>.</li>
+    <li>A type can be changed. To make a field's values come from a fixed list, declare an enumerated type and replace that field's declaration: <code>DECLARE Gate : GateID</code>. A range can also be stated: <code>DECLARE NumberOfCopies : 1 .. 10</code>.</li>
+  </ul>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">from dataclasses import dataclass</span><span class="ln">from datetime import date</span><span class="ln"> </span><span class="ln">@dataclass</span><span class="ln">class Flight:                           # Python&#x27;s closest equivalent of a record</span><span class="ln">    FlightNumber: str</span><span class="ln">    Destination: str</span><span class="ln">    DepartureDate: date</span><span class="ln">    AircraftType: str</span><span class="ln"> </span><span class="ln">Flight1 = Flight(&quot;XA782&quot;, &quot;Cambridge&quot;, date(2022, 12, 12), &quot;C350&quot;)</span><span class="ln">print(Flight1.Destination)</span></pre></div>
+
+  <h2>2 · Choosing the data type for each field</h2>
+  <div class="tw"><table class="t">
+    <tr><th>The data item</th><th>Type</th><th>Reason</th></tr>
+    <tr><td>Name, address, title, an identity code with letters and digits (<code>SB2789</code>), a telephone number</td><td><b>STRING</b></td><td>Text, or digits that are not used in arithmetic. A telephone number has a leading 0 that an integer would lose</td></tr>
+    <tr><td>A year, a count, a running time in minutes, a position</td><td><b>INTEGER</b></td><td>Whole numbers</td></tr>
+    <tr><td>A price, a frequency, a fee</td><td><b>REAL</b></td><td>Has a fractional part</td></tr>
+    <tr><td>Yes or no: fees paid, is a primary colour</td><td><b>BOOLEAN</b></td><td>Two possible values</td></tr>
+    <tr><td>A date of birth, date of departure</td><td><b>DATE</b></td><td>A calendar date</td></tr>
+    <tr><td>A single letter such as M or F</td><td><b>CHAR</b></td><td>One character</td></tr>
+    <tr><td>A field with a fixed list of choices (format: DVD, Blu-ray, 4K; taxi code)</td><td><b>Enumerated type</b></td><td>The type only allows the listed values</td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Naming and order</b>Use a field name that says what it holds (<code>DateOfDeparture</code>), start with <code>TYPE Name</code> and finish with <code>ENDTYPE</code>, and put <code>DECLARE</code> on every field. Use the most appropriate type for each one: the mark scheme checks them one by one.</div>
+
+  <h2>3 · Set types</h2>
+  <p>A <b>set</b> is a composite type for a collection of values that are all of <b>one data type</b>. The elements are <b>unordered</b>, there are <b>no duplicates</b>, and <b>set operations</b> such as union and intersection can be applied. The declaration gives the type of the members; <code>DEFINE</code> then gives a variable its values.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">TYPE Numbers = SET OF INTEGER</span><span class="ln">DEFINE EvenNumbers (2, 4, 6, 8, 10, 12) : Numbers</span><span class="ln"> </span><span class="ln">TYPE SymbolSet = SET OF CHAR</span><span class="ln">DEFINE Operators (&#x27;+&#x27;, &#x27;-&#x27;, &#x27;*&#x27;, &#x27;/&#x27;, &#x27;^&#x27;) : SymbolSet</span></pre></div>
+  <div class="tw"><table class="t">
+    <tr><th>Operation</th><th>Result</th><th>Example with A = {1, 2, 3} and B = {3, 4}</th></tr>
+    <tr><td><b>Union</b></td><td>Everything in either set</td><td>{1, 2, 3, 4}</td></tr>
+    <tr><td><b>Intersection</b></td><td>Only what is in both</td><td>{3}</td></tr>
+    <tr><td><b>Difference</b> (A − B)</td><td>In A but not in B</td><td>{1, 2}</td></tr>
+    <tr><td><b>Membership</b></td><td>Is a value in the set?</td><td>2 is in A: TRUE</td></tr>
+  </table></div>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">A = {1, 2, 3}</span><span class="ln">B = {3, 4}</span><span class="ln">print(A | B)          # union: {1, 2, 3, 4}</span><span class="ln">print(A &amp; B)          # intersection: {3}</span><span class="ln">print(A - B)          # difference: {1, 2}</span><span class="ln">print(2 in A)         # membership: True</span></pre></div>
+
+  <h2>4 · Class / object as a composite type</h2>
+  <p>A <b>class</b> is a composite type that holds <b>fields and the methods</b> that work on them. Each object made from it is an instance. Unlike a record, a class can keep its data private and be extended by inheritance. This is covered fully in the OOP pages of chapter 20.</p>
+
+  <h2>5 · Defining a composite type</h2>
+  <p><i>A composite type refers to at least one other data type in its definition; it holds several values under a single identifier. The data types can be primitive or user-defined.</i> An example answer is: a record, a set, or a class/object.</p>
+
+  <h2>6 · Common ways to lose marks</h2>
+  <ul>
+    <li>Leaving out <code>ENDTYPE</code>, or <code>DECLARE</code> on a field.</li>
+    <li>Using a STRING for a number that is used in calculations, or an INTEGER for a telephone number or an identity code.</li>
+    <li>Not using the enumerated type that the question tells you to use for a field.</li>
+    <li>Forgetting to declare a variable of the record type before assigning to it, or writing the field name without the variable name.</li>
+    <li>Quotation marks round an enumerated value, or no quotation marks round a string.</li>
+    <li>Describing a set as "an ordered list". It is unordered, with no repeats.</li>
+    <li>For a set: leaving out <code>SET OF</code>, <code>DEFINE</code>, the values in brackets, or the <code>: type</code> at the end.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Building and filling a record</h2>
+  <p>Press Play, or click the steps.</p>
+  <div id="stA"></div>
+  <h2>2 · An array of records</h2>
+  <div id="stB"></div>
+  <h2>3 · Set operations</h2>
+  <div id="stC"></div>
+  <h2>4 · Choosing the type for each field</h2>
+  <div id="stD"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Set operations</h2>
+  <p>Click numbers to put them in set A or set B, then choose an operation. Duplicates can never occur in a set.</p>
+  <div class="card"><div class="btnrow" id="sA"></div><div class="btnrow" id="sB"></div><div class="btnrow" id="sO"></div><div class="readout"><div><small>Set A</small><strong id="s1"></strong></div><div><small>Set B</small><strong id="s2"></strong></div><div><small>Result</small><strong id="s3"></strong></div></div><div class="verdict" id="sV"></div></div>
+
+  <h2>Lab 2 · Choose the type for each field</h2>
+  <p>For each field of the record, choose the most appropriate type. The answer is checked against the mark scheme's choices.</p>
+  <div class="card"><div id="tB" class="btnrow"></div><div id="tO"></div><div class="verdict" id="tV"></div></div>
+
+  <h2>Lab 3 · Spot the mistake in a record declaration</h2>
+  <div class="card"><div id="mB" class="btnrow"></div><div id="mO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which data type fits the field?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Record, set or class?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the steps for creating and using a record in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>5 · Set results and counts</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A school's student records</h3><p>Each student is a record with name, date of birth, form, a Boolean for permission to go on trips, and a field of type Subject for the favourite subject. An array holds the whole year group.</p><div class="use"><b>Exam use:</b> records group different types of data for one item; arrays hold many records.</div></div>
+  <div class="rw"><h3>Airport departures board</h3><p>Each flight is a record: flight number, destination, date, gate and airline. The gate is an enumerated type because only certain gates exist.</p><div class="use"><b>Exam use:</b> a record with an enumerated field.</div></div>
+  <div class="rw"><h3>Followers and common interests</h3><p>A social network can treat each person's interests as a set. The intersection of two people's sets shows what they have in common and the union shows everything either likes.</p><div class="use"><b>Exam use:</b> set operations: union and intersection.</div></div>
+  <div class="rw"><h3>A game character</h3><p>A Character has a name, position and strength together with methods to move and fight. It is made as a class so each character is an object with its own data.</p><div class="use"><b>Exam use:</b> a class is a composite type with methods.</div></div>
+  <div class="rw"><h3>A video library</h3><p>A video record has an identity code (STRING), title, year (INTEGER), purchase date (DATE), format and running time. The format is chosen from a fixed list, so it is a good enumerated type.</p><div class="use"><b>Exam use:</b> choose the most appropriate type for each field.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on composite user-defined types: records, sets and choosing the data types (Paper 3), 2021 to 2026. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2021</td><td>31, 32, 33</td><td>2(c)</td><td>4</td><td>Declare the composite type ClubMeet using two enumerated types</td></tr>
+    <tr><td>M/J 2022</td><td>31, 33</td><td>1</td><td>2 + 1 + 2 + 3</td><td>LibraryRecord: assign fields, change a field to a range and an array, define composite</td></tr>
+    <tr><td>M/J 2022</td><td>32</td><td>1(a), (b)</td><td>2 + 3</td><td>BuildingRecord: assign fields and add an enumerated type</td></tr>
+    <tr><td>O/N 2022</td><td>31, 33</td><td>3(d)</td><td>1 + 3</td><td>Declare a Pet record variable and store a pet</td></tr>
+    <tr><td>O/N 2022</td><td>32</td><td>4</td><td>2 + 4 + 1 + 3</td><td>Declare the Aircraft enumerated type, the Flight record, a variable and assign it</td></tr>
+    <tr><td>M/J 2023</td><td>32</td><td>6(a)</td><td>4</td><td>Declare the composite type TAppointments</td></tr>
+    <tr><td>M/J 2024</td><td>31, 33</td><td>3(b)</td><td>4</td><td>Declare the record type FootballClub</td></tr>
+    <tr><td>M/J 2024</td><td>32</td><td>3(b)</td><td>4</td><td>Declare the set type EvenNumbers</td></tr>
+    <tr><td>O/N 2024</td><td>31, 33</td><td>6</td><td>3 + 4</td><td>Describe the set type; declare SymbolSet</td></tr>
+    <tr><td>M/J 2025</td><td>31</td><td>1</td><td>2 + 4</td><td>Declare the enumerated Vehicle and the composite Booking</td></tr>
+    <tr><td>M/J 2025</td><td>32</td><td>1</td><td>3 + 2 + 1</td><td>Departure record: assign values, declare GateID, change the field</td></tr>
+    <tr><td>M/J 2025</td><td>33</td><td>1(a), (b)</td><td>4 + 2</td><td>Declare VideoLibrary; choose an enumerated field</td></tr>
+    <tr><td>O/N 2025</td><td>31</td><td>1</td><td>1 + 2 + 2 + 1</td><td>ClubMember record variable, assignments and an enumerated Activity</td></tr>
+    <tr><td>O/N 2025</td><td>32</td><td>1</td><td>1 + 2 + 2 + 1</td><td>Car record variable, assignments and an enumerated Body</td></tr>
+    <tr><td>O/N 2025</td><td>33</td><td>1(b)</td><td>4</td><td>Declare ColourData using an enumerated Spectrum</td></tr>
+  </table></div>
+  <p class="note">Declaring a record and giving it values is asked in almost every Paper 3, with enumerated fields and sets, so the exam tab here is long. The enumerated types and pointer types used are on the previous page. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+
+  <h3>Declaring a record type</h3>
+  <details class="eq"><summary><span class="src">M/J 2021 · 9618/31, 32, 33 · Q2(c)</span> <span class="cmd">Define</span> <span class="mark">4 marks</span> Define, using pseudocode, the composite data type ClubMeet. This will hold data about club members that includes: first name and last name; the two days they attend, one on a school day and one not on a school day. Use the enumerated types you created in part (b): SchoolDay = (Monday ... Friday) and WeekEnd = (Saturday, Sunday).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Four fields, with the two day fields using the enumerated types.</div>
+    <div class="ans"><p>Four marks: <span class="mk k" data-t="1">TYPE ClubMeet and ENDTYPE correct</span> <span class="mk k" data-t="2">DECLARE FirstName and DECLARE LastName with the correct data types</span> <span class="mk k" data-t="3">DECLARE Schoolday with the type SchoolDay</span> <span class="mk k" data-t="4">DECLARE Weekend with the type WeekEnd</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">TYPE ClubMeet</span><span class="ln">   DECLARE FirstName : STRING</span><span class="ln">   DECLARE LastName : STRING</span><span class="ln">   DECLARE Schoolday : SchoolDay</span><span class="ln">   DECLARE Weekend : WeekEnd</span><span class="ln">ENDTYPE</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving the day fields type STRING instead of the enumerated types the question tells you to use.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/31, 33 · Q3(b)</span> <span class="cmd">Write</span> <span class="mark">4 marks</span> Write pseudocode statements to declare the record data type FootballClub to hold data about football clubs in a league, to include: name of team; date team joined the league; main telephone number; name of the manager; number of members; current position in the league.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Six fields. One mark for the TYPE and ENDTYPE, then one for every two correct declarations.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">TYPE FootballClub and ENDTYPE correct</span> <span class="mk k" data-t="2">two correct declarations</span> <span class="mk k" data-t="3">two more correct declarations</span> <span class="mk k" data-t="4">the last two correct declarations</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">TYPE FootballClub</span><span class="ln">   DECLARE TeamName : STRING</span><span class="ln">   DECLARE DateOfJoining : DATE</span><span class="ln">   DECLARE MainTelephone : STRING</span><span class="ln">   DECLARE ManagerName : STRING</span><span class="ln">   DECLARE NumberOfMembers : INTEGER</span><span class="ln">   DECLARE LeaguePosition : INTEGER</span><span class="ln">ENDTYPE</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Storing the telephone number as an INTEGER. A telephone number is a STRING.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/32 · Q6(a)</span> <span class="cmd">Write</span> <span class="mark">4 marks</span> Write pseudocode statements to declare the composite data type TAppointments to hold data about patients for a dental clinic. It will include for each patient: name (first name and last name); date of birth; telephone number; date of last appointment; date of next appointment; all treatments are complete (yes or no).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The 'yes or no' is a BOOLEAN. Dates are DATE. Names can be separate fields or one.</div>
+    <div class="ans"><p>One mark for TYPE ... ENDTYPE and one for every two correct declarations: <span class="mk k" data-t="1">TYPE TAppointments and ENDTYPE</span> <span class="mk k" data-t="2">declarations for the name fields</span> <span class="mk k" data-t="3">date of birth and telephone number</span> <span class="mk k" data-t="4">last appointment, next appointment and the BOOLEAN</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">TYPE TAppointments</span><span class="ln">   DECLARE Name : STRING</span><span class="ln">   DECLARE DateOfBirth : DATE</span><span class="ln">   DECLARE Telephone : STRING</span><span class="ln">   DECLARE LastAppointment : DATE</span><span class="ln">   DECLARE NextAppointment : DATE</span><span class="ln">   DECLARE TreatmentsComplete : BOOLEAN</span><span class="ln">ENDTYPE</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using STRING for the yes or no field. A two-valued choice is a BOOLEAN.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/33 · Q1(a), (b)</span> <span class="cmd">Write / Identify</span> <span class="mark">4 + 2 marks</span> A programmer is writing a program to manage a video library. (a) Write pseudocode statements to declare the composite data type VideoLibrary to hold data about each video, including: identity code (any combination of letters and numbers); title; year released; date purchased; format (for example DVD, Blu-ray, 4K, MP4); running time (minutes). Use the most appropriate data type in each case. (b) Identify one field in VideoLibrary that could be an efficient enumerated data type and give a reason for your choice.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) check each type. (b) the field with a fixed range of values.</div>
+    <div class="ans"><p><b>(a)</b> Four marks: <span class="mk k" data-t="1">TYPE VideoLibrary and ENDTYPE correct</span> <span class="mk k" data-t="2">DECLARE used correctly for every field</span> <span class="mk k" data-t="3">the three STRING fields correct</span> <span class="mk k" data-t="4">the other three fields correct (INTEGER, DATE, INTEGER)</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">TYPE VideoLibrary</span><span class="ln">   DECLARE VideoID : STRING</span><span class="ln">   DECLARE Title : STRING</span><span class="ln">   DECLARE ReleaseYear : INTEGER</span><span class="ln">   DECLARE PurchaseDate : DATE</span><span class="ln">   DECLARE VideoFormat : STRING</span><span class="ln">   DECLARE RunningTime : INTEGER</span><span class="ln">ENDTYPE</span></pre><p><b>(b)</b> <span class="mk a" data-t="1">VideoFormat</span> <span class="mk a" data-t="2">because this field can have a fixed range of possible values</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/33 · Q1(b)</span> <span class="cmd">Write</span> <span class="mark">4 marks</span> ColourData is a composite data type to store definitions of colours. Write pseudocode statements to declare ColourData to hold these fields (example data in brackets): ColourCode (XYZ12345), Colour (Red), Wavelength (650), Frequency (4.62), PrimaryColour (Yes). Use the most appropriate data type in each case, including the enumerated data type Spectrum for the colour.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>XYZ12345 is a STRING. 650 is whole. 4.62 has a fractional part. Yes or No is a BOOLEAN.</div>
+    <div class="ans"><p>Four marks: <span class="mk k" data-t="1">TYPE ColourData and ENDTYPE correct</span> <span class="mk k" data-t="2">DECLARE used correctly in all the declarations</span> <span class="mk k" data-t="3">correct use of Spectrum for the colour</span> <span class="mk k" data-t="4">the other four declarations correct (STRING, INTEGER, REAL, BOOLEAN)</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">TYPE ColourData</span><span class="ln">   DECLARE ColourCode : STRING</span><span class="ln">   DECLARE Colour : Spectrum</span><span class="ln">   DECLARE Wavelength : INTEGER</span><span class="ln">   DECLARE Frequency : REAL</span><span class="ln">   DECLARE PrimaryColour : BOOLEAN</span><span class="ln">ENDTYPE</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using INTEGER for Frequency (4.62 has a fractional part) or STRING for the Yes/No.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/31 · Q1</span> <span class="cmd">Write</span> <span class="mark">2 + 4 marks</span> A programmer is writing a program to manage bookings for a small taxi company. (a) Write a pseudocode statement to declare the enumerated data type Vehicle to hold the identity code of each taxi: M100, M230, T101, T102, T120, T150. (b) Write pseudocode statements to declare the composite data type Booking to hold: booking number (any combination of letters and numbers); destination; client name; client telephone number; date of departure; address for pick-up; the identity code of the taxi used. Use the most appropriate data type in each case, including the enumerated type from part (a).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Seven fields; the taxi field has the enumerated type.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">TYPE Vehicle =</span> <span class="mk k" data-t="2">(M100, M230, T101, T102, T120, T150)</span></p><p><b>(b)</b> Four marks: <span class="mk k" data-t="1">TYPE Booking and ENDTYPE correct</span> <span class="mk k" data-t="2">DECLARE used correctly for every field</span> <span class="mk k" data-t="3">any four fields correct</span> <span class="mk k" data-t="4">the remaining fields correct</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">TYPE Vehicle = (M100, M230, T101, T102, T120, T150)</span><span class="ln"> </span><span class="ln">TYPE Booking</span><span class="ln">   DECLARE BookingNumber : STRING</span><span class="ln">   DECLARE Destination : STRING</span><span class="ln">   DECLARE ClientName : STRING</span><span class="ln">   DECLARE ClientTelephone : STRING</span><span class="ln">   DECLARE DateOfDeparture : DATE</span><span class="ln">   DECLARE PickupAddress : STRING</span><span class="ln">   DECLARE TaxiUsed : Vehicle</span><span class="ln">ENDTYPE</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using INTEGER for the booking number. It can contain letters, so it is a STRING.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/32 · Q4</span> <span class="cmd">Write</span> <span class="mark">2 + 4 + 1 + 3 marks</span> A program to manage regular flight details at an airport requires some user-defined data types. (a) Write pseudocode statements to declare the enumerated data type Aircraft: C300, C350, D242, E757, X380. (b) Write pseudocode statements to declare the composite data type Flight to hold: flight number (any combination of letters and numbers); destination; date of departure; type of aircraft used. Use the enumerated type from (a). (c)(i) Write the statement to set up a variable for one record of Flight. (ii) Store in it: flight number XA782, destination Cambridge, date of departure 12/12/2022, type of aircraft C350. Use the field names you created in (b).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(c)(ii) one assignment for each field, with the enumerated value unquoted.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">TYPE Aircraft =</span> <span class="mk k" data-t="2">(C300, C350, D242, E757, X380)</span> <b>(b)</b> Four marks: <span class="mk a" data-t="1">TYPE Flight and ENDTYPE</span> <span class="mk a" data-t="2">FlightNumber and Destination as STRING</span> <span class="mk a" data-t="3">DepartureDate as DATE</span> <span class="mk a" data-t="4">AircraftType as Aircraft</span> <b>(c)(i)</b> <span class="mk k" data-t="1">DECLARE Flight1 : Flight</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">TYPE Aircraft = (C300, C350, D242, E757, X380)</span><span class="ln"> </span><span class="ln">TYPE Flight</span><span class="ln">   DECLARE FlightNumber : STRING</span><span class="ln">   DECLARE Destination : STRING</span><span class="ln">   DECLARE DepartureDate : DATE</span><span class="ln">   DECLARE AircraftType : Aircraft</span><span class="ln">ENDTYPE</span><span class="ln"> </span><span class="ln">DECLARE Flight1 : Flight</span><span class="ln">Flight1.FlightNumber ← &quot;XA782&quot;</span><span class="ln">Flight1.Destination ← &quot;Cambridge&quot;</span><span class="ln">Flight1.DepartureDate ← 12/12/2022</span><span class="ln">Flight1.AircraftType ← C350</span></pre><p><b>(c)(ii)</b> Three marks: <span class="mk a" data-t="1">both string values assigned correctly</span> <span class="mk a" data-t="2">the date assigned correctly</span> <span class="mk a" data-t="3">the enumerated value assigned correctly</span></p></div>
+  </div></details>
+
+  <h3>Giving a record values, and changing its type</h3>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/31, 33 · Q3(d)</span> <span class="cmd">Write</span> <span class="mark">1 + 3 marks</span> The composite data type Pet stores data about the pets of a group of students. Its fields are PetName (String), AnimalType (String), PetAge (Integer), PetGender (Char) and OwnerName (String). (i) Write the pseudocode statement to set up a variable for one record of the composite data type Pet. (ii) Write pseudocode to store the details of this pet in the variable: PetName Tibbles, AnimalType Cat, PetAge 8, PetGender M, OwnerName Jasmine Smith.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>DECLARE the variable first. Strings in double quotation marks, the CHAR in single quotation marks.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">DECLARE Pet1 : Pet</span> <b>(ii)</b> <span class="mk a" data-t="1">all string values assigned correctly</span> <span class="mk a" data-t="2">the char value assigned correctly</span> <span class="mk a" data-t="3">the integer value assigned correctly</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">DECLARE Pet1 : Pet</span><span class="ln">Pet1.PetName ← &quot;Tibbles&quot;</span><span class="ln">Pet1.AnimalType ← &quot;Cat&quot;</span><span class="ln">Pet1.PetAge ← 8</span><span class="ln">Pet1.PetGender ← &#x27;M&#x27;</span><span class="ln">Pet1.OwnerName ← &quot;Jasmine Smith&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing the field without the variable name, for example <code>PetName ← "Tibbles"</code>.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/31, 33 · Q1</span> <span class="cmd">Write / Explain</span> <span class="mark">2 + 1 + 2 + 3 marks</span> The data type LibraryRecord is defined in pseudocode with the fields Title (STRING), Fiction (BOOLEAN), Author (STRING) and NumberOfCopies (INTEGER). A variable LibraryBook is declared as <code>DECLARE LibraryBook : LibraryRecord</code>. (a) Write pseudocode statements to assign A Level Computer Science to Title of LibraryBook, and FALSE to Fiction of LibraryBook. (b)(i) The value for NumberOfCopies must be between 1 and 10 inclusive. Write the updated line of the type definition. (ii) Every copy of every book has an accession number (an integer). Each library record will include one or more accession numbers. Write the extra line needed in the type definition. (c) A record is a user-defined composite data type. Explain what is meant by a user-defined composite data type, including an example of another.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(b)(i) a range. (b)(ii) an array whose size is the number of copies. (c) refers to other types; an example such as class, set.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">LibraryBook.Title ← "A Level Computer Science"</span> <span class="mk k" data-t="2">LibraryBook.Fiction ← FALSE</span> <b>(b)(i)</b> <span class="mk a" data-t="1">DECLARE NumberOfCopies : 1 .. 10</span> <b>(ii)</b> <span class="mk k" data-t="1">DECLARE AccessionNumber : ARRAY[1:NumberOfCopies] OF INTEGER (two marks)</span></p><p><b>(c)</b> <span class="mk a" data-t="1">A data type constructed by a programmer, not a primitive type</span> <span class="mk a" data-t="2">that references at least one other data type, which may be primitive or user-defined</span> <span class="mk a" data-t="3">Example: class / object / set</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/32 · Q1(a), (b)</span> <span class="cmd">Write</span> <span class="mark">2 + 3 marks</span> The data type BuildingRecord has the fields BuildingID (INTEGER), BuildingGroup (STRING), OwnerName, BuildingAddress (STRING), DateLastSold (DATE) and PriceLastSold (REAL), and a variable BuildingRegister is declared. (a) Write pseudocode to assign 1067 to the BuildingID of BuildingRegister and house to its BuildingGroup. (b) BuildingGroup is changed to an enumerated type BuildingType with values house, bungalow, apartment and farm. (i) Write the type declaration for BuildingType. (ii) Write the new declaration for BuildingGroup. (iii) Write the new statement to assign house to BuildingGroup of BuildingRegister.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>After the change the value is no longer a string, so it loses its quotation marks.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">BuildingRegister.BuildingID ← 1067</span> <span class="mk k" data-t="2">BuildingRegister.BuildingGroup ← "house"</span></p><p><b>(b)</b> <span class="mk a" data-t="1">TYPE BuildingType = (house, bungalow, apartment, farm)</span> <span class="mk a" data-t="2">DECLARE BuildingGroup : BuildingType</span> <span class="mk a" data-t="3">BuildingRegister.BuildingGroup ← house</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Keeping the quotation marks round <code>house</code> in (iii). It is now an enumerated value.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/31 · Q1</span> <span class="cmd">Write</span> <span class="mark">1 + 2 + 2 + 1 marks</span> The composite record data type ClubMember has the fields Code (INTEGER), LastName, FirstName, Telephone (STRING), JoinDate (DATE), Fees (REAL) and FeesPaid (BOOLEAN). (a)(i) Write the statement to set up a variable for one record of ClubMember. (ii) Assign 984632 to Code and TRUE to FeesPaid. (b) An enumerated type Activity is needed so a new field Choice can be added. (i) Write the type declaration of Activity to hold: Badminton, Football, Golf, Snooker, Swimming, Tennis. (ii) Write the new statement required to declare Choice in ClubMember.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Declare, assign, declare the enumerated type, then add the field using it.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">DECLARE Member1 : ClubMember</span> <span class="mk a" data-t="1">Member1.Code ← 984632</span> <span class="mk a" data-t="2">Member1.FeesPaid ← TRUE</span></p><p><b>(b)</b> <span class="mk k" data-t="1">TYPE Activity =</span> <span class="mk k" data-t="2">(Badminton, Football, Golf, Snooker, Swimming, Tennis)</span> <span class="mk a" data-t="1">DECLARE Choice : Activity</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/32 · Q1</span> <span class="cmd">Write</span> <span class="mark">1 + 2 + 2 + 1 marks</span> The composite data type Car has the fields RegNumber, Make, Model, BodyStyle, Colour (all STRING), IntoStock (DATE) and Price (REAL). (a)(i) Set up a variable for one record of Car. (ii) Assign "Blue" to Colour and 21/10/2025 to IntoStock. (b) BodyStyle changes to an enumerated type, Body. (i) Declare Body to hold: Convertible, Hatchback, Saloon, SUV. (ii) Write the new statement to replace the declaration of BodyStyle in Car.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The same pattern as the club member: declare, assign, new type, new field.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">DECLARE Car1 : Car</span> <span class="mk a" data-t="1">Car1.Colour ← "Blue"</span> <span class="mk a" data-t="2">Car1.IntoStock ← 21/10/2025</span></p><p><b>(b)</b> <span class="mk k" data-t="1">TYPE Body =</span> <span class="mk k" data-t="2">(Convertible, Hatchback, Saloon, SUV)</span> <span class="mk a" data-t="1">DECLARE BodyStyle : Body</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/32 · Q1</span> <span class="cmd">Write</span> <span class="mark">3 + 2 + 1 marks</span> The composite record data type Departure represents flights from Cambridge Airport with the fields FlightNumber, Destination, Gate, Airline (STRING) and FlightDate (DATE). A variable Flight1 is declared. (a) Store these details in Flight1: SB2789, Dublin, 30/07/2025, gate N03, Cambridge Airways. (b) The data type for Gate is changed to an enumerated data type, GateID. (i) Declare GateID to hold the gate codes N01, N02, N03, W01, W02, W03, W04. (ii) Write the new statement to replace the declaration of Gate in Departure.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Before the change the gate is a string. The change replaces only the declaration of Gate.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Flight1 used with the given field names</span> <span class="mk k" data-t="2">the four string values assigned correctly</span> <span class="mk k" data-t="3">the date assigned correctly</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">Flight1.FlightNumber ← &quot;SB2789&quot;</span><span class="ln">Flight1.Destination ← &quot;Dublin&quot;</span><span class="ln">Flight1.FlightDate ← 30/07/2025</span><span class="ln">Flight1.Gate ← &quot;N03&quot;</span><span class="ln">Flight1.Airline ← &quot;Cambridge Airways&quot;</span></pre><p><b>(b)</b> <span class="mk a" data-t="1">TYPE GateID =</span> <span class="mk a" data-t="2">(N01, N02, N03, W01, W02, W03, W04)</span> <span class="mk a" data-t="1">DECLARE Gate : GateID</span></p></div>
+  </div></details>
+
+  <h3>Set types</h3>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/31, 33 · Q6</span> <span class="cmd">Describe / Write</span> <span class="mark">3 + 4 marks</span> (a) Describe the user-defined data type set. (b) Write pseudocode statements to declare the set data type SymbolSet, to hold the following set of mathematical operators, using the variable Operators: + – * / ^</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) composite, unordered, set operations, one data type. (b) TYPE ... SET OF, DEFINE, the values, and the type.</div>
+    <div class="ans"><p><b>(a)</b> Any three: <span class="mk k" data-t="1">A set is a composite data type</span> <span class="mk k" data-t="2">which includes a list of unordered elements</span> <span class="mk k" data-t="3">set theory operations such as intersection and union can be applied to the elements</span> <span class="mk k" data-t="4">the type of data is part of the definition and all elements have the same data type</span></p><p><b>(b)</b> Four marks: <span class="mk a" data-t="1">TYPE SymbolSet =</span> <span class="mk a" data-t="2">SET OF CHAR</span> <span class="mk a" data-t="3">DEFINE Operators</span> <span class="mk a" data-t="4">(the values in brackets) : SymbolSet</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">TYPE SymbolSet = SET OF CHAR</span><span class="ln">DEFINE Operators (&#x27;+&#x27;, &#x27;-&#x27;, &#x27;*&#x27;, &#x27;/&#x27;, &#x27;^&#x27;) : SymbolSet</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing the values as strings in double quotation marks, or leaving out the <code>: SymbolSet</code> at the end of DEFINE.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/32 · Q3(b)</span> <span class="cmd">Write</span> <span class="mark">4 marks</span> Write pseudocode statements to declare the set data type EvenNumbers to hold this set of even numbers between 2 and 12: 2, 4, 6, 8, 10, 12.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two statements: the TYPE with SET OF, and DEFINE.</div>
+    <div class="ans"><p>Four marks: <span class="mk k" data-t="1">the TYPE statement fully correct</span> <span class="mk k" data-t="2">DEFINE EvenNumbers</span> <span class="mk k" data-t="3">the correct list of values in brackets</span> <span class="mk k" data-t="4">the set identifier from the TYPE statement used after the colon</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">TYPE Numbers = SET OF INTEGER</span><span class="ln">DEFINE EvenNumbers (2, 4, 6, 8, 10, 12) : Numbers</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Defining the set as an ARRAY. A set is a different composite type.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">3 marks</span> A shop records each product: product code (letters and digits), name, price, number in stock and whether it is on offer. Write the pseudocode to declare the record type Product.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Choose each type from the data.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">TYPE Product and ENDTYPE correct</span> <span class="mk k" data-t="2">ProductCode and Name as STRING; Price as REAL; Stock as INTEGER</span> <span class="mk k" data-t="3">OnOffer as BOOLEAN</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">TYPE Product</span><span class="ln">   DECLARE ProductCode : STRING</span><span class="ln">   DECLARE Name : STRING</span><span class="ln">   DECLARE Price : REAL</span><span class="ln">   DECLARE NumberInStock : INTEGER</span><span class="ln">   DECLARE OnOffer : BOOLEAN</span><span class="ln">ENDTYPE</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using INTEGER for ProductCode. Codes contain letters.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">3 marks</span> Declare an enumerated type Size (Small, Medium, Large) and add a field Size : Size... Write the declaration of the record Shirt with fields Colour (STRING) and Size (the enumerated type), a variable MyShirt, and assign Blue and Large.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Enumerated first, then the record that uses it.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">TYPE Size = (Small, Medium, Large)</span> <span class="mk k" data-t="2">TYPE Shirt with Colour : STRING and ChosenSize : Size, and DECLARE MyShirt : Shirt</span> <span class="mk k" data-t="3">MyShirt.Colour ← "Blue" and MyShirt.ChosenSize ← Large (no quotation marks)</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">TYPE Size = (Small, Medium, Large)</span><span class="ln"> </span><span class="ln">TYPE Shirt</span><span class="ln">   DECLARE Colour : STRING</span><span class="ln">   DECLARE ChosenSize : Size</span><span class="ln">ENDTYPE</span><span class="ln"> </span><span class="ln">DECLARE MyShirt : Shirt</span><span class="ln">MyShirt.Colour ← &quot;Blue&quot;</span><span class="ln">MyShirt.ChosenSize ← Large</span></pre></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">3 marks</span> A is the set {1, 2, 3, 4} and B is the set {3, 4, 5}. State the union, the intersection and the difference A − B.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Unique values only.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Union: {1, 2, 3, 4, 5}</span> <span class="mk k" data-t="2">Intersection: {3, 4}</span> <span class="mk k" data-t="3">A − B: {1, 2}</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Distinguish</span> <span class="mark">2 marks</span> Distinguish between a record and a set.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Think about types, order and duplicates.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A record holds fields of different data types for one item, each accessed by name.</span> <span class="mk k" data-t="2">A set holds unordered, unique values that all have the same data type, and supports union and intersection.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> A programmer stores a person's date of birth in a STRING field, and their telephone number in an INTEGER field. Explain why a different choice would be better for each.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>What can be done with a DATE; what is lost in an integer.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A DATE field can be compared and used in calculations such as age, which a string cannot.</span> <span class="mk k" data-t="2">A telephone number may start with 0, which an INTEGER drops.</span> <span class="mk k" data-t="3">The telephone number is not used in arithmetic, so a STRING is the appropriate type.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">2 marks</span> Write the statement to declare an array of 30 Product records called Stock, and the statement to set the price of the fifth to 2.50.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Array of the record type, dot notation on the element.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">DECLARE Stock : ARRAY[1:30] OF Product</span> <span class="mk k" data-t="2">Stock[5].Price ← 2.50</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Check every field's type.</b> Text and codes: STRING. Whole numbers: INTEGER. Fractions: REAL. Yes or no: BOOLEAN. Dates: DATE. Fixed lists: enumerated.</li>
+    <li><b>Telephone numbers and codes are STRINGs.</b> They are not used in calculations, and may start with 0 or hold letters.</li>
+    <li><b>TYPE ... ENDTYPE, DECLARE on each line.</b> One mark for the frame, then marks for the fields.</li>
+    <li><b>Declare the variable first.</b> DECLARE Pet1 : Pet, then assign each field as Pet1.Field.</li>
+    <li><b>Use the type you are told to use.</b> If the question says use the enumerated type, a STRING field loses the mark.</li>
+    <li><b>Sets: SET OF, DEFINE, values, type.</b> Four things in two statements.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>what a composite type is</td><td>"A type that refers to other data types in its definition and holds several values under a single identifier."</td></tr>
+    <tr><td>what a set is</td><td>"A composite type holding unordered, unique values of one data type, with set operations such as union."</td></tr>
+    <tr><td>what a record is</td><td>"A composite type grouping fields of different data types under one identifier."</td></tr>
+    <tr><td>how to choose a type</td><td>"Use the most appropriate type for what the field holds and how it will be used."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Write pseudocode</td><td>Use exactly the TYPE, DECLARE and ENDTYPE forms.</td></tr>
+    <tr><td>Describe</td><td>Say what it is and what it holds.</td></tr>
+    <tr><td>Define</td><td>Give the exact meaning, using the standard terms.</td></tr>
+    <tr><td>Identify</td><td>Name one field and give a reason.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
