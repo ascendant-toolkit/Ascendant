@@ -1,0 +1,968 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Karnaugh Maps</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 15.2.4</div>
+  <h1>Karnaugh Maps</h1>
+  <p class="cbook">Coursebook: Chapter 15 · Hardware and virtual machines, section 15.2 Boolean algebra and logic circuits</p>
+  <p class="lead">Karnaugh maps for three and four inputs: Gray code layout, looping the 1s, wrap-around, reading the terms and simplifying; animations, a K-map builder and the real Paper 3 questions from 2021 to 2026.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A <b>Karnaugh map</b> (K-map) is a grid that shows a truth table so that <b>neighbouring cells differ in exactly one input</b>, which makes simplification a matter of drawing loops instead of using Boolean algebra. The rows and columns are labelled in <b>Gray code</b> (00, 01, 11, 10), not in binary order. You <b>loop groups of 1s</b> in sizes 1, 2, 4, 8 or 16, as large as possible, and the loops may wrap round the edges. Each loop becomes one AND term made of the inputs that <b>do not change</b> inside the loop, and the terms are joined with OR to give the <b>simplified sum-of-products</b>. A K-map is guaranteed to give an optimal sum-of-products, which is why the exam uses it.</p></div>
+
+  <h2>1 · The layout</h2>
+  <p>With four inputs the columns are A B and the rows are C D. The number in each cell is the row number of the truth table (A is the most significant bit), so cell 11 is row 1011.</p>
+  <div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="num">0</span></td><td><span class="num">4</span></td><td><span class="num">12</span></td><td><span class="num">8</span></td></tr><tr><th>01</th><td><span class="num">1</span></td><td><span class="num">5</span></td><td><span class="num">13</span></td><td><span class="num">9</span></td></tr><tr><th>11</th><td><span class="num">3</span></td><td><span class="num">7</span></td><td><span class="num">15</span></td><td><span class="num">11</span></td></tr><tr><th>10</th><td><span class="num">2</span></td><td><span class="num">6</span></td><td><span class="num">14</span></td><td><span class="num">10</span></td></tr></table></div>
+  <p>With three inputs the paper puts <b>A down the side</b> and <b>B C across the top</b>:</p>
+  <div class="tw"><table class="km"><tr><th>A \ BC</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>0</th><td><span class="num">0</span></td><td><span class="num">1</span></td><td><span class="num">3</span></td><td><span class="num">2</span></td></tr><tr><th>1</th><td><span class="num">4</span></td><td><span class="num">5</span></td><td><span class="num">7</span></td><td><span class="num">6</span></td></tr></table></div>
+  <p>Gray code matters: going from 01 to 11 changes only A, and going from 11 to 10 changes only B, so any two cells side by side differ in one input. The last column (10) is also next to the first (00) because 10 and 00 differ in one bit, so the edges <b>wrap round</b>.</p>
+
+  <h2>2 · Filling in the map</h2>
+  <ul>
+    <li><b>From a truth table</b>: for each row put the output value in the cell with that row's inputs. Row 1011 goes in column A B = 10 and row C D = 11.</li>
+    <li><b>From a sum-of-products</b>: each full product term (every input present) is one cell, so write 1 in the cell it names and 0 everywhere else. <span class="bx">A.<span class="ob">B</span>.C</span> is A = 1, B = 0, C = 1.</li>
+    <li>Write the 0s as well: the mark scheme says "0s must be present".</li>
+  </ul>
+
+  <h2>3 · Looping the 1s</h2>
+  <ol>
+    <li>Every 1 must be in at least one loop.</li>
+    <li>A loop is a rectangle of <b>1, 2, 4, 8 or 16</b> cells (a power of two), containing only 1s, with sides of the grid next to each other.</li>
+    <li>Make each loop <b>as large as possible</b>, and use <b>as few loops</b> as possible. Loops may overlap.</li>
+    <li>Loops may <b>wrap</b> round the left and right edges, round the top and bottom edges, and the four corners together make a loop of four.</li>
+    <li>No diagonals.</li>
+  </ol>
+  <h3>Reading a loop</h3>
+  <p>Look at the labels along the loop's rows and columns. An input that is <b>always 1</b> across the loop goes into the term as it is. An input that is <b>always 0</b> goes in with a bar. An input that <b>changes</b> is left out. A loop of 2 drops one input, a loop of 4 drops two, a loop of 8 drops three.</p>
+  <p>Example (M/J 2026, Paper 31): the map below has 1s in rows 3, 5, 7, 11, 12, 13, 14 and 15.</p>
+  <div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">0</span><span class="n">0</span></td><td><span class="v">0</span><span class="n">4</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">0</span><span class="n">1</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">5</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad)"><span class="v">1</span><span class="n">13</span></td><td><span class="v">0</span><span class="n">9</span></td></tr><tr><th>11</th><td style="box-shadow:inset 0 0 0 3px var(--good)"><span class="v">1</span><span class="n">3</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad),inset 0 0 0 6px var(--good)"><span class="v">1</span><span class="n">7</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad),inset 0 0 0 9px var(--good)"><span class="v">1</span><span class="n">15</span></td><td style="box-shadow:inset 0 0 0 3px var(--good)"><span class="v">1</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td><span class="v">0</span><span class="n">6</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div><p class="kleg">Groups: <span class="kg" style="--c:var(--accent)">A.B</span> <span class="kg" style="--c:var(--bad)">B.D</span> <span class="kg" style="--c:var(--good)">C.D</span></p>
+  <p>The bottom row CD = 11 (loop of 4) is always C = 1, D = 1, so it gives <b>C.D</b>. The AB = 11 column (loop of 4) gives <b>A.B</b>. The block in the middle where B = 1 and D = 1 (loop of 4) gives <b>B.D</b>. Together: <span class="bx">X = A.B + B.D + C.D</span>. Do not carry out any further simplification unless asked.</p>
+  <p>A 3-input example (O/N 2025, Paper 31): the 1s are in cells 2, 3, 5 and 6.</p>
+  <div class="tw"><table class="km"><tr><th>A \ BC</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>0</th><td><span class="v">0</span><span class="n">0</span></td><td><span class="v">0</span><span class="n">1</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">3</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--good)"><span class="v">1</span><span class="n">2</span></td></tr><tr><th>1</th><td><span class="v">0</span><span class="n">4</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">5</span></td><td><span class="v">0</span><span class="n">7</span></td><td style="box-shadow:inset 0 0 0 3px var(--good)"><span class="v">1</span><span class="n">6</span></td></tr></table></div><p class="kleg">Groups: <span class="kg" style="--c:var(--accent)"><span class="ob">A</span>.B</span> <span class="kg" style="--c:var(--bad)">A.<span class="ob">B</span>.C</span> <span class="kg" style="--c:var(--good)">B.<span class="ob">C</span></span></p>
+  <p>The top row loop of two (A = 0, B = 1) gives <span class="bx"><span class="ob">A</span>.B</span>; the right-hand column loop of two (B = 1, C = 0) gives <span class="bx">B.<span class="ob">C</span></span>; the cell A = 1, B = 0, C = 1 cannot be joined to anything, so it is a loop of one with all three inputs: <span class="bx">A.<span class="ob">B</span>.C</span>.</p>
+
+  <h2>4 · Taking it further with algebra</h2>
+  <p>Some questions then ask for the answer in its <b>simplest form</b> using Boolean algebra. Take out a common factor: <span class="bx">A.B + A.D = A.(B + D)</span> and <span class="bx"><span class="ob">A</span>.B + B.<span class="ob">D</span> = B.(<span class="ob">A</span> + <span class="ob">D</span>)</span>.</p>
+
+  <h2>5 · Why use a K-map?</h2>
+  <p>The mark scheme gives: solving logic expressions with a K-map is easier because you do not need to use Boolean algebra; it is guaranteed to give an optimal solution; it converts a complex logic problem into a simpler one. "It makes it easier" on its own does not score.</p>
+
+  <h2>6 · Common ways to lose marks</h2>
+  <ul>
+    <li>Writing the columns in binary order (00, 01, 10, 11) instead of Gray code (00, 01, 11, 10).</li>
+    <li>Looping a group that is not a power of two, such as three cells.</li>
+    <li>Leaving a loop smaller than it could be: a loop of 2 inside a possible loop of 4 gives a longer term.</li>
+    <li>Forgetting wrap-around: the left and right columns, and the top and bottom rows, are neighbours.</li>
+    <li>Putting the changing input into the term. Only the inputs that are constant inside the loop belong.</li>
+    <li>Leaving out the 0s when completing the map.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Filling a K-map from a truth table</h2>
+  <div id="stA"></div>
+  <h2>2 · Drawing the loops and reading the terms</h2>
+  <div id="stB"></div>
+  <h2>3 · A loop that wraps round the edge</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Build your own K-map</h2>
+  <p>Choose 3 or 4 inputs and click cells to flip them between 0 and 1. The loops and the simplified sum-of-products update.</p>
+  <div class="card"><div id="kB" class="btnrow"></div><div id="kM"></div><div class="verdict" id="kV"></div></div>
+  <h2>Lab 2 · Real past paper maps</h2>
+  <p>Pick a question. The map, loops and simplified expression for it appear.</p>
+  <div class="card"><div id="pB" class="btnrow"></div><div id="pM"></div><div class="verdict" id="pV"></div></div>
+  <h2>Lab 3 · Grouping size and the term</h2>
+  <p>Move the slider to choose a loop size. See how many inputs each size drops.</p>
+  <div class="card"><div id="gS"></div><div id="gO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Is this a valid loop?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Read the term from the loop</h2><div id="cl2" class="card"></div>
+  <h2>3 · Match the loop to its term</h2><div id="m1" class="card"></div>
+  <h2>4 · Put the steps for using a K-map in order</h2><div id="o1" class="card"></div>
+  <h2>5 · Counting</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Designing a chip with fewer gates</h3><p>Chip designers simplify the control logic. A K-map turns the truth table of a small circuit into the smallest set of AND and OR terms, so fewer gates are used.</p><div class="use"><b>Exam use:</b> a simplified sum-of-products needs fewer gates.</div></div>
+  <div class="rw"><h3>A seven-segment display</h3><p>Each segment of a digit display lights for certain values of four input bits. A K-map for each segment gives the simplest wiring from the 4-bit number to the segment.</p><div class="use"><b>Exam use:</b> four inputs, a 4 by 4 K-map.</div></div>
+  <div class="rw"><h3>Traffic light and lift controllers</h3><p>The logic that decides when to change lights or open a door has many inputs. Simplifying with K-maps reduces cost and removes unneeded conditions.</p><div class="use"><b>Exam use:</b> fewer terms, fewer wires, fewer faults.</div></div>
+  <div class="rw"><h3>Don't-care conditions</h3><p>Some input combinations never happen. Designers can loop those cells with the 1s to get larger groups and simpler logic. (The exam does not ask this.)</p><div class="use"><b>Exam use:</b> larger loops give simpler terms.</div></div>
+  <div class="rw"><h3>Checking an answer</h3><p>If you are not sure your loops are right, write the truth table for your simplified expression and compare it with the original.</p><div class="use"><b>Exam use:</b> the two truth tables must match.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on Karnaugh maps (Paper 3), 2021 to 2026. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>O/N 2021</td><td>31, 32</td><td>7(b)</td><td>2 + 2 + 2 + 1</td><td>K-map from a truth table, loops, simplified sum-of-products, simplest form</td></tr>
+    <tr><td>O/N 2022</td><td>31, 33</td><td>7</td><td>2 + 2 + 3</td><td>K-map from a sum-of-products, loops, simplified and simplest form</td></tr>
+    <tr><td>M/J 2023</td><td>31, 33</td><td>7</td><td>2 + 2 + 2 + 1</td><td>K-map from a sum-of-products, loops, simplified and simplest form</td></tr>
+    <tr><td>M/J 2023</td><td>32</td><td>9(b)-(e)</td><td>2 + 2 + 2 + 1</td><td>K-map from a truth table, loops, simplified and simplest form</td></tr>
+    <tr><td>M/J 2024</td><td>31</td><td>6(c)</td><td>2 + 2 + 1</td><td>Three-input K-map from a sum-of-products, loops, simplified</td></tr>
+    <tr><td>M/J 2024</td><td>32, 33</td><td>6(c)</td><td>2 + 2 + 1</td><td>Three-input K-map for a different expression each; same format</td></tr>
+    <tr><td>O/N 2024</td><td>31, 33</td><td>7(b)-(d)</td><td>2 + 2 + 2 + 1</td><td>K-map from a truth table, loops, simplified and simplest form</td></tr>
+    <tr><td>O/N 2024</td><td>32</td><td>6(b)-(d)</td><td>2 + 2 + 2</td><td>K-map from a truth table, loops, simplified sum-of-products</td></tr>
+    <tr><td>M/J 2025</td><td>31, 33</td><td>5(b), 3(b)</td><td>2 + 2 + 2</td><td>K-map from a truth table (a different table in each paper), loops, simplified</td></tr>
+    <tr><td>O/N 2025</td><td>31, 32</td><td>6(b)</td><td>2 + 2 + 2</td><td>Three-input K-map from a sum-of-products, loops, simplified</td></tr>
+    <tr><td>O/N 2025</td><td>33</td><td>6(a)</td><td>3 + 2</td><td>Given K-map: loops, simplified sum-of-products</td></tr>
+    <tr><td>M/J 2026</td><td>31</td><td>6(b), (c)</td><td>1 + 3 + 2</td><td>Benefit of a K-map; loops and simplified sum-of-products from a given map</td></tr>
+    <tr><td>M/J 2026</td><td>32</td><td>7(a)</td><td>2 + 2 + 1</td><td>K-map from a truth table, loops, simplified</td></tr>
+    <tr><td>M/J 2026</td><td>33</td><td>6(a)</td><td>2 + 2 + 1</td><td>Given K-map: loops, simplified, simplest form by algebra</td></tr>
+  </table></div>
+  <p class="note">K-maps are examined in Paper 3 in every series from May/June 2021 to May/June 2026, almost always after a truth table or sum-of-products. The 3-input layout used since 2024 has A down the side. The questions below are reworded from the papers; maps are redrawn. Where a mark scheme gives a loop picture, the loops here are the same groups. Check the original paper and mark scheme for the exact wording.</p>
+
+  <h3>From a truth table</h3>
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/31/32 · Q7(b)</span> <span class="cmd">Complete / Draw / Write</span> <span class="mark">2 + 2 + 2 + 1 marks</span> Here is the truth table for Z (rows with Z = 1 are 1001, 1011, 1100, 1101, 1110 and 1111).<div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>D</th><th>Z</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr></table></div>(b)(i) Complete the Karnaugh map (K-map) for the given truth table. (ii) Draw loop(s) around appropriate group(s) of 1s in the K-map to produce an optimal sum-of-products. (iii) Write the Boolean expression from your answer to (ii) as a simplified sum-of-products. (iv) Write the simplified Boolean expression for your answer to (iii).<div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v"></span><span class="n">0</span></td><td><span class="v"></span><span class="n">4</span></td><td><span class="v"></span><span class="n">12</span></td><td><span class="v"></span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v"></span><span class="n">1</span></td><td><span class="v"></span><span class="n">5</span></td><td><span class="v"></span><span class="n">13</span></td><td><span class="v"></span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v"></span><span class="n">3</span></td><td><span class="v"></span><span class="n">7</span></td><td><span class="v"></span><span class="n">15</span></td><td><span class="v"></span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v"></span><span class="n">2</span></td><td><span class="v"></span><span class="n">6</span></td><td><span class="v"></span><span class="n">14</span></td><td><span class="v"></span><span class="n">10</span></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Gray code 00 01 11 10. Ring the AB = 11 column (four 1s) and the block AB = 1x, D = 1.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">Every two correct rows or columns, up to two marks</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">0</span><span class="n">0</span></td><td><span class="v">0</span><span class="n">4</span></td><td><span class="v">1</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">0</span><span class="n">1</span></td><td><span class="v">0</span><span class="n">5</span></td><td><span class="v">1</span><span class="n">13</span></td><td><span class="v">1</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">0</span><span class="n">3</span></td><td><span class="v">0</span><span class="n">7</span></td><td><span class="v">1</span><span class="n">15</span></td><td><span class="v">1</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td><span class="v">0</span><span class="n">6</span></td><td><span class="v">1</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div><p><b>(ii)</b> <span class="mk k" data-t="1">One mark for each correct loop (max 2)</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">0</span><span class="n">0</span></td><td><span class="v">0</span><span class="n">4</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">0</span><span class="n">1</span></td><td><span class="v">0</span><span class="n">5</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad)"><span class="v">1</span><span class="n">13</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">0</span><span class="n">3</span></td><td><span class="v">0</span><span class="n">7</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad)"><span class="v">1</span><span class="n">15</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td><span class="v">0</span><span class="n">6</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div><p class="kleg">Groups: <span class="kg" style="--c:var(--accent)">A.B</span> <span class="kg" style="--c:var(--bad)">A.D</span></p><p><b>(iii)</b> Z = <span class="bx">A.B + A.D</span> <span class="mk k" data-t="1">A.B</span> <span class="mk k" data-t="2">A.D</span><br><b>(iv)</b> Z = <span class="bx">A.(B + D)</span> <span class="mk a" data-t="1">common factor A taken out</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Looping the 1s in column 11 and the 1s in column 10 separately, giving more terms. The loop A.D covers cells in two columns, 11 and 10.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/32 · Q9(b)-(e)</span> <span class="cmd">Complete / Draw / Write</span> <span class="mark">2 + 2 + 2 + 1 marks</span> A truth table with Z = 1 for the rows 0000, 0001, 0010, 0011, 0110 and 0111 represents a logic circuit.<div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>D</th><th>Z</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td></tr><tr><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td></tr><tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td></tr></table></div>(b) Complete the K-map for the given truth table. (c) Draw loop(s) around appropriate group(s) in the K-map to produce an optimal sum-of-products. (d) Write the Boolean logic expression from your answer to part (c) as a simplified sum-of-products. (e) Use Boolean algebra to give your answer to part (d) in its simplest form.<div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v"></span><span class="n">0</span></td><td><span class="v"></span><span class="n">4</span></td><td><span class="v"></span><span class="n">12</span></td><td><span class="v"></span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v"></span><span class="n">1</span></td><td><span class="v"></span><span class="n">5</span></td><td><span class="v"></span><span class="n">13</span></td><td><span class="v"></span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v"></span><span class="n">3</span></td><td><span class="v"></span><span class="n">7</span></td><td><span class="v"></span><span class="n">15</span></td><td><span class="v"></span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v"></span><span class="n">2</span></td><td><span class="v"></span><span class="n">6</span></td><td><span class="v"></span><span class="n">14</span></td><td><span class="v"></span><span class="n">10</span></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two loops of four. Take ~A out at the end.</div>
+    <div class="ans"><p><b>(b)</b> <span class="mk k" data-t="1">Two marks if no errors; one mark if one error</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">1</span><span class="n">0</span></td><td><span class="v">0</span><span class="n">4</span></td><td><span class="v">0</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">1</span><span class="n">1</span></td><td><span class="v">0</span><span class="n">5</span></td><td><span class="v">0</span><span class="n">13</span></td><td><span class="v">0</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">1</span><span class="n">3</span></td><td><span class="v">1</span><span class="n">7</span></td><td><span class="v">0</span><span class="n">15</span></td><td><span class="v">0</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">1</span><span class="n">2</span></td><td><span class="v">1</span><span class="n">6</span></td><td><span class="v">0</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div><p><b>(c)</b> <span class="mk k" data-t="1">One correct loop</span> <span class="mk k" data-t="2">A second correct loop</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">0</span></td><td><span class="v">0</span><span class="n">4</span></td><td><span class="v">0</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">1</span></td><td><span class="v">0</span><span class="n">5</span></td><td><span class="v">0</span><span class="n">13</span></td><td><span class="v">0</span><span class="n">9</span></td></tr><tr><th>11</th><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad)"><span class="v">1</span><span class="n">3</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">7</span></td><td><span class="v">0</span><span class="n">15</span></td><td><span class="v">0</span><span class="n">11</span></td></tr><tr><th>10</th><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad)"><span class="v">1</span><span class="n">2</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">6</span></td><td><span class="v">0</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div><p class="kleg">Groups: <span class="kg" style="--c:var(--accent)"><span class="ob">A</span>.<span class="ob">B</span></span> <span class="kg" style="--c:var(--bad)"><span class="ob">A</span>.C</span></p><p><b>(d)</b> Z = <span class="bx"><span class="ob">A</span>.<span class="ob">B</span> + <span class="ob">A</span>.C</span> <span class="mk k" data-t="1">~A.~B</span> <span class="mk k" data-t="2">~A.C</span><br><b>(e)</b> Z = <span class="bx"><span class="ob">A</span>.(<span class="ob">B</span> + C)</span> <span class="mk a" data-t="1">common factor ~A taken out</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Missing the loop that makes ~A.C: cells 0011, 0010, 0111 and 0110 form a block of four, with C = 1 and A = 0, and a loop of two would give a longer term.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/31/33 · Q7(b)-(d)</span> <span class="cmd">Complete / Draw / Write</span> <span class="mark">2 + 2 + 2 + 1 marks</span> The truth table for a logic circuit has T = 1 for rows 0001, 0011, 1001, 1011, 1101 and 1111.<div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>D</th><th>T</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td></tr><tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr></table></div>(b) Complete the K-map. (c) Draw loop(s) to produce an optimal sum-of-products. (d)(i) Write the Boolean logic expression from your answer to (c) as the simplified sum-of-products. (ii) Use Boolean algebra to write your answer to (d)(i) in its simplest form.<div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v"></span><span class="n">0</span></td><td><span class="v"></span><span class="n">4</span></td><td><span class="v"></span><span class="n">12</span></td><td><span class="v"></span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v"></span><span class="n">1</span></td><td><span class="v"></span><span class="n">5</span></td><td><span class="v"></span><span class="n">13</span></td><td><span class="v"></span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v"></span><span class="n">3</span></td><td><span class="v"></span><span class="n">7</span></td><td><span class="v"></span><span class="n">15</span></td><td><span class="v"></span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v"></span><span class="n">2</span></td><td><span class="v"></span><span class="n">6</span></td><td><span class="v"></span><span class="n">14</span></td><td><span class="v"></span><span class="n">10</span></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>D = 1 in every row with T = 1. One loop wraps across the 00 and 10 columns.</div>
+    <div class="ans"><p><b>(b)</b> <span class="mk k" data-t="1">Two marks if no errors; one mark for one error</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">0</span><span class="n">0</span></td><td><span class="v">0</span><span class="n">4</span></td><td><span class="v">0</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">1</span><span class="n">1</span></td><td><span class="v">0</span><span class="n">5</span></td><td><span class="v">1</span><span class="n">13</span></td><td><span class="v">1</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">1</span><span class="n">3</span></td><td><span class="v">0</span><span class="n">7</span></td><td><span class="v">1</span><span class="n">15</span></td><td><span class="v">1</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td><span class="v">0</span><span class="n">6</span></td><td><span class="v">0</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div><p><b>(c)</b> <span class="mk k" data-t="1">Loop of four for ~B.D (columns 00 and 10, which wrap round)</span> <span class="mk k" data-t="2">Loop of four for A.D (columns 11 and 10)</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">0</span><span class="n">0</span></td><td><span class="v">0</span><span class="n">4</span></td><td><span class="v">0</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">1</span></td><td><span class="v">0</span><span class="n">5</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">13</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad)"><span class="v">1</span><span class="n">9</span></td></tr><tr><th>11</th><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">3</span></td><td><span class="v">0</span><span class="n">7</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">15</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad)"><span class="v">1</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td><span class="v">0</span><span class="n">6</span></td><td><span class="v">0</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div><p class="kleg">Groups: <span class="kg" style="--c:var(--accent)">A.D</span> <span class="kg" style="--c:var(--bad)"><span class="ob">B</span>.D</span></p><p><b>(d)(i)</b> T = <span class="bx"><span class="ob">B</span>.D + A.D</span><br><b>(ii)</b> T = <span class="bx">D.(<span class="ob">B</span> + A)</span> <span class="mk a" data-t="1">common factor D taken out</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Not noticing that columns 00 and 10 are neighbours. The loop for ~B.D needs the wrap-around.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/31 · Q5(b)</span> <span class="cmd">Complete / Draw / Write</span> <span class="mark">2 + 2 + 2 marks</span> This truth table represents a logic circuit (Z = 1 in rows 0000, 0101, 0111, 1000, 1101 and 1111).<div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>D</th><th>Z</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td></tr><tr><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr></table></div>(b)(i) Complete the K-map for the given truth table. (ii) Draw loop(s) around appropriate group(s) to produce an optimal sum-of-products. (iii) Write the Boolean logic expression from your answer to (b)(ii) as the simplified sum-of-products.<div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v"></span><span class="n">0</span></td><td><span class="v"></span><span class="n">4</span></td><td><span class="v"></span><span class="n">12</span></td><td><span class="v"></span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v"></span><span class="n">1</span></td><td><span class="v"></span><span class="n">5</span></td><td><span class="v"></span><span class="n">13</span></td><td><span class="v"></span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v"></span><span class="n">3</span></td><td><span class="v"></span><span class="n">7</span></td><td><span class="v"></span><span class="n">15</span></td><td><span class="v"></span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v"></span><span class="n">2</span></td><td><span class="v"></span><span class="n">6</span></td><td><span class="v"></span><span class="n">14</span></td><td><span class="v"></span><span class="n">10</span></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A block of four in the middle and a pair that wraps round the edge.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">Two marks if no errors; one if one error</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">1</span><span class="n">0</span></td><td><span class="v">0</span><span class="n">4</span></td><td><span class="v">0</span><span class="n">12</span></td><td><span class="v">1</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">0</span><span class="n">1</span></td><td><span class="v">1</span><span class="n">5</span></td><td><span class="v">1</span><span class="n">13</span></td><td><span class="v">0</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">0</span><span class="n">3</span></td><td><span class="v">1</span><span class="n">7</span></td><td><span class="v">1</span><span class="n">15</span></td><td><span class="v">0</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td><span class="v">0</span><span class="n">6</span></td><td><span class="v">0</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div><p><b>(ii)</b> <span class="mk k" data-t="1">One mark per correct loop (max 2)</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">0</span></td><td><span class="v">0</span><span class="n">4</span></td><td><span class="v">0</span><span class="n">12</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">0</span><span class="n">1</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">5</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">13</span></td><td><span class="v">0</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">0</span><span class="n">3</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">7</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">15</span></td><td><span class="v">0</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td><span class="v">0</span><span class="n">6</span></td><td><span class="v">0</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div><p class="kleg">Groups: <span class="kg" style="--c:var(--accent)"><span class="ob">B</span>.<span class="ob">C</span>.<span class="ob">D</span></span> <span class="kg" style="--c:var(--bad)">B.D</span></p><p><b>(iii)</b> Z = <span class="bx">B.D + <span class="ob">B</span>.<span class="ob">C</span>.<span class="ob">D</span></span> <span class="mk k" data-t="1">B.D</span> <span class="mk k" data-t="2">~B.~C.~D</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Leaving the 1s in cells 0000 and 1000 as two separate loops of one. They are neighbours across the wrap, so they make a loop of two.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/33 · Q3(b)</span> <span class="cmd">Complete / Draw / Write</span> <span class="mark">2 + 2 + 2 marks</span> This truth table represents a logic circuit (Z = 1 in rows 0010, 0011, 0100, 1010, 1011 and 1100).<div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>D</th><th>Z</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td></tr><tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td></tr></table></div>(b)(i) Complete the K-map. (ii) Draw loop(s) to produce an optimal sum-of-products. (iii) Write the Boolean logic expression as the simplified sum-of-products.<div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v"></span><span class="n">0</span></td><td><span class="v"></span><span class="n">4</span></td><td><span class="v"></span><span class="n">12</span></td><td><span class="v"></span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v"></span><span class="n">1</span></td><td><span class="v"></span><span class="n">5</span></td><td><span class="v"></span><span class="n">13</span></td><td><span class="v"></span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v"></span><span class="n">3</span></td><td><span class="v"></span><span class="n">7</span></td><td><span class="v"></span><span class="n">15</span></td><td><span class="v"></span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v"></span><span class="n">2</span></td><td><span class="v"></span><span class="n">6</span></td><td><span class="v"></span><span class="n">14</span></td><td><span class="v"></span><span class="n">10</span></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The pair 0100 and 1100 are neighbours.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">Two marks if no errors; one if one error</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">0</span><span class="n">0</span></td><td><span class="v">1</span><span class="n">4</span></td><td><span class="v">1</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">0</span><span class="n">1</span></td><td><span class="v">0</span><span class="n">5</span></td><td><span class="v">0</span><span class="n">13</span></td><td><span class="v">0</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">1</span><span class="n">3</span></td><td><span class="v">0</span><span class="n">7</span></td><td><span class="v">0</span><span class="n">15</span></td><td><span class="v">1</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">1</span><span class="n">2</span></td><td><span class="v">0</span><span class="n">6</span></td><td><span class="v">0</span><span class="n">14</span></td><td><span class="v">1</span><span class="n">10</span></td></tr></table></div><p><b>(ii)</b> <span class="mk k" data-t="1">One mark per correct loop</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">0</span><span class="n">0</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">4</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">0</span><span class="n">1</span></td><td><span class="v">0</span><span class="n">5</span></td><td><span class="v">0</span><span class="n">13</span></td><td><span class="v">0</span><span class="n">9</span></td></tr><tr><th>11</th><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">3</span></td><td><span class="v">0</span><span class="n">7</span></td><td><span class="v">0</span><span class="n">15</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">11</span></td></tr><tr><th>10</th><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">2</span></td><td><span class="v">0</span><span class="n">6</span></td><td><span class="v">0</span><span class="n">14</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">10</span></td></tr></table></div><p class="kleg">Groups: <span class="kg" style="--c:var(--accent)"><span class="ob">B</span>.C</span> <span class="kg" style="--c:var(--bad)">B.<span class="ob">C</span>.<span class="ob">D</span></span></p><p><b>(iii)</b> Z = <span class="bx"><span class="ob">B</span>.C + B.<span class="ob">C</span>.<span class="ob">D</span></span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/32 · Q7(a)</span> <span class="cmd">Complete / Draw / Write</span> <span class="mark">2 + 2 + 1 marks</span> This truth table represents a logic circuit (Z = 1 in rows 0001, 0100 to 0111, 1001 and 1100 to 1111).<div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>D</th><th>Z</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr></table></div>(a)(i) Complete the K-map. (ii) Draw loop(s) to produce an optimal sum-of-products. (iii) Write the Boolean expression from your answer to 7(a)(ii) as a simplified sum-of-products.<div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v"></span><span class="n">0</span></td><td><span class="v"></span><span class="n">4</span></td><td><span class="v"></span><span class="n">12</span></td><td><span class="v"></span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v"></span><span class="n">1</span></td><td><span class="v"></span><span class="n">5</span></td><td><span class="v"></span><span class="n">13</span></td><td><span class="v"></span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v"></span><span class="n">3</span></td><td><span class="v"></span><span class="n">7</span></td><td><span class="v"></span><span class="n">15</span></td><td><span class="v"></span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v"></span><span class="n">2</span></td><td><span class="v"></span><span class="n">6</span></td><td><span class="v"></span><span class="n">14</span></td><td><span class="v"></span><span class="n">10</span></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The two middle columns (AB = 01 and 11) are all 1s: a loop of eight.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">Two marks if no errors present (the 0s must be present); one mark if one error</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">0</span><span class="n">0</span></td><td><span class="v">1</span><span class="n">4</span></td><td><span class="v">1</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">1</span><span class="n">1</span></td><td><span class="v">1</span><span class="n">5</span></td><td><span class="v">1</span><span class="n">13</span></td><td><span class="v">1</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">0</span><span class="n">3</span></td><td><span class="v">1</span><span class="n">7</span></td><td><span class="v">1</span><span class="n">15</span></td><td><span class="v">0</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td><span class="v">1</span><span class="n">6</span></td><td><span class="v">1</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div><p><b>(ii)</b> <span class="mk k" data-t="1">Loop of eight: the columns AB = 01 and 11</span> <span class="mk k" data-t="2">Loop of four: the row CD = 01, wrapping the columns 00 and 10</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">0</span><span class="n">0</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">4</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">1</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad)"><span class="v">1</span><span class="n">5</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad)"><span class="v">1</span><span class="n">13</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">0</span><span class="n">3</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">7</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">15</span></td><td><span class="v">0</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">6</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div><p class="kleg">Groups: <span class="kg" style="--c:var(--accent)">B</span> <span class="kg" style="--c:var(--bad)"><span class="ob">C</span>.D</span></p><p><b>(iii)</b> Z = <span class="bx">B + <span class="ob">C</span>.D</span> <span class="mk k" data-t="1">B (loop of eight drops A, C and D)</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing four terms for the two middle columns. A loop of eight gives one term with three inputs dropped: B.</div>
+  </div></details>
+
+  <h3>From a sum-of-products</h3>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/31/33 · Q7</span> <span class="cmd">Complete / Draw / Write</span> <span class="mark">2 + 2 + 3 marks</span> (a) Complete the K-map for the Boolean expression Z = <span class="bx"><span class="ob">A</span>.B.<span class="ob">C</span>.<span class="ob">D</span> + <span class="ob">A</span>.B.<span class="ob">C</span>.D + A.B.<span class="ob">C</span>.<span class="ob">D</span> + A.B.<span class="ob">C</span>.D + A.<span class="ob">B</span>.<span class="ob">C</span>.<span class="ob">D</span> + A.<span class="ob">B</span>.<span class="ob">C</span>.D</span>. (b) Draw loop(s) around appropriate group(s) in the K-map to produce an optimal sum-of-products. (c) Write the Boolean expression from your answer to (b) as a simplified sum-of-products. Use Boolean algebra to give your answer in its simplest form.<div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v"></span><span class="n">0</span></td><td><span class="v"></span><span class="n">4</span></td><td><span class="v"></span><span class="n">12</span></td><td><span class="v"></span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v"></span><span class="n">1</span></td><td><span class="v"></span><span class="n">5</span></td><td><span class="v"></span><span class="n">13</span></td><td><span class="v"></span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v"></span><span class="n">3</span></td><td><span class="v"></span><span class="n">7</span></td><td><span class="v"></span><span class="n">15</span></td><td><span class="v"></span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v"></span><span class="n">2</span></td><td><span class="v"></span><span class="n">6</span></td><td><span class="v"></span><span class="n">14</span></td><td><span class="v"></span><span class="n">10</span></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Six terms: cells 4, 5, 12, 13, 8, 9. All have C = 0.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Two marks if no errors; one mark if one error</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">0</span><span class="n">0</span></td><td><span class="v">1</span><span class="n">4</span></td><td><span class="v">1</span><span class="n">12</span></td><td><span class="v">1</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">0</span><span class="n">1</span></td><td><span class="v">1</span><span class="n">5</span></td><td><span class="v">1</span><span class="n">13</span></td><td><span class="v">1</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">0</span><span class="n">3</span></td><td><span class="v">0</span><span class="n">7</span></td><td><span class="v">0</span><span class="n">15</span></td><td><span class="v">0</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td><span class="v">0</span><span class="n">6</span></td><td><span class="v">0</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div><p><b>(b)</b> <span class="mk k" data-t="1">One mark for each correct loop (two loops of four that overlap)</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">0</span><span class="n">0</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">4</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad)"><span class="v">1</span><span class="n">12</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">0</span><span class="n">1</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">5</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad)"><span class="v">1</span><span class="n">13</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">0</span><span class="n">3</span></td><td><span class="v">0</span><span class="n">7</span></td><td><span class="v">0</span><span class="n">15</span></td><td><span class="v">0</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td><span class="v">0</span><span class="n">6</span></td><td><span class="v">0</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div><p class="kleg">Groups: <span class="kg" style="--c:var(--accent)">A.<span class="ob">C</span></span> <span class="kg" style="--c:var(--bad)">B.<span class="ob">C</span></span></p><p><b>(c)</b> Simplified: Z = <span class="bx">B.<span class="ob">C</span> + A.<span class="ob">C</span></span><br>Simplest form: Z = <span class="bx"><span class="ob">C</span>.(A + B)</span> <span class="mk a" data-t="1">B.~C</span> <span class="mk a" data-t="2">A.~C</span> <span class="mk a" data-t="3">common factor ~C</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Ringing all six 1s as one group. Six is not a power of two. Use two overlapping groups of four.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/31/33 · Q7</span> <span class="cmd">Complete / Draw / Write</span> <span class="mark">2 + 2 + 2 + 1 marks</span> (a) Complete the K-map for the Boolean expression Z = <span class="bx"><span class="ob">A</span>.<span class="ob">B</span>.<span class="ob">C</span>.<span class="ob">D</span> + <span class="ob">A</span>.<span class="ob">B</span>.<span class="ob">C</span>.D + <span class="ob">A</span>.B.<span class="ob">C</span>.<span class="ob">D</span> + <span class="ob">A</span>.B.<span class="ob">C</span>.D + A.B.<span class="ob">C</span>.<span class="ob">D</span> + A.B.<span class="ob">C</span>.D</span>. (b) Draw loop(s) around appropriate group(s) in the K-map to produce an optimal sum-of-products. (c) Write the Boolean logic expression from your answer to (b) as a simplified sum-of-products. (d) Use Boolean algebra to give your answer to (c) in its simplest form.<div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v"></span><span class="n">0</span></td><td><span class="v"></span><span class="n">4</span></td><td><span class="v"></span><span class="n">12</span></td><td><span class="v"></span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v"></span><span class="n">1</span></td><td><span class="v"></span><span class="n">5</span></td><td><span class="v"></span><span class="n">13</span></td><td><span class="v"></span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v"></span><span class="n">3</span></td><td><span class="v"></span><span class="n">7</span></td><td><span class="v"></span><span class="n">15</span></td><td><span class="v"></span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v"></span><span class="n">2</span></td><td><span class="v"></span><span class="n">6</span></td><td><span class="v"></span><span class="n">14</span></td><td><span class="v"></span><span class="n">10</span></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>All six terms have C = 0 and D either value, so the loops are across the CD = 00 and 01 rows.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Two marks if no errors; one mark if one error</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">1</span><span class="n">0</span></td><td><span class="v">1</span><span class="n">4</span></td><td><span class="v">1</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">1</span><span class="n">1</span></td><td><span class="v">1</span><span class="n">5</span></td><td><span class="v">1</span><span class="n">13</span></td><td><span class="v">0</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">0</span><span class="n">3</span></td><td><span class="v">0</span><span class="n">7</span></td><td><span class="v">0</span><span class="n">15</span></td><td><span class="v">0</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td><span class="v">0</span><span class="n">6</span></td><td><span class="v">0</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div><p><b>(b)</b> <span class="mk k" data-t="1">One mark for each correct loop (max 2)</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">0</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad)"><span class="v">1</span><span class="n">4</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">1</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad)"><span class="v">1</span><span class="n">5</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">13</span></td><td><span class="v">0</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">0</span><span class="n">3</span></td><td><span class="v">0</span><span class="n">7</span></td><td><span class="v">0</span><span class="n">15</span></td><td><span class="v">0</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td><span class="v">0</span><span class="n">6</span></td><td><span class="v">0</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div><p class="kleg">Groups: <span class="kg" style="--c:var(--accent)"><span class="ob">A</span>.<span class="ob">C</span></span> <span class="kg" style="--c:var(--bad)">B.<span class="ob">C</span></span></p><p><b>(c)</b> Z = <span class="bx"><span class="ob">A</span>.<span class="ob">C</span> + B.<span class="ob">C</span></span><br><b>(d)</b> Z = <span class="bx"><span class="ob">C</span>.(<span class="ob">A</span> + B)</span> <span class="mk k" data-t="1">~A.~C</span> <span class="mk k" data-t="2">B.~C</span> <span class="mk a" data-t="1">~C.(~A + B)</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/31 · Q6(b)</span> <span class="cmd">Complete / Draw / Write</span> <span class="mark">2 + 2 + 2 marks</span> (i) Complete the K-map for the Boolean expression <span class="bx"><span class="ob">A</span>.B.C + <span class="ob">A</span>.B.<span class="ob">C</span> + A.<span class="ob">B</span>.C + A.B.<span class="ob">C</span></span>. (ii) Draw loop(s) around appropriate group(s) in the K-map to produce an optimal sum-of-products. (iii) Write the Boolean expression from your answer to part b(ii) as a simplified sum-of-products. Do not carry out any further simplification.<div class="tw"><table class="km"><tr><th>A \ BC</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>0</th><td><span class="v"></span><span class="n">0</span></td><td><span class="v"></span><span class="n">1</span></td><td><span class="v"></span><span class="n">3</span></td><td><span class="v"></span><span class="n">2</span></td></tr><tr><th>1</th><td><span class="v"></span><span class="n">4</span></td><td><span class="v"></span><span class="n">5</span></td><td><span class="v"></span><span class="n">7</span></td><td><span class="v"></span><span class="n">6</span></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A is down the side, B C across the top in Gray code.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">Two marks if no errors; one mark if one error</span></p><div class="tw"><table class="km"><tr><th>A \ BC</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>0</th><td><span class="v">0</span><span class="n">0</span></td><td><span class="v">0</span><span class="n">1</span></td><td><span class="v">1</span><span class="n">3</span></td><td><span class="v">1</span><span class="n">2</span></td></tr><tr><th>1</th><td><span class="v">0</span><span class="n">4</span></td><td><span class="v">1</span><span class="n">5</span></td><td><span class="v">0</span><span class="n">7</span></td><td><span class="v">1</span><span class="n">6</span></td></tr></table></div><p><b>(ii)</b> <span class="mk k" data-t="1">One mark for each correct loop (max 2)</span></p><div class="tw"><table class="km"><tr><th>A \ BC</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>0</th><td><span class="v">0</span><span class="n">0</span></td><td><span class="v">0</span><span class="n">1</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">3</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--good)"><span class="v">1</span><span class="n">2</span></td></tr><tr><th>1</th><td><span class="v">0</span><span class="n">4</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">5</span></td><td><span class="v">0</span><span class="n">7</span></td><td style="box-shadow:inset 0 0 0 3px var(--good)"><span class="v">1</span><span class="n">6</span></td></tr></table></div><p class="kleg">Groups: <span class="kg" style="--c:var(--accent)"><span class="ob">A</span>.B</span> <span class="kg" style="--c:var(--bad)">A.<span class="ob">B</span>.C</span> <span class="kg" style="--c:var(--good)">B.<span class="ob">C</span></span></p><p><b>(iii)</b> <span class="bx"><span class="ob">A</span>.B + B.<span class="ob">C</span> + A.<span class="ob">B</span>.C</span> <span class="mk k" data-t="1">One correct term with a + sign</span> <span class="mk k" data-t="2">All the terms and operators correct with none extra</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Putting the columns in order 00, 01, 10, 11. In Gray code the third column is 11 and the fourth is 10.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/32 · Q6(b)</span> <span class="cmd">Complete / Draw / Write</span> <span class="mark">2 + 2 + 2 marks</span> (i) Complete the K-map for the Boolean expression <span class="bx"><span class="ob">A</span>.<span class="ob">B</span>.C + <span class="ob">A</span>.B.C + A.<span class="ob">B</span>.C + A.B.<span class="ob">C</span></span>. (ii) Draw loop(s) to produce an optimal sum-of-products. (iii) Write the Boolean expression from your answer to part b(ii) as a simplified sum-of-products. Do not carry out any further simplification.<div class="tw"><table class="km"><tr><th>A \ BC</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>0</th><td><span class="v"></span><span class="n">0</span></td><td><span class="v"></span><span class="n">1</span></td><td><span class="v"></span><span class="n">3</span></td><td><span class="v"></span><span class="n">2</span></td></tr><tr><th>1</th><td><span class="v"></span><span class="n">4</span></td><td><span class="v"></span><span class="n">5</span></td><td><span class="v"></span><span class="n">7</span></td><td><span class="v"></span><span class="n">6</span></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two loops of two share the cell 001. The cell 110 stands alone.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">Two marks if no errors; one mark if one error</span></p><div class="tw"><table class="km"><tr><th>A \ BC</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>0</th><td><span class="v">0</span><span class="n">0</span></td><td><span class="v">1</span><span class="n">1</span></td><td><span class="v">1</span><span class="n">3</span></td><td><span class="v">0</span><span class="n">2</span></td></tr><tr><th>1</th><td><span class="v">0</span><span class="n">4</span></td><td><span class="v">1</span><span class="n">5</span></td><td><span class="v">0</span><span class="n">7</span></td><td><span class="v">1</span><span class="n">6</span></td></tr></table></div><p><b>(ii)</b> <span class="mk k" data-t="1">One mark for each correct loop (max 2)</span></p><div class="tw"><table class="km"><tr><th>A \ BC</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>0</th><td><span class="v">0</span><span class="n">0</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--good)"><span class="v">1</span><span class="n">1</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">3</span></td><td><span class="v">0</span><span class="n">2</span></td></tr><tr><th>1</th><td><span class="v">0</span><span class="n">4</span></td><td style="box-shadow:inset 0 0 0 3px var(--good)"><span class="v">1</span><span class="n">5</span></td><td><span class="v">0</span><span class="n">7</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">6</span></td></tr></table></div><p class="kleg">Groups: <span class="kg" style="--c:var(--accent)"><span class="ob">A</span>.C</span> <span class="kg" style="--c:var(--bad)">A.B.<span class="ob">C</span></span> <span class="kg" style="--c:var(--good)"><span class="ob">B</span>.C</span></p><p><b>(iii)</b> <span class="bx"><span class="ob">A</span>.C + <span class="ob">B</span>.C + A.B.<span class="ob">C</span></span> <span class="mk k" data-t="1">One correct term with a + sign</span> <span class="mk k" data-t="2">All the terms and operators correct with none extra</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Ringing the cell 110 together with 010 that is a 0 on the map. A loop can contain only 1s.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/31 · Q6(c)</span> <span class="cmd">Complete / Draw / Write</span> <span class="mark">2 + 2 + 1 marks</span> (c)(i) Complete the K-map for the Boolean expression <span class="bx"><span class="ob">A</span>.<span class="ob">B</span>.<span class="ob">C</span> + <span class="ob">A</span>.<span class="ob">B</span>.C + A.<span class="ob">B</span>.<span class="ob">C</span> + A.<span class="ob">B</span>.C + A.B.<span class="ob">C</span> + A.B.C</span>. (ii) Draw loop(s) around appropriate group(s) to produce an optimal sum-of-products. (iii) Write the Boolean expression from your answer to part (c)(ii) as a simplified sum-of-products.<div class="tw"><table class="km"><tr><th>A \ BC</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>0</th><td><span class="v"></span><span class="n">0</span></td><td><span class="v"></span><span class="n">1</span></td><td><span class="v"></span><span class="n">3</span></td><td><span class="v"></span><span class="n">2</span></td></tr><tr><th>1</th><td><span class="v"></span><span class="n">4</span></td><td><span class="v"></span><span class="n">5</span></td><td><span class="v"></span><span class="n">7</span></td><td><span class="v"></span><span class="n">6</span></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The A = 1 row is all 1s: a loop of four.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">Two marks if all correct; one mark if one error</span></p><div class="tw"><table class="km"><tr><th>A \ BC</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>0</th><td><span class="v">1</span><span class="n">0</span></td><td><span class="v">1</span><span class="n">1</span></td><td><span class="v">0</span><span class="n">3</span></td><td><span class="v">0</span><span class="n">2</span></td></tr><tr><th>1</th><td><span class="v">1</span><span class="n">4</span></td><td><span class="v">1</span><span class="n">5</span></td><td><span class="v">1</span><span class="n">7</span></td><td><span class="v">1</span><span class="n">6</span></td></tr></table></div><p><b>(ii)</b> <span class="mk k" data-t="1">One mark for each correct loop (max 2)</span></p><div class="tw"><table class="km"><tr><th>A \ BC</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>0</th><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">0</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">1</span></td><td><span class="v">0</span><span class="n">3</span></td><td><span class="v">0</span><span class="n">2</span></td></tr><tr><th>1</th><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad)"><span class="v">1</span><span class="n">4</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad)"><span class="v">1</span><span class="n">5</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">7</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">6</span></td></tr></table></div><p class="kleg">Groups: <span class="kg" style="--c:var(--accent)">A</span> <span class="kg" style="--c:var(--bad)"><span class="ob">B</span></span></p><p><b>(iii)</b> Z = <span class="bx">A + <span class="ob">B</span></span> <span class="mk k" data-t="1">A + ~B</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing A.B + A.~B + ... The bottom row is a loop of four, which drops B and C to give just A.</div>
+  </div></details>
+
+  <h3>Given a K-map</h3>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/31 · Q6(b)(c)</span> <span class="cmd">Describe / Draw / Write</span> <span class="mark">1 + 3 + 2 marks</span> (b) Describe one benefit of using a Karnaugh map (K-map) for solving logic problems. (c) The K-map represents a logic circuit with four inputs. (i) Draw loop(s) around appropriate group(s) in the K-map to produce an optimal sum-of-products. (ii) Write the Boolean expression from your answer to 6(c)(i) as a simplified sum-of-products. Do not carry out any further simplification.<div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">0</span><span class="n">0</span></td><td><span class="v">0</span><span class="n">4</span></td><td><span class="v">1</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">0</span><span class="n">1</span></td><td><span class="v">1</span><span class="n">5</span></td><td><span class="v">1</span><span class="n">13</span></td><td><span class="v">0</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">1</span><span class="n">3</span></td><td><span class="v">1</span><span class="n">7</span></td><td><span class="v">1</span><span class="n">15</span></td><td><span class="v">1</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td><span class="v">0</span><span class="n">6</span></td><td><span class="v">1</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Three loops of four. Any two overlapping loops are allowed.</div>
+    <div class="ans"><p><b>(b)</b> <span class="mk k" data-t="1">It makes solving logic expressions easier because you do not need Boolean algebra, or it is guaranteed to give an optimal solution, or it converts complex logic problems into simpler ones</span></p><p><b>(c)(i)</b> <span class="mk k" data-t="1">Loop for C.D (the CD = 11 row)</span> <span class="mk k" data-t="2">Loop for A.B (the AB = 11 column)</span> <span class="mk k" data-t="3">Loop for B.D</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">0</span><span class="n">0</span></td><td><span class="v">0</span><span class="n">4</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">0</span><span class="n">1</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">5</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad)"><span class="v">1</span><span class="n">13</span></td><td><span class="v">0</span><span class="n">9</span></td></tr><tr><th>11</th><td style="box-shadow:inset 0 0 0 3px var(--good)"><span class="v">1</span><span class="n">3</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad),inset 0 0 0 6px var(--good)"><span class="v">1</span><span class="n">7</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad),inset 0 0 0 9px var(--good)"><span class="v">1</span><span class="n">15</span></td><td style="box-shadow:inset 0 0 0 3px var(--good)"><span class="v">1</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td><span class="v">0</span><span class="n">6</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div><p class="kleg">Groups: <span class="kg" style="--c:var(--accent)">A.B</span> <span class="kg" style="--c:var(--bad)">B.D</span> <span class="kg" style="--c:var(--good)">C.D</span></p><p><b>(ii)</b> <span class="bx">A.B + B.D + C.D</span> <span class="mk k" data-t="1">One correct term</span> <span class="mk k" data-t="2">All three terms joined by + with nothing extra</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying only 'it makes it easier'. That does not score on its own: give a reason, such as no Boolean algebra needed or guaranteed optimal.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/33 · Q6(a)</span> <span class="cmd">Draw / Write</span> <span class="mark">3 + 2 marks</span> (a) The K-map represents a logic circuit with four inputs. (i) Draw loop(s) around appropriate group(s) in the K-map to produce an optimal sum-of-products. (ii) Write the Boolean expression from your answer to a(i) as a simplified sum-of-products.<div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">0</span><span class="n">0</span></td><td><span class="v">0</span><span class="n">4</span></td><td><span class="v">0</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">1</span><span class="n">1</span></td><td><span class="v">1</span><span class="n">5</span></td><td><span class="v">1</span><span class="n">13</span></td><td><span class="v">0</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">0</span><span class="n">3</span></td><td><span class="v">1</span><span class="n">7</span></td><td><span class="v">1</span><span class="n">15</span></td><td><span class="v">1</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td><span class="v">0</span><span class="n">6</span></td><td><span class="v">1</span><span class="n">14</span></td><td><span class="v">1</span><span class="n">10</span></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Three groups of four. Two of them overlap in the cell 1111.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">Loop for ~A.~C.D (cells 0001 and 0101: a pair)</span> <span class="mk k" data-t="2">Loop of four for B.D</span> <span class="mk k" data-t="3">Loop of four for A.C</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">0</span><span class="n">0</span></td><td><span class="v">0</span><span class="n">4</span></td><td><span class="v">0</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">1</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--good)"><span class="v">1</span><span class="n">5</span></td><td style="box-shadow:inset 0 0 0 3px var(--good)"><span class="v">1</span><span class="n">13</span></td><td><span class="v">0</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">0</span><span class="n">3</span></td><td style="box-shadow:inset 0 0 0 3px var(--good)"><span class="v">1</span><span class="n">7</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad),inset 0 0 0 6px var(--good)"><span class="v">1</span><span class="n">15</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td><span class="v">0</span><span class="n">6</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">14</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">10</span></td></tr></table></div><p class="kleg">Groups: <span class="kg" style="--c:var(--accent)"><span class="ob">A</span>.<span class="ob">C</span>.D</span> <span class="kg" style="--c:var(--bad)">A.C</span> <span class="kg" style="--c:var(--good)">B.D</span></p><p><b>(ii)</b> <span class="bx"><span class="ob">A</span>.<span class="ob">C</span>.D + B.D + A.C</span> <span class="mk k" data-t="1">One correct term with a + sign</span> <span class="mk k" data-t="2">All three terms correct with nothing extra</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/33 · Q6(a)</span> <span class="cmd">Draw / Write</span> <span class="mark">2 + 2 + 1 marks</span> (a) The K-map represents a logic circuit with four inputs. (i) Draw loop(s) around appropriate group(s) in the K-map to produce an optimal sum-of-products. (ii) Write the Boolean expression from your answer to 6(a)(i) as a simplified sum-of-products. Do not carry out any further simplification. (iii) Write the Boolean expression from your answer to 6(a)(ii) in its simplest form by using Boolean algebra to simplify it.<div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">0</span><span class="n">0</span></td><td><span class="v">1</span><span class="n">4</span></td><td><span class="v">1</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">0</span><span class="n">1</span></td><td><span class="v">1</span><span class="n">5</span></td><td><span class="v">0</span><span class="n">13</span></td><td><span class="v">0</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">0</span><span class="n">3</span></td><td><span class="v">1</span><span class="n">7</span></td><td><span class="v">0</span><span class="n">15</span></td><td><span class="v">0</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td><span class="v">1</span><span class="n">6</span></td><td><span class="v">1</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One loop of four is a whole column. The other wraps top to bottom.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">Loop of four: the AB = 01 column</span> <span class="mk k" data-t="2">Loop of four: B = 1, D = 0, wrapping the top and bottom rows</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td><span class="v">0</span><span class="n">0</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad)"><span class="v">1</span><span class="n">4</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">12</span></td><td><span class="v">0</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">0</span><span class="n">1</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">5</span></td><td><span class="v">0</span><span class="n">13</span></td><td><span class="v">0</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">0</span><span class="n">3</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">7</span></td><td><span class="v">0</span><span class="n">15</span></td><td><span class="v">0</span><span class="n">11</span></td></tr><tr><th>10</th><td><span class="v">0</span><span class="n">2</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 6px var(--bad)"><span class="v">1</span><span class="n">6</span></td><td style="box-shadow:inset 0 0 0 3px var(--bad)"><span class="v">1</span><span class="n">14</span></td><td><span class="v">0</span><span class="n">10</span></td></tr></table></div><p class="kleg">Groups: <span class="kg" style="--c:var(--accent)"><span class="ob">A</span>.B</span> <span class="kg" style="--c:var(--bad)">B.<span class="ob">D</span></span></p><p><b>(ii)</b> <span class="bx"><span class="ob">A</span>.B + B.<span class="ob">D</span></span> <span class="mk k" data-t="1">One correct Boolean term</span> <span class="mk k" data-t="2">Both terms joined by + with no others</span><br><b>(iii)</b> <span class="bx">B.(<span class="ob">A</span> + <span class="ob">D</span>)</span> <span class="mk a" data-t="1">common factor B taken out</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Missing the wrap-around loop: cells 0100 and 1100 (top row) and 0110 and 1110 (bottom row) are neighbours across the top and bottom edges.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Complete</span> <span class="mark">3 marks</span> A logic circuit has inputs A, B and C. The output is 1 for the inputs 000, 001, 010 and 011 and 0 otherwise. Draw the K-map (A down the side, BC across the top), loop the 1s and write the simplified expression.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Gray code order for BC.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Map with 1s in the A = 0 row, and 0s in the A = 1 row</span> <span class="mk k" data-t="2">One loop of four for the whole A = 0 row</span> <span class="mk k" data-t="3">Expression: ~A</span></p><div class="tw"><table class="km"><tr><th>A \ BC</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>0</th><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">0</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">1</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">3</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">2</span></td></tr><tr><th>1</th><td><span class="v">0</span><span class="n">4</span></td><td><span class="v">0</span><span class="n">5</span></td><td><span class="v">0</span><span class="n">7</span></td><td><span class="v">0</span><span class="n">6</span></td></tr></table></div><p class="kleg">Groups: <span class="kg" style="--c:var(--accent)"><span class="ob">A</span></span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Draw</span> <span class="mark">4 marks</span> Four inputs A, B, C and D. The 1s are in the four corner cells. Draw the K-map, loop the 1s and write the simplified expression.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The corners are neighbours across both edges.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Ones in cells 0000, 0010, 1000 and 1010</span> <span class="mk k" data-t="2">One loop of four that wraps round the corners</span> <span class="mk k" data-t="3">Constant inputs: B = 0 and D = 0</span> <span class="mk k" data-t="4">Expression: ~B.~D</span></p><div class="tw"><table class="km"><tr><th>CD \ AB</th><th>00</th><th>01</th><th>11</th><th>10</th></tr><tr><th>00</th><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">0</span></td><td><span class="v">0</span><span class="n">4</span></td><td><span class="v">0</span><span class="n">12</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">8</span></td></tr><tr><th>01</th><td><span class="v">0</span><span class="n">1</span></td><td><span class="v">0</span><span class="n">5</span></td><td><span class="v">0</span><span class="n">13</span></td><td><span class="v">0</span><span class="n">9</span></td></tr><tr><th>11</th><td><span class="v">0</span><span class="n">3</span></td><td><span class="v">0</span><span class="n">7</span></td><td><span class="v">0</span><span class="n">15</span></td><td><span class="v">0</span><span class="n">11</span></td></tr><tr><th>10</th><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">2</span></td><td><span class="v">0</span><span class="n">6</span></td><td><span class="v">0</span><span class="n">14</span></td><td style="box-shadow:inset 0 0 0 3px var(--accent)"><span class="v">1</span><span class="n">10</span></td></tr></table></div><p class="kleg">Groups: <span class="kg" style="--c:var(--accent)"><span class="ob">B</span>.<span class="ob">D</span></span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why the K-map labels use the order 00, 01, 11, 10 instead of 00, 01, 10, 11.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Think about neighbouring cells.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">It is Gray code: only one input changes between neighbouring cells, including from the last column back to the first</span> <span class="mk k" data-t="2">So adjacent 1s can be grouped, and the group has terms in which one input has been eliminated</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">3 marks</span> State the rules for forming a loop on a K-map.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Size, shape and contents.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The loop contains only 1s</span> <span class="mk k" data-t="2">Its size is a power of two: 1, 2, 4, 8 or 16, and it is a rectangle with no diagonals</span> <span class="mk k" data-t="3">Loops should be as large as possible; they may overlap and may wrap round the edges</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">3 marks</span> A loop of four covers the cells with A = 1 and B = 1, for every value of C and D. State its term and the number of inputs it drops.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Which inputs are constant?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A is always 1 and B is always 1, so the term contains both</span> <span class="mk k" data-t="2">C and D change inside the loop, so they are left out</span> <span class="mk k" data-t="3">Term A.B: two inputs dropped</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Gray code order.</b> Label columns and rows 00, 01, 11, 10.</li>
+    <li><b>Write the 0s.</b> The mark scheme says 0s must be present.</li>
+    <li><b>Loop only 1s, in powers of two.</b> 1, 2, 4, 8 or 16. Large loops, few loops.</li>
+    <li><b>Check the edges.</b> Left and right edges, top and bottom, and the four corners wrap round.</li>
+    <li><b>Constant inputs go in the term.</b> Always 1: plain. Always 0: barred. Changing: left out.</li>
+    <li><b>Do not simplify further unless asked.</b> 'Do not carry out any further simplification'.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>a K-map</td><td>"A grid of the truth table in Gray code order so that neighbouring 1s can be looped to simplify a sum-of-products."</td></tr>
+    <tr><td>Gray code</td><td>"An order of binary numbers in which neighbours differ in one bit."</td></tr>
+    <tr><td>a loop of four</td><td>"Drops two inputs, so its term has two fewer inputs."</td></tr>
+    <tr><td>the benefit of a K-map</td><td>"Easier than Boolean algebra and guaranteed to give an optimal solution."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Complete</td><td>Fill in every cell, including 0s.</td></tr>
+    <tr><td>Draw</td><td>Loop the groups of 1s on the map.</td></tr>
+    <tr><td>Write</td><td>Give the sum-of-products from your loops.</td></tr>
+    <tr><td>Describe</td><td>Give a benefit with a reason.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+/* circuit drawer: geom comes from ak15.circuit(); vals colours the wires */
+function circEval(G, inp, st) {
+  const v = Object.assign({}, inp); G.net.forEach(([n]) => v[n] = (st && st[n]) || 0);
+  for (let k = 0; k < 8; k++) G.net.forEach(([n, t, s]) => {
+    const a = s.map((x) => v[x]); let base = t, neg = false;
+    if (t !== "NOT" && t[0] === "N") { base = t.slice(1); neg = true; }
+    let r = base === "AND" ? a.every((x) => x) : base === "OR" ? a.some((x) => x) : base === "XOR" ? a.reduce((p, x) => p + x, 0) % 2 === 1 : !a[0];
+    r = (neg ? !r : r) ? 1 : 0; v[n] = r;
+  });
+  return v;
+}
+function circInner(G, vals, opt) {
+  opt = opt || {};
+  const cl = (s) => (vals ? (vals[s] ? "w on" : "w off") : "w"); let o = "";
+  G.wires.forEach((w) => { o += `<path class="${cl(w.s)}" d="${w.d}"/>`; if (w.dot) o += `<circle class="dot" cx="${w.dot[0]}" cy="${w.dot[1]}" r="3.2"/>`; });
+  G.outs.forEach((w) => o += `<path class="${cl(w.s)}" d="${w.d}"/>`);
+  G.gates.forEach((g) => { o += g.svg; if (!G.outset.includes(g.n)) o += `<text class="sm" x="${g.ox + 4}" y="${g.cy - 7}">${g.n}${vals && opt.vals ? " = " + vals[g.n] : ""}</text>`; });
+  G.inputs.forEach((i) => o += `<text class="lbl bd" x="2" y="${i.y + 4}">${i.n}${vals ? " " + vals[i.n] : ""}</text>`);
+  G.outs.forEach((w) => o += `<text class="lbl bd" x="${w.x + 6}" y="${w.y + 4}">${w.s}${vals ? " = " + vals[w.s] : ""}</text>`);
+  return o;
+}
+function circFit(G, vals, W, opt) {
+  const k = Math.min(2.2, (W - 20) / G.w), dx = (W - G.w * k) / 2;
+  return `<g transform="translate(${dx.toFixed(1)},6) scale(${k.toFixed(3)})">` + circInner(G, vals, opt) + "</g>";
+}
+function circSvg(G, vals, opt) {
+  return `<svg viewBox="0 0 ${G.w} ${G.h}" style="width:${Math.round(G.w * 1.2)}px;max-width:100%;display:block">` + circInner(G, vals, opt) + "</svg>";
+}
+/* toggle lab: one button per input, live circuit and a table of every row with the current one highlighted */
+function circLab(el, G, work, outs) {
+  const ins = G.in; let cur = ins.map(() => 0);
+  const root = typeof el === "string" ? $(el) : el;
+  root.innerHTML = '<div class="btnrow" data-b></div><div data-s></div><div data-t></div>';
+  const bw = root.querySelector("[data-b]"), sw = root.querySelector("[data-s]"), tw = root.querySelector("[data-t]");
+  function paint() {
+    const inp = {}; ins.forEach((n, i) => inp[n] = cur[i]);
+    const v = circEval(G, inp);
+    sw.innerHTML = circSvg(G, v, { vals: true });
+    bw.querySelectorAll("button").forEach((b, i) => { b.textContent = ins[i] + " = " + cur[i]; b.className = cur[i] ? "on" : ""; });
+    const cols = ins.concat(work, outs); let h = '<div class="tw"><table class="t mono"><tr>' + cols.map((c) => `<th>${c}</th>`).join("") + "</tr>";
+    for (let m = 0; m < 1 << ins.length; m++) {
+      const b = ins.map((_, i) => (m >> (ins.length - 1 - i)) & 1), iv = {}; ins.forEach((n, i) => iv[n] = b[i]);
+      const r = circEval(G, iv), on = b.every((x, i) => x === cur[i]);
+      h += `<tr style="${on ? "background:var(--accent-soft);font-weight:700" : ""}">` + b.map((x) => `<td>${x}</td>`).join("") + work.concat(outs).map((n) => `<td>${r[n]}</td>`).join("") + "</tr>";
+    }
+    tw.innerHTML = h + "</table></div>";
+  }
+  ins.forEach((n, i) => { const b = document.createElement("button"); b.onclick = () => { cur[i] ^= 1; paint(); }; bw.appendChild(b); });
+  paint();
+}
+
+/* ---- Boolean helpers (same notation and logic as the Python side) ---- */
+function obJS(s) {
+  const neg = (i) => { if (s[i] === "~") { const [h, j] = neg(i + 1); return ['<span class="ob">' + h + "</span>", j]; } if (s[i] === "(") { const [h, j] = seq(i + 1); return ['<span class="ob">' + h + "</span>", j + 1]; } return ['<span class="ob">' + s[i] + "</span>", i + 1]; };
+  const seq = (i) => { let o = ""; while (i < s.length && s[i] !== ")") { if (s[i] === "~") { const [h, j] = neg(i + 1); o += h; i = j; } else if (s[i] === "(") { const [h, j] = seq(i + 1); o += "(" + h + ")"; i = j + 1; } else { o += s[i]; i++; } } return [o, i]; };
+  return seq(0)[0];
+}
+const bitsOf = (m, nv) => Array.from({ length: nv }, (_, i) => (m >> (nv - 1 - i)) & 1);
+function coverOf(pat, nv) { const r = []; for (let m = 0; m < 1 << nv; m++) { const b = bitsOf(m, nv); if ([...pat].every((p, i) => p === "-" || +p === b[i])) r.push(m); } return r; }
+function termOf(pat, names) { const t = [...pat].map((p, i) => (p === "1" ? names[i] : p === "0" ? "~" + names[i] : "")).filter((x) => x); return t.length ? t.join(".") : "1"; }
+function primeCover(mins, nv) {
+  const ms = new Set(mins), pats = []; const gen = (p) => { if (p.length === nv) { pats.push(p); return; } ["0", "1", "-"].forEach((c) => gen(p + c)); }; gen("");
+  const ok = pats.filter((p) => { const c = coverOf(p, nv); return c.length && c.every((m) => ms.has(m)); });
+  const cv = {}; ok.forEach((p) => cv[p] = new Set(coverOf(p, nv)));
+  const primes = ok.filter((p) => !ok.some((q) => q !== p && cv[q].size > cv[p].size && [...cv[p]].every((m) => cv[q].has(m))));
+  let best = null;
+  for (let k = 1; k <= primes.length && !best; k++) { const pick = (start, chosen) => { if (chosen.length === k) { const u = new Set(); chosen.forEach((p) => cv[p].forEach((m) => u.add(m))); if (u.size === ms.size && [...ms].every((m) => u.has(m))) { const lit = chosen.reduce((a, p) => a + [...p].filter((c) => c !== "-").length, 0); if (!best || lit < best.lit) best = { lit, chosen: chosen.slice() }; } return; } for (let i = start; i < primes.length; i++) { chosen.push(primes[i]); pick(i + 1, chosen); chosen.pop(); } }; pick(0, []); }
+  return best ? best.chosen.map((p) => ({ pat: p, cells: coverOf(p, nv) })) : [];
+}
+function sopJS(mins, names) { if (!mins.length) return "0"; return [...mins].sort((a, b) => a - b).map((m) => termOf(bitsOf(m, names.length).join(""), names)).join(" + "); }
+function simpJS(mins, names) { const nv = names.length; if (!mins.length) return "0"; if (mins.length === 1 << nv) return "1"; return primeCover(mins, nv).map((g) => termOf(g.pat, names)).join(" + "); }
+const GRAYS = ["00", "01", "11", "10"], KCOL = ["var(--accent)", "var(--bad)", "var(--good)", "var(--warn)", "var(--k)", "var(--n)"];
+/* K-map table as HTML; mins is the set of ones, groups a list of cell lists to ring, click a cell with data-m */
+function kmapJS(mins, names, groups, clickable) {
+  const nv = names.length, ms = new Set(mins);
+  const cols = nv === 4 ? GRAYS : nv === 3 ? GRAYS : ["0", "1"], rows = nv === 4 ? GRAYS : nv === 3 ? ["0", "1"] : ["0", "1"];
+  const corner = nv === 4 ? names[2] + names[3] + " \\ " + names[0] + names[1] : nv === 3 ? names[0] + " \\ " + names[1] + names[2] : names[1] + " \\ " + names[0];
+  let h = '<div class="tw"><table class="km"><tr><th>' + corner + "</th>" + cols.map((c) => "<th>" + c + "</th>").join("") + "</tr>";
+  rows.forEach((r) => { h += "<tr><th>" + r + "</th>"; cols.forEach((c) => { const m = parseInt(nv === 3 ? r + c : c + r, 2); const gi = (groups || []).map((g, k) => (g.includes(m) ? k : -1)).filter((k) => k >= 0); const sh = gi.map((k, j) => "inset 0 0 0 " + (3 + 3 * j) + "px " + KCOL[k % 6]).join(","); h += '<td data-m="' + m + '"' + (sh ? ' style="box-shadow:' + sh + '"' : "") + (clickable ? ' class="clk"' : "") + '><span class="v">' + (ms.has(m) ? 1 : 0) + '</span><span class="n">' + m + "</span></td>"; }); h += "</tr>"; });
+  return h + "</table></div>";
+}
+function kgroupsJS(mins, names) {
+  const nv = names.length, cov = (mins.length && mins.length < 1 << nv) ? primeCover(mins, nv) : [];
+  const leg = cov.map((g, i) => '<span class="kg" style="--c:' + KCOL[i % 6] + '">' + obJS(termOf(g.pat, names)) + "</span>").join(" ");
+  return kmapJS(mins, names, cov.map((g) => g.cells), true) + '<p class="kleg">' + (cov.length ? "Groups: " + leg : mins.length ? "Every cell is 1: the output is always 1." : "No 1s: the output is always 0.") + "</p>";
+}
+const PRE = [["M/J 2026 P31 6(c)", "ABCD", [3, 5, 7, 11, 12, 13, 14, 15]], ["M/J 2026 P32 7(a)", "ABCD", [1, 4, 5, 6, 7, 9, 12, 13, 14, 15]], ["M/J 2026 P33 6(a)", "ABCD", [4, 5, 6, 7, 12, 14]], ["O/N 2025 P33 6(a)", "ABCD", [1, 5, 7, 10, 11, 13, 14, 15]], ["O/N 2025 P31 6(b)", "ABC", [2, 3, 5, 6]], ["O/N 2025 P32 6(b)", "ABC", [1, 3, 5, 6]], ["M/J 2025 P31 5(b)", "ABCD", [0, 5, 7, 8, 13, 15]], ["O/N 2024 P31/33 7", "ABCD", [1, 3, 9, 11, 13, 15]], ["M/J 2023 P32 9", "ABCD", [0, 1, 2, 3, 6, 7]], ["O/N 2021 P31/32 7(b)", "ABCD", [9, 11, 12, 13, 14, 15]]];
+
+/* K-map drawn as SVG: o.shown = set of cells whose value is shown, o.groups = [{cells, k}] */
+function kmDraw(names, mins, o) {
+  const nv = names.length, cols = GRAYS, rows = nv === 4 ? GRAYS : ["0", "1"], X0 = (o.ox || 0) + 96, Y0 = (o.oy || 0) + 40, cw = 70, ch = 52; let s = "";
+  const idx = (c, r) => parseInt(nv === 3 ? r + c : c + r, 2), cell = (m) => { for (let ri = 0; ri < rows.length; ri++) for (let ci = 0; ci < 4; ci++) if (idx(cols[ci], rows[ri]) === m) return [ci, ri]; };
+  s += SV.text(X0 - 8, Y0 - 24, nv === 4 ? "CD \\ AB" : "A \\ BC", "sm", { "text-anchor": "end" });
+  cols.forEach((c, i) => (s += SV.text(X0 + i * cw + cw / 2, Y0 - 10, c, "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono)" })));
+  rows.forEach((r, i) => (s += SV.text(X0 - 14, Y0 + i * ch + ch / 2 + 5, r, "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono)" })));
+  rows.forEach((r, ri) => cols.forEach((c, ci) => { const m = idx(c, r), shown = !o.shown || o.shown.has(m); s += SV.rect(X0 + ci * cw, Y0 + ri * ch, cw, ch, "cell", { rx: 2 }) + (shown ? SV.text(X0 + ci * cw + cw / 2, Y0 + ri * ch + ch / 2 + 7, mins.includes(m) ? "1" : "0", "lbl bd", { "text-anchor": "middle", style: "font-size:22px;font-family:var(--mono)" }) : "") + SV.text(X0 + ci * cw + cw - 5, Y0 + ri * ch + ch - 5, String(m), "sm", { "text-anchor": "end", style: "font-size:9px" }); }));
+  (o.groups || []).forEach((g, k) => g.cells.forEach((m) => { const [ci, ri] = cell(m); s += SV.rect(X0 + ci * cw + 3 + 3 * g.k, Y0 + ri * ch + 3 + 3 * g.k, cw - 6 - 6 * g.k, ch - 6 - 6 * g.k, "ax", { rx: 8, fill: "none", style: "stroke:" + KCOL[g.k % 6] + ";stroke-width:3" }); }));
+  return s;
+}
+/* 1: truth table to map */
+(function () {
+  const names = ["A", "B", "C", "D"], mins = [0, 5, 7, 8, 13, 15], order = [0, 5, 7, 8, 13, 15];
+  const draw = (s) => { const k = Math.round(s.i); let o = SV.text(14, 20, "A B C D   Z", "lbl bd", { style: "font-family:var(--mono)" });
+    for (let m = 0; m < 16; m++) { const one = mins.includes(m), at = order.indexOf(m), cur = one && at === k - 1, done = one && at < k - 1; o += SV.rect(8, 28 + m * 22, 150, 20, cur ? "cell-warn" : done ? "cell-ok" : "cell", { rx: 3 }) + SV.text(14, 43 + m * 22, bitsOf(m, 4).join(" ") + "   " + (one ? 1 : 0), "lbl", { style: "font-family:var(--mono);font-size:12px" }); }
+    const mm = mins.filter((m) => order.indexOf(m) < k);
+    return o + kmDraw(names, mm, { ox: 170, oy: 0, shown: k === 0 ? new Set() : k === 6 ? undefined : new Set(mm) }); };
+  const caps = ["Each row of the truth table has a cell on the map. Columns are A B and rows are C D, both in Gray code order.", "Row 0000 (Z = 1) goes in column AB = 00, row CD = 00.", "Row 0101 (Z = 1): AB = 01, CD = 01.", "Row 0111: AB = 01, CD = 11.", "Row 1000: AB = 10, CD = 00. This cell is at the far right of the map.", "Row 1101: AB = 11, CD = 01.", "Row 1111: AB = 11, CD = 11. All six 1s are placed; every other cell is 0."];
+  Lib.stepper($("#stA"), { w: 560, h: 400, label: "Truth table to K-map", base: { i: 0 }, draw, tween: 100, dwell: 2200, steps: caps.map((c, i) => ({ cap: c, s: { i } })) });
+})();
+/* 2: loops on the map */
+(function () {
+  const names = ["A", "B", "C", "D"], mins = [3, 5, 7, 11, 12, 13, 14, 15];
+  const gs = [{ cells: [3, 7, 15, 11], k: 0, t: "C.D" }, { cells: [12, 13, 15, 14], k: 1, t: "A.B" }, { cells: [5, 7, 13, 15], k: 2, t: "B.D" }];
+  const draw = (s) => { const k = Math.round(s.i); let o = kmDraw(names, mins, { ox: 40, oy: 0, groups: gs.slice(0, k) });
+    gs.slice(0, k).forEach((g, i) => (o += SV.text(430, 60 + i * 30, "loop " + (i + 1) + ": " + g.t.replace(/~/g, "¬"), "lbl bd", { style: "fill:" + KCOL[i] + ";font-family:var(--mono)" })));
+    if (k === 3) o += SV.text(430, 160, "X = A.B + B.D + C.D", "lbl bd t3", { style: "font-family:var(--mono)" }); return o; };
+  Lib.stepper($("#stB"), { w: 640, h: 300, label: "Loops", base: { i: 0 }, draw, tween: 150, dwell: 3000, steps: [{ cap: "The 1s of the map from M/J 2026 Paper 31. Look for the biggest groups.", s: { i: 0 } }, { cap: "Loop 1: the CD = 11 row is a group of four. C = 1 and D = 1 all along, A and B change: the term is <b>C.D</b>.", s: { i: 1 } }, { cap: "Loop 2: the AB = 11 column is a group of four. A = 1, B = 1, C and D change: <b>A.B</b>.", s: { i: 2 } }, { cap: "Loop 3: the block B = 1, D = 1 (cells 5, 7, 13, 15) overlaps the others: <b>B.D</b>. Every 1 is now looped. X = A.B + B.D + C.D.", s: { i: 3 } }] });
+})();
+/* 3: wrap-around */
+(function () {
+  const names = ["A", "B", "C", "D"], mins = [4, 5, 6, 7, 12, 14];
+  const gs = [{ cells: [4, 5, 7, 6], k: 0 }, { cells: [4, 6, 12, 14], k: 1 }];
+  const draw = (s) => { const k = Math.round(s.i); let o = kmDraw(names, mins, { ox: 40, oy: 0, groups: gs.slice(0, k) });
+    if (k >= 1) o += SV.text(430, 60, "¬A.B  (column AB = 01)", "lbl bd", { style: "fill:" + KCOL[0] + ";font-family:var(--mono)" }); if (k >= 2) o += SV.text(430, 90, "B.¬D  (rows 00 and 10 wrap)", "lbl bd", { style: "fill:" + KCOL[1] + ";font-family:var(--mono)" }); if (k >= 3) o += SV.text(430, 130, "¬A.B + B.¬D = B.(¬A + ¬D)", "lbl bd t3", { style: "font-family:var(--mono)" }); return o; };
+  Lib.stepper($("#stC"), { w: 700, h: 300, label: "Wrap-around", base: { i: 0 }, draw, tween: 150, dwell: 3000, steps: [{ cap: "A K-map for M/J 2026 Paper 33. The 1s in cells 4, 5, 6, 7, 12 and 14.", s: { i: 0 } }, { cap: "The whole AB = 01 column is a group of four: A = 0 and B = 1 throughout, so <b>¬A.B</b>.", s: { i: 1 } }, { cap: "Cells 4, 6, 12 and 14 form a group of four <b>that wraps</b>: the top row (CD = 00) and the bottom row (CD = 10) are neighbours. B = 1 and D = 0 throughout: <b>B.¬D</b>.", s: { i: 2 } }, { cap: "Then algebra: take out B. The simplest form is <b>B.(¬A + ¬D)</b>.", s: { i: 3 } }] });
+})();
+
+/* lab 1 */
+(function () {
+  let nv = 4, mins = [3, 5, 7, 11, 12, 13, 14, 15]; const b = $("#kB");
+  const names = () => ["A", "B", "C", "D"].slice(0, nv);
+  const paint = () => { $("#kM").innerHTML = kgroupsJS(mins, names()); $("#kM").querySelectorAll("td[data-m]").forEach((td) => (td.onclick = () => { const m = +td.dataset.m; mins = mins.includes(m) ? mins.filter((x) => x !== m) : mins.concat(m); paint(); }));
+    $("#kV").innerHTML = "Simplified sum-of-products: <b>" + obJS(simpJS(mins, names())) + "</b><br>Full sum-of-products has " + mins.length + " term" + (mins.length === 1 ? "" : "s") + "."; };
+  [[3, "3 inputs"], [4, "4 inputs"]].forEach(([n, t]) => { const x = document.createElement("button"); x.textContent = t; x.onclick = () => { nv = n; mins = mins.filter((m) => m < 1 << n); b.querySelectorAll("button").forEach((y) => (y.className = "")); x.className = "on"; paint(); }; b.appendChild(x); });
+  const cl = document.createElement("button"); cl.textContent = "Clear"; cl.onclick = () => { mins = []; paint(); }; b.appendChild(cl); b.children[1].className = "on"; paint();
+})();
+/* lab 2 */
+(function () {
+  const b = $("#pB");
+  const show = (i) => { const [n, nm, m] = PRE[i], names = nm.split(""); $("#pM").innerHTML = "<p><b>" + n + "</b></p>" + kgroupsJS(m, names); $("#pV").innerHTML = "Simplified sum-of-products: <b>" + obJS(simpJS(m, names)) + "</b>"; };
+  PRE.forEach((p, i) => { const x = document.createElement("button"); x.textContent = p[0]; x.onclick = () => { b.querySelectorAll("button").forEach((y) => (y.className = "")); x.className = "on"; show(i); }; b.appendChild(x); }); b.firstChild.click();
+})();
+/* lab 3 */
+(function () {
+  let k = 2;
+  const info = [["1 cell", "no inputs dropped", "a full product term, e.g. A.~B.C.D"], ["2 cells", "1 input dropped", "a term of 3 inputs"], ["4 cells", "2 inputs dropped", "a term of 2 inputs"], ["8 cells", "3 inputs dropped", "a term of 1 input"], ["16 cells", "4 inputs dropped", "the constant 1"]];
+  const paint = () => { const [a, b, c] = info[k]; $("#gO").innerHTML = '<div class="verdict">A loop of <b>' + a + "</b> in a 4-input map: <b>" + b + "</b>, so the term is " + c + ". Each doubling of the loop removes one more input.</div>"; };
+  Lib.slider($("#gS"), { id: "gss", label: "Loop size (power of 2): ", min: 0, max: 4, value: k, fmt: (x) => Math.pow(2, x), onInput: (v) => { k = v; paint(); } }); paint();
+})();
+Lib.classify($("#cl1"), { prompt: "Is the group a valid K-map loop?", buckets: [{"label": "Valid"}, {"label": "Not valid"}], items: [{"text": "Two 1s side by side", "b": 0}, {"text": "Three 1s in a row", "b": 1}, {"text": "A 2 by 2 block of 1s", "b": 0}, {"text": "Two 1s joined diagonally", "b": 1}, {"text": "Left-hand and right-hand 1s in the same row (wrapping)", "b": 0}, {"text": "A block containing a 0", "b": 1}, {"text": "All eight 1s of two adjacent columns", "b": 0}], done: "A loop is a rectangle of 1s with 1, 2, 4, 8 or 16 cells." });
+Lib.classify($("#cl2"), { prompt: "How many inputs does the loop drop on a 4-input map?", buckets: [{"label": "One"}, {"label": "Two"}, {"label": "Three"}], items: [{"text": "A loop of two cells", "b": 0}, {"text": "A loop of four cells", "b": 1}, {"text": "A loop of eight cells", "b": 2}, {"text": "The four corner cells", "b": 1}, {"text": "A full row of four", "b": 1}, {"text": "Two full columns", "b": 2}], done: "2 cells: one input; 4 cells: two; 8 cells: three." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Gray code", "The label order 00, 01, 11, 10"], ["A loop of four", "Drops two inputs"], ["Wrap-around", "Left and right edges are neighbours, and top and bottom"], ["Simplified sum-of-products", "One AND term per loop, joined by OR"], ["Optimal", "Fewest and largest loops"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the steps for using a K-map in order.", items: ["Write the output of each row in its cell, with the 0s as well", "Loop groups of 1s: the largest powers of two, wrapping round the edges", "For each loop keep the inputs that do not change", "Join the terms with OR", "Use Boolean algebra only if asked for the simplest form"], done: "Fill, loop, read, join, factor." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "How many cells does a K-map for four inputs have?", "a": 16, "unit": "", "tol": 0.01, "hint": "2 to the power 4.", "sol": "<b>16</b>."},
+  {"q": "A loop of eight cells on a four-input map: how many inputs are in its term?", "a": 1, "unit": "", "tol": 0.01, "hint": "Three are dropped.", "sol": "<b>1</b>."},
+  {"q": "A loop of four cells on a four-input map: how many inputs are in its term?", "a": 2, "unit": "", "tol": 0.01, "hint": "Two are dropped.", "sol": "<b>2</b>."},
+  {"q": "How many cells does a three-input K-map have?", "a": 8, "unit": "", "tol": 0.01, "hint": "2 cubed.", "sol": "<b>8</b>."},
+  {"q": "The four corner cells of a four-input map are looped. How many inputs are in the term?", "a": 2, "unit": "", "tol": 0.01, "hint": "~B.~D.", "sol": "<b>2</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "What is the correct column order for a K-map?", opts: ["00 01 10 11", "00 01 11 10", "00 10 01 11", "01 00 10 11"], a: 1, why: "Gray code." },
+  { q: "Which loop size is NOT allowed?", opts: ["2", "4", "6", "8"], a: 2, why: "Powers of two only." },
+  { q: "A loop's term contains the inputs that:", opts: ["change inside the loop", "do not change inside the loop", "are all 0", "are all 1"], a: 1, why: "The constant ones." },
+  { q: "A benefit of a K-map is that it:", opts: ["Is faster to draw than a truth table", "Is guaranteed to give an optimal solution", "Uses fewer inputs", "Always gives a single term"], a: 1, why: "Guaranteed optimal." },
+  { q: "Can loops overlap?", opts: ["No", "Yes", "Only in 3-input maps", "Only with 8 cells"], a: 1, why: "Overlapping is allowed." },
+  { q: "Cells 0000 and 1000 on a 4-input map are:", opts: ["Not neighbours", "Neighbours (the edges wrap)", "Neighbours only diagonally", "The same cell"], a: 1, why: "Edges wrap round." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["K-map", "Grid of a truth table in Gray code order."],
+  ["Gray code", "00, 01, 11, 10."],
+  ["Loop", "Rectangle of 1, 2, 4, 8 or 16 cells containing only 1s."],
+  ["Wrap", "Left and right, top and bottom and the corners."],
+  ["Reading a loop", "Keep inputs that do not change: 1 plain, 0 barred."],
+  ["Loop of 2", "Drops one input."],
+  ["Loop of 4", "Drops two inputs."],
+  ["Benefit", "No Boolean algebra; guaranteed optimal solution."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

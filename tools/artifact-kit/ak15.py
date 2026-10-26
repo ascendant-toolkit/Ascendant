@@ -126,7 +126,7 @@ def tt_from_mins(names, out, mins):
 GRAY = ["00", "01", "11", "10"]
 
 
-def kmap(mins, names, groups=None, blank=False):
+def kmap(mins, names, groups=None, blank=False, layout=False):
     """K-map as an HTML table. 4 variables: AB across, CD down; 3: AB across, C down; 2: A across, B down.
     groups = list of cell-lists to ring (colours rotate); None means no rings."""
     nv = len(names)
@@ -155,6 +155,9 @@ def kmap(mins, names, groups=None, blank=False):
                 gi = [k for k, g in enumerate(groups) if m in g]
                 sh = [f"inset 0 0 0 {3 + 3 * j}px {cols_c[k % len(cols_c)]}" for j, k in enumerate(gi)]
             st = f' style="box-shadow:{",".join(sh)}"' if sh else ""
+            if layout:
+                h += f'<td><span class="num">{m}</span></td>'
+                continue
             h += f'<td{st}><span class="v">{"" if blank else int(m in mins)}</span><span class="n">{m}</span></td>'
         h += "</tr>"
     return h + "</table></div>"

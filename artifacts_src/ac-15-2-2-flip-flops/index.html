@@ -219,6 +219,8 @@ table.km td .v{font-size:1.15rem;font-weight:700}
 table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
 .kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
 .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
 </style></head>
 <body>
 <div class="wrap">
@@ -748,6 +750,42 @@ function circLab(el, G, work, outs) {
   }
   ins.forEach((n, i) => { const b = document.createElement("button"); b.onclick = () => { cur[i] ^= 1; paint(); }; bw.appendChild(b); });
   paint();
+}
+
+/* ---- Boolean helpers (same notation and logic as the Python side) ---- */
+function obJS(s) {
+  const neg = (i) => { if (s[i] === "~") { const [h, j] = neg(i + 1); return ['<span class="ob">' + h + "</span>", j]; } if (s[i] === "(") { const [h, j] = seq(i + 1); return ['<span class="ob">' + h + "</span>", j + 1]; } return ['<span class="ob">' + s[i] + "</span>", i + 1]; };
+  const seq = (i) => { let o = ""; while (i < s.length && s[i] !== ")") { if (s[i] === "~") { const [h, j] = neg(i + 1); o += h; i = j; } else if (s[i] === "(") { const [h, j] = seq(i + 1); o += "(" + h + ")"; i = j + 1; } else { o += s[i]; i++; } } return [o, i]; };
+  return seq(0)[0];
+}
+const bitsOf = (m, nv) => Array.from({ length: nv }, (_, i) => (m >> (nv - 1 - i)) & 1);
+function coverOf(pat, nv) { const r = []; for (let m = 0; m < 1 << nv; m++) { const b = bitsOf(m, nv); if ([...pat].every((p, i) => p === "-" || +p === b[i])) r.push(m); } return r; }
+function termOf(pat, names) { const t = [...pat].map((p, i) => (p === "1" ? names[i] : p === "0" ? "~" + names[i] : "")).filter((x) => x); return t.length ? t.join(".") : "1"; }
+function primeCover(mins, nv) {
+  const ms = new Set(mins), pats = []; const gen = (p) => { if (p.length === nv) { pats.push(p); return; } ["0", "1", "-"].forEach((c) => gen(p + c)); }; gen("");
+  const ok = pats.filter((p) => { const c = coverOf(p, nv); return c.length && c.every((m) => ms.has(m)); });
+  const cv = {}; ok.forEach((p) => cv[p] = new Set(coverOf(p, nv)));
+  const primes = ok.filter((p) => !ok.some((q) => q !== p && cv[q].size > cv[p].size && [...cv[p]].every((m) => cv[q].has(m))));
+  let best = null;
+  for (let k = 1; k <= primes.length && !best; k++) { const pick = (start, chosen) => { if (chosen.length === k) { const u = new Set(); chosen.forEach((p) => cv[p].forEach((m) => u.add(m))); if (u.size === ms.size && [...ms].every((m) => u.has(m))) { const lit = chosen.reduce((a, p) => a + [...p].filter((c) => c !== "-").length, 0); if (!best || lit < best.lit) best = { lit, chosen: chosen.slice() }; } return; } for (let i = start; i < primes.length; i++) { chosen.push(primes[i]); pick(i + 1, chosen); chosen.pop(); } }; pick(0, []); }
+  return best ? best.chosen.map((p) => ({ pat: p, cells: coverOf(p, nv) })) : [];
+}
+function sopJS(mins, names) { if (!mins.length) return "0"; return [...mins].sort((a, b) => a - b).map((m) => termOf(bitsOf(m, names.length).join(""), names)).join(" + "); }
+function simpJS(mins, names) { const nv = names.length; if (!mins.length) return "0"; if (mins.length === 1 << nv) return "1"; return primeCover(mins, nv).map((g) => termOf(g.pat, names)).join(" + "); }
+const GRAYS = ["00", "01", "11", "10"], KCOL = ["var(--accent)", "var(--bad)", "var(--good)", "var(--warn)", "var(--k)", "var(--n)"];
+/* K-map table as HTML; mins is the set of ones, groups a list of cell lists to ring, click a cell with data-m */
+function kmapJS(mins, names, groups, clickable) {
+  const nv = names.length, ms = new Set(mins);
+  const cols = nv === 4 ? GRAYS : nv === 3 ? GRAYS : ["0", "1"], rows = nv === 4 ? GRAYS : nv === 3 ? ["0", "1"] : ["0", "1"];
+  const corner = nv === 4 ? names[2] + names[3] + " \\ " + names[0] + names[1] : nv === 3 ? names[0] + " \\ " + names[1] + names[2] : names[1] + " \\ " + names[0];
+  let h = '<div class="tw"><table class="km"><tr><th>' + corner + "</th>" + cols.map((c) => "<th>" + c + "</th>").join("") + "</tr>";
+  rows.forEach((r) => { h += "<tr><th>" + r + "</th>"; cols.forEach((c) => { const m = parseInt(nv === 3 ? r + c : c + r, 2); const gi = (groups || []).map((g, k) => (g.includes(m) ? k : -1)).filter((k) => k >= 0); const sh = gi.map((k, j) => "inset 0 0 0 " + (3 + 3 * j) + "px " + KCOL[k % 6]).join(","); h += '<td data-m="' + m + '"' + (sh ? ' style="box-shadow:' + sh + '"' : "") + (clickable ? ' class="clk"' : "") + '><span class="v">' + (ms.has(m) ? 1 : 0) + '</span><span class="n">' + m + "</span></td>"; }); h += "</tr>"; });
+  return h + "</table></div>";
+}
+function kgroupsJS(mins, names) {
+  const nv = names.length, cov = (mins.length && mins.length < 1 << nv) ? primeCover(mins, nv) : [];
+  const leg = cov.map((g, i) => '<span class="kg" style="--c:' + KCOL[i % 6] + '">' + obJS(termOf(g.pat, names)) + "</span>").join(" ");
+  return kmapJS(mins, names, cov.map((g) => g.cells), true) + '<p class="kleg">' + (cov.length ? "Groups: " + leg : mins.length ? "Every cell is 1: the output is always 1." : "No 1s: the output is always 0.") + "</p>";
 }
 const GSR = {"w": 272, "h": 195.0, "inputs": [{"n": "R", "y": 40}, {"n": "S", "y": 160}], "gates": [{"n": "Q", "x": 94, "cy": 50, "h": 42, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M94,29.0 Q126.4,29.0 148,50 Q126.4,71.0 94,71.0 Q109.12,50 94,29.0 Z\"/><circle class=\"ax\" style=\"fill:var(--surface)\" cx=\"152\" cy=\"50\" r=\"4\"/>", "ox": 156}, {"n": "Qb", "x": 94, "cy": 150, "h": 42, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M94,129.0 Q126.4,129.0 148,150 Q126.4,171.0 94,171.0 Q109.12,150 94,129.0 Z\"/><circle class=\"ax\" style=\"fill:var(--surface)\" cx=\"152\" cy=\"150\" r=\"4\"/>", "ox": 156}], "wires": [{"d": "M58,40 H82 V39.0 H99.48571428571428", "s": "R", "dot": null}, {"d": "M156,150 H170 V105 H77 V61.0 H99.48571428571428", "s": "Qb", "dot": null}, {"d": "M156,50 H170 V95 H82 V139.0 H99.48571428571428", "s": "Q", "dot": null}, {"d": "M58,160 H77 V161.0 H99.48571428571428", "s": "S", "dot": null}, {"d": "M50,40 H58", "s": "R", "dot": null}, {"d": "M50,160 H58", "s": "S", "dot": null}], "outs": [{"d": "M156,50 H186", "s": "Q", "x": 186, "y": 50}, {"d": "M156,150 H186", "s": "Qb", "x": 186, "y": 150}], "outset": ["Q", "Qb"], "net": [["Q", "NOR", ["R", "Qb"]], ["Qb", "NOR", ["Q", "S"]]], "in": ["R", "S"]};
 
