@@ -1,0 +1,813 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CPU Performance and Ports</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
+
+table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
+.synd{margin:8px 0;overflow-x:auto}
+.gantt{display:flex;margin:6px 0 0;font-family:var(--mono)}.gantt .gb{border:1.5px solid var(--ink);margin-left:-1.5px;text-align:center;padding:6px 0;font-weight:700;font-size:.85rem;background:var(--surface);min-width:0}
+.gantt .gb.c0{background:var(--accent-soft)}.gantt .gb.c1{background:var(--bad-soft)}.gantt .gb.c2{background:var(--good-soft)}.gantt .gb.c3{background:var(--warn-soft)}.gantt .gb.c4{background:var(--soft)}
+.gticks{display:flex;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:2px 0 10px}.gticks span{text-align:right;min-width:0}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 4.1.2</div>
+  <h1>CPU Performance and Ports</h1>
+  <p class="cbook">Coursebook: Chapter 4 · Processor fundamentals · section 4.1 Central Processing Unit architecture</p>
+  <p class="lead">Clock speed, cores, cache, RAM and bus width and their effect on performance, why more cores do not always double the speed, and the USB, HDMI and VGA ports, with animations, labs and the real Paper 1 questions from 2021 to 2026.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>The performance of a computer depends on several factors: <b>clock speed</b> (more fetch-execute cycles per second), <b>number of cores</b> (more instructions in parallel, but with overheads), <b>cache memory</b> (fast memory close to the CPU holding frequently used instructions and data), <b>amount of RAM</b> (more running programs held without using slower secondary storage) and <b>bus width</b> (a wider data bus moves more data at once; a wider address bus addresses more memory). Each exam answer needs the factor <b>and</b> its effect. <b>Ports</b> connect peripherals: <b>USB</b> is a universal serial bus that detects devices automatically and loads a driver, <b>HDMI</b> carries digital video and audio on one cable and <b>VGA</b> carries analogue video only. Multiple cores do not always double the speed.</p></div>
+
+  <h2>1 · Performance factors</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Factor</th><th>Effect on performance</th></tr>
+    <tr><td><b>Clock speed</b></td><td>A higher clock speed means more fetch-execute cycles per second (for example 4 GHz is 4 billion timing signals a second instead of 2.1 billion)</td></tr>
+    <tr><td><b>Number of cores</b></td><td>Each core can carry out a process at the same time, so more instructions are performed in parallel</td></tr>
+    <tr><td><b>Cache memory</b></td><td>Fast access memory close to the CPU that stores frequently used instructions and data, so they can be accessed faster than from RAM and the CPU waits less</td></tr>
+    <tr><td><b>RAM</b></td><td>More RAM means more running programs and data can be held without using virtual memory or fetching from slower secondary storage: less delay</td></tr>
+    <tr><td><b>Bus width</b></td><td>A wider <b>data bus</b> transfers more data at the same time; a wider <b>address bus</b> allows more memory locations to be addressed directly</td></tr>
+    <tr><td>Secondary storage type</td><td>A solid state drive has faster access than a magnetic hard disk</td></tr>
+  </table></div>
+
+  <h2>2 · Why two cores are not twice as fast</h2>
+  <ul>
+    <li>Multiple cores add <b>overheads</b>: the cores must communicate and share data, which adds latency.</li>
+    <li>Not all software is designed to use several cores, so some of the cores sit <b>idle</b>.</li>
+    <li>Memory access speed may not keep up with the cores, causing delays.</li>
+    <li>Possible deadlock, where one core waits for another that is waiting for the first, and more heat is generated.</li>
+    <li>The two computers may differ in other ways too (RAM, GPU).</li>
+  </ul>
+
+  <h2>3 · Ports</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Port</th><th>Transfers</th><th>Key points</th></tr>
+    <tr><td><b>USB</b> (Universal Serial Bus)</td><td>Data, one bit at a time (serial); also power</td><td>Universal standard; fast transfer; detects devices automatically; USB 3 is full duplex, earlier versions half duplex; can be synchronous or asynchronous</td></tr>
+    <tr><td><b>HDMI</b> (High Definition Multimedia Interface)</td><td>Digital video and audio together</td><td>High bandwidth; one cable; uncompressed digital signals; no loss from converting to analogue and back; less prone to interference; supports high resolutions</td></tr>
+    <tr><td><b>VGA</b> (Video Graphics Array)</td><td>Analogue video only</td><td>Needs a separate sound cable; digital signal converted to analogue and back; more prone to interference; lower resolution</td></tr>
+  </table></div>
+  <p><b>How USB connects automatically:</b> plugging in the device causes a voltage change; the computer detects it; the device sends its code (identification) to the computer; the OS finds that code in its list of devices and loads the correct device driver.</p>
+
+  <h2>Common ways to lose marks</h2>
+  <ul>
+    <li>Naming a factor with no effect, such as "more cores". Say that more instructions can be performed at the same time.</li>
+    <li>Saying more cores doubles the speed. The question usually asks why it does not always.</li>
+    <li>Saying a wider bus makes the bus "faster". It transfers more data at once, or addresses more memory.</li>
+    <li>Describing USB as "universal" with no mention of automatic detection and the device driver.</li>
+    <li>Saying HDMI is "better quality" with no reason (digital, single cable for audio and video, high bandwidth).</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · More fetch-execute cycles per second</h2>
+  <div id="stA"></div>
+  <h2>2 · Cache against RAM</h2>
+  <div id="stB"></div>
+  <h2>3 · A USB device connects automatically</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Cores and the work that can be shared</h2>
+  <p>The more of a program that can run in parallel, the more extra cores help.</p>
+  <div class="card"><div id="cS1"></div><div id="cS2"></div><div id="cG"></div><div id="cV" class="verdict"></div></div>
+  <h2>Lab 2 · Cache hit rate</h2>
+  <div class="card"><div id="hS"></div><div id="hV" class="verdict"></div></div>
+  <h2>Lab 3 · Which port?</h2>
+  <div class="card"><div id="pB" class="btnrow"></div><div id="pO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which factor?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Why is the performance not doubled?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Match the factor to its effect</h2><div id="m1" class="card"></div>
+  <h2>4 · Put the USB connection steps in order</h2><div id="o1" class="card"></div>
+  <h2>5 · Working out</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Buying a gaming PC</h3><p>More cores help if the game is written to use them; a faster clock helps almost every program; more RAM stops the game loading data from the drive.</p><div class="use"><b>Exam use:</b> match the factor to the work.</div></div>
+  <div class="rw"><h3>A video call that stutters</h3><p>If the processor is waiting for data from slow memory or storage, a bigger cache or more RAM reduces the delay.</p><div class="use"><b>Exam use:</b> less waiting for data.</div></div>
+  <div class="rw"><h3>Plugging in a memory stick</h3><p>It appears on screen within seconds with no software to install: the OS recognises the device and loads its driver.</p><div class="use"><b>Exam use:</b> automatic detection.</div></div>
+  <div class="rw"><h3>A laptop to a TV</h3><p>One HDMI cable carries both picture and sound at high resolution. An old VGA lead would need a separate audio cable.</p><div class="use"><b>Exam use:</b> HDMI carries audio and video.</div></div>
+  <div class="rw"><h3>Why a 32-bit computer stops at 4 GB</h3><p>Its address bus can only address 2^32 locations. A wider address bus is needed for more memory.</p><div class="use"><b>Exam use:</b> address bus width.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on performance factors and ports (Paper 1), 2021 to 2026. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2022</td><td>11</td><td>6(b)</td><td>2</td><td>One factor affecting performance and its impact</td></tr>
+    <tr><td>O/N 2022</td><td>13</td><td>4(c)</td><td>2</td><td>A hardware upgrade and why it improves performance</td></tr>
+    <tr><td>M/J 2023</td><td>12</td><td>5(b), (c)</td><td>4 + 1 + 1</td><td>Two hardware upgrades; how data is transmitted through USB; another port for a monitor</td></tr>
+    <tr><td>O/N 2023</td><td>11</td><td>5(c)</td><td>1 + 5</td><td>Increasing the clock speed; why two cores are not twice as fast</td></tr>
+    <tr><td>O/N 2023</td><td>13</td><td>7(d)</td><td>3</td><td>A port for a VR headset with justification</td></tr>
+    <tr><td>O/N 2024</td><td>11</td><td>3(b)</td><td>2 + 3</td><td>A feature affecting performance; a port that gives an automatic connection and how</td></tr>
+    <tr><td>O/N 2024</td><td>12</td><td>3(b)</td><td>4</td><td>The benefits of HDMI instead of VGA</td></tr>
+    <tr><td>M/J 2025</td><td>11</td><td>6(a)(ii), (iii)</td><td>3 + 2</td><td>How RAM and bus width affect performance</td></tr>
+    <tr><td>M/J 2025</td><td>13</td><td>2(b), (c)</td><td>2 + 2</td><td>The benefit of cache memory; how HDMI provides a connection</td></tr>
+    <tr><td>O/N 2025</td><td>11</td><td>6(b)</td><td>2</td><td>Drawbacks of increasing the number of cores</td></tr>
+  </table></div>
+  <p class="note">Questions are reworded from the papers; check the original paper and mark scheme for the exact wording. The "factor and effect" question is asked most series with a different factor each time.</p>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/11 · Q6(b)</span> <span class="cmd">Identify / State</span> <span class="mark">2 marks</span> Identify one factor that can affect the performance of the computer system and state how it impacts the performance.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Factor plus effect: clock speed, cores, bus width, cache.</div>
+    <div class="ans"><p>One mark for the factor and one for the impact: <span class="mk k" data-t="1">Clock speed: a higher clock speed means more fetch-execute cycles per second</span> <span class="mk k" data-t="2">Number of cores: more instructions can be carried out simultaneously</span> <span class="mk k" data-t="3">Bus width: allows the transfer of more data each time, or more memory locations to be directly accessed</span> <span class="mk k" data-t="4">Cache: a higher capacity can store more frequently used instructions for fast access</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Naming only the factor. The impact is the second mark.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/13 · Q4(c)</span> <span class="cmd">Identify / Explain</span> <span class="mark">2 marks</span> Upgrading secondary storage to solid state typically improves the performance of computer systems. Identify one other upgrade to the hardware and explain why it improves the performance of a computer system.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>RAM, cache, clock speed or cores, with the reason.</div>
+    <div class="ans"><p>One mark for the upgrade and one for the explanation: <span class="mk k" data-t="1">Increase the quantity of RAM, allowing more applications to reside in memory at the same time and saving disk access times</span> <span class="mk k" data-t="2">Increase the size of cache memory, so that the CPU can continue working without waiting for data</span> <span class="mk k" data-t="3">Increase clock speed, so that more instructions are performed in a time period</span> <span class="mk k" data-t="4">Increase the number of processors or cores, so that more instructions are performed in parallel</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/12 · Q5(b)(c)</span> <span class="cmd">Describe / Identify</span> <span class="mark">4 + 1 + 1 marks</span> A student has purchased a new laptop. (b) Describe two ways the hardware can be upgraded to improve performance and explain how each does so. (c)(i) A printer is connected to a USB port. Describe how data is transmitted through a USB port. (ii) Identify one other type of port that can be used to connect the monitor.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Cores, RAM, cache, clock speed. One bit at a time. HDMI or DisplayPort.</div>
+    <div class="ans"><p><b>(b)</b> One mark for each description and one for the explanation (max 4): <span class="mk k" data-t="1">Increase the number of cores: each core can carry out a process at the same time, so more instructions are performed in parallel</span> <span class="mk k" data-t="2">Increase RAM capacity: allows more applications to reside in memory at the same time, saving disk access times</span> <span class="mk k" data-t="3">Increase cache memory: more data stored in fast access memory so less time is spent accessing RAM</span> <span class="mk k" data-t="4">Increase clock speed: more fetch-decode-execute cycles each second</span></p><p><b>(c)(i)</b> <span class="mk a" data-t="1">One bit is transferred at a time; it can be synchronous or asynchronous; USB 3 is full duplex and earlier versions half duplex</span> (any one) <b>(ii)</b> <span class="mk a" data-t="1">HDMI or DisplayPort</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/11 · Q5(c)</span> <span class="cmd">Describe / Explain</span> <span class="mark">1 + 5 marks</span> A computer has a single 2.1 GHz CPU. (i) Describe how increasing the clock speed to 4 GHz can increase the performance. (ii) A second computer has a CPU with two 2.1 GHz cores. Explain why it does not always run twice as fast as the computer with one 2.1 GHz CPU.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Almost twice as many cycles. Overheads, idle cores, memory, other differences.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">The CPU can now perform nearly twice as many fetch-execute cycles per second: 4 billion instead of 2.1 billion</span></p><p><b>(ii)</b> Any five: <span class="mk a" data-t="1">Multiple cores introduce additional overheads</span> <span class="mk a" data-t="2">because of the need for communication between cores</span> <span class="mk a" data-t="3">Software may not be designed for multiple cores</span> <span class="mk a" data-t="4">so one of the cores will be left idle</span> <span class="mk a" data-t="5">Memory access speed may not match the speed of the cores</span> <span class="mk a" data-t="6">so causing delay</span> <span class="mk a" data-t="7">The computers may have more differences than just the cores</span> <span class="mk a" data-t="8">for example more RAM, or a GPU</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing that two cores 'double the speed' or that the cores are 'slower'. Give overheads, idle cores or memory delays.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/13 · Q7(d)</span> <span class="cmd">Identify / Justify</span> <span class="mark">3 marks</span> A virtual reality headset is connected to a laptop. Identify one port that could be used to connect the headset to the laptop. Justify your choice.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>USB: fast, universal. HDMI: audio and video, one cable.</div>
+    <div class="ans"><p>One mark for the port and two for the matching justification: <span class="mk k" data-t="1">USB: has fast data transfer speeds</span> <span class="mk k" data-t="2">USB: is a universal or popular standard cable</span> or <span class="mk a" data-t="1">HDMI: allows video and audio to be transferred on the same cable</span> <span class="mk a" data-t="2">HDMI: convenient as there is no need for two cables</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/11 · Q3(b)</span> <span class="cmd">Identify / Explain</span> <span class="mark">2 + 3 marks</span> (i) Identify one other feature of a processor (not the number of cores) that can affect performance and state why. (ii) A solid state drive is automatically recognised when it is plugged into a port. Identify an appropriate type of port and explain how this port provides an automatic connection.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Clock speed or bus width, with the reason. USB: voltage change, code, driver.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">Clock speed: more fetch-execute cycles are executed per second</span> <span class="mk k" data-t="2">Bus width: more data is transferred at the same time</span></p><p><b>(ii)</b> One mark for USB and two for the explanation: <span class="mk a" data-t="1">A voltage change occurs when the drive is plugged in and the computer detects it</span> <span class="mk a" data-t="2">The code of the device is transferred to the computer, the OS finds it in the list of devices and loads the appropriate device driver</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/12 · Q3(b)</span> <span class="cmd">Explain</span> <span class="mark">4 marks</span> A monitor has a screen resolution of 2560 × 1600 pixels and built-in speakers. The computer has a VGA port and an HDMI port. Explain the benefits of connecting the monitor using the HDMI port instead of the VGA port.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Faster, supports the resolution, audio and video on one cable, digital, less interference.</div>
+    <div class="ans"><p>Any four: <span class="mk k" data-t="1">HDMI has faster transfer rates than VGA</span> <span class="mk k" data-t="2">needed due to the high resolution (large number of pixels) of the monitor</span> <span class="mk k" data-t="3">HDMI supports video and audio transfer to the built-in speakers</span> <span class="mk k" data-t="4">so no separate sound cable is needed unlike VGA</span> <span class="mk k" data-t="5">HDMI is a digital interface so no data is lost in conversion to analogue and back</span> <span class="mk k" data-t="6">HDMI is less prone to error, crosstalk or interference</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/11 · Q6(a)(ii)(iii)</span> <span class="cmd">Explain</span> <span class="mark">3 + 2 marks</span> Computer 1 has a quad-core 2.2 GHz processor, 16-bit architecture and 1 GB RAM; Computer 2 has a dual-core 3.8 GHz processor, 32-bit architecture and 2 GB RAM. (ii) Explain how different amounts of RAM affect the performance of a computer. (iii) Explain how different bus widths affect the performance.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>More RAM: no virtual memory, less fetching from secondary storage. Wider bus: more data or more addresses.</div>
+    <div class="ans"><p><b>(ii)</b> Any three: <span class="mk k" data-t="1">More RAM means more currently running data and instructions can be stored</span> <span class="mk k" data-t="2">without needing to use virtual memory</span> <span class="mk k" data-t="3">without having to fetch the data from secondary storage first</span> <span class="mk k" data-t="4">which has a slower access time</span> <span class="mk k" data-t="5">Less latency waiting for instructions or data</span></p><p><b>(iii)</b> Any two: <span class="mk a" data-t="1">A wider data bus means more data can be transferred between components at a time</span> <span class="mk a" data-t="2">so there is less delay when fetching data for a running process</span> <span class="mk a" data-t="3">A wider address bus means larger memory addresses can be used</span> <span class="mk a" data-t="4">allowing more memory locations to be accessed directly</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/13 · Q2(b)(c)</span> <span class="cmd">Describe / Explain</span> <span class="mark">2 + 2 marks</span> (b) Describe one benefit of the computer using cache memory. (c) Explain how HDMI provides connection to peripheral devices.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Fast memory near the CPU; HDMI audio and video, high bandwidth, digital.</div>
+    <div class="ans"><p><b>(b)</b> <span class="mk k" data-t="1">Using cache memory improves performance because it is fast access memory close to the CPU</span> <span class="mk k" data-t="2">which stores frequently used instructions or data so they can be accessed faster than from RAM</span></p><p><b>(c)</b> Any two: <span class="mk a" data-t="1">HDMI transfers both audio and video using a single cable</span> <span class="mk a" data-t="2">HDMI has a high bandwidth</span> <span class="mk a" data-t="3">Data is transmitted as a stream of uncompressed digital signals</span> <span class="mk a" data-t="4">HDMI uses Transition-Minimized Differential Signalling (TMDS)</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/11 · Q6(b)</span> <span class="cmd">Describe</span> <span class="mark">2 marks</span> Increasing the number of cores in a processor can affect the performance of a computer. Describe the drawbacks of increasing the number of cores.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Latency, deadlock, software, heat.</div>
+    <div class="ans"><p>Any two: <span class="mk k" data-t="1">Latency may be increased because the cores must communicate with one another</span> <span class="mk k" data-t="2">There is a potential for dead-lock situations where one core waits for information from other cores that are waiting for the first</span> <span class="mk k" data-t="3">Not all software is designed to use multiple cores, so some of the additional cores would be idle</span> <span class="mk k" data-t="4">Increased heat generation which could cause damage to other components</span></p></div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why a larger cache can make a computer run programs faster.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Frequently used data.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Cache stores frequently used instructions and data close to the CPU</span> <span class="mk k" data-t="2">so the CPU waits less for data from slower RAM</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> A user adds more RAM to an old laptop. Explain how this improves its performance when many programs are open.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Virtual memory, disk.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">More programs and data are held in RAM</span> <span class="mk k" data-t="2">so virtual memory on the drive is used less</span> <span class="mk k" data-t="3">and less time is spent fetching from slower secondary storage</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Identify</span> <span class="mark">2 marks</span> Identify two differences between HDMI and VGA.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Digital against analogue; audio.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">HDMI is digital; VGA is analogue</span> <span class="mk k" data-t="2">HDMI carries audio and video on one cable; VGA carries video only</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">3 marks</span> Describe how a computer recognises a USB device.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Voltage change; code; driver.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A voltage change is detected when the device is plugged in</span> <span class="mk k" data-t="2">The device sends its code to the computer</span> <span class="mk k" data-t="3">The OS finds the code in its list and loads the device driver</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> A 64-bit CPU has a wider data bus than a 32-bit CPU. Explain the effect on performance.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>More data at once.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">More data can be transferred at the same time</span> <span class="mk k" data-t="2">so there is less delay fetching data for running programs</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Factor plus effect.</b> Two marks, one for each.</li>
+    <li><b>Cache: frequently used, close to the CPU.</b> The CPU waits less.</li>
+    <li><b>Cores: parallel, with overheads.</b> Idle cores, communication, software.</li>
+    <li><b>Data bus width: more data at once.</b> Address bus width: more locations.</li>
+    <li><b>USB: voltage, code, driver.</b> Say 'device driver'.</li>
+    <li><b>HDMI: digital, audio and video.</b> One cable, high bandwidth.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>clock speed</td><td>"Number of timing signals each second."</td></tr>
+    <tr><td>a core</td><td>"A processing unit within the CPU."</td></tr>
+    <tr><td>cache</td><td>"Fast memory that holds frequently used data."</td></tr>
+    <tr><td>a device driver</td><td>"Software that lets the OS control a device."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Identify</td><td>Name the point.</td></tr>
+    <tr><td>Explain</td><td>Reasons as well.</td></tr>
+    <tr><td>Describe</td><td>Several points.</td></tr>
+    <tr><td>Justify</td><td>Give a reason for your choice.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); const hz = [2.1, 4.2][k]; let o = SV.rect(20, 40, 160, 50, "cell", { rx: 8 }) + SV.text(100, 70, hz + " GHz", "lbl bd", { "text-anchor": "middle" });
+    for (let i = 0; i < 20; i++) o += SV.rect(220 + i * 15, 54, 4, 22, i < (k ? 20 : 10) ? "f1" : "cell", { rx: 1 }); o += SV.text(220, 110, (k ? "about 4 billion" : "about 2 billion") + " timing signals a second", "lbl bd t3", { style: "font-size:13px" }); return o; };
+  Lib.stepper($("#stA"), { w: 540, h: 130, label: "Clock speed", base: { i: 0 }, draw, tween: 100, dwell: 2800, steps: [{ cap: "At 2.1 GHz the CPU runs about 2.1 billion fetch-execute steps a second.", s: { i: 0 } }, { cap: "At 4.2 GHz it runs nearly <b>twice as many</b> cycles per second.", s: { i: 1 } }] });
+})();
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); const B = (x, t, on) => SV.rect(x, 40, 100, 46, on ? "f3" : "cell", { rx: 8 }) + SV.text(x + 50, 68, t, "lbl bd", { "text-anchor": "middle", style: "font-size:13px" }); let o = B(20, "CPU", true) + B(190, "Cache", k >= 1) + B(360, "RAM", k >= 2) + SV.path("M120,63 H190", "ax") + SV.path("M290,63 H360", "ax");
+    o += SV.text(240, 130, ["", "cache: very fast, holds frequently used data", "slower RAM: used if the cache misses", ""][k], "lbl bd t3", { "text-anchor": "middle", style: "font-size:13px" }); return o; };
+  Lib.stepper($("#stB"), { w: 480, h: 150, label: "Cache", base: { i: 0 }, draw, tween: 100, dwell: 2800, steps: [{ cap: "The CPU needs data.", s: { i: 0 } }, { cap: "It looks in the <b>cache</b> first: fast, close to the CPU.", s: { i: 1 } }, { cap: "If it is not there, it must be fetched from <b>RAM</b>, which takes longer.", s: { i: 2 } }] });
+})();
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); const B = (x, t, on) => SV.rect(x, 40, 110, 46, on ? "f3" : "cell", { rx: 8 }) + SV.text(x + 55, 68, t, "lbl bd", { "text-anchor": "middle", style: "font-size:13px" }); let o = B(20, "USB device", k >= 0) + B(220, "Computer / OS", k >= 2) + SV.path("M130,63 H220", "ax", { style: k >= 1 ? "stroke:var(--accent);stroke-width:3" : "" }); o += SV.text(240, 130, ["plug in", "voltage change", "computer detects the voltage change", "the device's code is sent to the OS", "the OS finds the code in its list and loads the device driver"][k], "lbl bd t3", { "text-anchor": "middle", style: "font-size:13px" }); return o; };
+  Lib.stepper($("#stC"), { w: 480, h: 150, label: "USB", base: { i: 0 }, draw, tween: 100, dwell: 2600, steps: [{ cap: "The device is plugged in.", s: { i: 0 } }, { cap: "A <b>voltage change</b> occurs.", s: { i: 1 } }, { cap: "The computer <b>detects</b> the change.", s: { i: 2 } }, { cap: "The device's <b>code</b> is transferred to the computer.", s: { i: 3 } }, { cap: "The OS finds the code in its list of devices and loads the <b>device driver</b>.", s: { i: 4 } }] });
+})();
+
+(function () {
+  let cores = 4, par = 70; const paint = () => { const f = par / 100; const sp = 1 / ((1 - f) + f / cores);
+    let h = ""; for (let c = 1; c <= 16; c++) { const s = 1 / ((1 - f) + f / c); h += `<rect x="${30 + c * 22}" y="${130 - s * 7}" width="16" height="${s * 7}" fill="${c === cores ? "var(--accent)" : "var(--muted)"}" opacity="${c === cores ? 1 : 0.35}"/>`; }
+    $("#cG").innerHTML = `<svg viewBox="0 0 420 150" style="width:420px;max-width:100%;display:block"><path d="M30,10 V130 H400" class="ax"/>${h}<text x="400" y="146" class="sm" text-anchor="end" style="font-size:11px">number of cores (1 to 16)</text><text x="34" y="14" class="sm" style="font-size:11px">speed-up</text></svg>`;
+    $("#cV").innerHTML = `With <b>${cores}</b> cores and <b>${par}%</b> of the program able to run in parallel, the program runs about <b>${sp.toFixed(1)}</b> times faster, not ${cores} times. The part that cannot be shared (${100 - par}%) and the overheads limit the gain.`; };
+  Lib.slider($("#cS1"), { id: "c1", label: "Cores ", min: 1, max: 16, value: cores, fmt: (x) => x, onInput: (v) => { cores = v; paint(); } });
+  Lib.slider($("#cS2"), { id: "c2", label: "% of the program that can run in parallel ", min: 0, max: 100, value: par, fmt: (x) => x + "%", onInput: (v) => { par = v; paint(); } }); paint();
+})();
+(function () {
+  let h = 90; const paint = () => { const avg = (h / 100) * 2 + (1 - h / 100) * 100; $("#hV").innerHTML = `A cache hit takes <b>2 ns</b> and a miss (fetch from RAM) takes <b>100 ns</b>. With a <b>${h}%</b> hit rate the average access time is <b>${avg.toFixed(1)} ns</b>. A larger cache holds more frequently used data, so the hit rate rises and the CPU waits less.`; };
+  Lib.slider($("#hS"), { id: "h1", label: "Cache hit rate ", min: 0, max: 100, value: h, fmt: (x) => x + "%", onInput: (v) => { h = v; paint(); } }); paint();
+})();
+btnTable("pB", "pO", [
+  ["Fast data to a storage drive, auto-detected", "USB", "Voltage change, code, driver"],
+  ["Laptop to a modern monitor with built-in speakers, one cable", "HDMI", "Digital audio and video together"],
+  ["Older projector that needs a separate sound cable", "VGA", "Analogue video only"],
+  ["A VR headset needing fast data and video", "USB or HDMI", "Fast transfer; audio and video on one cable"],
+  ["Needs no conversion from digital to analogue", "HDMI", "Fully digital"]
+], ["Need", "Port", "Why"]);
+Lib.classify($("#cl1"), { prompt: "Which performance factor does the effect describe?", buckets: [{"label": "Clock speed"}, {"label": "Cores"}, {"label": "Cache"}, {"label": "RAM"}, {"label": "Bus width"}], items: [{"text": "More fetch-execute cycles per second", "b": 0}, {"text": "More instructions at the same time", "b": 1}, {"text": "Frequently used data held close to the CPU", "b": 2}, {"text": "Fewer fetches from secondary storage", "b": 3}, {"text": "More data moved each time", "b": 4}, {"text": "Fewer waits for data from main memory", "b": 2}], done: "Match the effect." });
+Lib.classify($("#cl2"), { prompt: "Why might two cores not give twice the speed?", buckets: [{"label": "A real reason"}, {"label": "Not a reason"}], items: [{"text": "The cores must communicate with each other", "b": 0}, {"text": "Software may not use both cores", "b": 0}, {"text": "The cores always run at half speed", "b": 1}, {"text": "Memory may not keep up with the cores", "b": 0}, {"text": "Each core has a different clock", "b": 1}, {"text": "There is extra overhead sharing the work", "b": 0}], done: "Overhead, idle cores, memory." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Clock speed", "Number of fetch-execute cycles per second"], ["Cache", "Fast memory close to the CPU"], ["Data bus width", "How much data is transferred at once"], ["Address bus width", "How many memory locations can be addressed"], ["Cores", "Number of processing units working in parallel"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the USB automatic connection steps in order.", items: ["The device is plugged in", "A voltage change occurs", "The computer detects the voltage change", "The device's code is sent to the computer", "The OS finds the code and loads the device driver"], done: "Plug, voltage, detect, code, driver." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "A CPU is upgraded from 2.1 GHz to 4.2 GHz. How many times more timing signals per second?", "a": 2, "unit": "times", "tol": 0.01, "hint": "4.2 ÷ 2.1.", "sol": "<b>2</b> times."},
+  {"q": "A 3 GHz CPU needs 4 clock ticks for one fetch-execute cycle. How many cycles per second, in millions?", "a": 750, "unit": "million", "tol": 0.5, "hint": "3000 ÷ 4.", "sol": "<b>750</b> million."},
+  {"q": "A monitor is 2560 × 1600 pixels. How many pixels in millions (1 d.p.)?", "a": 4.1, "unit": "million", "tol": 0.05, "hint": "2560 × 1600 = 4 096 000.", "sol": "<b>4.1</b> million."},
+  {"q": "A data bus is 64 bits wide. How many bytes can be transferred at once?", "a": 8, "unit": "bytes", "tol": 0.01, "hint": "64 ÷ 8.", "sol": "<b>8</b> bytes."},
+  {"q": "A cache hit takes 2 ns and a miss 100 ns. With a 90% hit rate, what is the average access time in ns (1 d.p.)?", "a": 11.8, "unit": "ns", "tol": 0.05, "hint": "0.9 × 2 + 0.1 × 100.", "sol": "<b>11.8</b> ns."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "A wider data bus:", opts: ["Transfers more data at the same time", "Addresses more memory", "Raises the clock speed", "Adds cores"], a: 0, why: "More data at once." },
+  { q: "Cache stores:", opts: ["Frequently used instructions and data", "The OS", "The BIOS", "Backups"], a: 0, why: "Frequently used." },
+  { q: "HDMI differs from VGA because it:", opts: ["Carries digital video and audio together", "Is analogue only", "Needs a separate sound cable", "Is slower"], a: 0, why: "Digital, audio and video." },
+  { q: "More RAM reduces:", opts: ["Use of slower secondary storage", "The clock speed", "The number of buses", "The ALU size"], a: 0, why: "Fewer fetches from disk." },
+  { q: "USB loads a:", opts: ["Device driver", "Compiler", "Utility", "Firewall"], a: 0, why: "Driver." },
+  { q: "Doubling cores does not double speed because:", opts: ["Of overheads and software limits", "The clock halves", "The bus is shorter", "Cache is bigger"], a: 0, why: "Overheads." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Clock speed", "Fetch-execute cycles per second."],
+  ["Cores", "Instructions in parallel; overheads."],
+  ["Cache", "Fast memory for frequently used data."],
+  ["RAM", "More running programs, less disk use."],
+  ["Data bus", "Wider: more data at once."],
+  ["Address bus", "Wider: more locations."],
+  ["USB", "Serial; auto-detected; driver."],
+  ["HDMI", "Digital video and audio, one cable."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

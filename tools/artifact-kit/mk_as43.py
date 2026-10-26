@@ -1,270 +1,215 @@
-"""AS syllabus 4.3.1-4.3.5 Aggregate demand. Run: python3 tools/artifact-kit/mk_as43.py"""
-from asx import *
-EY = EYAS("4.3.1 to 4.3.5")
+"""AS CS 4.3: bit manipulation (shifts and masks). Run: python3 tools/artifact-kit/mk_as43.py"""
+from ak42 import *
+
+def R(before, ins, exp, mem=None):
+    got = acc_after(before, ins, mem)
+    assert got.replace(" ", "") == exp.replace(" ", ""), f"{before} {ins}: {got} != {exp}"
+    return (sp(before.replace(" ", "")), ins, sp(exp.replace(" ", "")))
+
+# ---- every result is calculated by the emulator and checked against the mark scheme
+m_w21 = {100: 0b01010101, 101: 0b11110000, 102: 0b00001111, 103: 0, 104: 0b11111111}
+T_w21 = result_table([R("01010101", "XOR 101", "10100101", m_w21), R("11110000", "AND 104", "11110000", m_w21), R("00001111", "LSL #4", "11110000", m_w21), R("11111111", "OR 102", "11111111", m_w21)])
+T_s22 = result_table([R("01101101", "AND #2", "00000000"), R("01101101", "OR #8", "01101101"), R("01101101", "LSL #4", "11010000")])
+m_s24a = {30: 0b01110101, 31: 255, 32: 0, 33: 0b11001100, 34: 0b10101010}
+T_s24a = result_table([R("10011010", "AND 31", "10011010", m_s24a), R("10011010", "XOR B01001111", "11010101"), R("10011010", "OR #30", "10011110")])
+m_s24b = {25: 0b11000110, 26: 0b11100001, 27: 0b10000001, 28: 0b11001101, 29: 0b00001111}
+T_s24b = result_table([R("01000110", "XOR 29", "01001001", m_s24b), R("01000110", "AND #29", "00000100"), R("01000110", "OR B11111111", "11111111")])
+m_s24c = {100: 0b00001101, 101: 0b10111110, 102: 0b11110011, 103: 0b00110111, 104: 0}
+T_s24c = result_table([R("11111111", "LSL #2", "11111100", m_s24c), R("11111111", "XOR 100", "11110010", m_s24c), R("11111111", "AND 103", "00110111", m_s24c)])
+T_w23 = result_table([R("01001111", "AND B10100101", "00000101"), R("00010111", "LSR #3", "00000010"), R("11110111", "XOR B00100101", "11010010")])
+A24 = 0b10011010
+assert format((A24 << 2) & 255, "08b") == "01101000"
+assert format(((A24 + 5) & 255) & 30, "08b") == "00011110"
+assert format(((A24 | 0b11110010) + 1) & 255, "08b") == "11111011"
+T_w24 = '<div class="tw"><table class="t mono"><tr><th>Set</th><th>Instructions</th><th>ACC after</th></tr><tr><td>1</td><td>LSL #2</td><td><b>0110 1000</b></td></tr><tr><td>2</td><td>ADD #5, AND #30</td><td><b>0001 1110</b></td></tr><tr><td>3</td><td>OR B11110010, INC ACC</td><td><b>1111 1011</b></td></tr></table></div>'
+m_w25 = {100: 0b00000011, 101: 0b10101110, 102: 0b11001100, 103: 255, 104: 0b11001100}
+T_w25 = result_table([R("00001111", "AND 101", "00001110", m_w25), R("00000000", "OR #100", "01100100"), R("00000001", "XOR &F1", "11110000")])
+T_w25b = result_table([R("11100011", "XOR &12", "11110001"), R("11100011", "AND #63", "00100011"), R("11100011", "OR 100", "11110011", {100: 0b00110011})])
+T_s25 = result_table([R("01010101", "XOR &FE", "10101011"), R("01101011", "LSR #5", "00000011")])
+R("00011110", "LSL #2", "01111000")
+T_s26 = result_table([R("00110101", "LSR #3", "00000110")])
+R("00110101", "AND B00000000", "00000000")
+R("01100101", "OR #255", "11111111"); R("01100101", "XOR #255", "10011010"); R("01100101", "XOR #154", "11111111")
+R("01111110", "LSL #3", "11110000")
 
 learn = '''
-  <div class="card big"><h3>This part in four sentences</h3>
-  <p><b class="kw">Aggregate demand (AD)</b> is the <b>total planned spending on an economy's goods and services at each price level</b> in a given period, and equals <b>C + I + G + (X − M)</b>: consumption, investment, government spending and net exports. The AD curve <b>slopes downward</b> because a lower price level raises <b>real wealth</b>, lowers <b>interest rates</b> and makes <b>exports more competitive</b> and imports less so. A change in the <b>price level</b> causes a <b>movement along</b> the AD curve; a change in <b>any component at every price level</b> (interest rates, income taxes, confidence, the exchange rate, government spending, foreign income) <b>shifts</b> the whole curve right or left. Detailed knowledge of the components is not required, only what they are and what shifts them.</p></div>
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p><b>Bit manipulation</b> changes individual bits of the accumulator with <b>shifts</b> and <b>bit masks</b>. A <b>logical shift</b> moves every bit left (LSL) or right (LSR) by n places and fills the gap with zeros, which multiplies (left) or divides (right) an unsigned number by powers of 2. The <b>bitwise AND, OR and XOR</b> instructions combine the ACC with a mask (the operand) one bit at a time: <b>AND</b> clears bits (and tests them), <b>OR</b> sets bits, <b>XOR</b> flips bits. The operand may be an immediate value (<span class="mono">#n</span> denary, <span class="mono">Bn</span> binary, <span class="mono">&amp;n</span> hexadecimal) or the contents of an address. Exam questions give the ACC contents and an instruction and ask for the new contents, or ask for the instruction that makes a given change.</p></div>
 
-  <h2>1 · The components of AD (4.3.1 to 4.3.3)</h2>
-  <div id="pic1" class="card"></div>
+  <h2>1 · Shifts</h2>
   <div class="tw"><table class="t">
-    <tr><th>Component</th><th>Meaning</th><th>Determinants (examples)</th></tr>
-    <tr><td><b>C</b> Consumption</td><td>Household spending on goods and services</td><td>Disposable income, income taxes, interest rates, wealth, consumer confidence, credit</td></tr>
-    <tr><td><b>I</b> Investment</td><td>Firms' spending on capital goods (and stock building)</td><td>Interest rates, business confidence and expected profits, technology, corporation tax</td></tr>
-    <tr><td><b>G</b> Government spending</td><td>Spending on goods, services and infrastructure (not transfer payments)</td><td>Government policy, budget position, political aims</td></tr>
-    <tr><td><b>X − M</b> Net exports</td><td>Export spending less import spending</td><td>Exchange rate, foreign incomes, price competitiveness, protectionism</td></tr>
+    <tr><th>Instruction</th><th>Effect</th><th>Example</th></tr>
+    <tr><td class="mono">LSL #n</td><td>Logical shift left n places; zeros enter on the right; bits shifted off the left are lost</td><td class="mono">0001 1110 LSL #2 = 0111 1000</td></tr>
+    <tr><td class="mono">LSR #n</td><td>Logical shift right n places; zeros enter on the left</td><td class="mono">0001 0111 LSR #3 = 0000 0010</td></tr>
   </table></div>
-  <ul>
-    <li><b>Closed economy:</b> AD = C + I + G (no trade). <b>Open economy:</b> add X − M.</li>
-    <li>Transfer payments are not part of G because they are not spending on output; they affect AD indirectly through disposable income.</li>
-  </ul>
+  <p>A shift left by n multiplies an unsigned value by 2<sup>n</sup> (if no bits are lost); a shift right by n divides by 2<sup>n</sup> and discards the remainder. LSL #4 on 0110 1101 gives 1101 0000: the leading 0110 is lost. The 2026 instruction set also lists <b>arithmetic</b> shifts (ASL, ASR: the sign bit is preserved on a right shift) and <b>cyclic</b> shifts (CSL, CSR: bits pushed off one end re-enter at the other); logical shifts are the ones asked for in the calculations in 2021 to 2025.</p>
 
-  <h2>2 · Shape of the AD curve and shifts (4.3.4 to 4.3.5)</h2>
-  <div id="pic2" class="card"></div>
-  <ul>
-    <li><b>Why AD slopes down:</b> (1) <b>wealth effect</b>: a lower price level raises the real value of savings, so people spend more; (2) <b>interest rate effect</b>: lower prices reduce demand for money and interest rates, raising spending; (3) <b>international trade effect</b>: lower domestic prices make exports cheaper and imports dearer, so net exports rise.</li>
-    <li><b>Movement along AD:</b> caused only by a change in the price level.</li>
-    <li><b>Shift right (increase):</b> lower interest rates, lower income tax, higher confidence, higher government spending, depreciation of the currency, growth in trading partners' incomes, easier credit.</li>
-    <li><b>Shift left (decrease):</b> higher interest rates, higher taxes, falling confidence, cuts in government spending, appreciation, a recession abroad, tighter credit.</li>
-    <li>An <b>increase in AD</b> raises real output and the price level; how much of each depends on the shape of the AS curve.</li>
-  </ul>
-
-  <h2>3 · Worked example: calculating AD</h2>
+  <h2>2 · Bit masks</h2>
   <div class="tw"><table class="t">
-    <tr><th>Component</th><th>$bn</th><th>Change</th><th>New $bn</th></tr>
-    <tr><td>C</td><td>600</td><td>Consumers' confidence rises: +50</td><td>650</td></tr>
-    <tr><td>I</td><td>150</td><td>Interest rates fall: +20</td><td>170</td></tr>
-    <tr><td>G</td><td>200</td><td>No change</td><td>200</td></tr>
-    <tr><td>X</td><td>180</td><td>Currency falls: +10</td><td>190</td></tr>
-    <tr><td>M</td><td>160</td><td>Imports fall as currency falls: −10</td><td>150</td></tr>
-    <tr><td><b>AD = C + I + G + (X − M)</b></td><td><b>970</b></td><td></td><td><b>1,060</b></td></tr>
+    <tr><th>Instruction</th><th>Rule for each bit</th><th>Use</th></tr>
+    <tr><td class="mono">AND mask</td><td>1 only if both bits are 1</td><td><b>Clear</b> bits (mask 0 clears; mask 1 keeps), or <b>test</b> a bit</td></tr>
+    <tr><td class="mono">OR mask</td><td>0 only if both bits are 0</td><td><b>Set</b> bits to 1 (mask 1 sets; mask 0 keeps)</td></tr>
+    <tr><td class="mono">XOR mask</td><td>1 if the bits differ</td><td><b>Flip</b> bits (mask 1 flips; mask 0 keeps), or compare</td></tr>
   </table></div>
+  <p>Worked: ACC = 0110 0101. To set every bit to 1: <span class="mono">OR #255</span> (or XOR #154, which flips just the 0 bits). To flip every bit: <span class="mono">XOR #255</span>, giving 1001 1010. To set the least significant bit to 1 and leave the rest unchanged: <span class="mono">OR #1</span> (OR B00000001). To clear the data in an 8-bit register: <span class="mono">AND B00000000</span>. To test whether a number is odd: <span class="mono">AND #1</span>, then compare the result with 1: it is true when the least significant bit is 1.</p>
+
+  <h2>3 · Reading the operand</h2>
+  <p><span class="mono">#29</span> is denary 29 (0001 1101), <span class="mono">B01001111</span> is binary and <span class="mono">&amp;12</span> is hexadecimal 12 = 0001 0010. An operand that is an address (for example <span class="mono">AND 31</span>) means the contents of address 31 are the mask. Convert the operand to 8 bits before you combine it with the ACC, and write the answer in 8 bits.</p>
+
+  <h2>Common ways to lose marks</h2>
   <ul>
-    <li>AD rises from 970 to 1,060 (a rise of 9.3%). The AD curve shifts to the right. Each change in a component has a cause: confidence (C), lower interest rates (I), and the exchange rate (X and M).</li>
+    <li>Not converting #n or &amp;n to binary first.</li>
+    <li>Using the address as the mask instead of the contents of the address.</li>
+    <li>Writing fewer or more than 8 bits after a shift.</li>
+    <li>Using AND to set bits or OR to clear them. Remember: AND clears, OR sets, XOR flips.</li>
+    <li>Saying "bit manipulation tests odd numbers" without naming the instruction, or without the comparison with 1.</li>
   </ul>
-
-  <h2>4 · Determinants of the components in more detail</h2>
-  <div class="tw"><table class="t">
-    <tr><th>Factor</th><th>Component affected</th><th>Effect of a rise in the factor</th></tr>
-    <tr><td><b>Interest rates</b></td><td>C and I</td><td>Borrowing dearer and saving more attractive, so C and I fall; AD shifts left</td></tr>
-    <tr><td><b>Income taxes</b></td><td>C</td><td>Lower disposable income, so C falls; AD shifts left</td></tr>
-    <tr><td><b>Consumer and business confidence</b></td><td>C and I</td><td>More optimism: C and I rise; AD shifts right</td></tr>
-    <tr><td><b>Household wealth</b> (house and share prices)</td><td>C</td><td>Feeling richer, people spend more; AD shifts right</td></tr>
-    <tr><td><b>Availability of credit</b></td><td>C and I</td><td>Easier credit raises spending; AD shifts right</td></tr>
-    <tr><td><b>Government spending</b></td><td>G</td><td>Rises: AD shifts right</td></tr>
-    <tr><td><b>Exchange rate</b></td><td>X − M</td><td>A rise (appreciation) makes exports dearer and imports cheaper, so X − M falls; AD shifts left</td></tr>
-    <tr><td><b>Foreign incomes</b></td><td>X</td><td>Higher incomes abroad raise demand for exports; AD shifts right</td></tr>
-    <tr><td><b>Corporation tax and expected profits</b></td><td>I</td><td>Lower tax and higher expected profits raise I</td></tr>
-  </table></div>
-
-  <h2>5 · The effect of a change in AD on output and prices</h2>
-  <ul>
-    <li>The effect depends on the <b>shape of the AS curve</b>: if there is <b>spare capacity</b> (the flat part), a rise in AD mainly raises <b>real output and employment</b>; near <b>full capacity</b> (the steep part), it mainly raises the <b>price level</b>.</li>
-    <li><b>Benefits of higher AD:</b> economic growth, falling unemployment, higher incomes and tax revenue.</li>
-    <li><b>Problems:</b> inflationary pressure, a worsening current account (more imports), a larger budget deficit if driven by government spending, and possible overheating.</li>
-    <li><b>Lower AD</b> reduces inflation but may cause recession and unemployment.</li>
-  </ul>
-
-  <h2>6 · Common mistakes</h2>
-  <div class="warn"><b class="h">Do not write this</b>A change in the price level shifts the AD curve (it causes a movement along it). Do not include transfer payments in G. Do not say that AD slopes downward for the same reason as a micro demand curve: it slopes down because of the wealth, interest rate and international trade effects.</div>
-  <div class="tip"><b class="h">Exam tip</b>Name the <b>component</b> that changes and say which way the AD curve <b>shifts</b>. Do not draw a change in the price level as a shift. For essays, say what then happens to real output and prices using the AS curve.</div>
 '''
 
 watch = '''
-  <h2>1 · The components add up to AD</h2>
-  <p>Press Play, or click the numbered steps.</p>
+  <h2>1 · A logical shift left</h2>
   <div id="stA"></div>
-  <h2>2 · A movement along AD and a shift of AD</h2>
-  <div id="stS"></div>
+  <h2>2 · AND clears bits</h2>
+  <div id="stB"></div>
+  <h2>3 · XOR flips bits</h2>
+  <div id="stC"></div>
 '''
 
 explore = '''
-  <h2>Lab 1 · Add up the components</h2>
-  <p>Set each component ($bn) at the current price level and see total AD.</p>
-  <div class="card"><div class="grid2"><div><div id="g1"></div><div id="g2"></div><div id="g3"></div><div id="g4"></div><div id="g5"></div>
-    <div class="readout"><div><small>AD (open economy)</small><strong id="r1"></strong></div><div><small>Net exports</small><strong id="r2"></strong></div><div><small>Change from 100</small><strong id="r3"></strong></div></div>
-    <div class="verdict" id="rv"></div></div>
-    <div><svg id="labA" viewBox="0 0 420 300" role="img" aria-label="A stacked bar of the components of aggregate demand"></svg></div></div></div>
-
-  <h2>Lab 2 · What shifts AD?</h2>
-  <p>Choose a change. The diagram shows the AD curve shifting and the new short-run equilibrium.</p>
-  <div class="card"><div class="grid2"><div><div id="evB" class="btnrow"></div>
-    <div class="readout"><div><small>Component</small><strong id="t1"></strong></div><div><small>AD</small><strong id="t2"></strong></div><div><small>Real output and prices</small><strong id="t3"></strong></div></div>
-    <div class="verdict" id="tv"></div></div>
-    <div><svg id="labB" viewBox="0 0 760 300" role="img" aria-label="AD and SRAS with the AD curve shifted for the chosen event"></svg></div></div></div>
+  <h2>Lab 1 · Bit calculator</h2>
+  <p>Click bits of the ACC to toggle them, choose an instruction and an operand.</p>
+  <div class="card"><div id="bA" class="btnrow"></div><div id="bI" class="btnrow"></div><div id="bS"></div><div id="bV" class="verdict"></div></div>
+  <h2>Lab 2 · Which instruction?</h2>
+  <div class="card"><div id="wB" class="btnrow"></div><div id="wO"></div></div>
+  <h2>Lab 3 · Shifts and powers of two</h2>
+  <div class="card"><div id="sS"></div><div id="sV" class="verdict"></div></div>
 '''
 
-practise = '''
-  <h2>1 · Which component changes?</h2><div id="cl1" class="card"></div>
-  <h2>2 · Match the term to its meaning</h2><div id="m1" class="card"></div>
-  <h2>3 · Put the interest rate effect in order</h2><div id="o1" class="card"></div>
-  <h2>4 · Calculations</h2><div id="c1"></div>
-  <h2>5 · Multiple choice</h2><div id="qz1"></div>
-'''
+_pr, _prjs = PR(["AND, OR or XOR?", "Left or right shift?", "Match the task to the instruction", "Put the odd-number test in order", "Working out", "Multiple choice"],
+  ("Which instruction does the task need?", ["AND", "OR", "XOR"], [("Clear some bits to 0", 0), ("Set some bits to 1", 1), ("Flip some bits", 2), ("Test whether the last bit is 1", 0), ("Set the least significant bit and leave the rest", 1), ("Invert every bit with mask 11111111", 2)], "AND clears and tests, OR sets, XOR flips."),
+  ("Left shift or right shift?", ["LSL", "LSR"], [("Multiplies an unsigned number by 2^n", 0), ("Divides an unsigned number by 2^n", 1), ("Zeros enter on the right", 0), ("Zeros enter on the left", 1), ("Bits can be lost from the left end", 0), ("Bits can be lost from the right end", 1)], "LSL multiplies; LSR divides."),
+  [["AND B00000000", "Clears the ACC to zero"], ["OR #1", "Sets the least significant bit"], ["XOR #255", "Flips every bit"], ["AND #1", "Isolates the least significant bit"], ["LSL #1", "Doubles an unsigned number"]],
+  ("Put the odd-number test in order.", ["Take the number in the ACC", "Mask it with AND #1", "The result is 1 if the least significant bit is 1", "Compare the ACC with 1", "If equal, the number is odd"], "Number, mask, bit, compare, odd."),
+  [{"q": "ACC = 0001 0111 (23). What denary value after LSL #2?", "a": 92, "unit": "", "tol": 0.01, "hint": "23 × 4.", "sol": "<b>92</b>."}, {"q": "ACC = 0010 1000 (40). What denary value after LSR #3?", "a": 5, "unit": "", "tol": 0.01, "hint": "40 ÷ 8.", "sol": "<b>5</b>."}, {"q": "How many bits are lost when 0110 1101 is shifted left by 4?", "a": 4, "unit": "", "tol": 0.01, "hint": "The leading four.", "sol": "<b>4</b>."}, {"q": "ACC = 1001 1010 after AND #30 (0001 1110): what denary value?", "a": 26, "unit": "", "tol": 0.01, "hint": "0001 1010.", "sol": "<b>26</b>."}, {"q": "What is &F1 in denary?", "a": 241, "unit": "", "tol": 0.01, "hint": "15 × 16 + 1.", "sol": "<b>241</b>."}],
+  [("Which instruction clears bits?", ["AND", "OR", "XOR", "LSL"], 0, "AND with 0."), ("Which sets bits?", ["OR", "AND", "LSR", "CMP"], 0, "OR with 1."), ("LSL #1 on an unsigned number:", ["Doubles it", "Halves it", "Adds 1", "Clears it"], 0, "×2."), ("XOR with 1 does what to a bit?", ["Flips it", "Clears it", "Sets it", "Keeps it"], 0, "Flips."), ("AND #1 isolates:", ["The least significant bit", "The most significant bit", "The whole byte", "The carry"], 0, "LSB."), ("The operand &12 is:", ["Hexadecimal", "Binary", "Denary", "An address"], 0, "& = hex.")],
+  [("LSL / LSR", "Logical shifts; zeros enter."), ("AND", "Clear or test bits."), ("OR", "Set bits."), ("XOR", "Flip bits."), ("#n / Bn / &n", "Denary / binary / hex operand."), ("Clear a register", "AND B00000000."), ("Odd test", "AND #1, compare with 1."), ("8 bits", "Always write all eight.")])
 
 real = RWNOTE + (
-rw("Lower interest rates", "A central bank cuts interest rates. Borrowing becomes cheaper, so households buy more on credit (C) and firms invest more (I). Aggregate demand shifts right, raising real output and, as the economy nears capacity, prices.", "interest rates affecting C and I.") +
-rw("A weaker currency", "If the exchange rate falls, exports become cheaper abroad and imports dearer at home, so net exports (X − M) rise and AD shifts right, other things equal.", "the exchange rate affecting net exports.") +
-rw("A fall in consumer confidence", "Households fear job losses, so they cut spending and save more. Consumption falls, AD shifts left, and output and employment tend to fall.", "confidence as a determinant of consumption.") +
-rw("Government road building", "State spending on infrastructure is part of G. It raises AD directly, and also supports the economy's capacity if it improves transport, so it may also shift AS in the long run.", "G as a component of AD.") +
-rw("A cut in interest rates", "A central bank cuts interest rates. Borrowing becomes cheaper, so households spend more on credit and firms invest more, and a weaker currency helps exports. AD shifts right.", "interest rates changing C, I and net exports.") +
-rw("A fall in consumer confidence", "News of job losses makes households pessimistic. They cut back on big purchases and save more, so consumption falls and AD shifts left, even though prices and incomes have not yet changed.", "confidence as a determinant of AD.")
+rw("Pixel colours", "Image programs pull the red, green and blue values out of a packed number with AND masks and shifts, thousands of times per image.", "AND masks and LSR.") +
+rw("Permissions on a file", "A set of on/off options is stored in one number; OR sets an option, AND with the opposite mask clears it, XOR toggles it.", "setting, clearing and flipping flags.") +
+rw("Fast multiplying", "Shifting left by 1 doubles a number much faster than a full multiplication, so compilers use it.", "LSL = × 2.") +
+rw("Checking odd or even", "A program tests the lowest bit with a mask to see whether a number is odd without dividing.", "AND #1.") +
+rw("Simple encryption", "XOR a message with a key to scramble it; XOR again with the same key to get the message back.", "XOR flips bits and is reversible.")
 )
 
-mc_exam = [
-  mcq("s22_13", 21, "What is a correct description of an aggregate demand (AD) curve?", ["It is a curve obtained by adding the market demand curves of all consumer goods traded in an economy", "It is a curve determined by the horizontal summation of all individual consumer demand curves for a product", "It is a curve that shows the total amount of goods and services firms are willing to buy at a given price in an economy", "It is a curve that shows the total demand of all goods and services produced at all price levels in an economy"], 3, "AD shows total planned spending on domestic output at each price level."),
-  mcq("s22_13", 19, "The diagram shows an aggregate demand (AD) curve with X on the horizontal axis and Y on the vertical axis. What is measured on each axis?", ["X: money national output, Y: real disposable income", "X: price level, Y: real GDP", "X: real GDP, Y: price level", "X: real disposable income, Y: money national output"], 2, "AD is drawn with real GDP (output) on the horizontal axis and the price level on the vertical axis."),
-  mcq("w21_13", 30, "What are the components of aggregate demand?", ["consumption + investment + government spending + (exports − imports)", "consumption + investment + taxation − (exports − imports)", "consumption + saving + taxation − (exports − imports)", "consumption + saving + taxation + (exports − imports)"], 0, "AD = C + I + G + (X − M)."),
-  mcq("s23_11", 18, "Which statement explains why the aggregate demand curve is downward sloping?", ["As prices fall, the demand for exports becomes more elastic", "As prices fall, fewer goods are imported", "As prices fall, the rate of interest will rise", "As prices fall, real wealth rises and so spending increases"], 3, "The wealth effect: a lower price level raises the real value of savings, so spending rises."),
-  mcq("s24_11", 19, "Why would a fall in a country's average price level cause its aggregate demand curve to slope downwards?", ["It leads to an increase in interest rates", "It reduces the real value of money balances", "It makes the country's goods cheaper relative to foreign goods", "It leads to the expectation of further price falls"], 2, "Cheaper domestic goods boost exports and cut imports, raising net exports."),
-  mcq("s25_12", 18, "The aggregate demand curve is typically downward sloping. What is one possible explanation for this?", ["A fall in the price level will lead to a rise in demand for imports", "As the price level falls, improved productivity will reduce unit costs", "If the price level is high, any interest rate changes will encourage consumption", "The real value of assets increases as the price level falls"], 3, "A lower price level raises the real value of assets, which raises spending (the wealth effect)."),
-  mcq("s23_12", 19, "Why might aggregate demand increase when a country's price level falls?", ["Domestic interest rates will tend to fall", "Imports become more price competitive", "Real incomes fall", "The purchasing power of savings falls"], 0, "A lower price level reduces demand for money, so interest rates tend to fall and spending rises."),
-  mcq("s23_13", 25, "What is the most likely cause of an outward shift of a country's aggregate demand curve?", ["a decrease in the competitiveness of domestically produced products", "a decrease in the general price level", "a decrease in the money supply", "a depreciation of the country's exchange rate"], 3, "A depreciation raises net exports. A price-level fall is a movement along."),
-  mcq("w22_12", 20, "An increase in what will shift the aggregate demand curve in an economy to the right?", ["budget deficit", "consumer savings", "general price level", "interest rate"], 0, "A larger deficit means higher government spending or lower taxes, raising AD."),
-  mcq("s20_12", 19, "What is likely to cause a decrease in aggregate demand?", ["an appreciation in the exchange rate", "an improvement in consumer confidence", "an increase in government expenditure", "an increase in the money supply"], 0, "An appreciation makes exports dearer and imports cheaper, lowering net exports."),
-  mcq("m24_12", 19, "Aggregate demand in an economy may decrease as a result of an increase in which of the following?", ["consumption expenditure", "government expenditure", "import expenditure", "investment expenditure"], 2, "Imports are subtracted in AD, so higher spending on imports lowers it."),
-  mcq("w23_12", 24, "A government increases the rate of income tax. What is the effect, in the short run, on the aggregate demand curve or the aggregate supply curve?", ["The aggregate demand curve shifts left", "The aggregate demand curve shifts right", "The aggregate supply curve shifts left", "The aggregate supply curve shifts right"], 0, "Higher income tax cuts disposable income and consumption, so AD shifts left.")
-]
+where = [
+  ("O/N 2021", "11, 13", "6(b)", "4", "ACC after XOR, AND, LSR and OR instructions"),
+  ("O/N 2021", "12", "8(b)(i)", "4", "ACC after XOR, AND, LSL and OR instructions"),
+  ("M/J 2022", "11", "6(c)", "3", "ACC after AND #2, OR #8 and LSL #4"),
+  ("M/J 2022", "12", "3(a), (b), (d)", "2 + 2 + 1", "Write the instruction for a given change; a three-place logical shift"),
+  ("O/N 2022", "13", "3(c)", "3", "Match instructions to their results on 00111101"),
+  ("O/N 2023", "11", "8(c)", "3", "ACC after AND, LSR and XOR"),
+  ("M/J 2024", "11", "4(b)", "3", "ACC after three programs"),
+  ("M/J 2024", "12", "5(b)", "3", "ACC after three programs"),
+  ("M/J 2024", "13", "3(b)", "3", "ACC after LSL #2, XOR and AND"),
+  ("O/N 2024", "12", "8(b)", "3 + 3", "ACC after three sets; test whether the number in the ACC is odd"),
+  ("O/N 2024", "13", "7(b)", "3", "Clear the data in an 8-bit register"),
+  ("M/J 2025", "11", "8(b)", "1 + 1 + 1", "Set the least significant bit; XOR &FE; LSR #5"),
+  ("O/N 2025", "11", "4", "1 + 1 + 1 + 1", "A binary shift; XOR &12; AND #63; OR 100"),
+  ("O/N 2025", "13", "6(a)", "4", "ACC after AND, LDM, XOR and CMP"),
+  ("M/J 2026", "11", "3(b)", "1 + 1", "Set the ACC to &0; LSR #3")]
 
-exam = exam_page("aggregate demand",
-  "We searched the AS Level Economics papers in the folder (2020 to 2025). Aggregate demand is an 8 mark Paper 2 part most years, and a 12 mark discussion on whether more AD is beneficial, and it appears in nearly every Paper 1. Reworded past questions are below, with twelve Paper 1 multiple choice questions.",
-  [("Essay parts, 8 marks", "3", "May/June 2024 (21) Q4(a); May/June 2024 (23) Q4(a); Oct/Nov 2023 (22) Q5(a)"), ("Essay parts, 12 marks", "2", "May/June 2024 (23) Q4(b); May/June 2021 (23) Q3(b)"), ("Multiple choice (Paper 1)", "12 shown below", "2020 to 2025")],
-  [
-  eq(P("s24_21", "4(a)"), "8 marks", "Explain three of the components of aggregate demand and consider the extent to which they may be increased without leading to inflation.",
-     ["Knowledge (up to 3): a clear and accurate explanation of three components of AD: consumer spending, investment, government spending and net exports (1 each). Simply mentioning a component does not earn a mark.",
-      "Analysis (up to 3): one cause of inflation is where AD rises more than AS (1), but it considers why this may or may not occur, for example the economy is operating below capacity or some of the increase in AD also increases AS. If both scenarios are considered, full marks may be awarded; one-sided answers get a maximum of 1.",
-      "Evaluation (up to 2): consideration of both sides (1), leading to a valid conclusion (1)."],
-     "Three components explained. Inflation if AD rises faster than AS. No inflation if spare capacity or AS also rises. Judge.",
-     [[("k", "Consumption is household spending on goods and services, such as cars and holidays. Investment is firms' spending on capital goods, such as machinery. Government spending includes spending on public services and infrastructure, such as schools and roads.")], [("n", "If these components increase and the economy has spare capacity, firms can raise output without raising prices, so little inflation results. If AD rises faster than AS, as when the economy is near full capacity, the extra demand pulls up prices.")], [("e", "Whether inflation follows depends on how much spare capacity there is and whether the rise in AD, for example from investment, also raises AS. Investment is the most likely to be increased without inflation, because it adds to capacity.")]]),
-  eq(P("s24_23", "4(a)"), "8 marks", "With the help of a diagram, explain how increases in aggregate demand affect the level of real output and the price level in an economy and consider when such increases may become a problem.",
-     ["Knowledge (up to 3): the components of AD, C + G + I + X − M (1); an accurately labelled AD/AS diagram with the initial equilibrium (1); a rightward shift of AD and the subsequent changes in the price level and real GDP (1).",
-      "Analysis (up to 3): an explanation of why AD might increase (1); why the increase may not cause problems such as inflation, for example because of the shape of the AS curve or because AS may increase in line with AD if the cause is investment (1); why it may cause problems, for example the economy is at full capacity and AS cannot increase (1).",
-      "Evaluation (up to 2): a recognition that increases in AD may cause an inflationary rise in the price level beyond the full-employment level of output (1), with a justified conclusion (1)."],
-     "Diagram: AD shifts right, output and price level rise. No problem with spare capacity. Problem at full capacity: inflation only.",
-     [[("k", "Aggregate demand is C + I + G + (X − M). On an AD/AS diagram, the initial equilibrium is where AD meets short-run AS. An increase in AD shifts the curve right, so real output and the price level both rise.")], [("n", "AD may increase because of lower interest rates, which raise consumption and investment. If the economy has spare capacity, output rises a lot and prices little, which is beneficial. But at or near full capacity AS cannot increase, so extra AD mainly raises prices.")], [("e", "The increases become a problem when output cannot rise further, as then the rise in AD is inflationary beyond the full-employment level of output. The result depends on the position of the economy and the shape of the AS curve.")]]),
-  eq(P("w23_22", "5(a)"), "8 marks", "With the help of a diagram, explain one reason for an increase in aggregate demand and one reason for an increase in aggregate supply and consider whether an increase in aggregate demand will always lead to inflation.",
-     ["Knowledge (up to 3): AD is the total demand for an economy's goods and services at a given price level, or C + I + G + (X − M) (1); AS is the total output producers are willing and able to supply at a given price level (1); an accurate diagram showing AD and AS curves (1).",
-      "Analysis (up to 3): a valid cause of an increase in AD (1); a valid cause of an increase in AS (1); both increases shown by rightward shifts, with the resulting impact on the price level on an accurate diagram (1).",
-      "Evaluation (up to 2): whether an increase in AD always leads to inflation depends on the increase in AS and the shape of or position on the AS curve."],
-     "Define AD and AS. One cause each, shown as right shifts. AD rise leads to inflation only if AS does not rise or the economy is near capacity.",
-     [[("k", "Aggregate demand is total spending on a country's output at each price level, C + I + G + (X − M). Aggregate supply is the total output firms are willing and able to produce at each price level.")], [("n", "AD might increase because of lower interest rates, which raise consumption and investment, shifting AD to the right. AS might increase because of better technology, which lowers costs, shifting SRAS to the right. Together they raise real output, and the price level may rise only a little, or fall.")], [("e", "An increase in AD does not always lead to inflation. If there is spare capacity, or AS also increases, output rises with little change in the price level, but if the economy is near full capacity, inflation is more likely.")]]),
-  eq(P("s24_23", "4(b)"), "12 marks", "Assess whether increases in aggregate demand are the best way of reducing unemployment in a high-income country.",
-     ["Analysis (up to 8): what is meant by unemployment and its main types in a high-income economy; increases in AD arise from fiscal and monetary policy; policies such as lower taxes, higher government spending and lower interest rates may reduce cyclical unemployment but may not reduce structural unemployment; supply-side policy may reduce unemployment by influencing AS, through training, education and deregulation, but is a long-term approach, may be costly and does not address falls in AD behind cyclical unemployment.",
-      "Evaluation (up to 4): considers alternative policies and balances them; a judgement on whether AD is the best way, with a conclusion."],
-     "AD: cuts cyclical unemployment, quick, but not structural; inflation, deficit. Supply-side: structural, slow, costly. Judge by type of unemployment.",
-     [[("n", "Increasing AD through lower interest rates, tax cuts or more government spending raises output, so firms need more workers and cyclical unemployment falls, and this can work quickly. But if unemployment is structural, because workers' skills do not match vacancies, more spending creates little employment and may only raise prices. Higher AD can also worsen the budget deficit and the current account. Supply-side policy, such as training and education, tackles structural unemployment but takes years, costs money and does not help where the problem is weak demand.")], [("e", "Increasing AD is the best way when unemployment is mainly cyclical and there is spare capacity, but not when it is structural. A high-income country is likely to have both types, so a mix of demand-side and supply-side policies is likely to be most effective.")]]),
-  eq(P("s21_23", "3(b)"), "12 marks", "Discuss whether an increase in aggregate demand would be of overall benefit for an economy.",
-     ["Analysis (up to 8): the benefits of an increase in AD to the economy (up to 4), such as economic growth and higher employment, considering firms, government and consumers or workers; the possible problems (up to 4), such as inflation and a current account deficit.",
-      "Evaluation (up to 4): clearly compares the benefits and the problems resulting from an increase in AD, with one mark reserved for a reasoned conclusion. No KU marks for merely explaining terms in the question."],
-     "Benefits: growth, jobs, profits, tax revenue. Problems: inflation, current account deficit, overheating. Judge: depends on spare capacity.",
-     [[("n", "A rise in AD raises real output, which creates jobs for workers, higher profits for firms and more tax revenue for the government. But if the economy is near full capacity the extra demand mainly raises prices, causing inflation, and higher incomes raise spending on imports, worsening the current account.")], [("e", "The overall benefit is likely to be greatest when there is spare capacity and unemployment is high, and smallest when the economy is already near full capacity. So an increase in AD is beneficial overall, but not always, and its benefits depend on how much capacity is available.")]])
-  ],
-  )
+past = '''  <p class="note">Bit manipulation calculations are in Paper 1 every series. Each answer here was worked out step by step by a program and matches the published mark scheme. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording. Write all eight bits.</p>
+''' + peq(SRC("w21", "12", "Q8(b)(i)"), "4 marks", "Complete",
+  "Memory: 100: 01010101, 101: 11110000, 102: 00001111, 103: 00000000, 104: 11111111. Complete the table of the new contents of the ACC for the instructions XOR 101 (ACC = 01010101), AND 104 (ACC = 11110000), LSL #4 (ACC = 00001111), OR 102 (ACC = 11111111).", "Use the contents of the address as the mask.",
+  "<p>" + mks(["1010 0101", "1111 0000", "1111 0000", "1111 1111"]) + "</p>" + T_w21, "Using the address 101 as the number. The mask is the contents of address 101.") + peq(SRC("s22", "11", "Q6(c)"), "3 marks", "Complete",
+  "The ACC holds 0110 1101. Complete the register to show the result after (i) AND #2, (ii) OR #8, (iii) LSL #4.", "#2 is 0000 0010; #8 is 0000 1000.",
+  "<p>" + mks(["(i) 0000 0000", "(ii) 0110 1101", "(iii) 1101 0000"]) + "</p>" + T_s22, "Forgetting that OR #8 changes nothing here: bit 3 is already 1.") + peq(SRC("s22", "12", "Q3(a)(b)(d)"), "2 + 2 + 1 marks", "Write / Show",
+  "The ACC holds 0110 0101. (a) Write the bit manipulation instruction that would change it to 1111 1111. (b) Write the instruction that would change it to 1001 1010. (d) Show the result of a three-place logical shift to the left on 0111 1110.", "OR #255; XOR #255; LSL #3.",
+  "<p><b>(a)</b> " + mks(["OR #255 (or OR #154, or XOR #154): the opcode and the matching operand"]) + "</p><p><b>(b)</b> " + mks(["XOR #255: the opcode and the matching operand"], "a") + "</p><p><b>(d)</b> " + mks(["1111 0000"], "b") + "</p>", "Writing a binary answer or a shift for (a). The mask for (b) must flip every bit.") + peq(SRC("w22", "13", "Q3(c)"), "3 marks", "Match",
+  "The binary value 00111101 is stored in address 200. Each instruction is performed on the data in 200. Draw one line from each instruction to its result: XOR B11110000; OR B01010101; AND B11111111. Results: 01111101, 00111101, 11111111, 11000010, 11001101.", "Work each one bit by bit.",
+  "<p>" + mks(["XOR B11110000 gives 11001101", "OR B01010101 gives 01111101", "AND B11111111 gives 00111101"]) + "</p>", None) + peq(SRC("w23", "11", "Q8(c)"), "3 marks", "Show",
+  "Show the contents of the ACC after: (i) AND B10100101 when the ACC holds 0100 1111; (ii) LSR #3 when the ACC holds 0001 0111; (iii) XOR B00100101 when the ACC holds 1111 0111.", "AND keeps only bits where both are 1.",
+  "<p>" + mks(["(i) 0000 0101", "(ii) 0000 0010", "(iii) 1101 0010"]) + "</p>" + T_w23, None) + peq(SRC("s24", "11", "Q4(b)"), "3 marks", "Complete",
+  "Memory: 30: 01110101, 31: 11111111, 32: 00000000, 33: 11001100, 34: 10101010. The ACC holds 10011010 before each program. Write the ACC after: (1) AND 31; (2) XOR B01001111; (3) OR #30.", "AND with 11111111 changes nothing.",
+  "<p>" + mks(["1: 1001 1010", "2: 1101 0101", "3: 1001 1110"]) + "</p>" + T_s24a, None) + peq(SRC("s24", "12", "Q5(b)"), "3 marks", "Complete",
+  "Memory: 25: 11000110, 26: 11100001, 27: 10000001, 28: 11001101, 29: 00001111. The ACC holds 01000110 before each program. Write the ACC after: (1) XOR 29; (2) AND #29; (3) OR B11111111.", "#29 is 0001 1101.",
+  "<p>" + mks(["1: 0100 1001", "2: 0000 0100", "3: 1111 1111"]) + "</p>" + T_s24b, None) + peq(SRC("s24", "13", "Q3(b)"), "3 marks", "Complete",
+  "Memory: 100: 00001101, 101: 10111110, 102: 11110011, 103: 00110111, 104: 00000000. The ACC holds 11111111 before each instruction. Write the ACC after: (1) LSL #2; (2) XOR 100; (3) AND 103.", "XOR with all 1s flips the bits of the mask.",
+  "<p>" + mks(["1: 1111 1100", "2: 1111 0010", "3: 0011 0111"]) + "</p>" + T_s24c, None) + peq(SRC("w24", "12", "Q8(b)"), "3 + 3 marks", "Complete / Explain",
+  "The ACC holds 10011010 before each set of instructions: (1) LSL #2; (2) ADD #5, AND #30; (3) OR B11110010, INC ACC. (i) Complete the ACC after each set. (ii) Explain how bit manipulation can be used to test whether the binary number in the ACC is odd, and write the instruction.", "Set 2: add 5 first (1001 1111), then mask. AND #1 and compare with 1.",
+  "<p><b>(i)</b> " + mks(["1: 0110 1000 after LSL #2 (the published answer shows the result of the first instruction: 0110 1000)", "2: 0001 1110 after AND #30, then 1111 1010 after OR B11110010", "3: 1111 1011 after INC ACC"]) + "</p><p><b>(ii)</b> " + mks(["An odd binary number has a 1 in the least significant bit", "A bit manipulation operation (a mask) isolates the LSB and clears the others", "Compare the result with denary 1; it is true if the number is odd"], "a") + " <b>Instruction:</b> " + mks(["AND B00000001 (or AND #1, or AND &01)"], "b") + "</p>", "Writing a mask that does not isolate the least significant bit.") + peq(SRC("w24", "13", "Q7(b)"), "3 marks", "Explain / Write",
+  "Explain how bit manipulation can be used to clear the data in an 8-bit register. Write the bit manipulation instruction that will be used.", "AND with all zeros.",
+  "<p>" + mks(["A bit manipulation operation is required to set all the bits to zero", "Compare the result with 0; it is true if the register is cleared"]) + " <b>Instruction:</b> " + mks(["AND B00000000 (or AND #0, or AND &00)"], "a") + "</p>", None) + peq(SRC("s25", "11", "Q8(b)"), "1 + 1 + 1 marks", "Write",
+  "(i) Write the instruction that sets the least significant bit to 1 in an 8-bit register, leaving all the other bits unchanged, for any 8-bit number. (ii) The ACC holds 0101 0101: write the result of XOR &FE. (iii) The ACC holds 0110 1011: write the result of LSR #5.", "OR with 0000 0001. &FE is 1111 1110.",
+  "<p>" + mks(["(i) OR B00000001 (or OR #1, or OR &1)", "(ii) 1010 1011", "(iii) 0000 0011"]) + "</p>" + T_s25, "Using AND for (i). AND cannot set a bit.") + peq(SRC("w25", "11", "Q4"), "1 + 1 + 1 + 1 marks", "Write",
+  "(a) The ACC holds 0001 1110. Write an instruction that uses a binary shift to change it to 0111 1000. The ACC holds 1110 0011 for (b) XOR &12, (c) AND #63, (d) OR 100 where address 100 holds 00110011. Write the ACC after each.", "LSL #2. &12 = 0001 0010; #63 = 0011 1111.",
+  "<p>" + mks(["(a) LSL #2", "(b) 1111 0001", "(c) 0010 0011", "(d) 1111 0011"]) + "</p>" + T_w25b, None) + peq(SRC("w25", "13", "Q6(a)"), "4 marks", "Complete",
+  "Memory: 100: 0000 0011, 101: 1010 1110, 102: 1100 1100, 103: 1111 1111, 104: 1100 1100. Write the ACC after each instruction: (ACC 0000 1111) AND 101; (ACC 0000 0000) LDM #100; (ACC 0000 0001) XOR &F1; (ACC 0001 0001) CMP 101.", "LDM #100 loads denary 100; CMP changes nothing.",
+  "<p>" + mks(["0000 1110", "0110 0100", "1111 0000", "0001 0001 (CMP does not change the ACC)"]) + "</p>" + T_w25, "Changing the ACC after CMP. It only compares.") + peq(SRC("s26", "11", "Q3(b)"), "2 + 1 marks", "Write",
+  "(i) Write the bit manipulation instruction that will set the ACC to &0. (ii) The ACC holds 0011 0101: write the result after LSR #3.", "AND with zero; shift right three.",
+  "<p>" + mks(["(i) AND with 0: AND B00000000, AND &0 or AND #0 (the instruction, then the operand; no load command)", "(ii) 0000 0110"]) + "</p>" + T_s26, None)
 
-tips = tips_html(
-  [("AD = C + I + G + (X − M).", "Know each component and an example of what shifts it."),
-   ("Price level moves along; everything else shifts.", "A fall in prices is a movement, not a shift."),
-   ("Explain the downward slope.", "Wealth, interest rate and international trade effects."),
-   ("Name the component.", "Interest rates affect C and I; the exchange rate affects X − M."),
-   ("Say what happens next.", "Output and price level, depending on AS."),
-   ("Transfer payments are not G.", "They affect AD through income."),
-   ("Judge with capacity.", "Spare capacity means growth; full capacity means inflation.")],
-  [("Aggregate demand", "Aggregate demand is total planned spending on an economy's output at each price level."),
-   ("Shift", "A fall in interest rates could shift the AD curve to the right."),
-   ("Components", "AD is made up of consumption, investment, government spending and net exports."),
-   ("Slope", "The AD curve slopes down because of the wealth, interest rate and trade effects."),
-   ("Consider", "The effect on prices depends on how close the economy is to capacity.")],
-  [CW["define"], CW["explain"], CW["consider"], CW["assess"]]) + FC
+review = req("2 marks", "State", "State the instruction that flips every bit of the ACC.", "XOR with all ones.", "<p>" + mks(["XOR", "#255 (or B11111111 or &FF)"]) + "</p>", None) + req("3 marks", "Complete", "The ACC holds 1100 1010. Write the result of (i) AND #15; (ii) OR #15; (iii) LSR #2.", "#15 = 0000 1111.", "<p>" + mks(["(i) 0000 1010", "(ii) 1100 1111", "(iii) 0011 0010"]) + "</p>" + result_table([R("11001010", "AND #15", "00001010"), R("11001010", "OR #15", "11001111"), R("11001010", "LSR #2", "00110010")]), None) + req("2 marks", "Explain", "Explain how a program can use an instruction to test whether bit 7 of the ACC is set.", "AND with a mask.", "<p>" + mks(["AND the ACC with B10000000 so every other bit is cleared", "The result is non-zero (128) only if bit 7 was 1"]) + "</p>", None) + req("2 marks", "Explain", "Explain the effect of LSL #3 on an unsigned number, and when this fails.", "× 8; bits lost.", "<p>" + mks(["It multiplies the number by 2^3 = 8", "It fails if any of the top three bits were 1: they are lost"]) + "</p>", None) + req("2 marks", "Write", "Write an instruction that sets bits 0 and 1 of the ACC to 1 and leaves the rest unchanged.", "OR with 0000 0011.", "<p>" + mks(["OR", "#3 (or B00000011)"]) + "</p>", None)
 
-js = SDJS + ADASJS + '''
-/* ---------- components stack ---------- */
-function acDraw(s) {
-  const Y = (v) => 250 - v * 1.7; let o = SV.line(60, 250, 700, 250) + SV.line(60, 250, 60, 40) + SV.text(66, 34, "$bn at the current price level", "sm");
-  const parts = [["C", s.c, "f1"], ["I", s.i, "f2"], ["G", s.g, "f3"], ["X", s.x, "f1"]]; let y = 250;
-  parts.forEach(([l, v, c], k) => { const h = v * 1.7; if (v > 0.5) o += SV.rect(150 + k * 0, y - h, 140, h, c, op(0.65)) + SV.text(220, y - h / 2 + 5, l + " " + Lib.fmtN(v, 0), "lbl bd", { "text-anchor": "middle" }); y -= h; });
-  if (s.m > 0.5) { const h = s.m * 1.7; o += SV.rect(340, 250 - h, 140, h, "f3", op(0.65)) + SV.text(410, 250 - h / 2 + 5, "M " + Lib.fmtN(s.m, 0), "lbl bd", { "text-anchor": "middle" }) + SV.text(410, 270, "Imports (subtracted)", "sm", { "text-anchor": "middle" }); }
-  const ad = s.c + s.i + s.g + s.x - s.m; o += SV.text(220, 270, "Gross spending", "sm", { "text-anchor": "middle" }) + SV.line(500, Y(ad), 700, Y(ad), "c4", { "stroke-dasharray": "6 4", "stroke-width": 2 }) + tag(704, Y(ad) + 4, "AD = " + Lib.fmtN(ad, 0), "c4", 1, "end");
-  return o;
-}
-$("#pic1").innerHTML = `<svg viewBox="0 0 760 290" role="img" aria-label="Consumption, investment, government spending and exports add up, with imports subtracted, to aggregate demand">${acDraw({ c: 60, i: 20, g: 25, x: 25, m: 30 })}</svg>`;
-Lib.stepper($("#stA"), { w: 760, h: 290, label: "C + I + G + X − M", base: { c: 0, i: 0, g: 0, x: 0, m: 0 }, draw: acDraw, tween: 800, dwell: 5000, steps: [
-  { cap: "<b>Consumption (C)</b>: household spending, the largest component, here $60bn.", s: { c: 60 } },
-  { cap: "<b>Investment (I)</b>: firms' spending on capital, $20bn.", s: { c: 60, i: 20 } },
-  { cap: "<b>Government spending (G)</b> on public services and infrastructure, $25bn.", s: { c: 60, i: 20, g: 25 } },
-  { cap: "<b>Exports (X)</b>: foreign spending on domestic output, $25bn.", s: { c: 60, i: 20, g: 25, x: 25 } },
-  { cap: "<b>Imports (M)</b> are subtracted, because they are spending that does not go to domestic output. AD = 60 + 20 + 25 + 25 − 30 = $100bn.", s: { c: 60, i: 20, g: 25, x: 25, m: 30 } },
-] });
+tips = tips_html([
+  ("AND clears, OR sets, XOR flips.", "Say the mask value too."),
+  ("Convert the operand to 8 bits.", "#n, Bn and &n are all numbers."),
+  ("An address operand: use its contents.", "Not the address itself."),
+  ("Write all eight bits.", "In groups of four."),
+  ("Odd test: AND #1, compare with 1.", "Both parts."),
+  ("LSL ×2, LSR ÷2.", "Bits can fall off the end."),
+], [("a bit mask", "A value combined with the ACC to clear, set or test bits."), ("a logical shift", "Moves bits left or right and fills with zeros."), ("the least significant bit", "The rightmost bit; 1 for an odd number."), ("XOR", "1 only if the two bits differ.")],
+  [("Complete", "Fill in the ACC contents."), ("Write", "Give the instruction."), ("Explain", "Reasons as well."), ("Match", "Link the instruction to its result.")]) + FC
 
-/* ---------- movement and shift ---------- */
-function msDraw(s) {
-  let o = axes(70, 270, 720, 25, "Real output (Y)", "Price level") + sdCurve("D", 0, "c2", s.a > 0.05 ? 0.4 : 1, "AD1");
-  if (s.a > 0.05) o += sdCurve("D", s.a, "c2", 1, "AD2");
-  const p = s.p, q = (90 - p) / 0.8 + (s.a > 0.05 ? s.a * (s.k || 0) : 0); o += SV.line(SDX(q), SDY(p), SDX(q), 270, "dash") + SV.line(70, SDY(p), SDX(q), SDY(p), "dash") + SV.circle(SDX(q), SDY(p), 7, "dot3") + SV.text(62, SDY(p) + 4, Lib.fmtN(p, 0), "sm", { "text-anchor": "end" });
-  return o;
-}
-$("#pic2").innerHTML = `<svg viewBox="0 0 760 300" role="img" aria-label="A fall in the price level moves along AD, while a rise in a component shifts AD right">${msDraw({ p: 40, a: 20, k: 0 })}</svg>`;
-Lib.stepper($("#stS"), { w: 760, h: 300, label: "A movement along AD and a shift of AD", base: { p: 50, a: 0, k: 0 }, draw: msDraw, tween: 900, dwell: 5600, steps: [
-  { cap: "<b>Start.</b> At a price level of 50, planned spending on domestic output is 50 units.", s: { p: 50, a: 0, k: 0 } },
-  { cap: "<b>The price level falls to 35.</b> Real wealth rises, interest rates fall and exports become cheaper, so spending rises along the same AD curve: a <b>movement along</b>.", s: { p: 35, a: 0, k: 0 } },
-  { cap: "<b>Interest rates fall.</b> At every price level consumers and firms want to spend more, so the whole AD curve <b>shifts right</b> to AD2. At a price level of 35 spending is now higher still.", s: { p: 35, a: 20, k: 1 } },
-] });
+js = AKJS + AK20JS + r'''
+const BM = { AND: (a, m) => a & m, OR: (a, m) => a | m, XOR: (a, m) => a ^ m, LSL: (a, n) => (a << n) & 255, LSR: (a, n) => a >> n, CSL: (a, n) => ((a << n) | (a >> (8 - n))) & 255, CSR: (a, n) => ((a >> n) | (a << (8 - n))) & 255 };
+const b8 = (n) => ("00000000" + (n & 255).toString(2)).slice(-8), g4 = (s) => s.slice(0, 4) + " " + s.slice(4);
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); const a = "00011110"; const r = [a, "00111100", "01111000", "01111000"]; let o = ""; for (let i = 0; i < 8; i++) { const bit = r[Math.min(k, 2)][i]; o += SV.rect(30 + i * 40, 30, 34, 34, bit === "1" ? "f1" : "cell", { rx: 6 }) + SV.text(47 + i * 40, 53, bit, "lbl bd", { "text-anchor": "middle" }); }
+    o += SV.text(30, 100, ["ACC = 0001 1110", "LSL #1: every bit moves one place left", "LSL #2: two places left; zeros enter on the right", "0001 1110 LSL #2 = 0111 1000 (30 × 4 = 120)"][k], "lbl bd t3", { style: "font-size:13px" }); return o; };
+  Lib.stepper($("#stA"), { w: 380, h: 120, label: "Shift left", base: { i: 0 }, draw, tween: 100, dwell: 2600, steps: [{ cap: "The ACC holds 0001 1110 (30).", s: { i: 0 } }, { cap: "<b>LSL #1</b>: each bit moves one place left, a 0 enters on the right.", s: { i: 1 } }, { cap: "<b>LSL #2</b>: two places.", s: { i: 2 } }, { cap: "The result is 0111 1000 = 120, which is 30 × 2<sup>2</sup>.", s: { i: 3 } }] });
+})();
+(function () {
+  const A = "10011010", M = "00011110", R = "00011010";
+  const draw = (s) => { const k = Math.round(s.i); let o = ""; const row = (y, t, str, on) => { o += SV.text(10, y + 22, t, "sm"); for (let i = 0; i < 8; i++) o += SV.rect(80 + i * 40, y, 34, 30, str[i] === "1" ? (on ? "f1" : "f3") : "cell", { rx: 5 }) + SV.text(97 + i * 40, y + 21, str[i], "lbl bd", { "text-anchor": "middle" }); };
+    row(10, "ACC", A, false); row(50, "mask", M, false); if (k >= 1) row(90, "AND", k >= 3 ? R : R.slice(0, k * 3) + "?".repeat(8 - k * 3), true); return o; };
+  Lib.stepper($("#stB"), { w: 420, h: 135, label: "AND", base: { i: 0 }, draw, tween: 100, dwell: 2600, steps: [{ cap: "ACC = 1001 1010 and the mask is 0001 1110 (#30).", s: { i: 0 } }, { cap: "AND is 1 only when both bits are 1. A 0 in the mask <b>clears</b> that bit.", s: { i: 1 } }, { cap: "The top bits of the mask are 0, so they are cleared.", s: { i: 2 } }, { cap: "Result: 0001 1010.", s: { i: 3 } }] });
+})();
+(function () {
+  const A = "01100101", M = "11111111", R = "10011010";
+  const draw = (s) => { const k = Math.round(s.i); let o = ""; const row = (y, t, str) => { o += SV.text(10, y + 22, t, "sm"); for (let i = 0; i < 8; i++) o += SV.rect(80 + i * 40, y, 34, 30, str[i] === "1" ? "f1" : "cell", { rx: 5 }) + SV.text(97 + i * 40, y + 21, str[i], "lbl bd", { "text-anchor": "middle" }); };
+    row(10, "ACC", A); row(50, "mask", M); if (k >= 1) row(90, "XOR", k >= 2 ? R : "????????"); o += SV.text(80, 140, ["", "XOR is 1 when the bits differ", "A mask of all 1s flips every bit: XOR #255", ""][Math.min(k, 3)], "lbl bd t3", { style: "font-size:13px" }); return o; };
+  Lib.stepper($("#stC"), { w: 420, h: 150, label: "XOR", base: { i: 0 }, draw, tween: 100, dwell: 2600, steps: [{ cap: "ACC = 0110 0101 and the mask is 1111 1111.", s: { i: 0 } }, { cap: "XOR gives 1 when the bits <b>differ</b>.", s: { i: 1 } }, { cap: "With a mask of all 1s every bit is <b>flipped</b>: 1001 1010.", s: { i: 2 } }] });
+})();
 
-/* ---------- Lab 1 ---------- */
-function labC() {
-  const ids = ["cc", "ii", "gg", "xx", "mm"]; if (!ids.every((i) => $("#" + i))) return;
-  const [c, i, g, x, m] = ids.map((k) => +$("#" + k).value), ad = c + i + g + x - m;
-  $("#r1").textContent = "$" + ad + "bn"; $("#r2").textContent = (x - m >= 0 ? "+" : "") + (x - m); $("#r3").textContent = (ad - 100 >= 0 ? "+" : "") + (ad - 100);
-  $("#rv").textContent = `AD = ${c} + ${i} + ${g} + (${x} − ${m}) = ${ad}. ${ad > 100 ? "Higher than the starting $100bn: the AD curve has shifted to the right." : ad < 100 ? "Lower than the starting $100bn: the AD curve has shifted to the left." : "Equal to the starting $100bn: no shift."} Net exports are ${x - m >= 0 ? "a surplus" : "a deficit"} of ${Math.abs(x - m)}.`;
-  $("#labA").innerHTML = acDraw({ c, i, g, x, m });
-}
-[["g1", "cc", "Consumption (C), $bn ", 60], ["g2", "ii", "Investment (I), $bn ", 20], ["g3", "gg", "Government spending (G), $bn ", 25], ["g4", "xx", "Exports (X), $bn ", 25], ["g5", "mm", "Imports (M), $bn ", 30]].forEach(([el, id, lab, v]) => Lib.slider($("#" + el), { id, label: lab, min: 0, max: 80, step: 5, value: v, fmt: (z) => z, onInput: labC }));
-labC();
+(function () {
+  let acc = 0b01100101, op = "AND", opd = 0b00001111;
+  const bits = $("#bA"), ops = $("#bI");
+  const paint = () => { bits.querySelectorAll("button").forEach((b, i) => { const v = (acc >> (7 - i)) & 1; b.textContent = v; b.className = v ? "on" : ""; });
+    const sh = ["LSL", "LSR", "CSL", "CSR"].includes(op); const n = opd & 7; const res = BM[op](acc, sh ? n : opd);
+    $("#bS").innerHTML = `<div class="mono">ACC &nbsp;&nbsp;${g4(b8(acc))}<br>${op} ${sh ? "#" + n : "B" + g4(b8(opd))}<br><b>result ${g4(b8(res))}</b> (denary ${res})</div>`;
+    $("#bV").innerHTML = op === "AND" ? "AND keeps a bit only where the mask has a 1: it <b>clears</b> the others." : op === "OR" ? "OR sets a bit wherever the mask has a 1." : op === "XOR" ? "XOR flips the bits where the mask has a 1." : op === "LSL" ? "Logical shift left: zeros enter on the right; bits shifted off the left are lost." : op === "LSR" ? "Logical shift right: zeros enter on the left." : "Cyclic shift: bits pushed off one end come back on the other."; };
+  for (let i = 0; i < 8; i++) { const b = document.createElement("button"); b.onclick = () => { acc ^= 1 << (7 - i); paint(); }; bits.appendChild(b); }
+  ["AND", "OR", "XOR", "LSL", "LSR", "CSL", "CSR"].forEach((o) => { const b = document.createElement("button"); b.textContent = o; b.onclick = () => { op = o; ops.querySelectorAll("button").forEach((x) => x.className = x === b ? "on" : ""); paint(); }; if (o === op) b.className = "on"; ops.appendChild(b); });
+  Lib.slider($("#bS").parentNode.insertBefore(document.createElement("div"), $("#bS")), { id: "bo", label: "Operand (0 to 255; for shifts the low 3 bits) ", min: 0, max: 255, value: opd, fmt: (x) => x, onInput: (v) => { opd = v; paint(); } }); paint();
+})();
+btnTable("wB", "wO", [
+  ["Set the least significant bit and leave the rest", "OR #1", "OR sets bits"],
+  ["Clear the register", "AND B00000000", "AND with 0 clears"],
+  ["Flip every bit", "XOR #255", "XOR with 1 flips"],
+  ["Test whether a number is odd", "AND #1 then compare with 1", "Isolate the LSB"],
+  ["Multiply by 8", "LSL #3", "2^3"],
+  ["Divide by 4", "LSR #2", "2^2"]
+], ["Task", "Instruction", "Why"]);
+(function () {
+  let n = 12, k = 2; const paint = () => { $("#sV").innerHTML = `LSL #${k}: ${n} × 2<sup>${k}</sup> = <b>${n << k}</b>` + (((n << k) > 255) ? " (too big for 8 bits: the top bits are lost, so the 8-bit result is <b>" + ((n << k) & 255) + "</b>)" : "") + `.<br>LSR #${k}: ${n} ÷ 2<sup>${k}</sup> = <b>${n >> k}</b> (the remainder is discarded).`; };
+  Lib.slider($("#sS").appendChild(document.createElement("div")), { id: "s1", label: "Number ", min: 0, max: 255, value: n, fmt: (x) => x, onInput: (v) => { n = v; paint(); } });
+  Lib.slider($("#sS").appendChild(document.createElement("div")), { id: "s2", label: "Shift places ", min: 0, max: 7, value: k, fmt: (x) => x, onInput: (v) => { k = v; paint(); } }); paint();
+})();
+''' + _prjs
 
-/* ---------- Lab 2 ---------- */
-const EVA = [["Interest rates fall", "C and I", 15], ["Income tax rises", "C", -15], ["Consumer confidence falls", "C", -20], ["Currency depreciates", "X − M", 15], ["Government spends more on roads", "G", 15], ["Trading partners' incomes rise", "X", 15], ["Business confidence rises", "I", 15], ["Currency appreciates", "X − M", -15]];
-function showA(i) {
-  const [n, comp, a] = EVA[i], e = sdEq(a, 0), e0 = sdEq(0, 0); $$("#evB button").forEach((b, k) => b.classList.toggle("pri", k === i));
-  $("#t1").textContent = comp; $("#t2").textContent = a > 0 ? "Shifts right" : "Shifts left"; $("#t3").textContent = (e.q > e0.q ? "Output up, " : "Output down, ") + (e.p > e0.p ? "prices up" : "prices down");
-  $("#tv").textContent = `${n}: this changes ${comp}, so AD shifts ${a > 0 ? "right" : "left"} at every price level. In the short run real output ${e.q > e0.q ? "rises" : "falls"} to ${Lib.fmtN(e.q, 0)} and the price level ${e.p > e0.p ? "rises" : "falls"} to ${Lib.fmtN(e.p, 0)} (from 50 each), using an upward-sloping SRAS curve.`;
-  $("#labB").innerHTML = adasPlot({ a, s: 0, g: 1, n: 1 }, { lras: false });
-}
-$("#evB").innerHTML = EVA.map((e, i) => `<button class="b" data-i="${i}">${e[0]}</button>`).join("");
-$$("#evB button").forEach((b) => (b.onclick = () => showA(+b.dataset.i)));
-showA(0);
-
-/* ---------- Practise ---------- */
-''' + CLASSIFY("cl1", "Which component of AD changes?", ["Consumption (C)", "Investment (I)", "Government spending (G)", "Net exports (X − M)"],
-  [("Households spend more after an income tax cut", 0), ("A firm buys new machinery", 1), ("The state builds a new hospital", 2), ("Foreign buyers purchase more of the country's cars", 3), ("Consumer confidence falls", 0), ("Business confidence rises", 1), ("The currency depreciates", 3), ("The government employs more teachers", 2)],
-  "C: households. I: firms' capital. G: government. X − M: trade.") + MATCH([
-  ["Aggregate demand", "Total planned spending on an economy's output at each price level"],
-  ["Wealth effect", "A lower price level raises the real value of savings"],
-  ["Shift of AD", "A change in a component at every price level"],
-  ["Movement along AD", "Caused only by a change in the price level"],
-  ["Net exports", "Exports minus imports"],
-  ["Interest rate effect", "A lower price level lowers interest rates and raises spending"]]) + ORDER(
-  "Put the effect of lower interest rates on output in order.",
-  ["The central bank cuts interest rates", "Borrowing becomes cheaper", "Consumption and investment rise", "The AD curve shifts to the right", "Real output rises and the price level may rise"],
-  "Lower rates raise C and I, shifting AD right.") + CALC([
-  {"q": "C = 400, I = 120, G = 150, X = 130, M = 140. What is AD ($bn)?", "a": 660, "unit": "$bn", "tol": 0.5, "hint": "400 + 120 + 150 + 130 − 140.", "sol": "<b>$660bn</b>."},
-  {"q": "In the same economy, what are net exports ($bn)? (use a minus sign for a deficit)", "a": -10, "unit": "$bn", "tol": 0.5, "hint": "130 − 140.", "sol": "<b>−$10bn</b>, a deficit."},
-  {"q": "Investment rises by $30bn. What is the new AD ($bn)?", "a": 690, "unit": "$bn", "tol": 0.5, "hint": "660 + 30.", "sol": "<b>$690bn</b>."},
-  {"q": "What is the percentage rise in AD (to one decimal place)?", "a": 4.5, "unit": "%", "tol": 0.1, "hint": "30 ÷ 660.", "sol": "<b>4.5%</b>."}]) + MCQ([
-  ("AD equals:", ["C + I + G + (X − M)", "C + S + T", "I + G + X", "C − I − G"], 0, "The four components."),
-  ("A fall in the price level causes:", ["A movement along AD", "A leftward shift of AD", "A rightward shift of AD", "A fall in G"], 0, "Only the price level moves along the curve."),
-  ("Which would shift AD to the right?", ["A fall in interest rates", "A rise in income tax", "An appreciation", "A cut in government spending"], 0, "Cheaper borrowing."),
-  ("Imports are:", ["Subtracted in AD", "Added in AD", "Part of G", "Part of C only"], 0, "They are spending that leaks abroad."),
-  ("A fall in consumer confidence would:", ["Shift AD left", "Shift AD right", "Shift AS right", "Shift LRAS"], 0, "Consumption falls.")
-], "qz1") + CARDS([
-  ("AD", "C + I + G + (X − M)."),
-  ("Slope", "Wealth, interest, trade effects."),
-  ("Shift right", "Lower rates, lower taxes, confidence."),
-  ("Shift left", "Higher rates, cuts, appreciation."),
-  ("Movement along", "Price level only."),
-  ("Not in G", "Transfer payments."),
-  ("Net exports", "X − M."),
-  ("Effect", "Depends on the AS curve.")]) + MCQ(mc_exam)
-
-build("as43", "as-aggregate-demand", "Aggregate Demand", EY,
-  "4.3.1 to 4.3.5: aggregate demand and its components, the shape of the AD curve, and the causes of shifts in AD. Animated diagrams, labs, drills and the past paper questions.",
-  tabs(learn, watch, explore, practise, real, exam, tips), js)
+finish("as-4-3-bit-manipulation", "as43", "Bit Manipulation: Shifts and Masks",
+  "Logical shifts and the AND, OR and XOR masks, clearing, setting, flipping and testing bits, with animations, a bit calculator and the real Paper 1 questions from 2021 to 2026.",
+  "4.3", "4 · Processor fundamentals", "section 4.3 Bit manipulation", learn, watch, explore, _pr, real, where, past, review,
+  "Part 1 is real 9618 questions on bit manipulation (Paper 1), 2021 to 2026. Part 2 is a set of review questions for practice; they are not in exam format.", tips, js)

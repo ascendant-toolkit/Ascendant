@@ -1,0 +1,840 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Addressing Modes and Tracing Programs</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
+
+table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
+.synd{margin:8px 0;overflow-x:auto}
+.gantt{display:flex;margin:6px 0 0;font-family:var(--mono)}.gantt .gb{border:1.5px solid var(--ink);margin-left:-1.5px;text-align:center;padding:6px 0;font-weight:700;font-size:.85rem;background:var(--surface);min-width:0}
+.gantt .gb.c0{background:var(--accent-soft)}.gantt .gb.c1{background:var(--bad-soft)}.gantt .gb.c2{background:var(--good-soft)}.gantt .gb.c3{background:var(--warn-soft)}.gantt .gb.c4{background:var(--soft)}
+.gticks{display:flex;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:2px 0 10px}.gticks span{text-align:right;min-width:0}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 4.2.2</div>
+  <h1>Addressing Modes and Tracing Programs</h1>
+  <p class="cbook">Coursebook: Chapter 4 · Processor fundamentals · section 4.2 Assembly language</p>
+  <p class="lead">Immediate, direct, indirect, indexed and relative addressing, how to trace an assembly program with a trace table, with animations, a trace simulator and the real Paper 1 questions from 2021 to 2026.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>The <b>addressing mode</b> says how the processor finds the data an instruction uses. With <b>immediate</b> addressing the operand <em>is</em> the data (LDM #5); with <b>direct</b> addressing the operand is the address of the data (LDD 100); with <b>indirect</b> addressing the operand is the address of a location that holds the address of the data (LDI 100); with <b>indexed</b> addressing the address is the operand plus the contents of the index register IX (LDX 100); with <b>relative</b> addressing the operand is an offset from the address of the current instruction. Exam questions give a memory table and ask for the ACC after a few instructions, or ask you to <b>trace</b> a program in a table. Work one instruction at a time and write down exactly which address you used. Every trace row needs the value of the ACC or the memory location that changed.</p></div>
+
+  <h2>1 · The addressing modes</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Mode</th><th>Example</th><th>How the data is found</th></tr>
+    <tr><td><b>Immediate</b></td><td class="mono">LDM #5</td><td>The operand is the number itself: ACC ← 5</td></tr>
+    <tr><td><b>Direct</b></td><td class="mono">LDD 100</td><td>The operand is the address of the data: ACC ← contents of 100</td></tr>
+    <tr><td><b>Indirect</b></td><td class="mono">LDI 100</td><td>The address to be used is at the given address: the contents of 100 are an address, and ACC ← the contents of <em>that</em> address</td></tr>
+    <tr><td><b>Indexed</b></td><td class="mono">LDX 100</td><td>Form the address from the operand + the contents of IX: ACC ← contents of (100 + IX)</td></tr>
+    <tr><td><b>Relative</b></td><td class="mono">JMP +3</td><td>The address is an offset number of locations away, relative to the address of the current instruction</td></tr>
+  </table></div>
+  <p>Worked example with memory 100: 101, 101: 67, 102: 104, 103: 100, 104: 68. <span class="mono">LDM #103</span> gives 103. <span class="mono">LDD 102</span> gives the contents of 102: 104. <span class="mono">LDI 103</span>: location 103 holds 100, so the address used is 100, which holds 101: ACC = 101.</p>
+  <p><b>Similarity between direct and indexed:</b> both load the contents of an address into the accumulator. <b>Difference:</b> direct uses the address in the operand; indexed adds the contents of IX to the operand and uses the data at that calculated address.</p>
+
+  <h2>2 · Tracing a program</h2>
+  <ol>
+    <li>List the instructions in address order, and the starting contents of memory, ACC and IX.</li>
+    <li>Execute one instruction at a time, starting at the first. Write the instruction's address in the first column.</li>
+    <li>Record the new ACC, the memory location or IX that changes, and any output on that row.</li>
+    <li>For <b>CMP</b> compare the ACC with the operand; <b>JPE</b> jumps only if equal, <b>JPN</b> only if not equal; otherwise carry on with the next instruction. <b>END</b> stops.</li>
+    <li>Check the jumps: a loop traces the same instruction addresses again with new values.</li>
+  </ol>
+  <p>The Cambridge instruction set also includes <span class="mono">SUB</span>, <span class="mono">DEC</span>, <span class="mono">IN</span>, <span class="mono">OUT</span> (outputs the ASCII character for the ACC value), <span class="mono">MOV IX</span> and <span class="mono">LDR #n</span> (loads IX). The table is printed on the paper.</p>
+
+  <h2>Common ways to lose marks</h2>
+  <ul>
+    <li>Using the operand of LDI as the data. Look it up twice: first the address, then the data.</li>
+    <li>Forgetting to add IX for LDX.</li>
+    <li>Writing the wrong address in the first column when a jump is taken.</li>
+    <li>Recording a value in memory when the instruction only changes the ACC.</li>
+    <li>Treating CMP as changing the ACC. It only compares.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Four addressing modes, one memory</h2>
+  <div id="stA"></div>
+  <h2>2 · Indexed addressing</h2>
+  <div id="stB"></div>
+  <h2>3 · Tracing one loop</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Addressing modes</h2>
+  <p>Memory is 100: 101, 101: 67, 102: 104, 103: 100, 104: 68. Choose a mode and an operand.</p>
+  <div class="card"><div id="mB" class="btnrow"></div><div id="mS"></div><div id="mV" class="verdict"></div></div>
+  <h2>Lab 2 · Trace a program</h2>
+  <p>Press Step to execute one instruction. Changed cells are highlighted.</p>
+  <div class="card"><div class="btnrow"><button id="tr_step">Step</button><button id="tr_reset">Reset</button></div><div id="trT"></div></div>
+  <h2>Lab 3 · Which mode?</h2>
+  <div class="card"><div id="wB" class="btnrow"></div><div id="wO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which addressing mode?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Which instruction loads which value?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Match the mode to its description</h2><div id="m1" class="card"></div>
+  <h2>4 · Put the LDI steps in order</h2><div id="o1" class="card"></div>
+  <h2>5 · Working out</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>An array in a program</h3><p>Indexed addressing is how a loop moves through array elements: the base address stays in the instruction and IX moves along by one each time.</p><div class="use"><b>Exam use:</b> LDX with INC IX.</div></div>
+  <div class="rw"><h3>A pointer to a record</h3><p>A pointer holds the address of the data, not the data. Following it is indirect addressing.</p><div class="use"><b>Exam use:</b> indirect addressing.</div></div>
+  <div class="rw"><h3>A program that moves in memory</h3><p>Relative addressing lets code jump 'three instructions back' wherever it is loaded, so it still works if the program is moved.</p><div class="use"><b>Exam use:</b> relative addressing.</div></div>
+  <div class="rw"><h3>Debugging with a trace</h3><p>Writing down every register after each instruction is how you find where a value goes wrong.</p><div class="use"><b>Exam use:</b> tracing.</div></div>
+  <div class="rw"><h3>A constant in a program</h3><p>Typing a number like #5 directly into the instruction is immediate addressing: no memory lookup is needed.</p><div class="use"><b>Exam use:</b> immediate addressing.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on addressing modes and tracing (Paper 1), 2021 to 2026. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2021</td><td>11, 13</td><td>3(b)</td><td>6</td><td>Trace a program that loops using LDD, CMP, JPE, INC, STO, MOV IX, LDX, OUT, JMP</td></tr>
+    <tr><td>O/N 2021</td><td>12</td><td>8(b)(iii)</td><td>2</td><td>Identify one other mode of addressing and describe it</td></tr>
+    <tr><td>M/J 2022</td><td>13</td><td>3(a)</td><td>3</td><td>The ACC after LDM, LDD and LDI</td></tr>
+    <tr><td>O/N 2023</td><td>11</td><td>8(b)(ii), (iii)</td><td>2 + 1</td><td>A similarity and a difference between direct and indexed addressing; another mode</td></tr>
+    <tr><td>M/J 2024</td><td>11</td><td>4(a)</td><td>4</td><td>The ACC after four programs</td></tr>
+    <tr><td>M/J 2024</td><td>12</td><td>5(a)</td><td>4</td><td>The ACC after four programs</td></tr>
+    <tr><td>M/J 2024</td><td>13</td><td>3(a)</td><td>4</td><td>The ACC after four programs</td></tr>
+    <tr><td>O/N 2024</td><td>12</td><td>8(a)</td><td>5</td><td>The ACC and IX after four sets of instructions</td></tr>
+    <tr><td>O/N 2024</td><td>13</td><td>7(a)</td><td>3</td><td>The ACC after three programs</td></tr>
+    <tr><td>M/J 2025</td><td>11</td><td>8(a)</td><td>4</td><td>Trace a program with LDI, CMP, JPE, STO</td></tr>
+    <tr><td>O/N 2025</td><td>12</td><td>3(a), (b)</td><td>1 + 2 + 3</td><td>Describe relative addressing; two registers; the ACC after LDM, LDI and LDX</td></tr>
+    <tr><td>M/J 2026</td><td>11</td><td>3(a), (c)</td><td>3 + 3</td><td>The ACC after instructions; identify and describe another mode of addressing</td></tr>
+  </table></div>
+  <p class="note">The "ACC after each program" question has appeared in every series since 2024 with a new memory table. The trace table with a loop is the harder form. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording. Where the paper prints a trace table, the table here shows every instruction executed; only the cells that change are filled in.</p>
+  <details class="eq"><summary><span class="src">M/J 2021 · 9618/11/13 · Q3(b)</span> <span class="cmd">Complete</span> <span class="mark">6 marks</span> A processor has an Accumulator (ACC) and an Index Register (IX). Memory: 200 LDD 365, 201 CMP 366, 202 JPE 209, 203 INC ACC, 204 STO 365, 205 MOV IX, 206 LDX 365, 207 OUT, 208 JMP 200, 209 END; 365: 1, 366: 3, 367: 65, 368: 66; IX = 0. ASCII: 65 A, 66 B, 67 C, 68 D. Complete the trace table for the program currently in main memory.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>LDD loads 1, CMP with 3 fails. INC makes 2, STO puts it in 365. MOV IX copies ACC. LDX 365 uses address 365 + IX.</div>
+    <div class="ans"><p>One mark for each shaded set of values (the table has the whole loop):</p><div class="tw"><table class="t mono"><tr><th>Instruction address</th><th>ACC</th><th>365</th><th>366</th><th>367</th><th>368</th><th>IX</th><th>Output</th></tr><tr><td></td><td></td><td>1</td><td>3</td><td>65</td><td>66</td><td>0</td><td></td></tr><tr><td>200</td><td>1</td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>201</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>202</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>203</td><td>2</td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>204</td><td></td><td>2</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>205</td><td></td><td></td><td></td><td></td><td></td><td>2</td><td></td></tr><tr><td>206</td><td>65</td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>207</td><td></td><td></td><td></td><td></td><td></td><td></td><td>A</td></tr><tr><td>208</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>200</td><td>2</td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>201</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>202</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>203</td><td>3</td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>204</td><td></td><td>3</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>205</td><td></td><td></td><td></td><td></td><td></td><td>3</td><td></td></tr><tr><td>206</td><td>66</td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>207</td><td></td><td></td><td></td><td></td><td></td><td></td><td>B</td></tr><tr><td>208</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>200</td><td>3</td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>201</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>202</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>209</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></table></div><p><span class="mk k" data-t="1">ACC = 1 on the first pass, memory 365 = 2, IX = 2</span> <span class="mk k" data-t="2">ACC = 65 from LDX 365 (address 367), output A</span> <span class="mk k" data-t="3">Second pass: ACC = 2 then 3, 365 = 3, IX = 3, ACC = 66 (address 368), output B</span> <span class="mk k" data-t="4">Third pass: CMP 366 equal (3 = 3) so JPE 209 jumps to END</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Using 365 alone for LDX. The address used is 365 + IX, which is 367 then 368.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/12 · Q8(b)(iii)</span> <span class="cmd">Identify</span> <span class="mark">2 marks</span> Identify one other mode of addressing (not immediate, direct or indexed) and describe how it works.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Indirect or relative.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Indirect addressing: the address to be used is at the given address</span> <span class="mk k" data-t="2">Relative addressing: the address to be used is an offset number of locations away, relative to the address of the current instruction</span> (name and description; any one mode)</p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/13 · Q3(a)</span> <span class="cmd">Complete</span> <span class="mark">3 marks</span> Main memory: 100: 101, 101: 67, 102: 104, 103: 100, 104: 68. Write the value stored in the accumulator after each instruction: LDM #103; LDD 102; LDI 103.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>103; the contents of 102; the contents of the address that is in 103.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">LDM #103: 103</span> <span class="mk k" data-t="2">LDD 102: 104</span> <span class="mk k" data-t="3">LDI 103: 101</span></p><div class="tw"><table class="t mono"><tr><th>Address</th><th>Data</th></tr><tr><td>100</td><td>101</td></tr><tr><td>101</td><td>67</td></tr><tr><td>102</td><td>104</td></tr><tr><td>103</td><td>100</td></tr><tr><td>104</td><td>68</td></tr></table></div></div>
+    <div class="warn"><b class="h">Common mistake</b>For LDI 103 answering 100. 100 is the address; the data at 100 is 101.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/11 · Q8(b)(ii)(iii)</span> <span class="cmd">Give / Identify</span> <span class="mark">2 + 1 marks</span> The instruction LDR #2 uses immediate addressing. Give one similarity and one difference between direct addressing and indexed addressing. Identify one other mode of addressing.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Both load contents of an address. Direct uses the operand; indexed adds IX.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Similarity: both load the contents of an address into the Accumulator</span> <span class="mk k" data-t="2">Difference: direct accesses the address given by the operand, whereas indexed adds the contents of IX to the operand and accesses the data at that calculated address</span></p><p><span class="mk a" data-t="1">Indirect or relative addressing</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/11 · Q4(a)</span> <span class="cmd">Complete</span> <span class="mark">4 marks</span> Memory: 19: 24, 20: 2, 21: 1, 22: 3, 23: 5, 24: 4, 25: 22. ACC = 12, IX = 1. Write the ACC after each program: (1) LDD 20, ADD #2; (2) LDX 22; (3) LDI 25, INC ACC, SUB 22; (4) LDD 19, LDM #5, LDM #25.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>LDX 22 uses address 22 + 1 = 23.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">1: 4</span> <span class="mk k" data-t="2">2: 5</span> <span class="mk k" data-t="3">3: 1</span> <span class="mk k" data-t="4">4: 25</span></p><div class="tw"><table class="t mono"><tr><th>Address</th><th>Data</th></tr><tr><td>19</td><td>24</td></tr><tr><td>20</td><td>2</td></tr><tr><td>21</td><td>1</td></tr><tr><td>22</td><td>3</td></tr><tr><td>23</td><td>5</td></tr><tr><td>24</td><td>4</td></tr><tr><td>25</td><td>22</td></tr></table></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/12 · Q5(a)</span> <span class="cmd">Complete</span> <span class="mark">4 marks</span> Memory: 10: 1, 11: 3, 12: 5, 13: 11, 14: 10, 15: 16, 16: 12. ACC = 10, IX = 0. Write the ACC after each program: (1) LDI 15, SUB #1; (2) LDD 14, ADD 11; (3) LDM #11, ADD #3, SUB 16; (4) LDR #2, LDX 14, ADD #2.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>LDI 15: location 15 holds 16; location 16 holds 12.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">1: 11</span> <span class="mk k" data-t="2">2: 13</span> <span class="mk k" data-t="3">3: 2</span> <span class="mk k" data-t="4">4: 14</span></p><div class="tw"><table class="t mono"><tr><th>Address</th><th>Data</th></tr><tr><td>10</td><td>1</td></tr><tr><td>11</td><td>3</td></tr><tr><td>12</td><td>5</td></tr><tr><td>13</td><td>11</td></tr><tr><td>14</td><td>10</td></tr><tr><td>15</td><td>16</td></tr><tr><td>16</td><td>12</td></tr></table></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/13 · Q3(a)</span> <span class="cmd">Complete</span> <span class="mark">4 marks</span> Memory: 48: 51, 49: 6, 50: 48, 51: 50, 52: 49, 53: 50, 54: 6. ACC = 2, IX = 50. Write the ACC after each program: (1) LDM #50, INC ACC, SUB #1; (2) LDI 51, ADD 52; (3) LDR #2, LDX 50, DEC ACC; (4) LDD 52, SUB 54, INC ACC.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>LDX 50 with IX = 2 uses address 52.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">1: 50</span> <span class="mk k" data-t="2">2: 97</span> <span class="mk k" data-t="3">3: 48</span> <span class="mk k" data-t="4">4: 44</span></p><div class="tw"><table class="t mono"><tr><th>Address</th><th>Data</th></tr><tr><td>48</td><td>51</td></tr><tr><td>49</td><td>6</td></tr><tr><td>50</td><td>48</td></tr><tr><td>51</td><td>50</td></tr><tr><td>52</td><td>49</td></tr><tr><td>53</td><td>50</td></tr><tr><td>54</td><td>6</td></tr></table></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/12 · Q8(a)</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> Memory: 19: 25, 20: 23, 21: 2, 22: 4, 23: 15, 24: 50, 25: 22. ACC = 50, IX = 20. Write the ACC and IX after each set: (1) LDM #19, DEC ACC; (2) LDD 23, ADD 19; (3) LDI 25, INC ACC; (4) LDR #21, LDX 2.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>LDR changes IX. LDX 2 uses address 2 + 21 = 23.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">1: ACC 18</span> <span class="mk k" data-t="2">2: ACC 40</span> <span class="mk k" data-t="3">3: ACC 5</span> <span class="mk k" data-t="4">4: ACC 15</span> <span class="mk k" data-t="5">IX column: 20, 20, 20, 21</span></p><div class="tw"><table class="t mono"><tr><th>Address</th><th>Data</th></tr><tr><td>19</td><td>25</td></tr><tr><td>20</td><td>23</td></tr><tr><td>21</td><td>2</td></tr><tr><td>22</td><td>4</td></tr><tr><td>23</td><td>15</td></tr><tr><td>24</td><td>50</td></tr><tr><td>25</td><td>22</td></tr></table></div></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting that LDR #21 changes IX for the next instruction.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/13 · Q7(a)</span> <span class="cmd">Complete</span> <span class="mark">3 marks</span> Memory: 50: 54, 51: 55, 52: 50, 53: 52, 54: 100, 55: 25, 56: 50. ACC = 50, IX = 45. Write the ACC after each program: (1) LDD 50, ADD #4, ADD 54; (2) LDI 53, DEC ACC, ADD 56; (3) LDM #55, SUB #5.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>LDD 50 loads 54; ADD 54 adds the contents of 54, which is 100.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">1: 158</span> <span class="mk k" data-t="2">2: 99</span> <span class="mk k" data-t="3">3: 50</span></p><div class="tw"><table class="t mono"><tr><th>Address</th><th>Data</th></tr><tr><td>50</td><td>54</td></tr><tr><td>51</td><td>55</td></tr><tr><td>52</td><td>50</td></tr><tr><td>53</td><td>52</td></tr><tr><td>54</td><td>100</td></tr><tr><td>55</td><td>25</td></tr><tr><td>56</td><td>50</td></tr></table></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/11 · Q8(a)</span> <span class="cmd">Trace</span> <span class="mark">4 marks</span> Memory: 80: 10, 81: 8, 82: 80, 83: 81; 200 LDD 81, 201 INC ACC, 202 STO 83, 203 LDI 82, 204 CMP 83, 205 JPE 209, 206 LDD 83, 207 ADD #10, 208 JMP 210, 209 DEC ACC, 210 STO 81, 211 END. Trace the program currently in memory.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>LDI 82: location 82 holds 80, location 80 holds 10. CMP 10 with 9 is not equal, so JPE does not jump.</div>
+    <div class="ans"><p>One mark for each shaded section: <span class="mk k" data-t="1">ACC 8 after LDD 81</span> <span class="mk k" data-t="2">ACC 9 and location 83 = 9 after INC and STO</span> <span class="mk k" data-t="3">ACC 10 after LDI 82; CMP not equal, no jump; ACC 9 after LDD 83</span> <span class="mk k" data-t="4">ACC 19 after ADD #10; location 81 = 19 after STO 81</span></p><div class="tw"><table class="t mono"><tr><th>Instruction address</th><th>ACC</th><th>80</th><th>81</th><th>82</th><th>83</th></tr><tr><td></td><td></td><td>10</td><td>8</td><td>80</td><td>81</td></tr><tr><td>200</td><td>8</td><td></td><td></td><td></td><td></td></tr><tr><td>201</td><td>9</td><td></td><td></td><td></td><td></td></tr><tr><td>202</td><td></td><td></td><td></td><td></td><td>9</td></tr><tr><td>203</td><td>10</td><td></td><td></td><td></td><td></td></tr><tr><td>204</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>205</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>206</td><td>9</td><td></td><td></td><td></td><td></td></tr><tr><td>207</td><td>19</td><td></td><td></td><td></td><td></td></tr><tr><td>208</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>210</td><td></td><td></td><td>19</td><td></td><td></td></tr><tr><td>211</td><td></td><td></td><td></td><td></td><td></td></tr></table></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/12 · Q3(a)(b)</span> <span class="cmd">State / Identify / Write</span> <span class="mark">1 + 2 + 3 marks</span> (i) State what is meant by relative addressing. (ii) Identify two registers used in the fetch-execute cycle. (b) Memory: 98: 8, 99: 16, 100: 3, 101: 98, 102: 32; IX = 2. Write the contents of the ACC after LDM #98, then LDI 101, then LDX 100.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Offset added to a base address. 98; 8; 32.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">The operand is an offset value which is added to another base value to give the address from which the contents are loaded to the accumulator</span></p><p><b>(ii)</b> Any two: <span class="mk a" data-t="1">PC</span> <span class="mk a" data-t="2">MDR</span> <span class="mk a" data-t="3">MAR</span> <span class="mk a" data-t="4">CIR</span> <span class="mk a" data-t="5">Status register</span></p><p><b>(b)</b> <span class="mk b" data-t="1">LDM #98: 98</span> <span class="mk b" data-t="2">LDI 101: 8</span> <span class="mk b" data-t="3">LDX 100: 32</span></p><div class="tw"><table class="t mono"><tr><th>Address</th><th>Data</th></tr><tr><td>98</td><td>8</td></tr><tr><td>99</td><td>16</td></tr><tr><td>100</td><td>3</td></tr><tr><td>101</td><td>98</td></tr><tr><td>102</td><td>32</td></tr></table></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/11 · Q3(a)(c)</span> <span class="cmd">Complete / Identify</span> <span class="mark">3 + 3 marks</span> Memory: 100: 200, 101: 205, 102: 100, 103: 50, 200: 101, 201: 100, 202: 20, 203: 13, 204: 220, 205: 30. Complete the table of new ACC data: ACC = B11001010 after ADD B00000010, INC ACC; ACC = #100 after LDM #200, ADD 200; ACC = #103 after LDD 103, DEC ACC, DEC ACC. (c) Immediate, relative and direct are three modes of addressing. Identify and describe one additional mode, with an example instruction.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Add in binary; LDM replaces; LDD 103 loads 50.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">B11001101</span> <span class="mk k" data-t="2">#301</span> <span class="mk k" data-t="3">#48</span></p><p><b>(c)</b> <span class="mk k" data-t="1">Indirect: the operand stores the address where the data is found, e.g. LDI 23 loads the data in the address stored in address 23</span> <span class="mk k" data-t="2">Indexed: the address is calculated by adding the operand to the contents of the index register, e.g. LDX 20</span> (name, description and example; any one mode)</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Naming immediate, relative or direct: the question asks for an additional mode.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Complete</span> <span class="mark">3 marks</span> Memory 40: 7, 41: 3, 42: 41. ACC = 0. Write the ACC after: (1) LDD 40, ADD 41; (2) LDI 42, INC ACC.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>LDI 42: 42 holds 41, 41 holds 3.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">1: 10</span> <span class="mk k" data-t="2">2: 4</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State how indexed addressing finds the address used by LDX 30 when IX holds 5.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>30 + 5.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The address is the operand plus the contents of IX</span> <span class="mk k" data-t="2">30 + 5 = 35</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Trace</span> <span class="mark">3 marks</span> A program: 100 LDM #0, 101 INC ACC, 102 CMP #3, 103 JPN 101, 104 END. State the ACC at each CMP and how many times the loop body runs.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Count up to 3.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">ACC at the CMP: 1, 2, 3</span> <span class="mk k" data-t="2">The loop body runs 3 times</span> <span class="mk k" data-t="3">The program then ends with ACC = 3</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Distinguish</span> <span class="mark">2 marks</span> Distinguish between direct and indirect addressing.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Address against address of address.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Direct: the operand is the address of the data</span> <span class="mk k" data-t="2">Indirect: the operand is the address of a location that holds the address of the data</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why a loop that works through an array is easier with indexed addressing.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Move IX.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The base address is fixed in the instruction</span> <span class="mk k" data-t="2">and IX is incremented each time to reach the next element</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>LDM: data. LDD: address. LDI: address of address.</b> Say it in that order.</li>
+    <li><b>LDX: operand plus IX.</b> Show the sum.</li>
+    <li><b>Trace one instruction per row.</b> Write the instruction address first.</li>
+    <li><b>CMP never changes ACC.</b> It sets what JPE and JPN test.</li>
+    <li><b>Check memory after STO.</b> It changes the location, not the ACC.</li>
+    <li><b>Loops repeat addresses.</b> Rows return to the earlier instruction address.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>immediate addressing</td><td>"The operand is the data."</td></tr>
+    <tr><td>direct addressing</td><td>"The operand is the address of the data."</td></tr>
+    <tr><td>indirect addressing</td><td>"The operand is the address of the address."</td></tr>
+    <tr><td>indexed addressing</td><td>"Operand plus IX forms the address."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Complete</td><td>Fill in the values.</td></tr>
+    <tr><td>Trace</td><td>Complete the trace table.</td></tr>
+    <tr><td>Identify</td><td>Name the mode or register.</td></tr>
+    <tr><td>Describe</td><td>Several points.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+function asmVal(t) { t = t.trim(); if (t[0] === "#") return +t.slice(1); if (t[0] === "B") return parseInt(t.slice(1), 2); if (t[0] === "&") return parseInt(t.slice(1), 16); return null; }
+function asmRun(prog, mem, acc, ix, maxs) {
+  const keys = Object.keys(prog).map(Number).sort((a, b) => a - b); let pc = keys[0], m = Object.assign({}, mem), flag = false, rows = [];
+  for (let n = 0; n < (maxs || 200); n++) {
+    const ins = prog[pc], sp = ins.split(" "), op = sp[0], a = sp[1]; let nxt = keys[keys.indexOf(pc) + 1]; const imm = a ? asmVal(a) : null; let out = "";
+    const rd = () => m[+a];
+    if (op === "LDM") acc = imm; else if (op === "LDD") acc = rd(); else if (op === "LDI") acc = m[m[+a]]; else if (op === "LDX") acc = m[+a + ix]; else if (op === "LDR") ix = imm; else if (op === "MOV") ix = acc;
+    else if (op === "STO") m[+a] = acc; else if (op === "ADD") acc += imm !== null ? imm : rd(); else if (op === "SUB") acc -= imm !== null ? imm : rd(); else if (op === "INC") { a === "IX" ? ix++ : acc++; } else if (op === "DEC") { a === "IX" ? ix-- : acc--; }
+    else if (op === "CMP") flag = acc === (imm !== null ? imm : rd()); else if (op === "JPE") { if (flag) nxt = +a; } else if (op === "JPN") { if (!flag) nxt = +a; } else if (op === "JMP") nxt = +a;
+    else if (op === "OUT") out = String.fromCharCode(acc); else if (op === "END") nxt = undefined;
+    rows.push({ addr: pc, ins, acc, ix, mem: Object.assign({}, m), out });
+    if (nxt === undefined) break; pc = nxt;
+  }
+  return rows;
+}
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); const mem = [[100, 101], [101, 67], [102, 104], [103, 100], [104, 68]]; const hot = { 1: [], 2: [102], 3: [103], 4: [103, 100] }[k] || []; let o = "";
+    mem.forEach(([a, d], i) => { o += SV.rect(30, 20 + i * 30, 160, 26, hot.includes(a) ? (k === 4 && a === 100 ? "f3" : "f1") : "cell", { rx: 4 }) + SV.text(40, 38 + i * 30, a + "   " + d, "lbl"); });
+    o += SV.text(240, 80, ["", "ACC = 103", "ACC = 104", "address 103 holds 100", "ACC = 101"][k], "lbl bd t3"); return o; };
+  Lib.stepper($("#stA"), { w: 500, h: 190, label: "Addressing", base: { i: 0 }, draw, tween: 100, dwell: 2800, steps: [{ cap: "Main memory, with data in 100 to 104.", s: { i: 0 } }, { cap: "<b>LDM #103</b>: <b>immediate</b>, the operand is the data. ACC = 103.", s: { i: 1 } }, { cap: "<b>LDD 102</b>: <b>direct</b>, the contents of address 102 are 104. ACC = 104.", s: { i: 2 } }, { cap: "<b>LDI 103</b>: <b>indirect</b>, address 103 holds 100, so use address 100.", s: { i: 3 } }, { cap: "Address 100 holds 101. ACC = <b>101</b>.", s: { i: 4 } }] });
+})();
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); let o = SV.rect(20, 20, 130, 40, "cell", { rx: 6 }) + SV.text(85, 45, "LDX 100", "lbl bd", { "text-anchor": "middle" }) + SV.rect(200, 20, 100, 40, k >= 1 ? "f3" : "cell", { rx: 6 }) + SV.text(250, 45, "IX = 2", "lbl bd", { "text-anchor": "middle" });
+    if (k >= 2) o += SV.rect(350, 20, 180, 40, "f1", { rx: 6 }) + SV.text(440, 45, "100 + 2 = 102", "lbl bd", { "text-anchor": "middle" }); if (k >= 3) o += SV.rect(350, 80, 180, 40, "f2", { rx: 6 }) + SV.text(440, 105, "ACC ← contents of 102", "lbl bd", { "text-anchor": "middle", style: "font-size:12px" }); return o; };
+  Lib.stepper($("#stB"), { w: 560, h: 140, label: "Indexed addressing", base: { i: 0 }, draw, tween: 100, dwell: 2800, steps: [{ cap: "<b>LDX 100</b>: indexed addressing.", s: { i: 0 } }, { cap: "The index register IX holds 2.", s: { i: 1 } }, { cap: "The address is the operand plus IX: <b>102</b>.", s: { i: 2 } }, { cap: "The contents of address 102 are loaded into the ACC.", s: { i: 3 } }] });
+})();
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); const accs = [1, 1, 1, 2, 2, 2, 2]; const mem = [1, 1, 1, 1, 2, 2, 2]; let o = SV.text(20, 20, "Loop: LDD 365, CMP 366, JPE 209, INC ACC, STO 365, ...", "sm"); ["ACC", "mem 365"].forEach((n, r) => { o += SV.rect(30, 40 + r * 44, 130, 34, "cell", { rx: 6 }) + SV.text(95, 62 + r * 44, n + " = " + (r ? mem[k] : accs[k]), "lbl bd", { "text-anchor": "middle", style: "font-size:13px" }); });
+    o += SV.text(220, 90, ["start: ACC = 1 from LDD 365", "CMP 366: 1 ≠ 3, JPE does not jump", "go on to INC ACC", "INC ACC: ACC = 2", "STO 365: location 365 = 2", "MOV IX: IX = 2, LDX 365 uses 367", "JMP 200: the loop runs again"][k], "lbl bd t3", { style: "font-size:13px" }); return o; };
+  Lib.stepper($("#stC"), { w: 560, h: 130, label: "Trace", base: { i: 0 }, draw, tween: 100, dwell: 2800, steps: [0, 1, 2, 3, 4, 5, 6].map((i) => ({ cap: ["Memory 365 holds 1, 366 holds 3.", "CMP compares ACC (1) with 3: not equal.", "JPE is not taken: the next instruction runs.", "INC ACC adds 1.", "STO puts the ACC in 365.", "The index register becomes 2, so LDX 365 will load from 367 (the letter A).", "JMP 200 sends the program back to the start."][i], s: { i } })) });
+})();
+
+(function () {
+  const M = { 100: 101, 101: 67, 102: 104, 103: 100, 104: 68 }; let mode = "LDM", opd = 103, ix = 2;
+  const paint = () => { let addr = null, data, how; if (mode === "LDM") { data = opd; how = `Immediate: the operand ${opd} is the data.`; } else if (mode === "LDD") { addr = opd; data = M[addr]; how = data === undefined ? `Direct: address ${addr}.` : `Direct: address ${addr} holds ${data}.`; } else if (mode === "LDI") { const a1 = M[opd]; addr = a1; data = M[a1]; how = `Indirect: address ${opd} holds ${a1}, an address` + (data === undefined ? "." : `; address ${a1} holds ${data}.`); } else { addr = opd + ix; data = M[addr]; how = `Indexed: ${opd} + IX (${ix}) = ${addr}` + (data === undefined ? "." : `; address ${addr} holds ${data}.`); }
+    $("#mV").innerHTML = `<b>${mode} ${mode === "LDM" ? "#" : ""}${opd}</b>: ` + how + (data === undefined ? " That address is not in this memory table." : ` ACC = <b>${data}</b>.`); };
+  const bar = $("#mB"); ["LDM", "LDD", "LDI", "LDX"].forEach((m) => { const b = document.createElement("button"); b.textContent = m; b.onclick = () => { mode = m; bar.querySelectorAll("button").forEach((x) => x.className = x === b ? "on" : ""); paint(); }; if (m === "LDM") b.className = "on"; bar.appendChild(b); });
+  Lib.slider($("#mS"), { id: "m1", label: "Operand ", min: 98, max: 104, value: opd, fmt: (x) => x, onInput: (v) => { opd = v; paint(); } }); paint();
+})();
+(function () {
+  const prog = { 200: "LDD 365", 201: "CMP 366", 202: "JPE 209", 203: "INC ACC", 204: "STO 365", 205: "MOV IX", 206: "LDX 365", 207: "OUT", 208: "JMP 200", 209: "END" }, mem0 = { 365: 1, 366: 3, 367: 65, 368: 66 };
+  let rows, k;
+  const reset = () => { rows = asmRun(prog, mem0, 0, 0); k = 0; paint(); };
+  const paint = () => { let h = '<div class="tw"><table class="t mono"><tr><th>Address</th><th>Instruction</th><th>ACC</th><th>365</th><th>366</th><th>367</th><th>368</th><th>IX</th><th>Output</th></tr>'; let pm = mem0, pa = null, pix = 0;
+    rows.slice(0, k).forEach((r, i) => { const hl = (c) => (c ? ' style="background:var(--accent-soft);font-weight:700"' : ""); h += `<tr><td>${r.addr}</td><td>${r.ins}</td><td${hl(r.acc !== pa)}>${r.acc}</td>` + [365, 366, 367, 368].map((a) => `<td${hl(r.mem[a] !== pm[a])}>${r.mem[a]}</td>`).join("") + `<td${hl(r.ix !== pix)}>${r.ix}</td><td>${r.out}</td></tr>`; pm = r.mem; pa = r.acc; pix = r.ix; });
+    $("#trT").innerHTML = h + "</table></div>" + (k >= rows.length ? '<div class="verdict">The program has finished: it outputs A then B (ASCII 65 and 66).</div>' : ""); };
+  $("#tr_step").onclick = () => { if (k < rows.length) { k++; paint(); } }; $("#tr_reset").onclick = reset; reset();
+})();
+btnTable("wB", "wO", [
+  ["LDM #5", "Immediate", "The operand is the data"],
+  ["LDD 100", "Direct", "The operand is the address"],
+  ["LDI 100", "Indirect", "Address of the address"],
+  ["LDX 100", "Indexed", "100 plus IX"],
+  ["Jump 3 instructions back", "Relative", "Offset from the current instruction"]
+], ["Instruction", "Mode", "Why"]);
+Lib.classify($("#cl1"), { prompt: "Which addressing mode is it?", buckets: [{"label": "Immediate"}, {"label": "Direct"}, {"label": "Indirect"}, {"label": "Indexed"}], items: [{"text": "LDM #7", "b": 0}, {"text": "LDD 100", "b": 1}, {"text": "LDI 100", "b": 2}, {"text": "LDX 100", "b": 3}, {"text": "The operand is the data itself", "b": 0}, {"text": "The address is the operand plus the index register", "b": 3}], done: "Immediate: data. Direct: address. Indirect: address of address. Indexed: plus IX." });
+Lib.classify($("#cl2"), { prompt: "With memory 100: 101, 101: 67, 102: 104, 103: 100, 104: 68 what does it load into the ACC?", buckets: [{"label": "101"}, {"label": "104"}, {"label": "68"}], items: [{"text": "LDI 103", "b": 0}, {"text": "LDD 102", "b": 1}, {"text": "LDD 104", "b": 2}, {"text": "LDI 102", "b": 2}, {"text": "LDM #101", "b": 0}, {"text": "LDD 100", "b": 0}], done: "LDI 103: 103 holds 100, 100 holds 101. LDI 102: 102 holds 104, 104 holds 68." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Immediate", "The operand is the number to use"], ["Direct", "The operand is the address of the data"], ["Indirect", "The operand is the address of the address"], ["Indexed", "Operand plus contents of IX gives the address"], ["Relative", "Offset from the current instruction address"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the steps of LDI 103 in order.", items: ["Read the operand 103", "Read the contents of address 103", "Use that value as an address", "Read the contents of that second address", "Place the value in the ACC"], done: "Operand, contents, as address, contents, ACC." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "IX = 2. What address does LDX 100 use?", "a": 102, "unit": "", "tol": 0.01, "hint": "100 + 2.", "sol": "<b>102</b>."},
+  {"q": "Memory 50 holds 70 and 70 holds 9. What does LDI 50 put in the ACC?", "a": 9, "unit": "", "tol": 0.01, "hint": "50 → 70 → 9.", "sol": "<b>9</b>."},
+  {"q": "ACC = 5 and memory 200 holds 6. What is the ACC after ADD 200?", "a": 11, "unit": "", "tol": 0.01, "hint": "5 + 6.", "sol": "<b>11</b>."},
+  {"q": "ACC = 10 after LDM #10. What is ACC after INC ACC then SUB #3?", "a": 8, "unit": "", "tol": 0.01, "hint": "10 + 1 − 3.", "sol": "<b>8</b>."},
+  {"q": "The ASCII code for A is 65. What is the ASCII code of the character output by OUT when ACC = 67?", "a": 67, "unit": "", "tol": 0.01, "hint": "67 outputs C.", "sol": "<b>67</b> (the character C)."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "LDM #5 uses:", opts: ["Immediate addressing", "Direct addressing", "Indirect addressing", "Indexed addressing"], a: 0, why: "Immediate." },
+  { q: "LDX needs:", opts: ["The index register", "A stack", "A queue", "A label only"], a: 0, why: "IX." },
+  { q: "CMP:", opts: ["Compares ACC with a value", "Loads ACC", "Jumps", "Stores"], a: 0, why: "Compares." },
+  { q: "JPE jumps when:", opts: ["The compare was true", "The compare was false", "Always", "Never"], a: 0, why: "True." },
+  { q: "LDI uses:", opts: ["An address stored in another location", "The number given", "The PC", "IX only"], a: 0, why: "Address of address." },
+  { q: "INC IX:", opts: ["Adds 1 to the index register", "Adds 1 to ACC", "Clears IX", "Loads IX"], a: 0, why: "IX + 1." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Immediate", "Operand is the data: LDM #5."],
+  ["Direct", "Operand is the address: LDD 100."],
+  ["Indirect", "Address of the address: LDI 100."],
+  ["Indexed", "Operand + IX: LDX 100."],
+  ["Relative", "Offset from the current instruction."],
+  ["CMP", "Compare only; JPE/JPN use the result."],
+  ["OUT", "Outputs the ASCII character in ACC."],
+  ["Trace", "One row per instruction; record changes."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>
