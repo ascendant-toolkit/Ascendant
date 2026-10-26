@@ -1,0 +1,941 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Logic Gates and Logic Circuits</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
+
+table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
+.synd{margin:8px 0;overflow-x:auto}
+.gantt{display:flex;margin:6px 0 0;font-family:var(--mono)}.gantt .gb{border:1.5px solid var(--ink);margin-left:-1.5px;text-align:center;padding:6px 0;font-weight:700;font-size:.85rem;background:var(--surface);min-width:0}
+.gantt .gb.c0{background:var(--accent-soft)}.gantt .gb.c1{background:var(--bad-soft)}.gantt .gb.c2{background:var(--good-soft)}.gantt .gb.c3{background:var(--warn-soft)}.gantt .gb.c4{background:var(--soft)}
+.gticks{display:flex;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:2px 0 10px}.gticks span{text-align:right;min-width:0}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 3.2.1</div>
+  <h1>Logic Gates and Logic Circuits</h1>
+  <p class="cbook">Coursebook: Chapter 3 · Hardware · section 3.2 Logic gates and logic circuits</p>
+  <p class="lead">The six logic gates, truth tables with working space, drawing a circuit from an expression and writing an expression from a circuit or table, with circuit animations, toggle labs and the real Paper 1 questions from 2021 to 2026.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A <b>logic gate</b> turns binary inputs into one output; the syllabus uses <b>NOT, AND, OR, NAND, NOR and XOR</b>. A <b>logic circuit</b> joins gates together; you can work out its output with a <b>truth table</b> whose <b>working space</b> column holds an intermediate result. You must be able to <b>draw a circuit from a logic expression</b>, <b>write the expression for a circuit</b> and <b>complete a truth table</b> in either direction. Work in a fixed order: inner brackets first, NOT before AND, and every gate of the expression becomes exactly one gate in the diagram. Logic circuits are used in monitoring and control systems, in memory and in the ALU.</p></div>
+
+  <h2>1 · The six gates</h2>
+  <div class="grid3"><div class="card" style="text-align:center"><b>NOT</b><div class="circ"><svg viewBox="0 0 254 72.0" style="width:305px;max-width:100%;display:block" role="img" aria-label="NOT gate"><path class="w" d="M58,32 H72 V32 H84"/><path class="w" d="M50,32 H58"/><path class="w" d="M138,32 H168"/><path class="ax" style="fill:var(--surface)" d="M84,16 L130,32 L84,48 Z"/><circle class="ax" style="fill:var(--surface)" cx="134" cy="32" r="4"/><text class="lbl bd" x="2" y="36">A</text><text class="lbl bd" x="174" y="36">X</text></svg></div><div class="bx">X = NOT A</div></div><div class="card" style="text-align:center"><b>AND</b><div class="circ"><svg viewBox="0 0 254 77.0" style="width:305px;max-width:100%;display:block" role="img" aria-label="AND gate"><path class="w" d="M58,22 H72 V21.0 H84"/><path class="w" d="M58,42 H67 V43.0 H84"/><path class="w" d="M50,22 H58"/><path class="w" d="M50,42 H58"/><path class="w" d="M138,32 H168"/><path class="ax" style="fill:var(--surface)" d="M84,11.0 H111.0 A27.0,21.0 0 0 1 111.0,53.0 H84 Z"/><text class="lbl bd" x="2" y="26">A</text><text class="lbl bd" x="2" y="46">B</text><text class="lbl bd" x="174" y="36">X</text></svg></div><div class="bx">X = A AND B</div></div><div class="card" style="text-align:center"><b>OR</b><div class="circ"><svg viewBox="0 0 254 77.0" style="width:305px;max-width:100%;display:block" role="img" aria-label="OR gate"><path class="w" d="M58,22 H72 V21.0 H89.48571428571428"/><path class="w" d="M58,42 H67 V43.0 H89.48571428571428"/><path class="w" d="M50,22 H58"/><path class="w" d="M50,42 H58"/><path class="w" d="M138,32 H168"/><path class="ax" style="fill:var(--surface)" d="M84,11.0 Q116.4,11.0 138,32 Q116.4,53.0 84,53.0 Q99.12,32 84,11.0 Z"/><text class="lbl bd" x="2" y="26">A</text><text class="lbl bd" x="2" y="46">B</text><text class="lbl bd" x="174" y="36">X</text></svg></div><div class="bx">X = A OR B</div></div><div class="card" style="text-align:center"><b>NAND</b><div class="circ"><svg viewBox="0 0 262 77.0" style="width:314px;max-width:100%;display:block" role="img" aria-label="NAND gate"><path class="w" d="M58,22 H72 V21.0 H84"/><path class="w" d="M58,42 H67 V43.0 H84"/><path class="w" d="M50,22 H58"/><path class="w" d="M50,42 H58"/><path class="w" d="M146,32 H176"/><path class="ax" style="fill:var(--surface)" d="M84,11.0 H111.0 A27.0,21.0 0 0 1 111.0,53.0 H84 Z"/><circle class="ax" style="fill:var(--surface)" cx="142" cy="32" r="4"/><text class="lbl bd" x="2" y="26">A</text><text class="lbl bd" x="2" y="46">B</text><text class="lbl bd" x="182" y="36">X</text></svg></div><div class="bx">X = A NAND B</div></div><div class="card" style="text-align:center"><b>NOR</b><div class="circ"><svg viewBox="0 0 262 77.0" style="width:314px;max-width:100%;display:block" role="img" aria-label="NOR gate"><path class="w" d="M58,22 H72 V21.0 H89.48571428571428"/><path class="w" d="M58,42 H67 V43.0 H89.48571428571428"/><path class="w" d="M50,22 H58"/><path class="w" d="M50,42 H58"/><path class="w" d="M146,32 H176"/><path class="ax" style="fill:var(--surface)" d="M84,11.0 Q116.4,11.0 138,32 Q116.4,53.0 84,53.0 Q99.12,32 84,11.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="142" cy="32" r="4"/><text class="lbl bd" x="2" y="26">A</text><text class="lbl bd" x="2" y="46">B</text><text class="lbl bd" x="182" y="36">X</text></svg></div><div class="bx">X = A NOR B</div></div><div class="card" style="text-align:center"><b>XOR</b><div class="circ"><svg viewBox="0 0 254 77.0" style="width:305px;max-width:100%;display:block" role="img" aria-label="XOR gate"><path class="w" d="M58,22 H72 V21.0 H82.48571428571428"/><path class="w" d="M58,42 H67 V43.0 H82.48571428571428"/><path class="w" d="M50,22 H58"/><path class="w" d="M50,42 H58"/><path class="w" d="M138,32 H168"/><path class="ax" style="fill:var(--surface)" d="M84,11.0 Q116.4,11.0 138,32 Q116.4,53.0 84,53.0 Q99.12,32 84,11.0 Z"/><path class="ax" d="M77,11.0 Q89,32 77,53.0"/><text class="lbl bd" x="2" y="26">A</text><text class="lbl bd" x="2" y="46">B</text><text class="lbl bd" x="174" y="36">X</text></svg></div><div class="bx">X = A XOR B</div></div></div>
+  <div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>AND</th><th>OR</th><th>NAND</th><th>NOR</th><th>XOR</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td></tr></table></div>
+  <p>Say it in words, as the mark schemes do: <b>NOT</b> inverts. <b>AND</b>: output is 1 only when both inputs are 1. <b>OR</b>: output is 0 only when both inputs are 0, otherwise 1. <b>NAND</b>: output is 0 when both inputs are 1, otherwise 1. <b>NOR</b>: output is 1 when both inputs are 0, otherwise 0. <b>XOR</b>: output is 1 when one input is 1 and the other is 0, that is when the inputs are different, otherwise 0. AND and OR can have more than two inputs, for example A AND B AND C is 1 only when all three are 1.</p>
+
+  <h2>2 · Completing a truth table</h2>
+  <ol>
+    <li>List every input combination in binary order: 2 inputs give 4 rows, 3 give 8, 4 give 16.</li>
+    <li>Split the expression into its parts and put each part in the <b>working space</b>.</li>
+    <li>Work out the innermost brackets first, then combine them, applying NOT to a term as soon as it appears.</li>
+    <li>Write the final column. The paper gives one mark for each half of the rows, so errors in the middle of the table can cost a mark.</li>
+  </ol>
+  <p>Example: X = (A XOR B) AND NOT C. A XOR B is 1 when A and B differ. NOT C is 1 when C is 0. X is 1 only for the rows 010 and 100.</p>
+  <div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>X</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td><td>0</td></tr></table></div>
+
+  <h2>3 · Drawing a circuit from an expression</h2>
+  <p>Each operator in the expression becomes a gate, and the brackets show which gate feeds which. Start from the <b>outermost</b> operator: it is the last gate. Work inwards, drawing the gates that feed it. Every gate gets inputs from the inputs or from the gates inside its brackets. Example: X = (A XOR B) AND NOT C has three gates: an XOR on A and B, a NOT on C, and an AND of the two results.</p>
+  <div class="circ"><svg viewBox="0 0 382 172.0" style="width:458px;max-width:100%;display:block" role="img" aria-label="X = (A XOR B) AND NOT C"><path class="w" d="M58,24 H82 V40.0 H92.48571428571428"/><path class="w" d="M58,78 H77 V62.0 H92.48571428571428"/><path class="w" d="M58,132 H82 V132.0 H94"/><path class="w" d="M148,51.0 H200 V80.5 H212"/><path class="w" d="M148,132.0 H195 V102.5 H212"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,78 H58"/><path class="w" d="M50,132 H58"/><path class="w" d="M266,91.5 H296"/><path class="ax" style="fill:var(--surface)" d="M94,30.0 Q126.4,30.0 148,51.0 Q126.4,72.0 94,72.0 Q109.12,51.0 94,30.0 Z"/><path class="ax" d="M87,30.0 Q99,51.0 87,72.0"/><text class="sm" x="152" y="44.0">G1</text><path class="ax" style="fill:var(--surface)" d="M94,116.0 L140,132.0 L94,148.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="132.0" r="4"/><text class="sm" x="152" y="125.0">G2</text><path class="ax" style="fill:var(--surface)" d="M212,70.5 H239.0 A27.0,21.0 0 0 1 239.0,112.5 H212 Z"/><text class="lbl bd" x="2" y="28">A</text><text class="lbl bd" x="2" y="82">B</text><text class="lbl bd" x="2" y="136">C</text><text class="lbl bd" x="302" y="95.5">X</text></svg></div>
+  <p>Mark schemes award marks for <b>each correct gate with correct inputs</b> and for <b>no superfluous gates</b>. Draw every NOT as its own gate (or a bubble if you are sure), keep the labels A, B and C on the left and X on the right.</p>
+
+  <h2>4 · Writing an expression from a circuit or a truth table</h2>
+  <p>From a circuit: work from the left, writing each gate's expression with brackets, and substitute it into the next gate. From a truth table, take each row where the output is 1, write an AND term (use NOT for any input that is 0), and join the terms with OR. For R S T with output 1 only at 001 and 110, Q = (NOT R AND NOT S AND T) OR (R AND S AND NOT T).</p>
+
+  <h2>5 · Logic in context</h2>
+  <p>Conditions in the scenario map directly onto gates. Take a greenhouse window X that opens if the temperature is too high (T) and the wind speed is acceptable (W = 0) and either rain is not detected (R = 0) or the manual override is off (M = 0). Then X = T AND NOT W AND (NOT R OR NOT M).</p>
+  <div class="circ"><svg viewBox="0 0 500 226.0" style="width:600px;max-width:100%;display:block" role="img" aria-label="greenhouse window"><path class="w" d="M58,78 H82 V78.0 H94"/><path class="w" d="M58,132 H82 V132.0 H94"/><path class="w" d="M58,186 H82 V186.0 H94"/><path class="w" d="M148,132.0 H200 V148.0 H217.4857142857143"/><path class="w" d="M148,186.0 H195 V170.0 H217.4857142857143"/><path class="w" d="M58,24 H318 V69.0 H330"/><path class="w" d="M148,78.0 H313 V87.0 H330"/><path class="w" d="M266,159.0 H308 V105.0 H330"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,78 H58"/><path class="w" d="M50,132 H58"/><path class="w" d="M50,186 H58"/><path class="w" d="M384,87.0 H414"/><path class="ax" style="fill:var(--surface)" d="M94,62.0 L140,78.0 L94,94.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="78.0" r="4"/><text class="sm" x="152" y="71.0">G1</text><path class="ax" style="fill:var(--surface)" d="M94,116.0 L140,132.0 L94,148.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="132.0" r="4"/><text class="sm" x="152" y="125.0">G2</text><path class="ax" style="fill:var(--surface)" d="M94,170.0 L140,186.0 L94,202.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="186.0" r="4"/><text class="sm" x="152" y="179.0">G3</text><path class="ax" style="fill:var(--surface)" d="M212,138.0 Q244.4,138.0 266,159.0 Q244.4,180.0 212,180.0 Q227.12,159.0 212,138.0 Z"/><text class="sm" x="270" y="152.0">G4</text><path class="ax" style="fill:var(--surface)" d="M330,59.0 H357.0 A27.0,28.0 0 0 1 357.0,115.0 H330 Z"/><text class="lbl bd" x="2" y="28">T</text><text class="lbl bd" x="2" y="82">W</text><text class="lbl bd" x="2" y="136">R</text><text class="lbl bd" x="2" y="190">M</text><text class="lbl bd" x="420" y="91.0">X</text></svg></div>
+
+  <h2>Common ways to lose marks</h2>
+  <ul>
+    <li>Treating XOR as OR: XOR is 0 when both inputs are 1.</li>
+    <li>Forgetting a NOT in the middle of the expression. Put every NOT in the working space.</li>
+    <li>Drawing a gate for a bracket that does not exist, or skipping a gate: count the operators and the gates.</li>
+    <li>Describing a gate as "it outputs 1 if A and B". Use the exact conditions for both 0 and 1 outputs.</li>
+    <li>Leaving out the brackets when writing an expression from a circuit.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Evaluating X = (A XOR B) AND NOT C</h2>
+  <p>Press Play. Green wires carry a 1.</p>
+  <div id="stA"></div>
+  <h2>2 · The greenhouse window</h2>
+  <div id="stB"></div>
+  <h2>3 · From expression to circuit</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Toggle the inputs</h2>
+  <p>Click the inputs of the circuit X = (A XOR B) AND NOT C. The row you are on is highlighted.</p>
+  <div class="card" id="labD"></div>
+  <h2>Lab 2 · The greenhouse window</h2>
+  <div class="card" id="labG"></div>
+  <h2>Lab 3 · Gate explorer</h2>
+  <div class="card"><div id="gB" class="btnrow"></div><div id="gO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which gate?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Is the output 1?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Match the gate to its description</h2><div id="m1" class="card"></div>
+  <h2>4 · Put the circuit-drawing steps in order</h2><div id="o1" class="card"></div>
+  <h2>5 · Working out</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A two-way light switch</h3><p>A light on a landing is on if exactly one of two switches is up. That is an XOR gate: the output is 1 when the inputs are different.</p><div class="use"><b>Exam use:</b> XOR.</div></div>
+  <div class="rw"><h3>A car that will not start</h3><p>The engine starts only if the car is in park AND the brake is pressed. An AND gate makes a safe condition out of two inputs.</p><div class="use"><b>Exam use:</b> AND.</div></div>
+  <div class="rw"><h3>A smoke alarm</h3><p>The alarm sounds if smoke is detected OR the battery is low. OR combines conditions where either is enough.</p><div class="use"><b>Exam use:</b> OR.</div></div>
+  <div class="rw"><h3>A machine guard</h3><p>A press works only when neither of two guard sensors is triggered: NOR is 1 only when both inputs are 0.</p><div class="use"><b>Exam use:</b> NOR.</div></div>
+  <div class="rw"><h3>Computer memory and the processor</h3><p>Every flip-flop in SRAM and every adder in the ALU is built from gates.</p><div class="use"><b>Exam use:</b> logic circuits are the basis of hardware.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on logic gates and circuits (Paper 1), 2021 to 2026. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2021</td><td>11, 13</td><td>8</td><td>3</td><td>Tick the gate that each statement describes</td></tr>
+    <tr><td>M/J 2021</td><td>12</td><td>3</td><td>4 + 2</td><td>Draw the circuit for S = (A AND B AND C) OR (B XOR C) and complete its truth table</td></tr>
+    <tr><td>O/N 2021</td><td>12</td><td>2(a), (b)</td><td>2 + 2</td><td>Truth tables for NOR and NAND; draw a circuit</td></tr>
+    <tr><td>M/J 2022</td><td>12</td><td>7</td><td>2</td><td>Truth table for X = (A XOR B) AND NOT C</td></tr>
+    <tr><td>O/N 2022</td><td>11</td><td>3</td><td>2 + 2</td><td>Draw the circuit and complete the truth table</td></tr>
+    <tr><td>O/N 2022</td><td>12</td><td>3(a), (b)</td><td>3 + 2</td><td>The greenhouse window circuit; a truth table</td></tr>
+    <tr><td>O/N 2022</td><td>13</td><td>5</td><td>3 + 2</td><td>Draw a circuit; complete a truth table</td></tr>
+    <tr><td>M/J 2023</td><td>11</td><td>5</td><td>2 + 2</td><td>Draw a circuit; describe NAND and NOR</td></tr>
+    <tr><td>M/J 2023</td><td>12</td><td>6</td><td>2 + 2</td><td>Draw a circuit; complete a truth table</td></tr>
+    <tr><td>O/N 2023</td><td>11</td><td>4</td><td>2 + 2</td><td>Truth table; draw a circuit</td></tr>
+    <tr><td>O/N 2023</td><td>13</td><td>4</td><td>2 + 2</td><td>Truth table; draw a circuit</td></tr>
+    <tr><td>M/J 2024</td><td>12</td><td>1</td><td>4 + 2</td><td>Describe four gates; draw a circuit</td></tr>
+    <tr><td>M/J 2024</td><td>13</td><td>6</td><td>3</td><td>Match truth tables to logic expressions</td></tr>
+    <tr><td>O/N 2024</td><td>12</td><td>1</td><td>2 + 2</td><td>Truth table; draw a circuit</td></tr>
+    <tr><td>O/N 2024</td><td>13</td><td>1</td><td>1 + 2 + 2</td><td>Describe XOR; write an expression; draw a circuit</td></tr>
+    <tr><td>M/J 2025</td><td>11, 12, 13</td><td>1, 4, 4</td><td>varies</td><td>Write logic expressions for a circuit (the circuit figure is in the paper)</td></tr>
+    <tr><td>O/N 2025</td><td>11</td><td>3</td><td>2 + 2</td><td>Draw a circuit; write an expression from a truth table</td></tr>
+    <tr><td>O/N 2025</td><td>13</td><td>3</td><td>2 + 2</td><td>Truth table; draw a circuit</td></tr>
+    <tr><td>M/J 2026</td><td>11, 12, 13</td><td>6, 8, 2</td><td>varies</td><td>Write expressions or complete a truth table for a circuit (the figure is in the paper)</td></tr>
+  </table></div>
+  <p class="note">Logic questions are in Paper 1 every series, usually a "draw the logic circuit" or "complete the truth table" for an expression. The circuits below are redrawn for the printed expression; your own diagram can have a different layout provided each gate has the right inputs. Questions that need the circuit figure from the paper (write the expression for the circuit, complete a truth table for a given circuit) are listed in the table but need the original paper. Questions are reworded; check the paper for the exact wording.</p>
+  <details class="eq"><summary><span class="src">M/J 2021 · 9618/11/13 · Q8</span> <span class="cmd">Tick</span> <span class="mark">3 marks</span> Tick one box in each row to identify the logic gate that each statement describes. The output is 1 only when both inputs are 1. The output is 1 only when both inputs are different. The output is 1 only when both inputs are 0. Boxes: AND, NAND, NOR, XOR, OR.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>AND, XOR, NOR.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Row 1: AND</span> <span class="mk k" data-t="2">Row 2: XOR</span> <span class="mk k" data-t="3">Row 3: NOR</span> (one mark per correct row)</p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2021 · 9618/12 · Q3</span> <span class="cmd">Draw / Complete</span> <span class="mark">4 + 2 marks</span> A logic expression is given: S = (A AND B AND C) OR (B XOR C). (a) Draw the logic circuit for the given expression. (b) Complete the truth table for the logic expression.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A 3-input AND, an XOR, then an OR.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">One mark for each correct gate with correct inputs (max 4)</span> <b>(b)</b> <span class="mk k" data-t="1">First four rows correct</span> <span class="mk k" data-t="2">Second four rows correct</span></p><div class="circ"><svg viewBox="0 0 382 181.0" style="width:458px;max-width:100%;display:block" role="img" aria-label=""><path class="w" d="M58,24 H82 V60.0 H94"/><path class="w" d="M58,78 H77 V78.0 H94"/><path class="w" d="M58,132 H72 V96.0 H94"/><path class="w" d="M58,78 H82 V125.0 H92.48571428571428"/><path class="w" d="M58,132 H77 V147.0 H92.48571428571428"/><path class="w" d="M148,78.0 H200 V96.0 H217.4857142857143"/><path class="w" d="M148,136.0 H195 V118.0 H217.4857142857143"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,78 H58"/><path class="w" d="M50,132 H58"/><path class="w" d="M266,107.0 H296"/><path class="ax" style="fill:var(--surface)" d="M94,50.0 H121.0 A27.0,28.0 0 0 1 121.0,106.0 H94 Z"/><text class="sm" x="152" y="71.0">G1</text><path class="ax" style="fill:var(--surface)" d="M94,115.0 Q126.4,115.0 148,136.0 Q126.4,157.0 94,157.0 Q109.12,136.0 94,115.0 Z"/><path class="ax" d="M87,115.0 Q99,136.0 87,157.0"/><text class="sm" x="152" y="129.0">G2</text><path class="ax" style="fill:var(--surface)" d="M212,86.0 Q244.4,86.0 266,107.0 Q244.4,128.0 212,128.0 Q227.12,107.0 212,86.0 Z"/><text class="lbl bd" x="2" y="28">A</text><text class="lbl bd" x="2" y="82">B</text><text class="lbl bd" x="2" y="136">C</text><text class="lbl bd" x="302" y="111.0">S</text></svg></div><div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>S</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td>1</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td></tr></table></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/12 · Q2(b)</span> <span class="cmd">Draw</span> <span class="mark">2 marks</span> Draw a logic circuit for the following logic expression: X = NOT(NOT(A AND B) AND C).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Inner AND, NOT, then AND with C, then NOT.</div>
+    <div class="ans"><p>Mark points: <span class="mk k" data-t="1">NOT (A AND B), that is A NAND B</span> <span class="mk k" data-t="2">NOT the result AND C, that is the result NAND C</span> (the circuit drawn uses two NAND gates, which is equivalent to AND, NOT, AND, NOT)</p><div class="circ"><svg viewBox="0 0 390 156" style="width:468px;max-width:100%;display:block" role="img" aria-label=""><path class="w" d="M58,24 H82 V40.0 H94"/><path class="w" d="M58,78 H77 V62.0 H94"/><path class="w" d="M156,51.0 H200 V80.5 H212"/><path class="w" d="M58,132 H195 V102.5 H212"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,78 H58"/><path class="w" d="M50,132 H58"/><path class="w" d="M274,91.5 H304"/><path class="ax" style="fill:var(--surface)" d="M94,30.0 H121.0 A27.0,21.0 0 0 1 121.0,72.0 H94 Z"/><circle class="ax" style="fill:var(--surface)" cx="152" cy="51.0" r="4"/><text class="sm" x="160" y="44.0">G1</text><path class="ax" style="fill:var(--surface)" d="M212,70.5 H239.0 A27.0,21.0 0 0 1 239.0,112.5 H212 Z"/><circle class="ax" style="fill:var(--surface)" cx="270" cy="91.5" r="4"/><text class="lbl bd" x="2" y="28">A</text><text class="lbl bd" x="2" y="82">B</text><text class="lbl bd" x="2" y="136">C</text><text class="lbl bd" x="310" y="95.5">X</text></svg></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/12 · Q2(a)</span> <span class="cmd">Complete</span> <span class="mark">2 marks</span> Complete the truth table for each of the following two logic gates (NOR and NAND, drawn on the paper).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>NOR is 1 only for 00. NAND is 0 only for 11.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">NOR: 1, 0, 0, 0</span> <span class="mk k" data-t="2">NAND: 1, 1, 1, 0</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/12 · Q7</span> <span class="cmd">Complete</span> <span class="mark">2 marks</span> Complete the truth table for the following logic expression: X = (A XOR B) AND NOT C. A, B, C in the standard eight rows, with a working space column.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>XOR first, then NOT C, then AND.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">First four rows: 0, 0, 1, 0</span> <span class="mk k" data-t="2">Second four rows: 1, 0, 0, 0</span></p><div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>X</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td><td>0</td></tr></table></div></div>
+    <div class="warn"><b class="h">Common mistake</b>Skipping the working column. Write A XOR B first, then NOT C.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/11 · Q3</span> <span class="cmd">Draw / Complete</span> <span class="mark">2 + 2 marks</span> (a) Draw a logic circuit for X = NOT ((NOT A AND NOT B) OR (NOT B AND NOT C)). (b) Complete the truth table for the expression.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two ANDs of NOTs, an OR, a NOT.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">NOT A AND NOT B and NOT B AND NOT C (or A NOR B and B NOR C)</span> <span class="mk k" data-t="2">The final OR and NOT gates (or a NOR) with correct inputs</span> <b>(b)</b> <span class="mk k" data-t="1">First four rows: 0, 0, 1, 1</span> <span class="mk k" data-t="2">Second four rows: 0, 1, 1, 1</span></p><div class="circ"><svg viewBox="0 0 618 198.0" style="width:742px;max-width:100%;display:block" role="img" aria-label=""><path class="w" d="M58,24 H82 V24.0 H94"/><path class="w" d="M58,78 H82 V78.0 H94"/><path class="w" d="M148,24.0 H200 V40.0 H212"/><path class="w" d="M148,78.0 H195 V62.0 H212"/><path class="w" d="M58,78 H82 V118.0 H94"/><path class="w" d="M58,132 H82 V158.0 H94"/><path class="w" d="M148,118.0 H200 V127.0 H212"/><path class="w" d="M148,158.0 H195 V149.0 H212"/><path class="w" d="M266,51.0 H318 V83.5 H335.48571428571427"/><path class="w" d="M266,138.0 H313 V105.5 H335.48571428571427"/><path class="w" d="M384,94.5 H436 V94.5 H448"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,78 H58"/><path class="w" d="M50,132 H58"/><path class="w" d="M502,94.5 H532"/><path class="ax" style="fill:var(--surface)" d="M94,8.0 L140,24.0 L94,40.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="24.0" r="4"/><text class="sm" x="152" y="17.0">G1</text><path class="ax" style="fill:var(--surface)" d="M94,62.0 L140,78.0 L94,94.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="78.0" r="4"/><text class="sm" x="152" y="71.0">G2</text><path class="ax" style="fill:var(--surface)" d="M212,30.0 H239.0 A27.0,21.0 0 0 1 239.0,72.0 H212 Z"/><text class="sm" x="270" y="44.0">G3</text><path class="ax" style="fill:var(--surface)" d="M94,102.0 L140,118.0 L94,134.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="118.0" r="4"/><text class="sm" x="152" y="111.0">G4</text><path class="ax" style="fill:var(--surface)" d="M94,142.0 L140,158.0 L94,174.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="158.0" r="4"/><text class="sm" x="152" y="151.0">G5</text><path class="ax" style="fill:var(--surface)" d="M212,117.0 H239.0 A27.0,21.0 0 0 1 239.0,159.0 H212 Z"/><text class="sm" x="270" y="131.0">G6</text><path class="ax" style="fill:var(--surface)" d="M330,73.5 Q362.4,73.5 384,94.5 Q362.4,115.5 330,115.5 Q345.12,94.5 330,73.5 Z"/><text class="sm" x="388" y="87.5">G7</text><path class="ax" style="fill:var(--surface)" d="M448,78.5 L494,94.5 L448,110.5 Z"/><circle class="ax" style="fill:var(--surface)" cx="498" cy="94.5" r="4"/><text class="lbl bd" x="2" y="28">A</text><text class="lbl bd" x="2" y="82">B</text><text class="lbl bd" x="2" y="136">C</text><text class="lbl bd" x="538" y="98.5">X</text></svg></div><div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>X</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td></tr></table></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/12 · Q3(a)(b)</span> <span class="cmd">Draw / Complete</span> <span class="mark">3 + 2 marks</span> A greenhouse window X opens if the temperature is too high (T = 1) and the wind speed is acceptable (W = 0) and rain is not detected (R = 0) or the manual override is off (M = 0). (a) Draw a logic circuit to represent the operation of the window. (b) Complete the truth table for X = NOT (A OR B OR C) AND (B NOR C).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>T AND NOT W AND (NOT R OR NOT M).</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">T AND NOT W</span> <span class="mk k" data-t="2">NOT R OR NOT M</span> <span class="mk k" data-t="3">The final AND</span> <b>(b)</b> <span class="mk k" data-t="1">First four rows: 1, 0, 0, 0</span> <span class="mk k" data-t="2">Second four rows: 0, 0, 0, 0</span> (X is 1 only for 000)</p><div class="circ"><svg viewBox="0 0 500 226.0" style="width:600px;max-width:100%;display:block" role="img" aria-label=""><path class="w" d="M58,78 H82 V78.0 H94"/><path class="w" d="M58,132 H82 V132.0 H94"/><path class="w" d="M58,186 H82 V186.0 H94"/><path class="w" d="M148,132.0 H200 V148.0 H217.4857142857143"/><path class="w" d="M148,186.0 H195 V170.0 H217.4857142857143"/><path class="w" d="M58,24 H318 V69.0 H330"/><path class="w" d="M148,78.0 H313 V87.0 H330"/><path class="w" d="M266,159.0 H308 V105.0 H330"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,78 H58"/><path class="w" d="M50,132 H58"/><path class="w" d="M50,186 H58"/><path class="w" d="M384,87.0 H414"/><path class="ax" style="fill:var(--surface)" d="M94,62.0 L140,78.0 L94,94.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="78.0" r="4"/><text class="sm" x="152" y="71.0">G1</text><path class="ax" style="fill:var(--surface)" d="M94,116.0 L140,132.0 L94,148.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="132.0" r="4"/><text class="sm" x="152" y="125.0">G2</text><path class="ax" style="fill:var(--surface)" d="M94,170.0 L140,186.0 L94,202.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="186.0" r="4"/><text class="sm" x="152" y="179.0">G3</text><path class="ax" style="fill:var(--surface)" d="M212,138.0 Q244.4,138.0 266,159.0 Q244.4,180.0 212,180.0 Q227.12,159.0 212,138.0 Z"/><text class="sm" x="270" y="152.0">G4</text><path class="ax" style="fill:var(--surface)" d="M330,59.0 H357.0 A27.0,28.0 0 0 1 357.0,115.0 H330 Z"/><text class="lbl bd" x="2" y="28">T</text><text class="lbl bd" x="2" y="82">W</text><text class="lbl bd" x="2" y="136">R</text><text class="lbl bd" x="2" y="190">M</text><text class="lbl bd" x="420" y="91.0">X</text></svg></div><div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>X</th></tr><tr><td>0</td><td>0</td><td>0</td><td>1</td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td><td>0</td></tr></table></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/13 · Q5</span> <span class="cmd">Draw / Complete</span> <span class="mark">3 + 2 marks</span> (a) Draw a logic circuit for X = NOT ((NOT (A AND B)) OR (NOT (B AND C))). (b) Complete the truth table for Y = (NOT P AND Q) OR (Q AND NOT R).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two NANDs (AND then NOT), an OR and a NOT.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">NOT (A AND B)</span> <span class="mk k" data-t="2">NOT (B AND C)</span> <span class="mk k" data-t="3">NOT(NOT(A AND B) OR NOT(B AND C))</span> <b>(b)</b> <span class="mk k" data-t="1">First four rows: 0, 0, 1, 1</span> <span class="mk k" data-t="2">Second four rows: 0, 0, 1, 0</span></p><div class="circ"><svg viewBox="0 0 618 156" style="width:742px;max-width:100%;display:block" role="img" aria-label=""><path class="w" d="M58,24 H82 V40.0 H94"/><path class="w" d="M58,78 H77 V62.0 H94"/><path class="w" d="M148,51.0 H200 V51.0 H212"/><path class="w" d="M58,78 H82 V98.0 H94"/><path class="w" d="M58,132 H77 V120.0 H94"/><path class="w" d="M148,109.0 H200 V109.0 H212"/><path class="w" d="M266,51.0 H318 V69.0 H335.48571428571427"/><path class="w" d="M266,109.0 H313 V91.0 H335.48571428571427"/><path class="w" d="M384,80.0 H436 V80.0 H448"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,78 H58"/><path class="w" d="M50,132 H58"/><path class="w" d="M502,80.0 H532"/><path class="ax" style="fill:var(--surface)" d="M94,30.0 H121.0 A27.0,21.0 0 0 1 121.0,72.0 H94 Z"/><text class="sm" x="152" y="44.0">G1</text><path class="ax" style="fill:var(--surface)" d="M212,35.0 L258,51.0 L212,67.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="262" cy="51.0" r="4"/><text class="sm" x="270" y="44.0">G2</text><path class="ax" style="fill:var(--surface)" d="M94,88.0 H121.0 A27.0,21.0 0 0 1 121.0,130.0 H94 Z"/><text class="sm" x="152" y="102.0">G3</text><path class="ax" style="fill:var(--surface)" d="M212,93.0 L258,109.0 L212,125.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="262" cy="109.0" r="4"/><text class="sm" x="270" y="102.0">G4</text><path class="ax" style="fill:var(--surface)" d="M330,59.0 Q362.4,59.0 384,80.0 Q362.4,101.0 330,101.0 Q345.12,80.0 330,59.0 Z"/><text class="sm" x="388" y="73.0">G5</text><path class="ax" style="fill:var(--surface)" d="M448,64.0 L494,80.0 L448,96.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="498" cy="80.0" r="4"/><text class="lbl bd" x="2" y="28">A</text><text class="lbl bd" x="2" y="82">B</text><text class="lbl bd" x="2" y="136">C</text><text class="lbl bd" x="538" y="84.0">X</text></svg></div><div class="tw"><table class="t mono"><tr><th>P</th><th>Q</th><th>R</th><th>Y</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>0</td></tr></table></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/11 · Q5</span> <span class="cmd">Draw / Describe</span> <span class="mark">2 + 2 marks</span> (a) Draw the logic circuit for T = (NOT A OR B) XOR (C NAND D). (b) Describe the function of the NAND and NOR logic gates.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>NOT and OR, NAND, then XOR.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk a" data-t="1">Two correct gates</span> <span class="mk a" data-t="2">All four gates correct</span> (1 mark for two gates, 2 marks for all four) <b>(b)</b> <span class="mk k" data-t="1">NAND: 0 is output only when both inputs are 1, otherwise 1</span> <span class="mk k" data-t="2">NOR: 1 is output only when both inputs are 0, otherwise 0</span></p><div class="circ"><svg viewBox="0 0 500 210" style="width:600px;max-width:100%;display:block" role="img" aria-label=""><path class="w" d="M58,24 H82 V24.0 H94"/><path class="w" d="M148,24.0 H200 V40.0 H217.4857142857143"/><path class="w" d="M58,78 H195 V62.0 H217.4857142857143"/><path class="w" d="M58,132 H82 V148.0 H94"/><path class="w" d="M58,186 H77 V170.0 H94"/><path class="w" d="M266,51.0 H318 V94.0 H328.48571428571427"/><path class="w" d="M156,159.0 H313 V116.0 H328.48571428571427"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,78 H58"/><path class="w" d="M50,132 H58"/><path class="w" d="M50,186 H58"/><path class="w" d="M384,105.0 H414"/><path class="ax" style="fill:var(--surface)" d="M94,8.0 L140,24.0 L94,40.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="24.0" r="4"/><text class="sm" x="152" y="17.0">G1</text><path class="ax" style="fill:var(--surface)" d="M212,30.0 Q244.4,30.0 266,51.0 Q244.4,72.0 212,72.0 Q227.12,51.0 212,30.0 Z"/><text class="sm" x="270" y="44.0">G2</text><path class="ax" style="fill:var(--surface)" d="M94,138.0 H121.0 A27.0,21.0 0 0 1 121.0,180.0 H94 Z"/><circle class="ax" style="fill:var(--surface)" cx="152" cy="159.0" r="4"/><text class="sm" x="160" y="152.0">G3</text><path class="ax" style="fill:var(--surface)" d="M330,84.0 Q362.4,84.0 384,105.0 Q362.4,126.0 330,126.0 Q345.12,105.0 330,84.0 Z"/><path class="ax" d="M323,84.0 Q335,105.0 323,126.0"/><text class="lbl bd" x="2" y="28">A</text><text class="lbl bd" x="2" y="82">B</text><text class="lbl bd" x="2" y="136">C</text><text class="lbl bd" x="2" y="190">D</text><text class="lbl bd" x="420" y="109.0">T</text></svg></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/12 · Q6</span> <span class="cmd">Draw / Complete</span> <span class="mark">2 + 2 marks</span> (a) Draw the logic circuit for Z = (R XOR S) AND (NOT T NOR P). (b) Complete the truth table for Z = (NOT P OR Q) XOR (R NOR Q).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>XOR and AND; NOT and NOR.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Correct XOR and AND gates, with correct inputs</span> <span class="mk k" data-t="2">Correct NOT and NOR gates, with correct inputs</span> <b>(b)</b> <span class="mk k" data-t="1">First four rows: 0, 1, 1, 1</span> <span class="mk k" data-t="2">Second four rows: 1, 0, 1, 1</span></p><div class="circ"><svg viewBox="0 0 500 210" style="width:600px;max-width:100%;display:block" role="img" aria-label=""><path class="w" d="M58,24 H82 V40.0 H92.48571428571428"/><path class="w" d="M58,78 H77 V62.0 H92.48571428571428"/><path class="w" d="M58,132 H82 V132.0 H94"/><path class="w" d="M148,132.0 H200 V148.0 H217.4857142857143"/><path class="w" d="M58,186 H195 V170.0 H217.4857142857143"/><path class="w" d="M148,51.0 H318 V94.0 H330"/><path class="w" d="M274,159.0 H313 V116.0 H330"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,78 H58"/><path class="w" d="M50,132 H58"/><path class="w" d="M50,186 H58"/><path class="w" d="M384,105.0 H414"/><path class="ax" style="fill:var(--surface)" d="M94,30.0 Q126.4,30.0 148,51.0 Q126.4,72.0 94,72.0 Q109.12,51.0 94,30.0 Z"/><path class="ax" d="M87,30.0 Q99,51.0 87,72.0"/><text class="sm" x="152" y="44.0">G1</text><path class="ax" style="fill:var(--surface)" d="M94,116.0 L140,132.0 L94,148.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="132.0" r="4"/><text class="sm" x="152" y="125.0">G2</text><path class="ax" style="fill:var(--surface)" d="M212,138.0 Q244.4,138.0 266,159.0 Q244.4,180.0 212,180.0 Q227.12,159.0 212,138.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="270" cy="159.0" r="4"/><text class="sm" x="278" y="152.0">G3</text><path class="ax" style="fill:var(--surface)" d="M330,84.0 H357.0 A27.0,21.0 0 0 1 357.0,126.0 H330 Z"/><text class="lbl bd" x="2" y="28">R</text><text class="lbl bd" x="2" y="82">S</text><text class="lbl bd" x="2" y="136">T</text><text class="lbl bd" x="2" y="190">P</text><text class="lbl bd" x="420" y="109.0">Z</text></svg></div><div class="tw"><table class="t mono"><tr><th>P</th><th>Q</th><th>R</th><th>Z</th></tr><tr><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td>1</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td></tr></table></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/11 · Q4</span> <span class="cmd">Complete / Draw</span> <span class="mark">2 + 2 marks</span> (a) Complete the truth table for X = NOT (A NAND B) XOR (NOT B AND (B NOR C)). (b) Draw a logic circuit for X = (A AND NOT (B OR C)) AND (B NOR C).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Work out each bracket in a working column.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">First four rows: 1, 0, 0, 0</span> <span class="mk k" data-t="2">Second four rows: 1, 0, 1, 1</span><br><b>(b)</b> <span class="mk k" data-t="1">Both AND gates</span> <span class="mk k" data-t="2">The NOT gate, the OR gate and the NOR gate</span></p><div class="circ"><svg viewBox="0 0 618 208.0" style="width:742px;max-width:100%;display:block" role="img" aria-label=""><path class="w" d="M58,78 H82 V94.0 H99.48571428571428"/><path class="w" d="M58,132 H77 V116.0 H99.48571428571428"/><path class="w" d="M148,105.0 H200 V105.0 H212"/><path class="w" d="M58,24 H318 V53.5 H330"/><path class="w" d="M266,105.0 H313 V75.5 H330"/><path class="w" d="M58,78 H82 V152.0 H99.48571428571428"/><path class="w" d="M58,132 H77 V174.0 H99.48571428571428"/><path class="w" d="M384,64.5 H436 V102.75 H448"/><path class="w" d="M156,163.0 H431 V124.75 H448"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,78 H58"/><path class="w" d="M50,132 H58"/><path class="w" d="M502,113.75 H532"/><path class="ax" style="fill:var(--surface)" d="M94,84.0 Q126.4,84.0 148,105.0 Q126.4,126.0 94,126.0 Q109.12,105.0 94,84.0 Z"/><text class="sm" x="152" y="98.0">G1</text><path class="ax" style="fill:var(--surface)" d="M212,89.0 L258,105.0 L212,121.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="262" cy="105.0" r="4"/><text class="sm" x="270" y="98.0">G2</text><path class="ax" style="fill:var(--surface)" d="M330,43.5 H357.0 A27.0,21.0 0 0 1 357.0,85.5 H330 Z"/><text class="sm" x="388" y="57.5">G3</text><path class="ax" style="fill:var(--surface)" d="M94,142.0 Q126.4,142.0 148,163.0 Q126.4,184.0 94,184.0 Q109.12,163.0 94,142.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="152" cy="163.0" r="4"/><text class="sm" x="160" y="156.0">G4</text><path class="ax" style="fill:var(--surface)" d="M448,92.75 H475.0 A27.0,21.0 0 0 1 475.0,134.75 H448 Z"/><text class="lbl bd" x="2" y="28">A</text><text class="lbl bd" x="2" y="82">B</text><text class="lbl bd" x="2" y="136">C</text><text class="lbl bd" x="538" y="117.75">X</text></svg></div><div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>X</th></tr><tr><td>0</td><td>0</td><td>0</td><td>1</td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td></tr></table></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/13 · Q4</span> <span class="cmd">Complete / Draw</span> <span class="mark">2 + 2 marks</span> Y = ((P AND Q) XOR ((NOT Q) OR R)) AND NOT P. (a) Complete the truth table. (b) Draw a logic circuit for the expression.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>P AND Q; NOT Q OR R; XOR; NOT P; final AND.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">First four rows: 1, 1, 0, 1</span> <span class="mk k" data-t="2">Second four rows: 0, 0, 0, 0</span><br><b>(b)</b> <span class="mk k" data-t="1">P AND Q, and NOT Q OR R</span> <span class="mk k" data-t="2">NOT gate, AND gate and XOR gate</span></p><div class="circ"><svg viewBox="0 0 618 163.0" style="width:742px;max-width:100%;display:block" role="img" aria-label=""><path class="w" d="M58,24 H82 V53.0 H94"/><path class="w" d="M58,78 H77 V75.0 H94"/><path class="w" d="M58,78 H82 V104.0 H94"/><path class="w" d="M148,104.0 H200 V107.0 H217.4857142857143"/><path class="w" d="M58,132 H195 V129.0 H217.4857142857143"/><path class="w" d="M148,64.0 H318 V80.0 H328.48571428571427"/><path class="w" d="M266,118.0 H313 V102.0 H328.48571428571427"/><path class="w" d="M58,24 H82 V24.0 H94"/><path class="w" d="M384,91.0 H436 V46.5 H448"/><path class="w" d="M148,24.0 H431 V68.5 H448"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,78 H58"/><path class="w" d="M50,132 H58"/><path class="w" d="M502,57.5 H532"/><path class="ax" style="fill:var(--surface)" d="M94,43.0 H121.0 A27.0,21.0 0 0 1 121.0,85.0 H94 Z"/><text class="sm" x="152" y="57.0">G1</text><path class="ax" style="fill:var(--surface)" d="M94,88.0 L140,104.0 L94,120.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="104.0" r="4"/><text class="sm" x="152" y="97.0">G2</text><path class="ax" style="fill:var(--surface)" d="M212,97.0 Q244.4,97.0 266,118.0 Q244.4,139.0 212,139.0 Q227.12,118.0 212,97.0 Z"/><text class="sm" x="270" y="111.0">G3</text><path class="ax" style="fill:var(--surface)" d="M330,70.0 Q362.4,70.0 384,91.0 Q362.4,112.0 330,112.0 Q345.12,91.0 330,70.0 Z"/><path class="ax" d="M323,70.0 Q335,91.0 323,112.0"/><text class="sm" x="388" y="84.0">G4</text><path class="ax" style="fill:var(--surface)" d="M94,8.0 L140,24.0 L94,40.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="24.0" r="4"/><text class="sm" x="152" y="17.0">G5</text><path class="ax" style="fill:var(--surface)" d="M448,36.5 H475.0 A27.0,21.0 0 0 1 475.0,78.5 H448 Z"/><text class="lbl bd" x="2" y="28">P</text><text class="lbl bd" x="2" y="82">Q</text><text class="lbl bd" x="2" y="136">R</text><text class="lbl bd" x="538" y="61.5">Y</text></svg></div><div class="tw"><table class="t mono"><tr><th>P</th><th>Q</th><th>R</th><th>Y</th></tr><tr><td>0</td><td>0</td><td>0</td><td>1</td></tr><tr><td>0</td><td>0</td><td>1</td><td>1</td></tr><tr><td>0</td><td>1</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td><td>0</td></tr></table></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/12 · Q1(a)</span> <span class="cmd">Describe</span> <span class="mark">4 marks</span> Describe the operation of each of the following logic gates: NAND, NOR, XOR, OR.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>State the 0 and 1 outputs for each.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">NAND: the output is 0 when both inputs are 1, otherwise 1</span> <span class="mk k" data-t="2">NOR: the output is 1 when both inputs are 0, otherwise 0</span> <span class="mk k" data-t="3">XOR: the output is 1 when one of the inputs is 1 and the other is 0, otherwise 0</span> <span class="mk k" data-t="4">OR: the output is 0 when both inputs are 0, otherwise 1</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing 'NAND is AND but opposite'. State the conditions for each output value.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/12 · Q1(b)</span> <span class="cmd">Draw</span> <span class="mark">2 marks</span> Draw a logic circuit for X = NOT ((A AND B) OR (C AND D)).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two ANDs, an OR, a NOT.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Both AND gates with correct inputs</span> <span class="mk k" data-t="2">The OR and NOT gates with correct inputs and no superfluous gates</span></p><div class="circ"><svg viewBox="0 0 500 210" style="width:600px;max-width:100%;display:block" role="img" aria-label=""><path class="w" d="M58,24 H82 V40.0 H94"/><path class="w" d="M58,78 H77 V62.0 H94"/><path class="w" d="M58,132 H82 V148.0 H94"/><path class="w" d="M58,186 H77 V170.0 H94"/><path class="w" d="M148,51.0 H200 V94.0 H217.4857142857143"/><path class="w" d="M148,159.0 H195 V116.0 H217.4857142857143"/><path class="w" d="M266,105.0 H318 V105.0 H330"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,78 H58"/><path class="w" d="M50,132 H58"/><path class="w" d="M50,186 H58"/><path class="w" d="M384,105.0 H414"/><path class="ax" style="fill:var(--surface)" d="M94,30.0 H121.0 A27.0,21.0 0 0 1 121.0,72.0 H94 Z"/><text class="sm" x="152" y="44.0">G1</text><path class="ax" style="fill:var(--surface)" d="M94,138.0 H121.0 A27.0,21.0 0 0 1 121.0,180.0 H94 Z"/><text class="sm" x="152" y="152.0">G2</text><path class="ax" style="fill:var(--surface)" d="M212,84.0 Q244.4,84.0 266,105.0 Q244.4,126.0 212,126.0 Q227.12,105.0 212,84.0 Z"/><text class="sm" x="270" y="98.0">G3</text><path class="ax" style="fill:var(--surface)" d="M330,89.0 L376,105.0 L330,121.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="380" cy="105.0" r="4"/><text class="lbl bd" x="2" y="28">A</text><text class="lbl bd" x="2" y="82">B</text><text class="lbl bd" x="2" y="136">C</text><text class="lbl bd" x="2" y="190">D</text><text class="lbl bd" x="420" y="109.0">X</text></svg></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/13 · Q6</span> <span class="cmd">Match</span> <span class="mark">3 marks</span> Each of the following truth tables has three inputs (A, B, C) and one output X. Match each truth table with its logic expression from: NOT (A XOR B) AND C; (A OR C) AND NOT B; A NAND B NAND C; (A NAND B) OR C; NOT (A AND B AND C). Table 1 has X = 0,1,0,0,1,1,0,0. Table 2 has X = 0,1,0,0,0,0,0,1. Table 3 has X = 1,1,1,1,1,1,0,1 (rows 000 to 111).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Test each expression on one or two rows.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Table 1 matches (A OR C) AND NOT B</span> <span class="mk k" data-t="2">Table 2 matches NOT (A XOR B) AND C</span> <span class="mk k" data-t="3">Table 3 matches (A NAND B) OR C</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Checking only one row. Several expressions agree on some rows; test two or three.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/12 · Q1</span> <span class="cmd">Complete / Draw</span> <span class="mark">2 + 2 marks</span> (a) Complete the truth table for X = (A XOR B) NAND (A AND (B XOR C)). (b) Draw the logic circuit for W = P NAND ((Q OR NOT R) XOR (P XOR Q)).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Working columns for A XOR B, B XOR C and A AND (B XOR C).</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">First four rows: 1, 1, 1, 1</span> <span class="mk k" data-t="2">Second four rows: 1, 0, 1, 1</span><br><b>(b)</b> <span class="mk k" data-t="1">(P XOR Q) and (Q OR NOT R)</span> <span class="mk k" data-t="2">The second XOR gate and the final NAND gate with appropriate inputs</span></p><div class="circ"><svg viewBox="0 0 626 172.0" style="width:751px;max-width:100%;display:block" role="img" aria-label=""><path class="w" d="M58,132 H82 V132.0 H94"/><path class="w" d="M58,78 H200 V94.0 H217.4857142857143"/><path class="w" d="M148,132.0 H195 V116.0 H217.4857142857143"/><path class="w" d="M58,24 H82 V40.0 H92.48571428571428"/><path class="w" d="M58,78 H77 V62.0 H92.48571428571428"/><path class="w" d="M266,105.0 H318 V67.0 H328.48571428571427"/><path class="w" d="M148,51.0 H313 V89.0 H328.48571428571427"/><path class="w" d="M58,24 H436 V40.0 H448"/><path class="w" d="M384,78.0 H431 V62.0 H448"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,78 H58"/><path class="w" d="M50,132 H58"/><path class="w" d="M510,51.0 H540"/><path class="ax" style="fill:var(--surface)" d="M94,116.0 L140,132.0 L94,148.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="132.0" r="4"/><text class="sm" x="152" y="125.0">G1</text><path class="ax" style="fill:var(--surface)" d="M212,84.0 Q244.4,84.0 266,105.0 Q244.4,126.0 212,126.0 Q227.12,105.0 212,84.0 Z"/><text class="sm" x="270" y="98.0">G2</text><path class="ax" style="fill:var(--surface)" d="M94,30.0 Q126.4,30.0 148,51.0 Q126.4,72.0 94,72.0 Q109.12,51.0 94,30.0 Z"/><path class="ax" d="M87,30.0 Q99,51.0 87,72.0"/><text class="sm" x="152" y="44.0">G3</text><path class="ax" style="fill:var(--surface)" d="M330,57.0 Q362.4,57.0 384,78.0 Q362.4,99.0 330,99.0 Q345.12,78.0 330,57.0 Z"/><path class="ax" d="M323,57.0 Q335,78.0 323,99.0"/><text class="sm" x="388" y="71.0">G4</text><path class="ax" style="fill:var(--surface)" d="M448,30.0 H475.0 A27.0,21.0 0 0 1 475.0,72.0 H448 Z"/><circle class="ax" style="fill:var(--surface)" cx="506" cy="51.0" r="4"/><text class="lbl bd" x="2" y="28">P</text><text class="lbl bd" x="2" y="82">Q</text><text class="lbl bd" x="2" y="136">R</text><text class="lbl bd" x="546" y="55.0">W</text></svg></div><div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>X</th></tr><tr><td>0</td><td>0</td><td>0</td><td>1</td></tr><tr><td>0</td><td>0</td><td>1</td><td>1</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td></tr></table></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/13 · Q1(a)(c)</span> <span class="cmd">Describe / Draw</span> <span class="mark">1 + 2 marks</span> (a) Describe the operation of a 2-input XOR gate. (c) Draw the logic circuit for X = ((NOT A AND (B AND C)) OR (B NAND C)) AND NOT A.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Different inputs give 1. Count the operators.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">The output is 1 only if one input is 1 and the other is 0 (the inputs are different); 0 if both inputs are the same</span><br><b>(c)</b> <span class="mk k" data-t="1">NOT gate, two correct AND gates and the NAND gate</span> <span class="mk k" data-t="2">The OR gate and the final AND gate</span></p><div class="circ"><svg viewBox="0 0 618 208.0" style="width:742px;max-width:100%;display:block" role="img" aria-label=""><path class="w" d="M58,24 H82 V24.0 H94"/><path class="w" d="M58,78 H82 V94.0 H94"/><path class="w" d="M58,132 H77 V116.0 H94"/><path class="w" d="M148,24.0 H200 V53.5 H212"/><path class="w" d="M148,105.0 H195 V75.5 H212"/><path class="w" d="M58,78 H82 V152.0 H94"/><path class="w" d="M58,132 H77 V174.0 H94"/><path class="w" d="M266,64.5 H318 V102.75 H335.48571428571427"/><path class="w" d="M156,163.0 H313 V124.75 H335.48571428571427"/><path class="w" d="M58,24 H82 V64.0 H94"/><path class="w" d="M384,113.75 H436 V77.875 H448"/><path class="w" d="M148,64.0 H431 V99.875 H448"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,78 H58"/><path class="w" d="M50,132 H58"/><path class="w" d="M502,88.875 H532"/><path class="ax" style="fill:var(--surface)" d="M94,8.0 L140,24.0 L94,40.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="24.0" r="4"/><text class="sm" x="152" y="17.0">G1</text><path class="ax" style="fill:var(--surface)" d="M94,84.0 H121.0 A27.0,21.0 0 0 1 121.0,126.0 H94 Z"/><text class="sm" x="152" y="98.0">G2</text><path class="ax" style="fill:var(--surface)" d="M212,43.5 H239.0 A27.0,21.0 0 0 1 239.0,85.5 H212 Z"/><text class="sm" x="270" y="57.5">G3</text><path class="ax" style="fill:var(--surface)" d="M94,142.0 H121.0 A27.0,21.0 0 0 1 121.0,184.0 H94 Z"/><circle class="ax" style="fill:var(--surface)" cx="152" cy="163.0" r="4"/><text class="sm" x="160" y="156.0">G4</text><path class="ax" style="fill:var(--surface)" d="M330,92.75 Q362.4,92.75 384,113.75 Q362.4,134.75 330,134.75 Q345.12,113.75 330,92.75 Z"/><text class="sm" x="388" y="106.75">G5</text><path class="ax" style="fill:var(--surface)" d="M94,48.0 L140,64.0 L94,80.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="64.0" r="4"/><text class="sm" x="152" y="57.0">G6</text><path class="ax" style="fill:var(--surface)" d="M448,67.875 H475.0 A27.0,21.0 0 0 1 475.0,109.875 H448 Z"/><text class="lbl bd" x="2" y="28">A</text><text class="lbl bd" x="2" y="82">B</text><text class="lbl bd" x="2" y="136">C</text><text class="lbl bd" x="538" y="92.875">X</text></svg></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/11 · Q3</span> <span class="cmd">Draw / Write</span> <span class="mark">2 + 2 marks</span> (a) Draw a logic circuit for X = NOT ((A NAND B) XOR (NOT A OR NOT C)). (b) Write the logic expression for the truth table with inputs R, S, T and output Q = 1 only for RST = 001 and 110.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>NAND, two NOTs and OR, XOR, NOT. Sum of products for the table.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">(A NAND B) and (NOT A OR NOT C)</span> <span class="mk k" data-t="2">XOR and NOT</span><br><b>(b)</b> <span class="mk k" data-t="1">One correct term: (R AND S AND NOT T) or (NOT R AND NOT S AND T)</span> <span class="mk k" data-t="2">The second term and the OR in the correct place</span> Q = (R AND S AND NOT T) OR (NOT R AND NOT S AND T)</p><div class="circ"><svg viewBox="0 0 618 172.0" style="width:742px;max-width:100%;display:block" role="img" aria-label=""><path class="w" d="M58,24 H82 V53.0 H94"/><path class="w" d="M58,78 H77 V75.0 H94"/><path class="w" d="M58,24 H82 V24.0 H94"/><path class="w" d="M58,132 H82 V132.0 H94"/><path class="w" d="M148,24.0 H200 V67.0 H217.4857142857143"/><path class="w" d="M148,132.0 H195 V89.0 H217.4857142857143"/><path class="w" d="M156,64.0 H318 V60.0 H328.48571428571427"/><path class="w" d="M266,78.0 H313 V82.0 H328.48571428571427"/><path class="w" d="M384,71.0 H436 V71.0 H448"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,78 H58"/><path class="w" d="M50,132 H58"/><path class="w" d="M502,71.0 H532"/><path class="ax" style="fill:var(--surface)" d="M94,43.0 H121.0 A27.0,21.0 0 0 1 121.0,85.0 H94 Z"/><circle class="ax" style="fill:var(--surface)" cx="152" cy="64.0" r="4"/><text class="sm" x="160" y="57.0">G1</text><path class="ax" style="fill:var(--surface)" d="M94,8.0 L140,24.0 L94,40.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="24.0" r="4"/><text class="sm" x="152" y="17.0">G2</text><path class="ax" style="fill:var(--surface)" d="M94,116.0 L140,132.0 L94,148.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="132.0" r="4"/><text class="sm" x="152" y="125.0">G3</text><path class="ax" style="fill:var(--surface)" d="M212,57.0 Q244.4,57.0 266,78.0 Q244.4,99.0 212,99.0 Q227.12,78.0 212,57.0 Z"/><text class="sm" x="270" y="71.0">G4</text><path class="ax" style="fill:var(--surface)" d="M330,50.0 Q362.4,50.0 384,71.0 Q362.4,92.0 330,92.0 Q345.12,71.0 330,50.0 Z"/><path class="ax" d="M323,50.0 Q335,71.0 323,92.0"/><text class="sm" x="388" y="64.0">G5</text><path class="ax" style="fill:var(--surface)" d="M448,55.0 L494,71.0 L448,87.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="498" cy="71.0" r="4"/><text class="lbl bd" x="2" y="28">A</text><text class="lbl bd" x="2" y="82">B</text><text class="lbl bd" x="2" y="136">C</text><text class="lbl bd" x="538" y="75.0">X</text></svg></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/13 · Q3</span> <span class="cmd">Complete / Draw</span> <span class="mark">2 + 2 marks</span> (a) Complete the truth table for X = (A NOR B) NAND (C XOR B). (b) Draw a logic circuit for X = NOT (((A AND B) OR C) AND (C NOR D)).</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A NOR B, C XOR B, then NAND.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">First four rows</span> <span class="mk k" data-t="2">Second four rows</span> (both halves correct)<br><b>(b)</b> <span class="mk k" data-t="1">The AND, OR and NOR gates with correct inputs</span> <span class="mk k" data-t="2">The final AND and NOT gates (or NAND) with correct inputs</span></p><div class="circ"><svg viewBox="0 0 618 210" style="width:742px;max-width:100%;display:block" role="img" aria-label=""><path class="w" d="M58,24 H82 V40.0 H94"/><path class="w" d="M58,78 H77 V62.0 H94"/><path class="w" d="M148,51.0 H200 V80.5 H217.4857142857143"/><path class="w" d="M58,132 H195 V102.5 H217.4857142857143"/><path class="w" d="M58,132 H82 V148.0 H99.48571428571428"/><path class="w" d="M58,186 H77 V170.0 H99.48571428571428"/><path class="w" d="M266,91.5 H318 V114.25 H330"/><path class="w" d="M156,159.0 H313 V136.25 H330"/><path class="w" d="M384,125.25 H436 V125.25 H448"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,78 H58"/><path class="w" d="M50,132 H58"/><path class="w" d="M50,186 H58"/><path class="w" d="M502,125.25 H532"/><path class="ax" style="fill:var(--surface)" d="M94,30.0 H121.0 A27.0,21.0 0 0 1 121.0,72.0 H94 Z"/><text class="sm" x="152" y="44.0">G1</text><path class="ax" style="fill:var(--surface)" d="M212,70.5 Q244.4,70.5 266,91.5 Q244.4,112.5 212,112.5 Q227.12,91.5 212,70.5 Z"/><text class="sm" x="270" y="84.5">G2</text><path class="ax" style="fill:var(--surface)" d="M94,138.0 Q126.4,138.0 148,159.0 Q126.4,180.0 94,180.0 Q109.12,159.0 94,138.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="152" cy="159.0" r="4"/><text class="sm" x="160" y="152.0">G3</text><path class="ax" style="fill:var(--surface)" d="M330,104.25 H357.0 A27.0,21.0 0 0 1 357.0,146.25 H330 Z"/><text class="sm" x="388" y="118.25">G4</text><path class="ax" style="fill:var(--surface)" d="M448,109.25 L494,125.25 L448,141.25 Z"/><circle class="ax" style="fill:var(--surface)" cx="498" cy="125.25" r="4"/><text class="lbl bd" x="2" y="28">A</text><text class="lbl bd" x="2" y="82">B</text><text class="lbl bd" x="2" y="136">C</text><text class="lbl bd" x="2" y="190">D</text><text class="lbl bd" x="538" y="129.25">X</text></svg></div><div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>X</th></tr><tr><td>0</td><td>0</td><td>0</td><td>1</td></tr><tr><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td></tr></table></div></div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Complete</span> <span class="mark">3 marks</span> Complete the truth table for X = NOT (A AND B) OR C.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>NAND first.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Working column NOT (A AND B): 1,1,1,1,1,1,0,0</span> <span class="mk k" data-t="2">First four rows of X: 1, 1, 1, 1</span> <span class="mk k" data-t="3">Second four rows of X: 1, 1, 0, 1</span></p><div class="tw"><table class="t mono"><tr><th>A</th><th>B</th><th>C</th><th>X</th></tr><tr><td>0</td><td>0</td><td>0</td><td>1</td></tr><tr><td>0</td><td>0</td><td>1</td><td>1</td></tr><tr><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td></tr></table></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Draw</span> <span class="mark">2 marks</span> Draw a logic circuit for X = (A OR B) AND NOT C.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Three gates.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The OR and NOT gates with correct inputs</span> <span class="mk k" data-t="2">The final AND gate with correct inputs</span></p><div class="circ"><svg viewBox="0 0 382 172.0" style="width:458px;max-width:100%;display:block" role="img" aria-label=""><path class="w" d="M58,24 H82 V40.0 H99.48571428571428"/><path class="w" d="M58,78 H77 V62.0 H99.48571428571428"/><path class="w" d="M58,132 H82 V132.0 H94"/><path class="w" d="M148,51.0 H200 V80.5 H212"/><path class="w" d="M148,132.0 H195 V102.5 H212"/><path class="w" d="M50,24 H58"/><path class="w" d="M50,78 H58"/><path class="w" d="M50,132 H58"/><path class="w" d="M266,91.5 H296"/><path class="ax" style="fill:var(--surface)" d="M94,30.0 Q126.4,30.0 148,51.0 Q126.4,72.0 94,72.0 Q109.12,51.0 94,30.0 Z"/><text class="sm" x="152" y="44.0">G1</text><path class="ax" style="fill:var(--surface)" d="M94,116.0 L140,132.0 L94,148.0 Z"/><circle class="ax" style="fill:var(--surface)" cx="144" cy="132.0" r="4"/><text class="sm" x="152" y="125.0">G2</text><path class="ax" style="fill:var(--surface)" d="M212,70.5 H239.0 A27.0,21.0 0 0 1 239.0,112.5 H212 Z"/><text class="lbl bd" x="2" y="28">A</text><text class="lbl bd" x="2" y="82">B</text><text class="lbl bd" x="2" y="136">C</text><text class="lbl bd" x="302" y="95.5">X</text></svg></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">2 marks</span> Write the logic expression for the circuit: A and B into an XOR; the output and C into an AND.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Substitute the gate.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">(A XOR B)</span> <span class="mk k" data-t="2">(A XOR B) AND C</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">4 marks</span> Describe the operation of the AND, OR, NOT and NOR gates.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>State the conditions.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">AND: 1 only when both inputs are 1</span> <span class="mk k" data-t="2">OR: 0 only when both inputs are 0</span> <span class="mk k" data-t="3">NOT: inverts the input</span> <span class="mk k" data-t="4">NOR: 1 only when both inputs are 0</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Draw</span> <span class="mark">3 marks</span> A heater H turns on if the temperature is low (T = 1) and either the window is closed (W = 0) or the override (O) is on (O = 1). Write an expression for H.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>AND with an OR in brackets.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">T AND</span> <span class="mk k" data-t="2">(NOT W OR O)</span> <span class="mk k" data-t="3">H = T AND (NOT W OR O)</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Use the words of the mark scheme.</b> 'The output is 0 when both inputs are 1, otherwise 1.'</li>
+    <li><b>Work inside the brackets first.</b> Put each part in the working space.</li>
+    <li><b>One operator, one gate.</b> Count them before you draw.</li>
+    <li><b>XOR means different.</b> Not 'or'.</li>
+    <li><b>Write every NOT.</b> Missing NOTs lose the most marks.</li>
+    <li><b>Test two rows.</b> When matching tables to expressions.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>a logic gate</td><td>"A circuit element that turns binary inputs into one output."</td></tr>
+    <tr><td>a truth table</td><td>"Every input combination and the resulting output."</td></tr>
+    <tr><td>working space</td><td>"A column for an intermediate result."</td></tr>
+    <tr><td>superfluous gate</td><td>"An unnecessary extra gate (loses a mark)."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Draw</td><td>Draw the circuit.</td></tr>
+    <tr><td>Complete</td><td>Fill in the truth table.</td></tr>
+    <tr><td>Describe</td><td>State the output conditions.</td></tr>
+    <tr><td>Write</td><td>Give the expression.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+/* circuit drawer: geom comes from ak15.circuit(); vals colours the wires */
+function circEval(G, inp, st) {
+  const v = Object.assign({}, inp); G.net.forEach(([n]) => v[n] = (st && st[n]) || 0);
+  for (let k = 0; k < 8; k++) G.net.forEach(([n, t, s]) => {
+    const a = s.map((x) => v[x]); let base = t, neg = false;
+    if (t !== "NOT" && t[0] === "N") { base = t.slice(1); neg = true; }
+    let r = base === "AND" ? a.every((x) => x) : base === "OR" ? a.some((x) => x) : base === "XOR" ? a.reduce((p, x) => p + x, 0) % 2 === 1 : !a[0];
+    r = (neg ? !r : r) ? 1 : 0; v[n] = r;
+  });
+  return v;
+}
+function circInner(G, vals, opt) {
+  opt = opt || {};
+  const cl = (s) => (vals ? (vals[s] ? "w on" : "w off") : "w"); let o = "";
+  G.wires.forEach((w) => { o += `<path class="${cl(w.s)}" d="${w.d}"/>`; if (w.dot) o += `<circle class="dot" cx="${w.dot[0]}" cy="${w.dot[1]}" r="3.2"/>`; });
+  G.outs.forEach((w) => o += `<path class="${cl(w.s)}" d="${w.d}"/>`);
+  G.gates.forEach((g) => { o += g.svg; if (!G.outset.includes(g.n)) o += `<text class="sm" x="${g.ox + 4}" y="${g.cy - 7}">${g.n}${vals && opt.vals ? " = " + vals[g.n] : ""}</text>`; });
+  G.inputs.forEach((i) => o += `<text class="lbl bd" x="2" y="${i.y + 4}">${i.n}${vals ? " " + vals[i.n] : ""}</text>`);
+  G.outs.forEach((w) => o += `<text class="lbl bd" x="${w.x + 6}" y="${w.y + 4}">${w.s}${vals ? " = " + vals[w.s] : ""}</text>`);
+  return o;
+}
+function circFit(G, vals, W, opt) {
+  const k = Math.min(2.2, (W - 20) / G.w), dx = (W - G.w * k) / 2;
+  return `<g transform="translate(${dx.toFixed(1)},6) scale(${k.toFixed(3)})">` + circInner(G, vals, opt) + "</g>";
+}
+function circSvg(G, vals, opt) {
+  return `<svg viewBox="0 0 ${G.w} ${G.h}" style="width:${Math.round(G.w * 1.2)}px;max-width:100%;display:block">` + circInner(G, vals, opt) + "</svg>";
+}
+/* toggle lab: one button per input, live circuit and a table of every row with the current one highlighted */
+function circLab(el, G, work, outs) {
+  const ins = G.in; let cur = ins.map(() => 0);
+  const root = typeof el === "string" ? $(el) : el;
+  root.innerHTML = '<div class="btnrow" data-b></div><div data-s></div><div data-t></div>';
+  const bw = root.querySelector("[data-b]"), sw = root.querySelector("[data-s]"), tw = root.querySelector("[data-t]");
+  function paint() {
+    const inp = {}; ins.forEach((n, i) => inp[n] = cur[i]);
+    const v = circEval(G, inp);
+    sw.innerHTML = circSvg(G, v, { vals: true });
+    bw.querySelectorAll("button").forEach((b, i) => { b.textContent = ins[i] + " = " + cur[i]; b.className = cur[i] ? "on" : ""; });
+    const cols = ins.concat(work, outs); let h = '<div class="tw"><table class="t mono"><tr>' + cols.map((c) => `<th>${c}</th>`).join("") + "</tr>";
+    for (let m = 0; m < 1 << ins.length; m++) {
+      const b = ins.map((_, i) => (m >> (ins.length - 1 - i)) & 1), iv = {}; ins.forEach((n, i) => iv[n] = b[i]);
+      const r = circEval(G, iv), on = b.every((x, i) => x === cur[i]);
+      h += `<tr style="${on ? "background:var(--accent-soft);font-weight:700" : ""}">` + b.map((x) => `<td>${x}</td>`).join("") + work.concat(outs).map((n) => `<td>${r[n]}</td>`).join("") + "</tr>";
+    }
+    tw.innerHTML = h + "</table></div>";
+  }
+  ins.forEach((n, i) => { const b = document.createElement("button"); b.onclick = () => { cur[i] ^= 1; paint(); }; bw.appendChild(b); });
+  paint();
+}
+
+/* ---- Boolean helpers (same notation and logic as the Python side) ---- */
+function obJS(s) {
+  const neg = (i) => { if (s[i] === "~") { const [h, j] = neg(i + 1); return ['<span class="ob">' + h + "</span>", j]; } if (s[i] === "(") { const [h, j] = seq(i + 1); return ['<span class="ob">' + h + "</span>", j + 1]; } return ['<span class="ob">' + s[i] + "</span>", i + 1]; };
+  const seq = (i) => { let o = ""; while (i < s.length && s[i] !== ")") { if (s[i] === "~") { const [h, j] = neg(i + 1); o += h; i = j; } else if (s[i] === "(") { const [h, j] = seq(i + 1); o += "(" + h + ")"; i = j + 1; } else { o += s[i]; i++; } } return [o, i]; };
+  return seq(0)[0];
+}
+const bitsOf = (m, nv) => Array.from({ length: nv }, (_, i) => (m >> (nv - 1 - i)) & 1);
+function coverOf(pat, nv) { const r = []; for (let m = 0; m < 1 << nv; m++) { const b = bitsOf(m, nv); if ([...pat].every((p, i) => p === "-" || +p === b[i])) r.push(m); } return r; }
+function termOf(pat, names) { const t = [...pat].map((p, i) => (p === "1" ? names[i] : p === "0" ? "~" + names[i] : "")).filter((x) => x); return t.length ? t.join(".") : "1"; }
+function primeCover(mins, nv) {
+  const ms = new Set(mins), pats = []; const gen = (p) => { if (p.length === nv) { pats.push(p); return; } ["0", "1", "-"].forEach((c) => gen(p + c)); }; gen("");
+  const ok = pats.filter((p) => { const c = coverOf(p, nv); return c.length && c.every((m) => ms.has(m)); });
+  const cv = {}; ok.forEach((p) => cv[p] = new Set(coverOf(p, nv)));
+  const primes = ok.filter((p) => !ok.some((q) => q !== p && cv[q].size > cv[p].size && [...cv[p]].every((m) => cv[q].has(m))));
+  let best = null;
+  for (let k = 1; k <= primes.length && !best; k++) { const pick = (start, chosen) => { if (chosen.length === k) { const u = new Set(); chosen.forEach((p) => cv[p].forEach((m) => u.add(m))); if (u.size === ms.size && [...ms].every((m) => u.has(m))) { const lit = chosen.reduce((a, p) => a + [...p].filter((c) => c !== "-").length, 0); if (!best || lit < best.lit) best = { lit, chosen: chosen.slice() }; } return; } for (let i = start; i < primes.length; i++) { chosen.push(primes[i]); pick(i + 1, chosen); chosen.pop(); } }; pick(0, []); }
+  return best ? best.chosen.map((p) => ({ pat: p, cells: coverOf(p, nv) })) : [];
+}
+function sopJS(mins, names) { if (!mins.length) return "0"; return [...mins].sort((a, b) => a - b).map((m) => termOf(bitsOf(m, names.length).join(""), names)).join(" + "); }
+function simpJS(mins, names) { const nv = names.length; if (!mins.length) return "0"; if (mins.length === 1 << nv) return "1"; return primeCover(mins, nv).map((g) => termOf(g.pat, names)).join(" + "); }
+const GRAYS = ["00", "01", "11", "10"], KCOL = ["var(--accent)", "var(--bad)", "var(--good)", "var(--warn)", "var(--k)", "var(--n)"];
+/* K-map table as HTML; mins is the set of ones, groups a list of cell lists to ring, click a cell with data-m */
+function kmapJS(mins, names, groups, clickable) {
+  const nv = names.length, ms = new Set(mins);
+  const cols = nv === 4 ? GRAYS : nv === 3 ? GRAYS : ["0", "1"], rows = nv === 4 ? GRAYS : nv === 3 ? ["0", "1"] : ["0", "1"];
+  const corner = nv === 4 ? names[2] + names[3] + " \\ " + names[0] + names[1] : nv === 3 ? names[0] + " \\ " + names[1] + names[2] : names[1] + " \\ " + names[0];
+  let h = '<div class="tw"><table class="km"><tr><th>' + corner + "</th>" + cols.map((c) => "<th>" + c + "</th>").join("") + "</tr>";
+  rows.forEach((r) => { h += "<tr><th>" + r + "</th>"; cols.forEach((c) => { const m = parseInt(nv === 3 ? r + c : c + r, 2); const gi = (groups || []).map((g, k) => (g.includes(m) ? k : -1)).filter((k) => k >= 0); const sh = gi.map((k, j) => "inset 0 0 0 " + (3 + 3 * j) + "px " + KCOL[k % 6]).join(","); h += '<td data-m="' + m + '"' + (sh ? ' style="box-shadow:' + sh + '"' : "") + (clickable ? ' class="clk"' : "") + '><span class="v">' + (ms.has(m) ? 1 : 0) + '</span><span class="n">' + m + "</span></td>"; }); h += "</tr>"; });
+  return h + "</table></div>";
+}
+function kgroupsJS(mins, names) {
+  const nv = names.length, cov = (mins.length && mins.length < 1 << nv) ? primeCover(mins, nv) : [];
+  const leg = cov.map((g, i) => '<span class="kg" style="--c:' + KCOL[i % 6] + '">' + obJS(termOf(g.pat, names)) + "</span>").join(" ");
+  return kmapJS(mins, names, cov.map((g) => g.cells), true) + '<p class="kleg">' + (cov.length ? "Groups: " + leg : mins.length ? "Every cell is 1: the output is always 1." : "No 1s: the output is always 0.") + "</p>";
+}
+const GD = {"w": 382, "h": 172.0, "inputs": [{"n": "A", "y": 24}, {"n": "B", "y": 78}, {"n": "C", "y": 132}], "gates": [{"n": "G1", "x": 94, "cy": 51.0, "h": 42, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M94,30.0 Q126.4,30.0 148,51.0 Q126.4,72.0 94,72.0 Q109.12,51.0 94,30.0 Z\"/><path class=\"ax\" d=\"M87,30.0 Q99,51.0 87,72.0\"/>", "ox": 148}, {"n": "G2", "x": 94, "cy": 132.0, "h": 32, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M94,116.0 L140,132.0 L94,148.0 Z\"/><circle class=\"ax\" style=\"fill:var(--surface)\" cx=\"144\" cy=\"132.0\" r=\"4\"/>", "ox": 148}, {"n": "X", "x": 212, "cy": 91.5, "h": 42, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M212,70.5 H239.0 A27.0,21.0 0 0 1 239.0,112.5 H212 Z\"/>", "ox": 266}], "wires": [{"d": "M58,24 H82 V40.0 H92.48571428571428", "s": "A", "dot": null}, {"d": "M58,78 H77 V62.0 H92.48571428571428", "s": "B", "dot": null}, {"d": "M58,132 H82 V132.0 H94", "s": "C", "dot": null}, {"d": "M148,51.0 H200 V80.5 H212", "s": "G1", "dot": null}, {"d": "M148,132.0 H195 V102.5 H212", "s": "G2", "dot": null}, {"d": "M50,24 H58", "s": "A", "dot": null}, {"d": "M50,78 H58", "s": "B", "dot": null}, {"d": "M50,132 H58", "s": "C", "dot": null}], "outs": [{"d": "M266,91.5 H296", "s": "X", "x": 296, "y": 91.5}], "outset": ["X"], "net": [["G1", "XOR", ["A", "B"]], ["G2", "NOT", ["C"]], ["X", "AND", ["G1", "G2"]]], "in": ["A", "B", "C"]}, GG = {"w": 500, "h": 226.0, "inputs": [{"n": "T", "y": 24}, {"n": "W", "y": 78}, {"n": "R", "y": 132}, {"n": "M", "y": 186}], "gates": [{"n": "G1", "x": 94, "cy": 78.0, "h": 32, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M94,62.0 L140,78.0 L94,94.0 Z\"/><circle class=\"ax\" style=\"fill:var(--surface)\" cx=\"144\" cy=\"78.0\" r=\"4\"/>", "ox": 148}, {"n": "G2", "x": 94, "cy": 132.0, "h": 32, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M94,116.0 L140,132.0 L94,148.0 Z\"/><circle class=\"ax\" style=\"fill:var(--surface)\" cx=\"144\" cy=\"132.0\" r=\"4\"/>", "ox": 148}, {"n": "G3", "x": 94, "cy": 186.0, "h": 32, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M94,170.0 L140,186.0 L94,202.0 Z\"/><circle class=\"ax\" style=\"fill:var(--surface)\" cx=\"144\" cy=\"186.0\" r=\"4\"/>", "ox": 148}, {"n": "G4", "x": 212, "cy": 159.0, "h": 42, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M212,138.0 Q244.4,138.0 266,159.0 Q244.4,180.0 212,180.0 Q227.12,159.0 212,138.0 Z\"/>", "ox": 266}, {"n": "X", "x": 330, "cy": 87.0, "h": 56, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M330,59.0 H357.0 A27.0,28.0 0 0 1 357.0,115.0 H330 Z\"/>", "ox": 384}], "wires": [{"d": "M58,78 H82 V78.0 H94", "s": "W", "dot": null}, {"d": "M58,132 H82 V132.0 H94", "s": "R", "dot": null}, {"d": "M58,186 H82 V186.0 H94", "s": "M", "dot": null}, {"d": "M148,132.0 H200 V148.0 H217.4857142857143", "s": "G2", "dot": null}, {"d": "M148,186.0 H195 V170.0 H217.4857142857143", "s": "G3", "dot": null}, {"d": "M58,24 H318 V69.0 H330", "s": "T", "dot": null}, {"d": "M148,78.0 H313 V87.0 H330", "s": "G1", "dot": null}, {"d": "M266,159.0 H308 V105.0 H330", "s": "G4", "dot": null}, {"d": "M50,24 H58", "s": "T", "dot": null}, {"d": "M50,78 H58", "s": "W", "dot": null}, {"d": "M50,132 H58", "s": "R", "dot": null}, {"d": "M50,186 H58", "s": "M", "dot": null}], "outs": [{"d": "M384,87.0 H414", "s": "X", "x": 414, "y": 87.0}], "outset": ["X"], "net": [["G1", "NOT", ["W"]], ["G2", "NOT", ["R"]], ["G3", "NOT", ["M"]], ["G4", "OR", ["G2", "G3"]], ["X", "AND", ["T", "G1", "G4"]]], "in": ["T", "W", "R", "M"]}, GW = {"w": 618, "h": 198.0, "inputs": [{"n": "A", "y": 24}, {"n": "B", "y": 78}, {"n": "C", "y": 132}], "gates": [{"n": "G1", "x": 94, "cy": 24.0, "h": 32, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M94,8.0 L140,24.0 L94,40.0 Z\"/><circle class=\"ax\" style=\"fill:var(--surface)\" cx=\"144\" cy=\"24.0\" r=\"4\"/>", "ox": 148}, {"n": "G2", "x": 94, "cy": 78.0, "h": 32, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M94,62.0 L140,78.0 L94,94.0 Z\"/><circle class=\"ax\" style=\"fill:var(--surface)\" cx=\"144\" cy=\"78.0\" r=\"4\"/>", "ox": 148}, {"n": "G3", "x": 212, "cy": 51.0, "h": 42, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M212,30.0 H239.0 A27.0,21.0 0 0 1 239.0,72.0 H212 Z\"/>", "ox": 266}, {"n": "G4", "x": 94, "cy": 118.0, "h": 32, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M94,102.0 L140,118.0 L94,134.0 Z\"/><circle class=\"ax\" style=\"fill:var(--surface)\" cx=\"144\" cy=\"118.0\" r=\"4\"/>", "ox": 148}, {"n": "G5", "x": 94, "cy": 158.0, "h": 32, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M94,142.0 L140,158.0 L94,174.0 Z\"/><circle class=\"ax\" style=\"fill:var(--surface)\" cx=\"144\" cy=\"158.0\" r=\"4\"/>", "ox": 148}, {"n": "G6", "x": 212, "cy": 138.0, "h": 42, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M212,117.0 H239.0 A27.0,21.0 0 0 1 239.0,159.0 H212 Z\"/>", "ox": 266}, {"n": "G7", "x": 330, "cy": 94.5, "h": 42, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M330,73.5 Q362.4,73.5 384,94.5 Q362.4,115.5 330,115.5 Q345.12,94.5 330,73.5 Z\"/>", "ox": 384}, {"n": "X", "x": 448, "cy": 94.5, "h": 32, "svg": "<path class=\"ax\" style=\"fill:var(--surface)\" d=\"M448,78.5 L494,94.5 L448,110.5 Z\"/><circle class=\"ax\" style=\"fill:var(--surface)\" cx=\"498\" cy=\"94.5\" r=\"4\"/>", "ox": 502}], "wires": [{"d": "M58,24 H82 V24.0 H94", "s": "A", "dot": null}, {"d": "M58,78 H82 V78.0 H94", "s": "B", "dot": null}, {"d": "M148,24.0 H200 V40.0 H212", "s": "G1", "dot": null}, {"d": "M148,78.0 H195 V62.0 H212", "s": "G2", "dot": null}, {"d": "M58,78 H82 V118.0 H94", "s": "B", "dot": null}, {"d": "M58,132 H82 V158.0 H94", "s": "C", "dot": null}, {"d": "M148,118.0 H200 V127.0 H212", "s": "G4", "dot": null}, {"d": "M148,158.0 H195 V149.0 H212", "s": "G5", "dot": null}, {"d": "M266,51.0 H318 V83.5 H335.48571428571427", "s": "G3", "dot": null}, {"d": "M266,138.0 H313 V105.5 H335.48571428571427", "s": "G6", "dot": null}, {"d": "M384,94.5 H436 V94.5 H448", "s": "G7", "dot": null}, {"d": "M50,24 H58", "s": "A", "dot": null}, {"d": "M50,78 H58", "s": "B", "dot": null}, {"d": "M50,132 H58", "s": "C", "dot": null}], "outs": [{"d": "M502,94.5 H532", "s": "X", "x": 532, "y": 94.5}], "outset": ["X"], "net": [["G1", "NOT", ["A"]], ["G2", "NOT", ["B"]], ["G3", "AND", ["G1", "G2"]], ["G4", "NOT", ["B"]], ["G5", "NOT", ["C"]], ["G6", "AND", ["G4", "G5"]], ["G7", "OR", ["G3", "G6"]], ["X", "NOT", ["G7"]]], "in": ["A", "B", "C"]};
+
+(function () {
+  const cases = [[0, 1, 0], [1, 1, 0], [1, 0, 1], [0, 0, 0]];
+  const draw = (s) => { const [a, b, c] = cases[Math.round(s.i)]; return circFit(GD, circEval(GD, { A: a, B: b, C: c }), 560, { vals: true }); };
+  Lib.stepper($("#stA"), { w: 560, h: Math.round(GD.h * 2.2) + 12, label: "X = (A XOR B) AND NOT C", base: { i: 0 }, draw, tween: 150, dwell: 2400, steps: cases.map(([a, b, c], i) => { const x = (a ^ b) & (c ? 0 : 1); return { cap: `A = ${a}, B = ${b}, C = ${c}: A XOR B = <b>${a ^ b}</b>, NOT C = <b>${c ? 0 : 1}</b>, so X = <b>${x}</b>.`, s: { i } }; }) });
+})();
+(function () {
+  const cases = [{ T: 1, W: 0, R: 0, M: 0 }, { T: 1, W: 1, R: 0, M: 0 }, { T: 1, W: 0, R: 1, M: 1 }, { T: 1, W: 0, R: 1, M: 0 }];
+  const note = ["Hot, wind acceptable, no rain: the window opens.", "Hot but the wind is too high: the window stays closed.", "Rain detected and override on: closed.", "Rain detected but override off: the window opens."];
+  const draw = (s) => circFit(GG, circEval(GG, cases[Math.round(s.i)]), 560, { vals: true });
+  Lib.stepper($("#stB"), { w: 560, h: Math.round(GG.h * 2.2) + 12, label: "Greenhouse window", base: { i: 0 }, draw, tween: 150, dwell: 2600, steps: cases.map((c, i) => ({ cap: note[i], s: { i } })) });
+})();
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); const v = circEval(GW, { A: 0, B: 1, C: 0 }); Object.keys(v).forEach((n) => { if (!["A", "B", "C"].includes(n) && k < 3) v[n] = 0; }); return circFit(GW, v, 600, { vals: true }); };
+  Lib.stepper($("#stC"), { w: 600, h: Math.round(GW.h * 2) + 12, label: "NOT ((NOT A AND NOT B) OR (NOT B AND NOT C))", base: { i: 0 }, draw, tween: 150, dwell: 2800, steps: [
+    { cap: "X = NOT ((NOT A AND NOT B) OR (NOT B AND NOT C)). Inputs A = 0, B = 1, C = 0.", s: { i: 0 } },
+    { cap: "The outermost operator is NOT, so that is the final gate. Inside it is an OR.", s: { i: 1 } },
+    { cap: "The OR takes two ANDs. Each AND takes two NOT gates.", s: { i: 2 } },
+    { cap: "The whole circuit gives X = <b>1</b> for A = 0, B = 1, C = 0.", s: { i: 3 } }] });
+})();
+circLab("#labD", GD, [], ["X"]);
+circLab("#labG", GG, [], ["X"]);
+btnTable("gB", "gO", [
+  ["NOT", "Inverts the input", "0 → 1, 1 → 0", "One input only"],
+  ["AND", "1 only when both inputs are 1", "0 0 0 1", "All inputs 1"],
+  ["OR", "0 only when both inputs are 0", "0 1 1 1", "Any input 1"],
+  ["NAND", "0 only when both inputs are 1", "1 1 1 0", "AND then NOT"],
+  ["NOR", "1 only when both inputs are 0", "1 0 0 0", "OR then NOT"],
+  ["XOR", "1 when the inputs are different", "0 1 1 0", "Different"]
+], ["Gate", "Output is", "Output for AB = 00, 01, 10, 11", "Remember"]);
+Lib.classify($("#cl1"), { prompt: "Which gate does the description give?", buckets: [{"label": "AND"}, {"label": "OR"}, {"label": "XOR"}, {"label": "NAND"}, {"label": "NOR"}], items: [{"text": "Output is 1 only when both inputs are 1", "b": 0}, {"text": "Output is 0 only when both inputs are 0", "b": 1}, {"text": "Output is 1 when the inputs are different", "b": 2}, {"text": "Output is 0 only when both inputs are 1", "b": 3}, {"text": "Output is 1 only when both inputs are 0", "b": 4}, {"text": "A car starts only if the key is turned AND the brake is pressed", "b": 0}], done: "AND all, OR any, XOR different, NAND not AND, NOR not OR." });
+Lib.classify($("#cl2"), { prompt: "Is the output of X = (A XOR B) AND NOT C equal to 1 or 0?", buckets: [{"label": "X = 1"}, {"label": "X = 0"}], items: [{"text": "A=0, B=1, C=0", "b": 0}, {"text": "A=1, B=1, C=0", "b": 1}, {"text": "A=1, B=0, C=0", "b": 0}, {"text": "A=0, B=1, C=1", "b": 1}, {"text": "A=0, B=0, C=0", "b": 1}, {"text": "A=1, B=0, C=1", "b": 1}], done: "The inputs must differ and C must be 0." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["NAND", "Output is 0 when both inputs are 1, otherwise 1"], ["NOR", "Output is 1 when both inputs are 0, otherwise 0"], ["XOR", "Output is 1 when the inputs are different"], ["OR", "Output is 0 when both inputs are 0, otherwise 1"], ["NOT", "Output is the opposite of the input"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the steps for drawing a circuit from an expression in order.", items: ["Identify the outermost operator: it is the final gate", "Draw the gates for the brackets that feed it", "Connect each gate to its inputs or to the gates inside its brackets", "Add every NOT as a gate on the correct wire", "Check that the number of gates equals the number of operators"], done: "Outermost, inner, connect, NOT, count." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "How many rows does the truth table for a 4-input circuit have?", "a": 16, "unit": "", "tol": 0.01, "hint": "2^4.", "sol": "<b>16</b>."},
+  {"q": "In X = (A XOR B) AND NOT C, for how many of the 8 rows is X = 1?", "a": 2, "unit": "", "tol": 0.01, "hint": "010 and 100.", "sol": "<b>2</b>."},
+  {"q": "How many gates are in the circuit for X = NOT ((A AND B) OR (C AND D))?", "a": 4, "unit": "", "tol": 0.01, "hint": "Two ANDs, one OR, one NOT.", "sol": "<b>4</b>."},
+  {"q": "For A=1, B=1 what is A NAND B (1 or 0)?", "a": 0, "unit": "", "tol": 0.01, "hint": "AND is 1, then NOT.", "sol": "<b>0</b>."},
+  {"q": "A 3-input AND gate is given 1, 1, 0. What is the output?", "a": 0, "unit": "", "tol": 0.01, "hint": "All must be 1.", "sol": "<b>0</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "Which gate gives 1 for different inputs?", opts: ["XOR", "AND", "NOR", "NAND"], a: 0, why: "XOR." },
+  { q: "NOR outputs 1 when:", opts: ["Both inputs are 0", "Both are 1", "Either input is 1", "Inputs differ"], a: 0, why: "Both inputs 0." },
+  { q: "How many gates are needed for X = (A AND B) OR NOT C?", opts: ["3", "2", "4", "1"], a: 0, why: "AND, NOT, OR." },
+  { q: "NAND is the same as:", opts: ["AND followed by NOT", "OR followed by NOT", "XOR", "NOT followed by AND"], a: 0, why: "AND then NOT." },
+  { q: "The working space column is used for:", opts: ["Intermediate results", "The final answer only", "Input names", "Row numbers"], a: 0, why: "Intermediate values." },
+  { q: "Which expression is 1 only for 001 and 111?", opts: ["NOT (A XOR B) AND C", "A OR C", "A NAND B", "NOT C"], a: 0, why: "A equals B and C is 1." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["NOT", "Inverts."],
+  ["AND", "1 only if all inputs are 1."],
+  ["OR", "0 only if all inputs are 0."],
+  ["XOR", "1 if the inputs differ."],
+  ["NAND", "0 only if both inputs are 1."],
+  ["NOR", "1 only if both inputs are 0."],
+  ["Truth table", "Every input combination and the output."],
+  ["Working space", "Holds intermediate results."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>
