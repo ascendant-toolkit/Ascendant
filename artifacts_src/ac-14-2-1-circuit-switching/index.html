@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Circuit Switching</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 14.2.1</div>
+  <h1>Circuit Switching</h1>
+  <p class="cbook">Coursebook: Chapter 14 · Communication and internet technologies, section 14.2 Circuit switching, packet switching</p>
+  <p class="lead">How a dedicated circuit is set up, used and released, its benefits and drawbacks and where it is used; animations, a call simulator and the real 9618 circuit switching questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p><b>Circuit switching</b> sends data over a <b>dedicated circuit</b> that is set up between the two ends <b>before</b> any data is sent and kept for the <b>whole</b> of the communication. The whole bandwidth of that path is reserved, so the data flows as a <b>continuous stream</b> along the <b>same route</b> and arrives in the order it was sent. This makes it suitable for <b>real-time</b> communication such as voice calls, but the circuit cannot be used by anyone else while it is open, even when nothing is being sent, and if the route fails the call ends. The three phases are <b>set up</b>, <b>transmit</b>, <b>release</b>. The exam asks you to describe it, give benefits and drawbacks, and say where it is appropriate; comparing it with packet switching is on the next page.</p></div>
+
+  <h2>1 · How circuit switching works</h2>
+  <ol>
+    <li><b>Set up (establish) the circuit.</b> A dedicated path is found through the network, through switches, from the sender to the receiver. This happens <b>before</b> transmission starts and takes some time.</li>
+    <li><b>Transmit.</b> Data travels in a <b>continuous stream</b> along the <b>same route</b>, using the <b>whole bandwidth</b> of the circuit. Transmission is usually bidirectional (both ends can send).</li>
+    <li><b>Release.</b> At the end the circuit is closed (released) and the resources can be used for another communication.</li>
+  </ol>
+  <p>The classic example is a traditional <b>telephone call</b>: when you dial, a circuit is set up through the exchanges and kept for the whole call.</p>
+
+  <h2>2 · Characteristics</h2>
+  <ul>
+    <li>A <b>dedicated circuit / channel</b> is required.</li>
+    <li>The circuit is established <b>before</b> the transmission begins and lasts for <b>the whole transmission</b>.</li>
+    <li>Data travels in a <b>continuous stream</b> along the <b>same route</b>; it arrives <b>in order</b> and does not need reassembling.</li>
+    <li>The data rate is <b>fixed</b> and the whole bandwidth is available.</li>
+  </ul>
+
+  <h2>3 · Benefits and drawbacks</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Benefits</th><th>Drawbacks</th></tr>
+    <tr><td>The <b>whole bandwidth</b> is available: a steady, high data rate</td><td>The circuit <b>cannot be used by anyone else</b> while it is open, even if it is idle (bandwidth wasted)</td></tr>
+    <tr><td>Data arrives in the <b>same order</b> it was sent: no reordering or reassembling delay</td><td><b>Time to set up</b> the circuit before sending can begin</td></tr>
+    <tr><td>Suitable for <b>real-time</b> transmission and long continuous communication</td><td><b>No alternative route</b> if there is a fault: the transmission ends</td></tr>
+    <tr><td>Data is unlikely to be lost, since it all follows the same path; no waiting at switches</td><td>Less secure: all the data follows one route and can be intercepted. Not flexible and difficult to scale</td></tr>
+  </table></div>
+
+  <h2>4 · Where it is appropriate</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Use</th><th>Why circuit switching suits it</th></tr>
+    <tr><td>Standard voice communication (a phone call)</td><td>A dedicated path is needed for the whole call, with the data arriving in real time and in order</td></tr>
+    <tr><td>Live video or streaming</td><td>A steady data rate with no delay for reordering</td></tr>
+    <tr><td>Private data networks</td><td>The whole bandwidth is reserved and the connection is predictable</td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Wording for "where and why"</b>"Circuit switching is used where a dedicated path needs to be sustained throughout the communication, or where the whole bandwidth or real-time communication is required, for example voice calls."</div>
+
+  <h2>5 · Common ways to lose marks</h2>
+  <ul>
+    <li>Describing circuit switching as "a circuit with wires". It is a <b>dedicated path set up before the data is sent and kept for the whole transmission</b>.</li>
+    <li>Giving a benefit and a drawback that are the same point stated twice (for example "dedicated" for both).</li>
+    <li>Forgetting that a drawback is the <b>unused bandwidth</b> that cannot be shared.</li>
+    <li>Saying the data is split into packets. That is packet switching.</li>
+    <li>Writing "it is faster" without saying why: no packets to reorder and the whole bandwidth is reserved.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · The three phases of a call</h2>
+  <p>Press Play, or click the steps.</p>
+  <div id="stA"></div>
+  <h2>2 · A busy circuit cannot be shared</h2>
+  <div id="stB"></div>
+  <h2>3 · A fault ends the call</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Make calls through a small network</h2>
+  <p>The network has three separate circuits between the two cities. Each call needs a whole circuit. Start calls and see what happens when all are busy.</p>
+  <div class="card"><div id="cS"></div><div class="btnrow"><button class="b pri" id="cN">Start a call</button><button class="b" id="cE">End the longest call</button><button class="b" id="cR">Reset</button></div><div class="verdict" id="cV"></div></div>
+
+  <h2>Lab 2 · Is the circuit being used?</h2>
+  <p>A call lasts 10 minutes. Slide to set how long the people are actually talking. The circuit is reserved all 10 minutes.</p>
+  <div class="card"><div id="uS"></div><div class="readout"><div><small>Reserved</small><strong id="u1"></strong></div><div><small>Used</small><strong id="u2"></strong></div><div><small>Wasted</small><strong id="u3"></strong></div></div></div>
+
+  <h2>Lab 3 · Benefits and drawbacks</h2>
+  <div class="card"><div id="eB" class="btnrow"></div><div id="eO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Circuit switching: true or false?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Benefit or drawback?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the phases in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>5 · Counting</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A traditional phone call</h3><p>When you dial, a path is set up between the two phones and reserved until you hang up, even during silences.</p><div class="use"><b>Exam use:</b> circuit switching: a dedicated circuit for the whole communication.</div></div>
+  <div class="rw"><h3>A live video link in a broadcast studio</h3><p>A dedicated, steady connection delivers the pictures with no waiting for packets to be reordered, which a live broadcast cannot tolerate.</p><div class="use"><b>Exam use:</b> suitable for real-time transmission with a fixed data rate.</div></div>
+  <div class="rw"><h3>A private line between two offices</h3><p>A company leases a dedicated connection so the whole bandwidth is always available and the traffic follows a known route.</p><div class="use"><b>Exam use:</b> dedicated bandwidth: predictable, but not shared.</div></div>
+  <div class="rw"><h3>A busy signal</h3><p>In the old phone network, if every circuit between two exchanges was in use you got an engaged tone. No other call could use a circuit that was open.</p><div class="use"><b>Exam use:</b> a drawback: the circuit cannot be shared while it is in use.</div></div>
+  <div class="rw"><h3>A call that drops</h3><p>If a cable on the route is cut, the call ends, because there is no other route and the circuit has to be set up again.</p><div class="use"><b>Exam use:</b> no alternative route if there is a fault.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on circuit switching (Paper 3), 2023 to 2025. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2023</td><td>31, 33</td><td>5(a), 5(b)</td><td>2 + 4</td><td>Where circuit switching is appropriate; two benefits and two drawbacks</td></tr>
+    <tr><td>O/N 2024</td><td>31, 33</td><td>3</td><td>3 + 2</td><td>Describe circuit switching; one benefit and one drawback</td></tr>
+    <tr><td>M/J 2025</td><td>32</td><td>4</td><td>4</td><td>Two benefits and two drawbacks of circuit switching</td></tr>
+  </table></div>
+  <p class="note">Circuit switching appears in Paper 3 as a short describe, benefits and drawbacks question. Questions that compare it with packet switching are on the next page. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+
+  <h3>Describing circuit switching</h3>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/31, 33 · Q3</span> <span class="cmd">Describe / State</span> <span class="mark">3 + 2 marks</span> (a) Describe circuit switching as a method of data transmission. (b) State one benefit and one drawback of circuit switching as a method of data transmission.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) dedicated, set up first, kept to the end, one route. (b) a benefit and a drawback, different points.</div>
+    <div class="ans"><p><b>(a)</b> Any three: <span class="mk k" data-t="1">A dedicated circuit / channel is required</span> <span class="mk k" data-t="2">The circuit is established before the transmission begins</span> <span class="mk k" data-t="3">The circuit lasts for the whole of the transmission and is closed at the end</span> <span class="mk k" data-t="4">Data travels in a continuous stream along the same route</span> <span class="mk k" data-t="5">Transmission is usually bidirectional</span></p><p><b>(b)</b> Benefit (one): <span class="mk a" data-t="1">No need for data to be reassembled: it arrives in the order it was sent</span> <span class="mk a" data-t="2">Suitable for real-time transmission / a fast data transfer rate</span> <span class="mk a" data-t="3">The whole of the bandwidth is available</span> Drawback (one): <span class="mk a" data-t="1">No other transmission can use the circuit while it is in use, so bandwidth can be wasted</span> <span class="mk a" data-t="2">Not secure: all data travels along the same route and can be intercepted</span> <span class="mk a" data-t="3">If there is a problem with the route the transmission ends</span> <span class="mk a" data-t="4">Can take time to set up before transmission starts</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/31, 33 · Q5(a), (b)</span> <span class="cmd">State / Give</span> <span class="mark">2 + 4 marks</span> (a) State, with a reason, where it would be appropriate to use circuit switching. (b) Give two benefits and two drawbacks of circuit switching.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) a use and why: a dedicated path, the whole bandwidth, real time. (b) two of each, in different words.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Where a dedicated path needs to be sustained throughout the call, where the whole bandwidth is required, or where real-time communication is used</span> <span class="mk k" data-t="2">A typical application: standard voice communication, video streaming or private data networks</span></p><p><b>(b)</b> Benefits (max 2): <span class="mk a" data-t="1">The whole of the bandwidth is available</span> <span class="mk a" data-t="2">A dedicated channel increases the quality of transmission</span> <span class="mk a" data-t="3">Data is transmitted at a fixed rate with no waiting time at switches</span> <span class="mk a" data-t="4">Suitable for long continuous communication / better for real time</span> <span class="mk a" data-t="5">Data arrives in the same order and cannot get lost</span> Drawbacks (max 2): <span class="mk a" data-t="1">A dedicated connection makes it impossible to transmit other data even if the channel is free</span> <span class="mk a" data-t="2">Not very flexible</span> <span class="mk a" data-t="3">No alternative route in case of failure</span> <span class="mk a" data-t="4">The time to establish the physical link can be too long</span> <span class="mk a" data-t="5">The bandwidth cannot be shared</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving 'it is fast' for a benefit without a reason such as no reordering or the whole bandwidth.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/32 · Q4</span> <span class="cmd">State</span> <span class="mark">4 marks</span> Circuit switching may be used as a method of data transmission. State two benefits and two drawbacks of circuit switching.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two benefits and two drawbacks, each a separate point.</div>
+    <div class="ans"><p>Benefits (max 2): <span class="mk k" data-t="1">Suitable for long continuous transmission: once connected it is available until the end</span> <span class="mk k" data-t="2">No time lost resending or rearranging packets because packets are not lost or out of order</span> <span class="mk k" data-t="3">A steady, high rate of transmission because the whole bandwidth is available</span> <span class="mk k" data-t="4">Data loss is unlikely because all data follows the same path</span> Drawbacks (max 2): <span class="mk a" data-t="1">Delays because the dedicated connection must be established before transmission can begin</span> <span class="mk a" data-t="2">The dedicated connection cannot be used to transmit any other data</span> <span class="mk a" data-t="3">Resources may be under-used: the bandwidth cannot be shared and may be wasted</span> <span class="mk a" data-t="4">No alternative routes if there is a failure or fault on the line</span> <span class="mk a" data-t="5">Reduced security because of the single path</span></p></div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">3 marks</span> Describe how a circuit is used when two people have a phone conversation using circuit switching.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Set up, use, release.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A dedicated circuit is set up between the two phones before the conversation starts.</span> <span class="mk k" data-t="2">The voice travels as a continuous stream along the same route, in order, using the whole bandwidth.</span> <span class="mk k" data-t="3">The circuit is released when the call ends.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why circuit switching wastes bandwidth.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>What happens in a silence?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The circuit is reserved for the whole call and cannot be used by anyone else.</span> <span class="mk k" data-t="2">During pauses nothing is sent, but the unused bandwidth cannot be shared.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State two reasons why circuit switching is suitable for a live video call.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Delay and order.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The data arrives in the order it was sent, so there is no delay for reassembling.</span> <span class="mk k" data-t="2">The whole bandwidth is reserved, giving a steady data rate.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Give</span> <span class="mark">3 marks</span> Give three drawbacks of circuit switching.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Setting up, sharing, faults.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">It takes time to set up the circuit before sending can begin.</span> <span class="mk k" data-t="2">The circuit cannot be shared, even when it is idle.</span> <span class="mk k" data-t="3">If the route fails the transmission ends: there is no alternative route.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Identify</span> <span class="mark">2 marks</span> A caller hears an engaged tone because all the circuits between two exchanges are in use. Explain how this shows a feature of circuit switching.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Dedicated, not shared.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Each call needs a whole dedicated circuit.</span> <span class="mk k" data-t="2">While every circuit is in use, no other call can use any of them, so a new call is blocked.</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Three words: dedicated, before, whole.</b> A dedicated circuit, set up before the data is sent, lasting the whole transmission.</li>
+    <li><b>Same route, same order.</b> That is why no reassembly is needed.</li>
+    <li><b>Benefit with a reason.</b> Whole bandwidth and no reordering, so a steady real-time stream.</li>
+    <li><b>Drawback with a reason.</b> Cannot be shared when idle, set-up time, no alternative route.</li>
+    <li><b>Give an example.</b> A telephone call, live video, a private data network.</li>
+    <li><b>Do not mention packets.</b> Circuit switching sends a continuous stream.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>what circuit switching is</td><td>"Data is sent over a dedicated circuit that is set up before transmission and kept for the whole of it."</td></tr>
+    <tr><td>a benefit</td><td>"The whole bandwidth is available and data arrives in order, so it suits real-time transmission."</td></tr>
+    <tr><td>a drawback</td><td>"The circuit cannot be used by anyone else while it is open, even when it is idle."</td></tr>
+    <tr><td>where it is used</td><td>"Standard voice communication, where a dedicated path is needed throughout."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State</td><td>Give the fact or use.</td></tr>
+    <tr><td>Describe</td><td>Say how it works, in several points.</td></tr>
+    <tr><td>Give</td><td>Name the benefits or drawbacks.</td></tr>
+    <tr><td>Explain</td><td>Give the reason.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+(function () {
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "";
+    const nodes = [[60, 100, "Caller"], [220, 60, "Switch 1"], [380, 140, "Switch 2"], [540, 60, "Switch 3"], [700, 100, "Receiver"]];
+    for (let i = 0; i < 4; i++) o += SV.line(nodes[i][0], nodes[i][1], nodes[i + 1][0], nodes[i + 1][1], k >= 1 && k <= 3 ? "c1" : "dash", { "stroke-width": k >= 1 && k <= 3 ? 5 : 2, ...op(k >= 1 && k <= 3 ? 1 : 0.5) });
+    nodes.forEach((n, i) => (o += SV.rect(n[0] - 46, n[1] - 18, 92, 36, i === 0 || i === 4 ? "f2" : "f3", { rx: 8 }) + SV.text(n[0], n[1] + 5, n[2], "lbl bd", { "text-anchor": "middle", style: "font-size:12px" })));
+    if (k === 1) o += SV.text(30, 200, "1 Set up: a dedicated path is reserved BEFORE any data is sent", "lbl bd t3", { style: "font-size:14px" });
+    if (k === 2) o += SV.text(30, 200, "2 Transmit: continuous stream, same route, whole bandwidth, in order", "lbl bd t3", { style: "font-size:14px" });
+    if (k === 3) { for (let i = 0; i < 4; i++) o += SV.circle((nodes[i][0] + nodes[i + 1][0]) / 2, (nodes[i][1] + nodes[i + 1][1]) / 2, 7, "dot2"); o += SV.text(30, 200, "data flows along the reserved path", "lbl bd", { style: "font-size:14px" }); }
+    if (k === 4) o += SV.text(30, 200, "3 Release: the circuit is closed and can be used by someone else", "lbl bd t3", { style: "font-size:14px" });
+    return o;
+  };
+  Lib.stepper($("#stA"), { w: 760, h: 215, label: "Phases of circuit switching", base: { i: 0 }, draw, tween: 300, dwell: 3000, steps: [
+    { cap: "A caller wants to speak to a receiver through three switches.", s: { i: 0 } },
+    { cap: "<b>Set up</b>: before any data is sent, a dedicated circuit is established through the switches and reserved.", s: { i: 1 } },
+    { cap: "<b>Transmit</b>: the voice travels as a <b>continuous stream</b> along the same route, using the whole bandwidth, and arrives in order.", s: { i: 2 } },
+    { cap: "Data flows the whole time the circuit is open, even if the two people are silent.", s: { i: 3 } },
+    { cap: "<b>Release</b>: when the call ends the circuit is closed.", s: { i: 4 } }] });
+})();
+
+(function () {
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = SV.rect(280, 70, 200, 70, "f3", { rx: 8 }) + SV.text(380, 100, "circuit in use by", "lbl", { "text-anchor": "middle", style: "font-size:14px" }) + SV.text(380, 125, "call 1", "lbl bd", { "text-anchor": "middle", style: "font-size:18px" });
+    o += SV.rect(30, 80, 170, 50, "f2", { rx: 8 }) + SV.text(115, 111, "Call 1", "lbl bd", { "text-anchor": "middle" }) + SV.line(200, 105, 280, 105, "c1", { "stroke-width": 5 });
+    o += SV.rect(30, 150, 170, 50, k >= 1 ? "cell-no" : "cell", { rx: 8 }) + SV.text(115, 181, "Call 2", "lbl bd", { "text-anchor": "middle" });
+    if (k >= 1) o += SV.path("M 200 175 C 240 175 250 140 280 130", "c3", { fill: "none", "stroke-width": 3, "stroke-dasharray": "6 4" }) + SV.text(500, 170, "blocked: the circuit is busy", "lbl bd t2", { style: "font-size:15px" });
+    if (k >= 2) o += SV.text(500, 110, "even though call 1 is silent", "lbl", { style: "font-size:14px" }) + SV.text(500, 195, "bandwidth cannot be shared", "sm");
+    return o;
+  };
+  Lib.stepper($("#stB"), { w: 760, h: 215, label: "A dedicated circuit cannot be shared", base: { i: 0 }, draw, tween: 250, dwell: 3200, steps: [
+    { cap: "Call 1 has a dedicated circuit.", s: { i: 0 } },
+    { cap: "A second call tries to use the same circuit and is <b>blocked</b>: the circuit is reserved for call 1.", s: { i: 1 } },
+    { cap: "Even if call 1 goes quiet, the bandwidth <b>cannot be shared</b>: it is wasted.", s: { i: 2 } }] });
+})();
+
+(function () {
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "";
+    const nodes = [[60, 100], [220, 60], [380, 140], [540, 60], [700, 100]];
+    for (let i = 0; i < 4; i++) o += SV.line(nodes[i][0], nodes[i][1], nodes[i + 1][0], nodes[i + 1][1], i === 1 && k >= 1 ? "dash" : "c1", { "stroke-width": i === 1 && k >= 1 ? 2 : 5, ...op(i === 1 && k >= 1 ? 0.5 : 1) });
+    nodes.forEach((n) => (o += SV.circle(n[0], n[1], 14, "dot1")));
+    if (k >= 1) o += SV.text(300, 80, "✗ cable fault", "lbl bd t2", { "text-anchor": "middle", style: "font-size:16px" });
+    if (k >= 2) o += SV.text(30, 200, "no other route is reserved: the transmission ends and the circuit must be set up again", "lbl bd t2", { style: "font-size:14px" });
+    return o;
+  };
+  Lib.stepper($("#stC"), { w: 760, h: 215, label: "A fault on the route", base: { i: 0 }, draw, tween: 250, dwell: 3200, steps: [
+    { cap: "The circuit follows one route all the way.", s: { i: 0 } },
+    { cap: "A fault occurs on one link of that route.", s: { i: 1 } },
+    { cap: "There is <b>no alternative route</b>: the transmission ends. The circuit has to be set up again.", s: { i: 2 } }] });
+})();
+
+/* Lab 1 */
+(function () {
+  let calls, n;
+  const reset = () => { calls = []; n = 0; paint("Three circuits are free."); };
+  const paint = (msg) => {
+    $("#cS").innerHTML = '<div class="tw"><table class="t"><tr><th>Circuit 1</th><th>Circuit 2</th><th>Circuit 3</th></tr><tr>' + [0, 1, 2].map((i) => `<td style="${calls[i] ? "background:var(--warn-soft);font-weight:700" : ""}">${calls[i] ? "Call " + calls[i] + " (using the whole circuit)" : "free"}</td>`).join("") + "</tr></table></div>";
+    $("#cV").textContent = msg;
+  };
+  $("#cN").onclick = () => { n++; if (calls.length >= 3) { paint("Call " + n + " is BLOCKED: all three circuits are busy. Dedicated circuits cannot be shared."); return; } calls.push(n); paint("Call " + n + " gets its own dedicated circuit."); };
+  $("#cE").onclick = () => { if (!calls.length) return; const c = calls.shift(); paint("Call " + c + " ends and releases its circuit."); };
+  $("#cR").onclick = reset; reset();
+})();
+
+/* Lab 2 */
+(function () {
+  let talk = 4;
+  const paint = () => { $("#u1").textContent = "10 min"; $("#u2").textContent = talk + " min"; $("#u3").textContent = 10 - talk + " min (" + (100 - talk * 10) + "%)"; };
+  Lib.slider($("#uS"), { id: "uss", label: "Minutes of actual talking ", min: 0, max: 10, value: talk, fmt: (x) => x + " min", onInput: (v) => { talk = v; paint(); } });
+  paint();
+})();
+
+btnTable("eB", "eO", [
+  ["Whole bandwidth", "Benefit", "The whole bandwidth of the circuit is available: a steady, high data rate", "Real-time communication"],
+  ["Data arrives in order", "Benefit", "Everything follows the same route, so no reordering or reassembly is needed", "No delay to put data back in order"],
+  ["Cannot be shared", "Drawback", "The circuit is reserved even when idle, and no other transmission can use it", "Wasted bandwidth"],
+  ["Set-up time", "Drawback", "The circuit has to be established before sending starts", "A delay before the call connects"],
+  ["No alternative route", "Drawback", "If the route fails, the transmission ends", "A call drops if a cable is cut"]
+], ["Feature", "Benefit or drawback", "What it means", "Example"]);
+Lib.classify($("#cl1"), { prompt: "Is this true of circuit switching?", buckets: [{"label": "True of circuit switching"}, {"label": "Not circuit switching"}], items: [{"text": "A dedicated circuit is set up before sending", "b": 0}, {"text": "Data is split into packets sent by different routes", "b": 1}, {"text": "All data follows the same route", "b": 0}, {"text": "Packets can arrive out of order", "b": 1}, {"text": "The whole bandwidth is reserved", "b": 0}, {"text": "Data arrives in the order it was sent", "b": 0}], done: "Dedicated, same route, in order: circuit switching. Packets and different routes: packet switching." });
+Lib.classify($("#cl2"), { prompt: "Is it a benefit or a drawback of circuit switching?", buckets: [{"label": "Benefit"}, {"label": "Drawback"}], items: [{"text": "The whole bandwidth is available", "b": 0}, {"text": "The circuit cannot be used by others when idle", "b": 1}, {"text": "Data arrives in order", "b": 0}, {"text": "It takes time to set up", "b": 1}, {"text": "Suitable for real-time transmission", "b": 0}, {"text": "No alternative route if a fault occurs", "b": 1}], done: "Benefits: bandwidth, order, real time. Drawbacks: not shared, set-up, no alternative route." });
+Lib.order($("#o1"), { prompt: "Put the phases of circuit switching in order.", items: ["A dedicated circuit is established between the two ends", "Data is transmitted as a continuous stream along the same route", "The communication ends", "The circuit is released for others to use"], done: "Establish, transmit, end, release." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Circuit switching", "A dedicated path reserved for the whole communication"], ["Dedicated circuit", "A path used by one communication only"], ["Continuous stream", "Data sent steadily along one route"], ["Real-time", "Data must arrive as it is sent, with no delay"], ["Release", "Closing the circuit at the end"]], done: "Learn these terms." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "A network has 4 circuits and each call takes one whole circuit. How many calls can be in progress at once?", "a": 4, "unit": "", "tol": 0.01, "hint": "One call per circuit.", "sol": "<b>4</b>."},
+  {"q": "5 calls are started on a network with 4 circuits. How many are blocked?", "a": 1, "unit": "", "tol": 0.01, "hint": "5 − 4.", "sol": "<b>1</b>."},
+  {"q": "A call lasts 20 minutes and the people talk for 12 minutes. For how many minutes is the circuit idle but still reserved?", "a": 8, "unit": "min", "tol": 0.01, "hint": "20 − 12.", "sol": "<b>8</b> minutes."},
+  {"q": "A circuit takes 2 seconds to set up and the data takes 8 seconds to send. What is the total time?", "a": 10, "unit": "s", "tol": 0.01, "hint": "Set-up plus transfer.", "sol": "<b>10</b> seconds."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "When is the circuit set up?", opts: ["After the data is sent", "Before any data is sent", "Packet by packet", "Never"], a: 1, why: "Before transmission starts." },
+  { q: "Which is a benefit of circuit switching?", opts: ["Bandwidth can be shared", "Data arrives in order", "No set-up time", "Alternative routes"], a: 1, why: "All data follows the same route." },
+  { q: "Which is a drawback?", opts: ["The data is reordered", "The circuit cannot be used by others while open", "Packets are lost", "It needs headers"], a: 1, why: "It cannot be shared." },
+  { q: "Which is a suitable use?", opts: ["Sending email", "A voice call", "Downloading a web page in pieces", "Sending a large file by many routes"], a: 1, why: "A call needs a dedicated path." },
+  { q: "What happens if the route fails?", opts: ["The data takes another route", "The transmission ends", "Packets are resent", "Nothing"], a: 1, why: "There is no alternative route." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Circuit switching", "Dedicated circuit set up before sending, kept for the whole transmission."],
+  ["Route", "The same route for all the data."],
+  ["Bandwidth", "The whole bandwidth is reserved."],
+  ["Benefit", "Steady rate, in order, real time."],
+  ["Drawback", "Cannot be shared; set-up time; no alternative route."],
+  ["Use", "Voice calls, live video, private networks."],
+  ["Order", "Data arrives in the order sent."],
+  ["Not", "Not split into packets."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>
