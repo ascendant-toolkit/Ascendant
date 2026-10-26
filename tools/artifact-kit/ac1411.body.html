@@ -1,0 +1,267 @@
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 14.1.1</div>
+  <h1>Protocols and the TCP/IP Stack</h1>
+  <p class="cbook">Coursebook: Chapter 14 · Communication and internet technologies, section 14.1 Protocols</p>
+  <p class="lead">Why protocols are essential, the layered protocol stack and the four TCP/IP layers with their functions, how a message passes down and up the stack; animations, labs and the real 9618 questions from 2022 to 2026.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A <b>protocol</b> is a set of agreed rules for communication between computers: it sets the format of the data, the order of messages and what to do when something goes wrong, so that devices from different makers can talk to each other. The <b>TCP/IP protocol suite</b> is built as a <b>stack of four layers</b>, <b>Application, Transport, Internet and Link</b>, and each layer has its own job and only deals with the layer directly above and below it. When a message is sent it passes <b>down</b> the stack on the sending host, with each layer adding information to a <b>header</b>, across the network, and <b>up</b> the stack on the receiving host, where each layer removes its header. The Application layer is where the user and their programs interact, and the Link layer is the one that actually sends the data over the physical connection. The next page covers the protocols that live in the Application layer.</p></div>
+
+  <h2>1 · Why a protocol is essential</h2>
+  <ul>
+    <li>A protocol is a <b>standard set of rules</b> for communication: how data is formatted, addressed, sent, acknowledged and checked.</li>
+    <li>It lets devices from <b>different manufacturers and platforms</b> communicate, because they follow the same rules.</li>
+    <li>It makes communication <b>independent of the software and hardware</b> in use.</li>
+    <li>Without it, two devices using different rules <b>could not communicate properly</b>: the data would not be understood.</li>
+  </ul>
+
+  <h2>2 · The stack idea</h2>
+  <p>A protocol suite can be viewed as a <b>stack of layers</b>. Splitting the job into layers means each layer can be designed, improved and replaced on its own.</p>
+  <ul>
+    <li>Each layer has its <b>own functionality</b>.</li>
+    <li>A layer can only accept input from the <b>next higher</b> or the <b>next lower</b> layer: the <b>adjacent</b> layers. The <b>interface</b> between adjacent layers is the only interaction between layers.</li>
+    <li>The interactions are carried out by <b>installed software</b>.</li>
+    <li><b>User interaction</b> takes place at the top (Application) layer. <b>Direct access to the hardware</b> takes place at the bottom (Link) layer.</li>
+    <li>Data is <b>added to the header</b> as packets and frames pass down through the layers, and removed as they pass up.</li>
+  </ul>
+
+  <h2>3 · The four layers of TCP/IP</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Layer</th><th>Purpose and function</th><th>Examples</th></tr>
+    <tr><td><b>Application</b> (top)</td><td>Provides services and an <b>interface to the user</b>: the programs that exchange data (web browser, email client, file transfer). Defines the protocols applications use to exchange data</td><td>HTTP(S), FTP, SMTP, POP3, IMAP, BitTorrent</td></tr>
+    <tr><td><b>Transport</b></td><td>Delivery from the <b>source host to the destination host</b> (end to end). Breaks data into <b>packets / segments</b>, adds a <b>sequence number</b> to the header, controls the <b>flow</b>, detects errors and requests <b>re-sending</b> of lost packets, and reassembles at the destination. Uses a port number</td><td>TCP, UDP</td></tr>
+    <tr><td><b>Internet</b></td><td>Identifies the intended <b>network and host</b>. Adds a header with the <b>source and destination IP addresses</b>, forms datagrams, and <b>routes</b> each packet independently by the best route</td><td>IP</td></tr>
+    <tr><td><b>Link</b> (bottom)</td><td>Transports data within the local network segment, <b>formats datagrams into frames</b>, maps <b>IP addresses to MAC (physical) addresses</b>, ensures the correct network protocols are followed, and sends and receives frames over the physical medium. Prepares the next hop</td><td>Ethernet, Wi-Fi</td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Order to learn</b>From the user down: <b>A</b>pplication, <b>T</b>ransport, <b>I</b>nternet, <b>L</b>ink: "All Tests Include Logic". The Link layer is also called the Network Access or Data Link layer in some books; the exam uses Link.</div>
+
+  <h2>4 · A message through the stack</h2>
+  <ol>
+    <li><b>Application layer (sender):</b> the user's program, such as a browser, creates the message using a protocol like HTTP.</li>
+    <li><b>Transport layer:</b> breaks the message into packets, numbers them and adds a header (sequence number, port).</li>
+    <li><b>Internet layer:</b> adds the source and destination IP addresses.</li>
+    <li><b>Link layer:</b> puts the packet in a frame with MAC addresses and sends it onto the network.</li>
+    <li>Routers pass it on. At the <b>receiver</b> the frame goes <b>up</b> the stack: the Link layer receives it, the Internet layer checks the address, the Transport layer puts the packets in order and checks them, and the Application layer gives the message to the program.</li>
+  </ol>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln"># data gains a header at each layer on the way down (encapsulation)</span><span class="ln">message  = &quot;GET /index.html&quot;                       # Application layer: HTTP request</span><span class="ln">segment  = {&quot;seq&quot;: 1, &quot;port&quot;: 80, &quot;data&quot;: message}   # Transport layer: sequence number, port</span><span class="ln">packet   = {&quot;src&quot;: &quot;192.168.1.5&quot;, &quot;dst&quot;: &quot;93.184.216.34&quot;, &quot;data&quot;: segment}   # Internet layer: IP addresses</span><span class="ln">frame    = {&quot;mac_src&quot;: &quot;AA:01&quot;, &quot;mac_dst&quot;: &quot;BB:02&quot;, &quot;data&quot;: packet}          # Link layer: MAC addresses</span><span class="ln"># the receiver removes the headers in the opposite order, Link first, Application last</span></pre></div>
+
+  <h2>5 · Common ways to lose marks</h2>
+  <ul>
+    <li>Putting the layers in the wrong order. The Application layer is the top, the Link layer the bottom.</li>
+    <li>Describing the layers by the function of a different layer: <b>routing and IP addresses</b> are the <b>Internet</b> layer; <b>sequence numbers, error checking and re-sending</b> are the <b>Transport</b> layer.</li>
+    <li>Saying a protocol is "a program". It is a set of rules.</li>
+    <li>Writing that layers talk to every other layer. Only <b>adjacent</b> layers interact.</li>
+    <li>Describing the layers' functions when the question says <i>not</i> to (for example "describe how the suite is applied when a message is sent"): describe the stack, the direction down then up, and the interface.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · A message goes down the stack, across, and up</h2>
+  <p>Press Play, or click the steps.</p>
+  <div id="stA"></div>
+  <h2>2 · Headers are added at each layer</h2>
+  <div id="stB"></div>
+  <h2>3 · Only adjacent layers talk to each other</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Build the packet</h2>
+  <p>Choose a layer to see what it adds on the way down. The data grows a header at each layer.</p>
+  <div class="card"><div id="pB" class="btnrow"></div><div id="pO"></div><div class="verdict" id="pV"></div></div>
+
+  <h2>Lab 2 · Which layer does the job?</h2>
+  <p>Choose the layer for each job.</p>
+  <div class="card"><div id="wB" class="btnrow"></div><div id="wO"></div></div>
+
+  <h2>Lab 3 · The layers compared</h2>
+  <div class="card"><div id="eB" class="btnrow"></div><div id="eO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which layer?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Protocol facts or stack facts?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the layers in order, top to bottom</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>5 · Counting layers and packets</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Loading a web page</h3><p>Your browser (Application layer) asks for a page with HTTP. The Transport layer splits the reply into numbered packets, the Internet layer addresses each one, and the Link layer sends it over Wi-Fi to your router.</p><div class="use"><b>Exam use:</b> each layer does its own job, and the message passes down then up the stack.</div></div>
+  <div class="rw"><h3>Devices from different makers</h3><p>A phone, a laptop and a games console from different companies all browse the same website because they all follow the TCP/IP protocols.</p><div class="use"><b>Exam use:</b> a protocol is a standard that makes communication independent of the hardware and software.</div></div>
+  <div class="rw"><h3>Upgrading Wi-Fi</h3><p>Moving from Wi-Fi 5 to Wi-Fi 6 changes the Link layer. The web page, the browser and the IP addresses are unchanged, because the layers are separate.</p><div class="use"><b>Exam use:</b> layers can be improved independently, and only adjacent layers interact.</div></div>
+  <div class="rw"><h3>A lost packet</h3><p>If a packet in a video call is lost, the Transport layer notices that a sequence number is missing and asks for it to be sent again, without the video app having to do anything.</p><div class="use"><b>Exam use:</b> the Transport layer handles sequencing, flow and error recovery.</div></div>
+  <div class="rw"><h3>Finding the way</h3><p>A router reads the destination IP address, which was added by the Internet layer, to decide where to send each packet next.</p><div class="use"><b>Exam use:</b> routing and IP addresses belong to the Internet layer.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on why protocols are used, the protocol stack and the TCP/IP layers (Paper 3), 2022 to 2026. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>O/N 2022</td><td>32</td><td>3(a), 3(b)</td><td>2 + 2</td><td>Why a protocol is used; complete the TCP/IP stack diagram</td></tr>
+    <tr><td>M/J 2024</td><td>32</td><td>2(a)</td><td>2</td><td>Why protocols are essential</td></tr>
+    <tr><td>O/N 2025</td><td>31</td><td>3(a)</td><td>2</td><td>Why protocols are essential for communication</td></tr>
+    <tr><td>O/N 2022</td><td>31, 33</td><td>2</td><td>5</td><td>Functions of the Transport and Internet layers</td></tr>
+    <tr><td>M/J 2024</td><td>31, 33</td><td>2(a), 2(b)</td><td>2 + 2</td><td>Order the four layers; the function of the Transport layer</td></tr>
+    <tr><td>O/N 2024</td><td>31, 33</td><td>4</td><td>4</td><td>How the layers of the stack interact</td></tr>
+    <tr><td>M/J 2025</td><td>31</td><td>3(a)</td><td>5</td><td>Purpose of the Application layer and the Transport layer</td></tr>
+    <tr><td>M/J 2025</td><td>32</td><td>3</td><td>1 + 4</td><td>Identify two layers; how the suite is applied when a message is sent</td></tr>
+    <tr><td>M/J 2025</td><td>33</td><td>4(a)</td><td>5</td><td>Purpose of the Internet layer and the Link layer</td></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>2(b)</td><td>2</td><td>The purpose of the Link layer</td></tr>
+    <tr><td>O/N 2023</td><td>32</td><td>4</td><td>3</td><td>Complete a paragraph about a protocol suite</td></tr>
+    <tr><td>M/J 2026</td><td>31</td><td>4</td><td>4</td><td>Match each TCP/IP layer to its description</td></tr>
+    <tr><td>M/J 2026</td><td>32</td><td>2</td><td>4</td><td>Complete a paragraph about TCP/IP</td></tr>
+    <tr><td>M/J 2026</td><td>33</td><td>2</td><td>4</td><td>Complete a paragraph about a protocol suite and its stack</td></tr>
+  </table></div>
+  <p class="note">The protocol stack is one of the most regularly examined topics in this chapter: there is a TCP/IP question in Paper 3 in nearly every series from May/June 2022 to May/June 2026. The application-layer protocols (HTTP, FTP, SMTP, POP3, IMAP, BitTorrent) are on the next page. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+
+  <h3>Why protocols; the stack</h3>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/32 · Q3(a), (b)</span> <span class="cmd">Explain / Complete</span> <span class="mark">2 + 2 marks</span> (a) Explain why a protocol is used in communication between computers. (b) The TCP/IP protocol implementation can be viewed as a stack. Complete the diagram for the TCP/IP protocol stack, in which two of the layers, Transport and Link, are already shown.<pre class="plain">  [ ........ ]
+  [ Transport ]
+  [ ........ ]
+  [ Link ]</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) a standard, so different devices can communicate. (b) the missing layers are the top and the third.</div>
+    <div class="ans"><p><b>(a)</b> Any two: <span class="mk k" data-t="1">Protocols set a standard for communication</span> <span class="mk k" data-t="2">They enable communication / compatibility between devices from different manufacturers or platforms</span> <span class="mk k" data-t="3">If two devices used different protocols they would not be able to communicate properly</span></p><p><b>(b)</b> <span class="mk a" data-t="1">Application (top)</span> <span class="mk a" data-t="2">Internet / Network (third)</span></p><pre class="plain">  [ Application ]
+  [ Transport ]
+  [ Internet ]
+  [ Link ]</pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing 'Network' or 'Physical' as the bottom layer. The bottom layer of the exam stack is Link.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/32 · Q2(a)</span> <span class="cmd">Outline</span> <span class="mark">2 marks</span> Outline why protocols are essential for communication between computers.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A standard set of rules, and what it allows.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Protocols provide a standard set of rules that enables successful data transfer between devices</span> <span class="mk k" data-t="2">they allow communication between devices on different platforms / make communication independent of software and hardware</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/31 · Q3(a)</span> <span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why protocols are essential for communication between computer systems.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Standard rules, compatibility, and what happens without one.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Protocols set a standard for communication (a standard set of rules)</span> <span class="mk k" data-t="2">They enable compatibility between devices from different manufacturers or platforms, which could not communicate if they used different protocols</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/31, 33 · Q2(a), (b)</span> <span class="cmd">Complete / Describe</span> <span class="mark">2 + 2 marks</span> The TCP/IP protocol suite has four layers: Transport, Application, Link, Internet. (a) Complete the diagram to show the correct order for these layers. (b) Describe the function of the Transport layer.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) Application at the top. (b) end-to-end delivery, packets, sequence numbers, error recovery.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">all four in the correct positions (two marks; one mark for at least two correct)</span></p><pre class="plain">Application
+Transport
+Internet
+Link</pre><p><b>(b)</b> Any two: <span class="mk a" data-t="1">The Transport layer is responsible for delivery of data from the source host to the destination host</span> <span class="mk a" data-t="2">Data is broken into packets and passed to the Internet layer</span> <span class="mk a" data-t="3">It adds the sequence number to the packet header</span> <span class="mk a" data-t="4">It establishes end-to-end contact</span> <span class="mk a" data-t="5">It ensures data arrives error free / retransmits packets if lost</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/31, 33 · Q4</span> <span class="cmd">Describe</span> <span class="mark">4 marks</span> The TCP/IP protocol may be viewed as a stack that contains four layers: Application, Transport, Internet, Link. Describe how the layers of the TCP/IP protocol stack interact with each other.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Adjacent layers only, an interface, headers, software, user at the top and hardware at the bottom.</div>
+    <div class="ans"><p>Any four: <span class="mk k" data-t="1">Each layer can only accept input from the next higher layer or the next lower layer</span> <span class="mk k" data-t="2">There is an interface between adjacent layers, which is the only interaction between layers</span> <span class="mk k" data-t="3">Data is added to the headers as the frames / packets pass through the layers</span> <span class="mk k" data-t="4">The interactions are carried out by installed software</span> <span class="mk k" data-t="5">User interaction takes place at the highest (Application) layer, through its protocols</span> <span class="mk k" data-t="6">Direct access to the hardware takes place at the lowest (Link) layer</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/32 · Q3</span> <span class="cmd">Identify / Describe</span> <span class="mark">1 + 4 marks</span> (a) Identify two different layers of the TCP/IP protocol suite. (b) Describe how the TCP/IP protocol suite is applied when a message is sent through the internet from one host to another. Do not describe the function of individual layers.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(b) about the stack and the direction of travel, not what each layer does.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Any two of Application, Transport, Internet, Link</span></p><p><b>(b)</b> Any four: <span class="mk a" data-t="1">The suite can be viewed as layers within a stack</span> <span class="mk a" data-t="2">Each layer can only accept input from the next higher or lower (adjacent) layer</span> <span class="mk a" data-t="3">The user interfaces with the top (Application) layer to send or receive a message</span> <span class="mk a" data-t="4">A sent message passes from the Application layer down to the Link layer</span> <span class="mk a" data-t="5">A received message passes from the Link layer up to the Application layer</span> <span class="mk a" data-t="6">The Link layer interfaces directly with the network and sends / receives the message</span></p></div>
+  </div></details>
+
+  <h3>The functions of the layers</h3>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/31, 33 · Q2</span> <span class="cmd">Outline</span> <span class="mark">5 marks</span> Outline the functions of the Transport and Internet layers of the TCP/IP protocol suite.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Up to three for each layer.</div>
+    <div class="ans"><p>Transport (max 3): <span class="mk k" data-t="1">breaks data into manageable packets (segmentation)</span> <span class="mk k" data-t="2">sequences the packets / adds a packet header</span> <span class="mk k" data-t="3">sends packets to the Internet layer / receives data from the Application layer</span> <span class="mk k" data-t="4">controls the flow of packets</span> <span class="mk k" data-t="5">handles packet loss or corruption: acknowledges receipt of complete, error-free packets</span> Internet (max 3): <span class="mk a" data-t="1">identifies the intended network and host</span> <span class="mk a" data-t="2">transmits packets to the Link layer</span> <span class="mk a" data-t="3">routes the packets independently by the optimum route</span> <span class="mk a" data-t="4">addresses packets with source and destination IP addresses</span> <span class="mk a" data-t="5">uses an IP address and port number to form a socket</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving a Transport function (sequencing, re-sending) for the Internet layer.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/31 · Q3(a)</span> <span class="cmd">Describe</span> <span class="mark">5 marks</span> The Application Layer and Transport Layer are two layers of the TCP/IP protocol suite. Describe the purpose of the Application Layer and the purpose of the Transport Layer.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Up to three for each.</div>
+    <div class="ans"><p>Application (max 3): <span class="mk k" data-t="1">To provide services / an interface with the user (access to applications such as login, file transfer, email)</span> <span class="mk k" data-t="2">To provide mechanisms for securing communication, e.g. encryption / authentication</span> <span class="mk k" data-t="3">To define the protocols used to exchange data</span> <span class="mk k" data-t="4">Error detection and recovery for application-specific errors</span> Transport (max 3): <span class="mk a" data-t="1">To provide logical communication between applications on different hosts / deliver data to the correct application process</span> <span class="mk a" data-t="2">To ensure error-free, end-to-end delivery of data in sequence, with error detection and automatic repeat request</span> <span class="mk a" data-t="3">To break data into segments when sent and reassemble them at the destination</span> <span class="mk a" data-t="4">To regulate network connections / provide flow control to prevent data loss</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/33 · Q4(a)</span> <span class="cmd">Describe</span> <span class="mark">5 marks</span> The Internet layer and Link layer are two layers of the TCP/IP protocol suite. Describe the purpose of the Internet layer and the purpose of the Link layer.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Internet: IP addresses and routing. Link: frames, MAC addresses, the next hop.</div>
+    <div class="ans"><p>Internet (max 3): <span class="mk k" data-t="1">To identify the intended network and host</span> <span class="mk k" data-t="2">To add a header containing source and destination IP addresses</span> <span class="mk k" data-t="3">To prepare packets for delivery, formatting them into datagrams</span> <span class="mk k" data-t="4">To route datagrams through the optimum route</span> Link (max 3): <span class="mk a" data-t="1">To prepare the next hop by managing the link between two directly connected devices</span> <span class="mk a" data-t="2">To format datagrams into frames for transmission</span> <span class="mk a" data-t="3">To identify network protocols in the packet header</span> <span class="mk a" data-t="4">To deliver frames to and receive frames from the network, mapping IP addresses to MAC (physical) addresses</span> <span class="mk a" data-t="5">To provide error checking and correction, including resend requests</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31, 33 · Q2(b)</span> <span class="cmd">Outline</span> <span class="mark">2 marks</span> Outline the purpose of the Link layer in the TCP/IP protocol suite.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Frames, MAC addresses, the physical medium.</div>
+    <div class="ans"><p>Any two: <span class="mk k" data-t="1">To ensure correct network protocols are followed</span> <span class="mk k" data-t="2">To enable the upper layers to access the physical medium / enable connection with the Internet layer</span> <span class="mk k" data-t="3">To be responsible for transporting data within the network / local segments</span> <span class="mk k" data-t="4">To format the data into frames for transmission</span> <span class="mk k" data-t="5">To map IP addresses to MAC (physical) addresses</span></p></div>
+  </div></details>
+
+  <h3>Matching and completing</h3>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/31 · Q4</span> <span class="cmd">Match</span> <span class="mark">4 marks</span> Draw one line to connect each TCP/IP layer to its most appropriate description. Layers: Application, Transport, Internet, Link. Descriptions: (A) ensures packets arrive in sequence without errors; (B) provides remote access to files on a host server to access and manage files stored in a remote location; (C) interconnects nodes or hosts in a network, encapsulates IP packets into frames and ensures correct protocols are followed; (D) identifies the intended network and host; (E) contains all the programs that exchange data and includes protocols: HTTP, FTP and POP3.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Five descriptions, four layers: one is a distractor.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Application matches (E): the programs that exchange data, and the protocols HTTP, FTP and POP3</span> <span class="mk k" data-t="2">Transport matches (A): packets in sequence without errors</span> <span class="mk k" data-t="3">Internet matches (D): identifies the intended network and host</span> <span class="mk k" data-t="4">Link matches (C): interconnects nodes, encapsulates IP packets into frames</span></p><p>Description (B) is the odd one out: it describes what the FTP protocol offers, not a layer.</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Matching Link to 'identifies the intended network and host'. That is the Internet layer.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/32 · Q2</span> <span class="cmd">Complete</span> <span class="mark">4 marks</span> Complete the paragraph using the most appropriate words from the list. Some words are not used. Words: application, controls, disconnects, four, interconnects, internet, link, lists, many, packets, seven, transport.<pre class="plain">The TCP/IP protocol suite consists of ........ layers which can be thought of as a stack. It is
+designed to send ........ of data across the internet. It is also used as a communications
+protocol to ensure accurate delivery of data over private networks. The lowest layer of the
+stack is the ........ layer. This is the layer that ........ nodes in the network.</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Four layers; data sent in packets; the lowest layer is Link; it interconnects nodes.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">four</span> <span class="mk k" data-t="2">packets</span> <span class="mk k" data-t="3">link</span> <span class="mk k" data-t="4">interconnects</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/33 · Q2</span> <span class="cmd">Complete</span> <span class="mark">4 marks</span> Complete the paragraph using words from the list. Words: adjacent, Application, BitTorrent, corresponding, Internet, layer, Link, lower, protocol, route, Transport, upper.<pre class="plain">The implementation of a ........ suite can be viewed as a stack. Each ........ of the stack has its
+own specific functionality and can only communicate with ........ layers of the stack. User
+interaction is associated with the highest level of the stack, which is the ........ layer.</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A stack of layers: each layer talks only to its adjacent layers.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">protocol</span> <span class="mk k" data-t="2">layer</span> <span class="mk k" data-t="3">adjacent</span> <span class="mk k" data-t="4">Application</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/32 · Q4</span> <span class="cmd">Complete</span> <span class="mark">3 marks</span> Complete the paragraph about a protocol suite, using words from the list. Words include: BitTorrent, circuit switching, layered, link, peer-to-peer, queue, stack, star, TCP/IP.<pre class="plain">The protocols in a ........ determine the interconnectivity rules for a ........ network model such
+as the ........ model.</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A stack of protocols; the model is layered.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">stack</span> <span class="mk k" data-t="2">layered</span> <span class="mk k" data-t="3">TCP/IP</span></p></div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State two reasons why a layered protocol stack is used rather than one large protocol.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Think about changing one part.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Each layer has its own function and can be designed, tested and improved on its own.</span> <span class="mk k" data-t="2">A layer can be replaced (for example a new Link layer for Wi-Fi) without changing the other layers.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">3 marks</span> A browser requests a web page. Describe what the Transport layer does to the reply before it is sent.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Packets, numbers, the header.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">It breaks the reply into packets (segments).</span> <span class="mk k" data-t="2">It adds a header containing a sequence number (and port number) to each.</span> <span class="mk k" data-t="3">It passes the packets to the Internet layer, and later checks they arrive complete and in order.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Identify</span> <span class="mark">2 marks</span> Name the layer that (a) adds the source and destination IP addresses; (b) formats the data into frames for the physical network.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Internet, then Link.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">(a) Internet layer</span> <span class="mk k" data-t="2">(b) Link layer</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain what is meant by saying that a layer can only interact with the adjacent layers.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Which layers can the Transport layer deal with?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A layer only takes input from the layer directly above it or directly below it.</span> <span class="mk k" data-t="2">The Transport layer deals only with the Application and Internet layers.</span> <span class="mk k" data-t="3">The interface between two adjacent layers is the only interaction between them.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Complete</span> <span class="mark">3 marks</span> Describe how a message travels through the TCP/IP stack from a sender to a receiver. Do not describe the individual functions of the layers.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Down, across, up.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The message is created at the Application layer and passes down through the layers to the Link layer, with data added to the header at each.</span> <span class="mk k" data-t="2">The Link layer sends it over the network.</span> <span class="mk k" data-t="3">At the receiver it passes up from the Link layer to the Application layer and the headers are removed.</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Learn the order.</b> Application, Transport, Internet, Link: top to bottom.</li>
+    <li><b>Match the job to the layer.</b> Sequence numbers, packets, re-sending: Transport. IP addresses, routing: Internet. Frames, MAC addresses, the cable or Wi-Fi: Link. User services: Application.</li>
+    <li><b>Say 'adjacent'.</b> A layer interacts only with the layer above and the layer below.</li>
+    <li><b>Say 'down then up'.</b> Sending goes top to bottom, receiving bottom to top.</li>
+    <li><b>Use the exam's wording for a protocol.</b> A standard set of rules enabling communication between devices from different manufacturers.</li>
+    <li><b>Read what is excluded.</b> If the question says not to describe the functions of the layers, describe how the stack is used instead.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>why protocols are essential</td><td>"They set a standard so that devices from different manufacturers can communicate."</td></tr>
+    <tr><td>how the layers interact</td><td>"Each layer only accepts input from the adjacent layers, through the interface between them."</td></tr>
+    <tr><td>what the Transport layer does</td><td>"It breaks data into numbered packets and ensures they arrive error free and in order."</td></tr>
+    <tr><td>what the Internet layer does</td><td>"It adds the source and destination IP addresses and routes each packet."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Identify</td><td>Give the name or fact only.</td></tr>
+    <tr><td>Outline</td><td>Give the main points briefly.</td></tr>
+    <tr><td>Describe</td><td>Say what it does, in several points.</td></tr>
+    <tr><td>Explain</td><td>Give the reason as well.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>

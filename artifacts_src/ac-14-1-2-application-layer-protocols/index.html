@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Application Layer Protocols: HTTP, FTP, Email and BitTorrent</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 14.1.2</div>
+  <h1>Application Layer Protocols: HTTP, FTP, Email and BitTorrent</h1>
+  <p class="cbook">Coursebook: Chapter 14 · Communication and internet technologies, section 14.1 Protocols</p>
+  <p class="lead">What HTTP, FTP, SMTP, POP3, IMAP and BitTorrent are used for, how email travels, and how BitTorrent shares a file in pieces; animations, a swarm simulation and the real 9618 questions from 2022 to 2025.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>The Application layer of TCP/IP contains the protocols that programs use to exchange data, and you need to know six and what each is for. <b>HTTP(S)</b> transfers the hypertext documents that make up web pages, <b>FTP</b> sends and receives files between devices, <b>SMTP</b> sends email, and <b>POP3</b> and <b>IMAP</b> receive email. <b>BitTorrent</b> shares files peer-to-peer, with the pieces of a file coming from many users' computers instead of one server. SMTP is a <b>push</b> protocol (the sender pushes mail out), and POP3 and IMAP are <b>pull</b> protocols (the receiving client pulls mail from the server). The exam asks you to name a protocol and describe its use, or to match protocols to uses.</p></div>
+
+  <h2>1 · The six protocols</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Protocol</th><th>Purpose</th><th>Key points</th></tr>
+    <tr><td><b>HTTP / HTTPS</b> (Hypertext Transfer Protocol; S = secure)</td><td>Sending and receiving <b>web pages</b> / hypertext documents (and images, video) between a web server and a browser</td><td>The browser sends a <b>request</b>, the server a <b>response</b>. HTTPS is encrypted (TLS)</td></tr>
+    <tr><td><b>FTP</b> (File Transfer Protocol)</td><td>Sending and receiving <b>files</b> over a network, between devices: uploading to and downloading from a server</td><td>Used to move files such as a website's pages to a web server</td></tr>
+    <tr><td><b>SMTP</b> (Simple Mail Transfer Protocol)</td><td><b>Sending</b> email: from a computer to a mail server, and between mail servers</td><td>A <b>push</b> protocol: it delivers mail towards the destination</td></tr>
+    <tr><td><b>POP3</b> (Post Office Protocol 3)</td><td><b>Receiving</b> email: the email client retrieves (downloads) messages from the mail server</td><td>A <b>pull</b> protocol. By default the message is downloaded to one device and removed from the server</td></tr>
+    <tr><td><b>IMAP</b> (Internet Message Access Protocol)</td><td><b>Receiving</b> email: lets users access and read email from <b>any device</b> without removing it from the mail server</td><td>A <b>pull</b> protocol. Keeps the server and the client <b>in sync</b>, so a copy stays on the server</td></tr>
+    <tr><td><b>BitTorrent</b></td><td><b>Peer-to-peer file sharing</b> over a network or the internet</td><td>No central web server holds the file; users share pieces directly with each other</td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Sending against receiving</b>Sending email: <b>SMTP</b>. Receiving email: <b>POP3</b> or <b>IMAP</b>. An exam answer for "name a protocol associated with sending and one with receiving" is SMTP and POP3 or IMAP.</div>
+
+  <h2>2 · How an email travels</h2>
+  <ol>
+    <li>You write a message in your email client and press send. The client uses <b>SMTP</b> to push it to your outgoing mail server.</li>
+    <li>Your mail server uses <b>SMTP</b> to pass it to the recipient's mail server (and on, via other servers, if needed).</li>
+    <li>The recipient's mail server stores it in their mailbox.</li>
+    <li>The recipient's client <b>pulls</b> it with <b>POP3</b> (download, normally removing it from the server) or <b>IMAP</b> (view it, leaving it on the server, with every device in sync).</li>
+  </ol>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>POP3</th><th>IMAP</th></tr>
+    <tr><td>Where mail is kept</td><td>Downloaded to the device, normally deleted from the server</td><td>Stays on the server; the device shows a copy</td></tr>
+    <tr><td>Several devices</td><td>Messages end up on whichever device downloaded them</td><td>All devices see the same mailbox, in sync</td></tr>
+    <tr><td>Needs a connection to read old mail</td><td>No: it is stored locally</td><td>Yes, to fetch it from the server (clients can cache)</td></tr>
+  </table></div>
+
+  <h2>3 · HTTP in a little more detail</h2>
+  <p>A browser asks for a page with an HTTP <b>request</b> and the server answers with a <b>response</b>.</p>
+  <pre class="plain">Request:   GET /index.html HTTP/1.1
+           Host: www.example.com
+
+Response:  HTTP/1.1 200 OK            (the status: 200 means success, 404 means page not found)
+           Content-Type: text/html
+           <html> ... the web page ... </html></pre>
+
+  <h2>4 · How BitTorrent shares a file</h2>
+  <ol>
+    <li>A user who has the whole file creates a small <b>torrent (descriptor) file</b> with <b>metadata</b> about it: its name, size and the address of a tracker. The whole file must be on at least one peer to begin with.</li>
+    <li>The file is divided into <b>equal-sized pieces</b>.</li>
+    <li>Other users get the torrent file and connect to a <b>tracker</b>, which acts like a server holding data about all the computers sharing the file (the <b>swarm</b>).</li>
+    <li>Each peer <b>downloads pieces from other peers</b>, many at once, until it has the whole file.</li>
+    <li>As soon as a peer has a piece it becomes a <b>source</b> of that piece for others. A peer that has the complete file and keeps sharing it is a <b>seed</b>.</li>
+  </ol>
+  <p>This puts the load on the whole swarm instead of one server, so it can share files between thousands of users. All users are of <b>equal status</b>: there is no central web server.</p>
+
+  <h2>5 · Common ways to lose marks</h2>
+  <ul>
+    <li>Writing "email" as the purpose of POP3 and IMAP without saying <b>receiving</b> (retrieving) email, and without saying SMTP is for <b>sending</b>.</li>
+    <li>Saying IMAP "sends" email. It receives; SMTP sends.</li>
+    <li>Not giving the difference between POP3 and IMAP: IMAP keeps the message on the server so it can be read from any device.</li>
+    <li>Describing BitTorrent as "a website for downloading". It is a peer-to-peer protocol with no central server holding the file.</li>
+    <li>Giving only the name of a protocol: the mark needs the <b>use</b> too.</li>
+    <li>Describing HTTP as only for "the internet". It transfers hypertext documents (web pages).</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · An email's journey</h2>
+  <p>Press Play, or click the steps.</p>
+  <div id="stA"></div>
+  <h2>2 · POP3 against IMAP</h2>
+  <div id="stB"></div>
+  <h2>3 · BitTorrent: sharing pieces</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Which protocol does the job?</h2>
+  <p>Choose the protocol for each situation.</p>
+  <div class="card"><div id="wB" class="btnrow"></div><div id="wO"></div></div>
+
+  <h2>Lab 2 · Run a BitTorrent swarm</h2>
+  <p>Six peers share a file of 8 pieces. Peer A is the seed and has every piece. Press Next round: each peer downloads one piece from a peer that has it.</p>
+  <div class="card"><div id="tS"></div><div class="btnrow"><button class="b pri" id="tN">Next round</button><button class="b" id="tR">Reset</button></div><div class="verdict" id="tV"></div></div>
+
+  <h2>Lab 3 · The protocols compared</h2>
+  <div class="card"><div id="eB" class="btnrow"></div><div id="eO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which protocol?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Push or pull?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the journey of an email in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Match the protocol to its use</h2><div id="m1" class="card"></div>
+  <h2>5 · BitTorrent counts</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Viewing a website</h3><p>Every page you open in a browser arrives through HTTP or HTTPS: the browser asks, the web server replies with the page, the images and the style files.</p><div class="use"><b>Exam use:</b> HTTP(S) transfers web pages / hypertext documents.</div></div>
+  <div class="rw"><h3>Uploading a school website</h3><p>A teacher uploads a new set of web pages to the school's web server using FTP, because FTP is designed to send and receive files between devices.</p><div class="use"><b>Exam use:</b> FTP: sending and receiving files over a network.</div></div>
+  <div class="rw"><h3>Reading your email on a phone and a laptop</h3><p>IMAP keeps the mail on the server, so the same inbox, with the same read and unread messages, appears on both devices.</p><div class="use"><b>Exam use:</b> IMAP: access from any device without removing the message from the server.</div></div>
+  <div class="rw"><h3>Sending a message</h3><p>When you press send, your email program hands the message to the outgoing mail server with SMTP, and mail servers use SMTP to pass it on.</p><div class="use"><b>Exam use:</b> SMTP sends email; it is a push protocol.</div></div>
+  <div class="rw"><h3>Downloading a large game or Linux image</h3><p>Instead of one overloaded server, the file comes in pieces from hundreds of other users who already have it, using BitTorrent.</p><div class="use"><b>Exam use:</b> BitTorrent: peer-to-peer file sharing; no central server.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on the Application layer protocols (Paper 3), 2022 to 2025. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>O/N 2022</td><td>32</td><td>3(c)</td><td>2</td><td>Describe the purpose of the IMAP protocol</td></tr>
+    <tr><td>M/J 2022</td><td>32</td><td>3(a)</td><td>4</td><td>Identify two Application layer protocols and describe each</td></tr>
+    <tr><td>M/J 2024</td><td>31, 33</td><td>2(c)</td><td>2</td><td>Outline one protocol associated with the Application layer</td></tr>
+    <tr><td>M/J 2024</td><td>32</td><td>2(b), 2(c)</td><td>2 + 3</td><td>Email protocols for sending and receiving; the meaning of 'BitTorrent provides peer-to-peer file sharing'</td></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>2(a)</td><td>4</td><td>Match four protocols to their uses</td></tr>
+    <tr><td>O/N 2024</td><td>32</td><td>5</td><td>4 + 3</td><td>Name and describe two protocols; the purpose and function of the Application layer</td></tr>
+    <tr><td>O/N 2025</td><td>31</td><td>3(b)</td><td>4</td><td>Identify and describe two email protocols other than POP3</td></tr>
+    <tr><td>O/N 2025</td><td>32</td><td>3</td><td>2 + 4</td><td>Purpose of HTTP and IMAP; how files are shared using BitTorrent</td></tr>
+    <tr><td>O/N 2025</td><td>33</td><td>4</td><td>6</td><td>Identify and describe three Application layer protocols</td></tr>
+  </table></div>
+  <p class="note">The Application layer protocols are examined in Paper 3 in most series from May/June 2022 to Oct/Nov 2025, usually as a name-and-describe question. The TCP/IP layers themselves are on the previous page. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+
+  <h3>Name and describe</h3>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/32 · Q3(a)</span> <span class="cmd">Identify / Describe</span> <span class="mark">4 marks</span> The TCP/IP protocol suite has four layers. The application layer provides user services. Identify two protocols used by this layer. Describe the use of each protocol.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One mark for the protocol and one for its use, twice.</div>
+    <div class="ans"><p>Two protocols, one mark for the name and one for the matching description: <span class="mk k" data-t="1">HTTP(S): for sending and receiving web pages / hypertext documents</span> <span class="mk k" data-t="2">FTP: for sending and receiving files over a network / between devices</span> <span class="mk k" data-t="3">SMTP: for sending / uploading emails (a push protocol)</span> <span class="mk k" data-t="4">POP3: for receiving / downloading emails (a pull protocol)</span> <span class="mk k" data-t="5">IMAP: for receiving emails (a pull protocol), keeping them on the server</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Naming a protocol without a use, or giving the expansion only.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/33 · Q4</span> <span class="cmd">Identify / Describe</span> <span class="mark">6 marks</span> Identify and describe three protocols that are used in the Application layer of the TCP/IP protocol suite.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Three protocols with a mark each for the name and for its use.</div>
+    <div class="ans"><p>Any three, each as name [1] and description [1]: <span class="mk k" data-t="1">HTTP/HTTPS: transfers hypermedia documents / web pages / data files between networked devices</span> <span class="mk k" data-t="2">FTP: downloads, uploads and transfers files from one location to another on a network</span> <span class="mk k" data-t="3">POP3: retrieves / receives emails from a mail server to a computer</span> <span class="mk k" data-t="4">IMAP: lets users access and read their emails from any device without removing the message from the mail server</span> <span class="mk k" data-t="5">SMTP: sends emails between mail servers, or from a computer to a mail server</span> <span class="mk k" data-t="6">BitTorrent: peer-to-peer file sharing</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/32 · Q5(a)</span> <span class="cmd">Name / Describe</span> <span class="mark">4 marks</span> Name and describe two protocols used by the Application Layer of the TCP/IP protocol suite.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One mark for each correct name and one for each correct description, maximum 2 + 2.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">HTTP/HTTPS: sending and receiving / transferring web pages and hypertext</span> <span class="mk k" data-t="2">FTP: sending and receiving files over a network / between devices</span> <span class="mk k" data-t="3">POP3: a pull protocol for receiving / downloading emails</span> <span class="mk k" data-t="4">IMAP: a pull protocol for receiving / downloading emails</span> <span class="mk k" data-t="5">SMTP: a push protocol for sending / uploading emails</span> <span class="mk k" data-t="6">BitTorrent: peer-to-peer file sharing over a network</span> (any two protocols with their descriptions)</p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/31 · Q3(b)</span> <span class="cmd">Identify / Describe</span> <span class="mark">4 marks</span> POP3 is an email communication protocol. Identify and describe two other communication protocols that are used when sending or receiving emails.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>SMTP and IMAP are the two others.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">SMTP</span> <span class="mk k" data-t="2">a protocol used to send emails between mail servers, or from a computer to a mail server</span> <span class="mk k" data-t="3">IMAP</span> <span class="mk k" data-t="4">allows users to access / read their emails from any device without removing the message from the mail server, i.e. it synchronises emails on any device</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving POP3, which the question already names.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/31, 33 · Q2(c)</span> <span class="cmd">Outline</span> <span class="mark">2 marks</span> Outline one protocol that is associated with the Application layer.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One mark for the name and one for the use.</div>
+    <div class="ans"><p>One of: <span class="mk k" data-t="1">HTTP(S): responsible for the correct transfer of the hypertext documents that make up web pages</span> <span class="mk k" data-t="2">FTP: used when transferring files from a server to a client on a network</span> <span class="mk k" data-t="3">POP3 or IMAP: handles the receiving of emails</span> <span class="mk k" data-t="4">SMTP: handles the sending of emails</span> <span class="mk k" data-t="5">BitTorrent: provides peer-to-peer file sharing</span></p></div>
+  </div></details>
+
+  <h3>Email protocols and the purpose of a single protocol</h3>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/32 · Q3(c)</span> <span class="cmd">Describe</span> <span class="mark">2 marks</span> Describe the purpose of the IMAP protocol.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Receiving email, retrieved by a client from a server, kept in sync.</div>
+    <div class="ans"><p>Any two: <span class="mk k" data-t="1">Used by email clients to retrieve email messages (a pull protocol)</span> <span class="mk k" data-t="2">from a mail server, over a TCP/IP connection</span> <span class="mk k" data-t="3">It keeps the server and client in sync by not deleting the original email: a copy of the email is downloaded</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/32 · Q3(a)</span> <span class="cmd">State</span> <span class="mark">2 marks</span> HTTP and IMAP are examples of protocols used in the Application Layer of the TCP/IP protocol suite. State the purpose of the HTTP and IMAP protocols.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One mark each.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">HTTP: to send and receive / transfer web pages, hypertext, images and videos</span> <span class="mk k" data-t="2">IMAP: allows users to access and read their emails from any device without removing the message from the mail server / synchronises emails on any device</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/32 · Q2(b)</span> <span class="cmd">State</span> <span class="mark">2 marks</span> State the names of two different protocols associated with the sending and receiving of emails between computers.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One for sending, one for receiving.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Sending: SMTP</span> <span class="mk k" data-t="2">Receiving: POP3 or IMAP</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31, 33 · Q2(a)</span> <span class="cmd">Match</span> <span class="mark">4 marks</span> Draw one line from each protocol to its most appropriate use. Protocols: HTTP, BitTorrent, SMTP, IMAP. Uses: (A) to provide peer-to-peer file sharing; (B) when retrieving email messages from a mail server over a TCP/IP connection; (C) when transmitting hypertext documents; (D) to map MAC addresses onto IP addresses; (E) when sending email messages towards the intended destination.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Five uses, four protocols: (D) is the distractor.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">HTTP matches (C) transmitting hypertext documents</span> <span class="mk k" data-t="2">BitTorrent matches (A) peer-to-peer file sharing</span> <span class="mk k" data-t="3">SMTP matches (E) sending email messages towards the destination</span> <span class="mk k" data-t="4">IMAP matches (B) retrieving email from a mail server</span></p><p>(D) is not an Application layer protocol use: mapping MAC addresses onto IP addresses is done at the Link layer.</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Matching SMTP to retrieving email. SMTP sends; IMAP and POP3 retrieve.</div>
+  </div></details>
+
+  <h3>BitTorrent and the Application layer</h3>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/32 · Q2(c)</span> <span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain the meaning of the phrase: BitTorrent protocol provides peer-to-peer file sharing.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Many users, directly, no central server, equal status.</div>
+    <div class="ans"><p>Any three: <span class="mk k" data-t="1">BitTorrent allows the sharing of files between thousands of users connected together over the internet</span> <span class="mk k" data-t="2">It allows more users to share files with each other than would be the case with a simple peer-to-peer network</span> <span class="mk k" data-t="3">Users share files directly with each other: their computers act as peers</span> <span class="mk k" data-t="4">No web server / central device is used: all users are of equal status</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/32 · Q3(b)</span> <span class="cmd">Describe</span> <span class="mark">4 marks</span> Describe how files are shared using the BitTorrent protocol.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Torrent file, pieces, tracker and swarm, peers become sources, seeds.</div>
+    <div class="ans"><p>Any four: <span class="mk k" data-t="1">Files are shared over a peer-to-peer network</span> <span class="mk k" data-t="2">A small torrent (descriptor) file with metadata about the file is created by a peer</span> <span class="mk k" data-t="3">The whole file must initially be on at least one peer</span> <span class="mk k" data-t="4">The file is broken into equal-sized pieces</span> <span class="mk k" data-t="5">Other peers obtain the torrent file and connect to a tracker, which holds data about all the computers in the swarm</span> <span class="mk k" data-t="6">Each peer downloads parts of the file from other peers until it has the whole file</span> <span class="mk k" data-t="7">As each peer receives a piece it becomes a source for that piece</span> <span class="mk k" data-t="8">A peer that has the complete file and shares it is a seed</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Describing a central server that holds the file. In BitTorrent the tracker only holds data about the peers; the pieces come from the peers.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/32 · Q5(b)</span> <span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain the purpose and function of the Application Layer in the TCP/IP protocol suite.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>User interface, the programs that exchange data, protocols.</div>
+    <div class="ans"><p>Any three: <span class="mk k" data-t="1">The Application layer provides access to all the programs that exchange data / interacts directly with the user</span> <span class="mk k" data-t="2">used by, for example, web browsers and server software</span> <span class="mk k" data-t="3">It communicates with, and enables data transfer to and from, the Transport layer / allows applications to access the services of the other TCP/IP layers</span> <span class="mk k" data-t="4">It defines the protocols that any application uses to exchange data</span></p></div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Distinguish</span> <span class="mark">2 marks</span> Distinguish between the SMTP and POP3 protocols.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Sending against receiving.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">SMTP is used to send email, from a client to a mail server and between mail servers (push).</span> <span class="mk k" data-t="2">POP3 is used to receive email: the client downloads it from the mail server (pull).</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Compare</span> <span class="mark">3 marks</span> Compare the POP3 and IMAP protocols for a user who reads email on a phone and a laptop.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Where the mail is kept.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">POP3 downloads the message to one device and normally removes it from the server, so the other device does not have it.</span> <span class="mk k" data-t="2">IMAP leaves the message on the server and keeps all devices in sync.</span> <span class="mk k" data-t="3">So IMAP is better for reading the same mail on two devices.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State two ways in which sharing a file with BitTorrent differs from downloading it from a web server.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Where does the file come from?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">BitTorrent downloads pieces from many peers at once; a web server sends the whole file from one place.</span> <span class="mk k" data-t="2">BitTorrent has no central server holding the file, and every peer that has a piece shares it.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Identify</span> <span class="mark">2 marks</span> A web designer needs to copy a folder of new pages to the company's web server. Name the most suitable protocol and say why.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Moving files.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">FTP</span> <span class="mk k" data-t="2">It is used for sending and receiving files over a network between devices</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">3 marks</span> Describe what happens when a browser requests a web page using HTTP.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Request and response.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The browser sends an HTTP request to the web server for the page.</span> <span class="mk k" data-t="2">The server finds the page and sends an HTTP response containing the hypertext document, with a status such as 200.</span> <span class="mk k" data-t="3">The browser displays the page.</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Name and use.</b> Every protocol answer needs the name and what it is used for.</li>
+    <li><b>SMTP sends, POP3 and IMAP receive.</b> Say 'sending' or 'receiving' explicitly.</li>
+    <li><b>IMAP: any device, server copy kept.</b> That is the distinction from POP3.</li>
+    <li><b>HTTP: web pages. FTP: files.</b> Hypertext documents against file transfer.</li>
+    <li><b>BitTorrent: peer-to-peer, no central server.</b> Pieces, torrent file, tracker, swarm, seed.</li>
+    <li><b>Do not give the protocol the question names.</b> If POP3 is given, choose others.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>what HTTP is used for</td><td>"Sending and receiving web pages / hypertext documents."</td></tr>
+    <tr><td>what FTP is used for</td><td>"Sending and receiving files over a network between devices."</td></tr>
+    <tr><td>what SMTP is used for</td><td>"Sending email from a client to a mail server and between mail servers."</td></tr>
+    <tr><td>what BitTorrent is used for</td><td>"Peer-to-peer file sharing: users share pieces of a file directly with each other."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Name / Identify</td><td>Give the protocol name.</td></tr>
+    <tr><td>Describe</td><td>Say what it is used for, in a short sentence.</td></tr>
+    <tr><td>Outline</td><td>Name it and give its use.</td></tr>
+    <tr><td>Explain</td><td>Give the meaning with reasons.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+(function () {
+  const stops = ["Sender's email client", "Sender's mail server", "Recipient's mail server", "Recipient's email client"];
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "";
+    stops.forEach((t, i) => (o += SV.rect(20 + i * 185, 60, 160, 60, k >= i ? "f3" : "cell", { rx: 8, ...op(k >= i ? 1 : 0.5) }) + SV.text(100 + i * 185, 96, t, "lbl bd", { "text-anchor": "middle", style: "font-size:13px" })));
+    const labs = ["SMTP", "SMTP", "POP3 or IMAP"]; labs.forEach((t, i) => { const on = k > i; o += arrow(180 + i * 185, 90, 205 + i * 185, 90, i === 2 ? "l" : "r", on ? "c2" : "c1", on ? 1 : 0.2) + SV.text(192 + i * 185, 50, t, "lbl bd" + (on ? " t3" : ""), { "text-anchor": "middle", style: "font-size:12px", ...op(on ? 1 : 0.35) }); });
+    if (k >= 1) o += SV.text(30, 160, k === 1 ? "push: the client sends the message to its mail server" : k === 2 ? "push: servers pass the message towards its destination" : "pull: the recipient's client retrieves the message", "lbl bd", { style: "font-size:15px" });
+    return o;
+  };
+  Lib.stepper($("#stA"), { w: 760, h: 190, label: "An email's journey", base: { i: 0 }, draw, tween: 250, dwell: 3000, steps: [
+    { cap: "An email travels from the sender's email client to the recipient's email client through two mail servers.", s: { i: 0 } },
+    { cap: "<b>SMTP</b> pushes the message from the sender's client to the sender's mail server.", s: { i: 1 } },
+    { cap: "<b>SMTP</b> again carries it from server to server, towards its destination.", s: { i: 2 } },
+    { cap: "The recipient's client <b>pulls</b> the message from the server with <b>POP3</b> or <b>IMAP</b>.", s: { i: 3 } }] });
+})();
+
+(function () {
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = SV.text(30, 22, "POP3", "lbl bd") + SV.text(400, 22, "IMAP", "lbl bd");
+    const box = (x, t, on, cls) => SV.rect(x, 34, 150, 44, on ? cls : "cell", { rx: 6 }) + SV.text(x + 75, 61, t, "lbl", { "text-anchor": "middle", style: "font-size:13px" });
+    o += box(30, "Mail server: 1 email", true, "f3") + box(400, "Mail server: 1 email", true, "f3");
+    o += box(30, k >= 1 ? "Laptop: downloaded" : "Laptop", k >= 1, "cell-ok") + box(400, k >= 1 ? "Laptop: shows a copy" : "Laptop", k >= 1, "cell-ok");
+    o += SV.rect(30, 130, 150, 44, k >= 2 ? "cell-no" : "cell", { rx: 6 }) + SV.text(105, 157, k >= 2 ? "Phone: nothing" : "Phone", "lbl", { "text-anchor": "middle", style: "font-size:13px" });
+    o += SV.rect(400, 130, 150, 44, k >= 2 ? "cell-ok" : "cell", { rx: 6 }) + SV.text(475, 157, k >= 2 ? "Phone: shows a copy" : "Phone", "lbl", { "text-anchor": "middle", style: "font-size:13px" });
+    if (k >= 1) { o += SV.rect(30 + 160, 34, 190, 44, k >= 1 ? "cell-no" : "cell", { rx: 6 }) + SV.text(285, 61, "removed from the server", "lbl", { "text-anchor": "middle", style: "font-size:12px" }); o += SV.text(560, 61, "stays on the server", "lbl bd t3", { style: "font-size:13px" }); }
+    return o;
+  };
+  Lib.stepper($("#stB"), { w: 760, h: 200, label: "POP3 and IMAP", base: { i: 0 }, draw, tween: 250, dwell: 3200, steps: [
+    { cap: "One email waits on the mail server. The user has a laptop and a phone.", s: { i: 0 } },
+    { cap: "The laptop retrieves it. With <b>POP3</b> the message is downloaded and normally removed from the server; with <b>IMAP</b> the server keeps it and the laptop shows a copy.", s: { i: 1 } },
+    { cap: "Later the user checks the phone. With POP3 the email is not there (it was downloaded to the laptop). With IMAP the phone shows the same email, <b>in sync</b>.", s: { i: 2 } }] });
+})();
+
+(function () {
+  const peers = [[0, 1, 2, 3, 4, 5], [0, 1, 2], [3, 4, 5], [0, 3], []];
+  const names = ["Seed A", "Peer B", "Peer C", "Peer D", "Peer E"];
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "";
+    names.forEach((n, i) => { const y = 20 + i * 38; let have = peers[i].slice(); if (k >= 2 && i === 4) have = [0, 3, 4]; if (k >= 3 && i === 4) have = [0, 1, 2, 3, 4, 5]; o += SV.text(30, y + 22, n, "lbl bd", { style: "font-size:13px" }); for (let p = 0; p < 6; p++) o += SV.rect(130 + p * 52, y, 46, 30, have.includes(p) ? "f3" : "cell", { rx: 4, ...op(have.includes(p) ? 1 : 0.45) }) + SV.text(153 + p * 52, y + 20, "P" + (p + 1), "lbl", { "text-anchor": "middle", style: "font-size:12px" }); });
+    if (k >= 1) o += SV.text(480, 40, "tracker: lists the swarm", "lbl bd", { style: "font-size:13px" }) + SV.text(480, 62, "A, B, C, D, E", "sm");
+    if (k >= 2) o += SV.text(480, 110, "E asks several peers at once:", "lbl bd", { style: "font-size:13px" }) + SV.text(480, 132, "P1 from A, P4 from C, P5 from C...", "sm");
+    if (k >= 3) o += SV.text(480, 170, "E now has the whole file: a new seed", "lbl bd t3", { style: "font-size:13px" });
+    return o;
+  };
+  Lib.stepper($("#stC"), { w: 760, h: 215, label: "A BitTorrent swarm", base: { i: 0 }, draw, tween: 250, dwell: 3200, steps: [
+    { cap: "The file is split into six equal <b>pieces</b>. Seed A has them all; B, C and D have some. New peer E has none.", s: { i: 0 } },
+    { cap: "E gets the <b>torrent file</b> and contacts the <b>tracker</b>, which tells it who is in the <b>swarm</b>.", s: { i: 1 } },
+    { cap: "E downloads <b>different pieces from different peers at the same time</b>. Each piece it receives, it can share.", s: { i: 2 } },
+    { cap: "E now has every piece. If it stays connected and shares, it is a <b>seed</b>. No central server held the file.", s: { i: 3 } }] });
+})();
+
+/* Lab 1 */
+(function () {
+  const P = ["HTTP/HTTPS", "FTP", "SMTP", "POP3", "IMAP", "BitTorrent"];
+  const q = [["Your browser fetches a web page", 0], ["Sending an email from your client to a mail server", 2], ["Downloading emails to one device and removing them from the server", 3], ["Reading the same inbox, in sync, on a phone and a laptop", 4], ["Uploading a folder of files to a web server", 1], ["Downloading a large file in pieces from thousands of other users", 5]];
+  let cur = 0, pick = null;
+  const paint = () => {
+    $$("#wB button").forEach((b, i) => b.classList.toggle("pri", i === cur));
+    const Q = q[cur]; $("#wO").innerHTML = `<p><b>${Q[0]}</b></p><div class="btnrow">` + P.map((p, i) => `<button class="b${pick === i ? " pri" : ""}" data-i="${i}">${p}</button>`).join("") + '</div><div class="verdict">' + (pick === null ? "Choose a protocol." : pick === Q[1] ? "Correct: " + P[Q[1]] + "." : "Not " + P[pick] + ". The best answer is " + P[Q[1]] + ".") + "</div>";
+    $$("#wO button").forEach((b) => (b.onclick = () => { pick = +b.dataset.i; paint(); }));
+  };
+  $("#wB").innerHTML = q.map((x, i) => `<button class="b" data-i="${i}">Situation ${i + 1}</button>`).join("");
+  $$("#wB button").forEach((b) => (b.onclick = () => { cur = +b.dataset.i; pick = null; paint(); })); paint();
+})();
+
+/* Lab 2: swarm */
+(function () {
+  const N = 8, names = ["A (seed)", "B", "C", "D", "E", "F"]; let have, round, seed = 7;
+  const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+  const reset = () => { seed = 7; round = 0; have = names.map((_, i) => (i === 0 ? new Set([...Array(N).keys()]) : new Set())); paint("Press Next round."); };
+  const paint = (msg) => {
+    $("#tS").innerHTML = '<div class="tw"><table class="t mono"><tr><th>Peer</th>' + Array.from({ length: N }, (_, i) => `<th>P${i + 1}</th>`).join("") + "<th>Done?</th></tr>" + names.map((n, i) => "<tr><td>" + n + "</td>" + Array.from({ length: N }, (_, p) => `<td style="${have[i].has(p) ? "background:var(--good-soft)" : ""}">${have[i].has(p) ? "✓" : ""}</td>`).join("") + "<td>" + (have[i].size === N ? "seed" : have[i].size + "/" + N) + "</td></tr>").join("") + "</table></div>";
+    $("#tV").textContent = msg;
+  };
+  $("#tN").onclick = () => {
+    round++; const snap = have.map((h) => new Set(h)); let moved = 0;
+    names.forEach((_, i) => { if (snap[i].size === N) return; const need = [...Array(N).keys()].filter((p) => !snap[i].has(p)); const options = []; need.forEach((p) => names.forEach((_, j) => { if (j !== i && snap[j].has(p)) options.push(p); })); if (options.length) { have[i].add(options[Math.floor(rnd() * options.length)]); moved++; } });
+    const done = have.every((h) => h.size === N);
+    paint(done ? "Round " + round + ": every peer has the whole file and can seed it. No server held the file." : "Round " + round + ": " + moved + " pieces were downloaded from other peers. Every piece a peer receives it can pass on.");
+  };
+  $("#tR").onclick = reset; reset();
+})();
+
+btnTable("eB", "eO", [
+  ["HTTP / HTTPS", "Web pages / hypertext documents", "Browser requests, server responds; HTTPS is secure", "Sending and receiving web pages"],
+  ["FTP", "Files between devices", "Upload and download to a server", "Sending and receiving files"],
+  ["SMTP", "Sending email", "Push: client to server, server to server", "Sending / uploading emails"],
+  ["POP3", "Receiving email", "Pull: download from the server, normally removed", "Receiving / downloading emails"],
+  ["IMAP", "Receiving email", "Pull: any device, server copy kept, in sync", "Access email from any device"],
+  ["BitTorrent", "Peer-to-peer file sharing", "Torrent file, tracker, swarm, pieces, seeds", "Sharing files peer to peer"]
+], ["Protocol", "Purpose", "Key points", "Exam wording"]);
+Lib.classify($("#cl1"), { prompt: "Which protocol is described?", buckets: [{"label": "HTTP(S)"}, {"label": "FTP"}, {"label": "SMTP"}, {"label": "POP3 / IMAP"}, {"label": "BitTorrent"}], items: [{"text": "Transfers web pages between a server and a browser", "b": 0}, {"text": "Sends and receives files over a network", "b": 1}, {"text": "Sends email towards its destination", "b": 2}, {"text": "Retrieves email from a mail server", "b": 3}, {"text": "Peer-to-peer file sharing", "b": 4}, {"text": "Hypertext documents", "b": 0}, {"text": "Reads email from any device without removing it from the server", "b": 3}, {"text": "Uses a tracker, a swarm and pieces of a file", "b": 4}], done: "Web pages: HTTP. Files: FTP. Sending mail: SMTP. Receiving mail: POP3/IMAP. Peer to peer: BitTorrent." });
+Lib.classify($("#cl2"), { prompt: "Is it a push or a pull protocol?", buckets: [{"label": "Push"}, {"label": "Pull"}], items: [{"text": "SMTP", "b": 0}, {"text": "POP3", "b": 1}, {"text": "IMAP", "b": 1}, {"text": "Sending an email to the mail server", "b": 0}, {"text": "Retrieving emails from the mail server", "b": 1}, {"text": "Delivering mail between mail servers", "b": 0}], done: "SMTP pushes mail out. POP3 and IMAP pull mail in." });
+Lib.order($("#o1"), { prompt: "Put the journey of an email in order.", items: ["The sender's email client pushes the message to its mail server with SMTP", "That mail server passes it to the recipient's mail server with SMTP", "The recipient's mail server stores it in their mailbox", "The recipient's client retrieves it with POP3 or IMAP"], done: "Client, server, server, mailbox, retrieve." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["HTTP", "Transferring hypertext documents"], ["SMTP", "Sending email towards its destination"], ["IMAP", "Reading email on any device, in sync with the server"], ["BitTorrent", "Peer-to-peer file sharing"], ["FTP", "Sending and receiving files over a network"]], done: "Learn these terms." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "A file is split into 20 equal pieces. A peer has 12. How many more does it need?", "a": 8, "unit": "", "tol": 0.01, "hint": "20 − 12.", "sol": "<b>8</b>."},
+  {"q": "A 600 MB file is split into pieces of 2 MB. How many pieces?", "a": 300, "unit": "", "tol": 0.01, "hint": "600 ÷ 2.", "sol": "<b>300</b>."},
+  {"q": "How many protocols are used when an email is sent from one client and read on another using IMAP (count each protocol name once: SMTP, IMAP)?", "a": 2, "unit": "", "tol": 0.01, "hint": "SMTP and IMAP.", "sol": "<b>2</b>."},
+  {"q": "A user has 3 devices and uses IMAP. On how many devices can they read the same message?", "a": 3, "unit": "", "tol": 0.01, "hint": "All devices see the server's copy.", "sol": "<b>3</b>."},
+  {"q": "A user has 3 devices and uses POP3 with default settings. On how many devices will the message be downloaded?", "a": 1, "unit": "", "tol": 0.01, "hint": "The first to download it; it is then removed.", "sol": "<b>1</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "Which protocol sends email?", opts: ["POP3", "IMAP", "SMTP", "FTP"], a: 2, why: "SMTP." },
+  { q: "Which protocol lets you read email on any device without removing it from the server?", opts: ["IMAP", "SMTP", "HTTP", "FTP"], a: 0, why: "IMAP." },
+  { q: "What does HTTP transfer?", opts: ["Email", "Hypertext documents (web pages)", "Peer-to-peer files", "MAC addresses"], a: 1, why: "Web pages." },
+  { q: "In BitTorrent there is...", opts: ["a central server holding the file", "no central server holding the file: users share pieces", "only one source", "no tracker or swarm"], a: 1, why: "Peer to peer." },
+  { q: "FTP is used for...", opts: ["sending and receiving files", "reading email", "web browsing only", "routing"], a: 0, why: "File transfer." },
+  { q: "A peer with the complete file that keeps sharing it is called...", opts: ["a tracker", "a seed", "a router", "a swarm"], a: 1, why: "A seed." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["HTTP(S)", "Web pages / hypertext documents."],
+  ["FTP", "Sending and receiving files."],
+  ["SMTP", "Sending email (push)."],
+  ["POP3", "Receiving email (pull); downloaded."],
+  ["IMAP", "Receiving email (pull); any device, in sync."],
+  ["BitTorrent", "Peer-to-peer file sharing."],
+  ["Tracker", "Holds data about the peers in the swarm."],
+  ["Seed", "A peer with the whole file that shares it."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

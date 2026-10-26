@@ -25,9 +25,9 @@ function treeSvg(t, seen = {}, cur = 0, showIdx = false) {
   for (let p = 1; p <= n; p++) { [lft(t, p), rgt(t, p)].forEach((c) => { if (c) g += SV.line(X(p), Y(p), X(c), Y(c), "edge"); }); }
   for (let p = 1; p <= n; p++) {
     const on = p === cur, done = seen[p] && !on;
-    g += SV.circle(X(p), Y(p), 20, "nd" + (on ? " nd-cur" : done ? " nd-ok" : "")) + SV.text(X(p), Y(p) + 5, dat(t, p), "lbl bd", { "text-anchor": "middle", style: "font-size:14px" });
-    if (showIdx) g += SV.text(X(p) - 24, Y(p) - 16, "#" + p, "sm", { "text-anchor": "end", style: "font-family:var(--mono)" });
-    if (seen[p]) g += SV.circle(X(p) + 18, Y(p) - 16, 10, "dot1") + SV.text(X(p) + 18, Y(p) - 12, seen[p], "sm bd", { "text-anchor": "middle", style: "fill:#fff;font-size:11px" });
+    g += SV.circle(X(p), Y(p), 20, "nd" + (on ? " nd-cur" : done ? " nd-ok" : "")) + SV.text(X(p), Y(p) + (showIdx ? 1 : 5), dat(t, p), "lbl bd", { "text-anchor": "middle", style: "font-size:14px" });
+    if (showIdx) g += SV.text(X(p), Y(p) + 14, "#" + p, "sm", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:9.5px" });
+    if (seen[p]) g += SV.circle(X(p) + 32, Y(p), 10, "dot1") + SV.text(X(p) + 32, Y(p) + 4, seen[p], "sm bd", { "text-anchor": "middle", style: "fill:#fff;font-size:11px" });
   }
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${t.name}: binary tree">${g}</svg>`;
 }
