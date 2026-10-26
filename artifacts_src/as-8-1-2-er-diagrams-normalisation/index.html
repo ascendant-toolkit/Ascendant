@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E-R Diagrams and Normalisation</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
+
+table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
+.synd{margin:8px 0;overflow-x:auto}
+.gantt{display:flex;margin:6px 0 0;font-family:var(--mono)}.gantt .gb{border:1.5px solid var(--ink);margin-left:-1.5px;text-align:center;padding:6px 0;font-weight:700;font-size:.85rem;background:var(--surface);min-width:0}
+.gantt .gb.c0{background:var(--accent-soft)}.gantt .gb.c1{background:var(--bad-soft)}.gantt .gb.c2{background:var(--good-soft)}.gantt .gb.c3{background:var(--warn-soft)}.gantt .gb.c4{background:var(--soft)}
+.gticks{display:flex;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:2px 0 10px}.gticks span{text-align:right;min-width:0}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 8.1.2</div>
+  <h1>E-R Diagrams and Normalisation</h1>
+  <p class="cbook">Coursebook: Chapter 8 · Databases · section 8.1 Database concepts</p>
+  <p class="lead">Drawing entity-relationship diagrams from foreign keys, and normalising to first, second and third normal form with a worked example, with animations, labs and the real Paper 1 questions from 2021 to 2026.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>An <b>entity-relationship (E-R) diagram</b> shows each table (entity) as a box and each relationship as a line, with a bar at the <b>one</b> end and a crow's foot at the <b>many</b> end. To draw one from a list of tables, find each <b>foreign key</b>: the table that holds it is on the <b>many</b> side and the table where it is the primary key is on the <b>one</b> side; a table that holds two foreign keys is usually a <b>linking table</b>. <b>Normalisation</b> organises data to reduce redundancy: <b>1NF</b> has no repeating groups and every field is atomic; <b>2NF</b> is in 1NF and has no partial dependencies (every non-key field depends on the whole of the composite key); <b>3NF</b> is in 2NF and has no non-key (transitive) dependencies (every non-key field depends on the primary key and nothing else). Exam questions ask you to complete an E-R diagram, describe the normal forms, say what normal form a database is in, and normalise a given table.</p></div>
+
+  <h2>1 · E-R diagrams</h2>
+  <p>The tables PLANT, CUSTOMER, PURCHASE and PURCHASE_ITEM give this diagram. PURCHASE_ITEM(PurchaseID, PlantName, Quantity) holds the foreign key PurchaseID (to PURCHASE) and PlantName (to PLANT): a linking table, so each of those relationships is one-to-many from the other table to PURCHASE_ITEM.</p>
+  <div class="circ"><svg viewBox="0 0 470 150" style="width:470px;max-width:100%;display:block" role="img" aria-label="E-R diagram"><line class="w" x1="95.0" y1="44.0" x2="95.0" y2="100.0"/><line class="w" x1="88.0" y1="56.0" x2="102.0" y2="56.0"/><line class="w" x1="95.0" y1="86.0" x2="87.0" y2="100.0"/><line class="w" x1="95.0" y1="86.0" x2="95.0" y2="100.0"/><line class="w" x1="95.0" y1="86.0" x2="103.0" y2="100.0"/><line class="w" x1="290.0" y1="117.0" x2="170.0" y2="117.0"/><line class="w" x1="278.0" y1="110.0" x2="278.0" y2="124.0"/><line class="w" x1="184.0" y1="117.0" x2="170.0" y2="109.0"/><line class="w" x1="184.0" y1="117.0" x2="170.0" y2="117.0"/><line class="w" x1="184.0" y1="117.0" x2="170.0" y2="125.0"/><line class="w" x1="365.0" y1="44.0" x2="365.0" y2="100.0"/><line class="w" x1="358.0" y1="56.0" x2="372.0" y2="56.0"/><line class="w" x1="365.0" y1="86.0" x2="357.0" y2="100.0"/><line class="w" x1="365.0" y1="86.0" x2="365.0" y2="100.0"/><line class="w" x1="365.0" y1="86.0" x2="373.0" y2="100.0"/><rect class="ax" style="fill:var(--surface)" x="20" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="95.0" y="31.0" text-anchor="middle" style="font-size:11px">PLANT</text><rect class="ax" style="fill:var(--surface)" x="290" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="31.0" text-anchor="middle" style="font-size:11px">CUSTOMER</text><rect class="ax" style="fill:var(--surface)" x="20" y="100" width="150" height="34" rx="4"/><text class="lbl bd" x="95.0" y="121.0" text-anchor="middle" style="font-size:11px">PURCHASE_ITEM</text><rect class="ax" style="fill:var(--surface)" x="290" y="100" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="121.0" text-anchor="middle" style="font-size:11px">PURCHASE</text></svg></div>
+  <ol>
+    <li>List every table and its foreign keys.</li>
+    <li>For each foreign key, draw a line to the table where it is the primary key: that table is the "one" side, the table holding the foreign key is the "many" side.</li>
+    <li>A many-to-many relationship (a linking table holding the keys of two tables) appears as two one-to-many lines meeting at the linking table.</li>
+    <li>Draw no extra lines: the mark scheme takes marks off for extra relationships.</li>
+  </ol>
+
+  <h2>2 · Normal forms</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Normal form</th><th>Rule</th><th>Fixing a table</th></tr>
+    <tr><td><b>1NF</b></td><td>No repeating groups or repeating attributes; every field holds one value (atomic); a primary key is identified</td><td>Split repeated fields into their own table, with the key of the first table as a foreign key; split a field such as a full name into FirstName and LastName</td></tr>
+    <tr><td><b>2NF</b></td><td>In 1NF and no <b>partial dependencies</b>: every non-key attribute depends on the whole of the (composite) primary key</td><td>Move attributes that depend on only part of the key into a new table</td></tr>
+    <tr><td><b>3NF</b></td><td>In 2NF and no <b>non-key (transitive) dependencies</b>: every attribute depends on the primary key and no other attribute</td><td>Move attributes that depend on another non-key attribute into a new table</td></tr>
+  </table></div>
+  <p>A database in 3NF has <b>no repeating groups</b> (data is atomic), <b>no partial key dependencies</b> and <b>no non-key dependencies</b>; it also has no many-to-many relationships (they are broken up with linking tables).</p>
+
+  <h2>3 · A worked example</h2>
+  <p><b>Not normalised:</b> repeating groups of Subject and SubjectCode, and a name that holds two items.</p>
+  <div class="tw" style="display:inline-block;margin:4px 10px 4px 0;vertical-align:top"><table class="t mono"><caption style="text-align:left;font-weight:700">STUDENT (not normalised)</caption><tr><th>StudentName</th><th>DateOfBirth</th><th>TutorGroup</th><th>Subject</th><th>SubjectCode</th></tr><tr><td>Yuwei Chen</td><td>01/09/2004</td><td>SMH</td><td>English, Maths, Computer Science</td><td>EN, MA, CS</td></tr><tr><td>Claudia Raj</td><td>23/02/2005</td><td>JMB</td><td>Maths, Physics, Art</td><td>MA, PY, AR</td></tr></table></div>
+  <p><b>1NF:</b> identify a primary key, make each field atomic (split the name) and remove the repeating group into its own table linked by StudentID. (Suppose each tutor group also has a tutor name.)</p>
+  <div class="tw" style="display:inline-block;margin:4px 10px 4px 0;vertical-align:top"><table class="t mono"><caption style="text-align:left;font-weight:700">STUDENT</caption><tr><th><u>StudentID</u></th><th>FirstName</th><th>LastName</th><th>DateOfBirth</th><th>TutorGroup</th><th>TutorName</th></tr><tr><td>S1</td><td>Yuwei</td><td>Chen</td><td>01/09/2004</td><td>SMH</td><td>Mr Hall</td></tr><tr><td>S2</td><td>Claudia</td><td>Raj</td><td>23/02/2005</td><td>JMB</td><td>Ms Brown</td></tr></table></div><div class="tw" style="display:inline-block;margin:4px 10px 4px 0;vertical-align:top"><table class="t mono"><caption style="text-align:left;font-weight:700">STUDENT_SUBJECT</caption><tr><th><u>StudentID</u></th><th><u>SubjectCode</u></th><th>Subject</th></tr><tr><td>S1</td><td>EN</td><td>English</td></tr><tr><td>S1</td><td>MA</td><td>Maths</td></tr><tr><td>S1</td><td>CS</td><td>Computer Science</td></tr><tr><td>S2</td><td>MA</td><td>Maths</td></tr><tr><td>S2</td><td>PY</td><td>Physics</td></tr></table></div>
+  <p><b>2NF:</b> Subject depends only on SubjectCode, which is part of the composite key of STUDENT_SUBJECT: a partial dependency. Move it into SUBJECT.</p>
+  <div class="tw" style="display:inline-block;margin:4px 10px 4px 0;vertical-align:top"><table class="t mono"><caption style="text-align:left;font-weight:700">STUDENT_SUBJECT</caption><tr><th><u>StudentID</u></th><th><u>SubjectCode</u></th></tr><tr><td>S1</td><td>EN</td></tr><tr><td>S1</td><td>MA</td></tr><tr><td>S2</td><td>MA</td></tr></table></div><div class="tw" style="display:inline-block;margin:4px 10px 4px 0;vertical-align:top"><table class="t mono"><caption style="text-align:left;font-weight:700">SUBJECT</caption><tr><th><u>SubjectCode</u></th><th>Subject</th></tr><tr><td>EN</td><td>English</td></tr><tr><td>MA</td><td>Maths</td></tr><tr><td>CS</td><td>Computer Science</td></tr><tr><td>PY</td><td>Physics</td></tr></table></div><div class="tw" style="display:inline-block;margin:4px 10px 4px 0;vertical-align:top"><table class="t mono"><caption style="text-align:left;font-weight:700">STUDENT</caption><tr><th><u>StudentID</u></th><th>FirstName</th><th>LastName</th><th>DateOfBirth</th><th>TutorGroup</th><th>TutorName</th></tr><tr><td>S1</td><td>Yuwei</td><td>Chen</td><td>01/09/2004</td><td>SMH</td><td>Mr Hall</td></tr><tr><td>S2</td><td>Claudia</td><td>Raj</td><td>23/02/2005</td><td>JMB</td><td>Ms Brown</td></tr></table></div>
+  <p><b>3NF:</b> TutorName depends on TutorGroup, not on StudentID: a non-key dependency. Move it into TUTOR_GROUP.</p>
+  <div class="tw" style="display:inline-block;margin:4px 10px 4px 0;vertical-align:top"><table class="t mono"><caption style="text-align:left;font-weight:700">STUDENT</caption><tr><th><u>StudentID</u></th><th>FirstName</th><th>LastName</th><th>DateOfBirth</th><th>TutorGroup</th></tr><tr><td>S1</td><td>Yuwei</td><td>Chen</td><td>01/09/2004</td><td>SMH</td></tr><tr><td>S2</td><td>Claudia</td><td>Raj</td><td>23/02/2005</td><td>JMB</td></tr></table></div><div class="tw" style="display:inline-block;margin:4px 10px 4px 0;vertical-align:top"><table class="t mono"><caption style="text-align:left;font-weight:700">TUTOR_GROUP</caption><tr><th><u>TutorGroup</u></th><th>TutorName</th></tr><tr><td>SMH</td><td>Mr Hall</td></tr><tr><td>JMB</td><td>Ms Brown</td></tr></table></div>
+
+  <h2>Common ways to lose marks</h2>
+  <ul>
+    <li>Drawing an E-R relationship the wrong way round: the crow's foot (many) end is at the table holding the foreign key.</li>
+    <li>Adding extra lines to an E-R diagram, or leaving a linking table disconnected from one of its tables.</li>
+    <li>Describing 2NF without saying "partial dependency" and what it depends on (part of a composite key).</li>
+    <li>Giving only the name of the normal form when the question asks for the justification.</li>
+    <li>Normalising without a primary key in each new table, or without the foreign keys that link them.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Drawing an E-R diagram from foreign keys</h2>
+  <div id="stA"></div>
+  <h2>2 · From 0NF to 1NF</h2>
+  <div id="stB"></div>
+  <h2>3 · 2NF and 3NF</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Normal form of this table</h2>
+  <p>Pick a problem the table has and see which normal form it breaks.</p>
+  <div class="card"><div id="nB" class="btnrow"></div><div id="nO"></div></div>
+  <h2>Lab 2 · Foreign key to relationship</h2>
+  <div class="card"><div id="fB" class="btnrow"></div><div id="fO"></div></div>
+  <h2>Lab 3 · The shop database</h2>
+  <div class="card"><div id="eG"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which normal form is broken?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Many side or one side?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>4 · Put the normalisation steps in order</h2><div id="o1" class="card"></div>
+  <h2>5 · Working out</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A school's form list</h3><p>A student's subjects are in one cell. Splitting them into their own table, one row per subject, is first normal form.</p><div class="use"><b>Exam use:</b> 1NF.</div></div>
+  <div class="rw"><h3>A subject name repeated in every enrolment</h3><p>If every row of an enrolment table repeats 'Computer Science' with its code, the name depends only on the code: move it to a SUBJECT table.</p><div class="use"><b>Exam use:</b> 2NF.</div></div>
+  <div class="rw"><h3>A tutor's name stored with every student</h3><p>The name depends on the tutor group, not on the student; move it to a TUTOR_GROUP table so a name change is made once.</p><div class="use"><b>Exam use:</b> 3NF.</div></div>
+  <div class="rw"><h3>A diagram before building</h3><p>Database designers sketch an E-R diagram so everyone agrees how tables relate before a line of SQL is written.</p><div class="use"><b>Exam use:</b> E-R diagram.</div></div>
+  <div class="rw"><h3>A cinema booking database</h3><p>Many shows, many customers and many seats: linking tables turn those many-to-many relationships into one-to-many ones.</p><div class="use"><b>Exam use:</b> linking tables.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on E-R diagrams and normalisation (Paper 1), 2021 to 2026. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2021</td><td>12</td><td>1(b)</td><td>2</td><td>Is HOUSE_RENTALS in 3NF? Justify with examples</td></tr>
+    <tr><td>O/N 2021</td><td>12</td><td>6(a)</td><td>2 + 3</td><td>Normalisation stage for three tasks; draw the E-R diagram for PLANTSALES</td></tr>
+    <tr><td>M/J 2022</td><td>11</td><td>4(b)</td><td>3</td><td>The highest normal form of the database MARKS, with justification</td></tr>
+    <tr><td>M/J 2022</td><td>12</td><td>5(a)</td><td>2</td><td>Complete the E-R diagram for FILMS</td></tr>
+    <tr><td>O/N 2022</td><td>11</td><td>4(a), (b)</td><td>3 + 3</td><td>Complete the E-R diagram; the characteristics of 3NF</td></tr>
+    <tr><td>O/N 2022</td><td>12</td><td>5(a)</td><td>3</td><td>How the GARDEN database can be normalised to 3NF</td></tr>
+    <tr><td>M/J 2022</td><td>13</td><td>6(c)</td><td>3</td><td>Describe 1NF, 2NF and 3NF</td></tr>
+    <tr><td>M/J 2023</td><td>11</td><td>2(b)(ii)</td><td>1</td><td>Match the normal forms to their definitions</td></tr>
+    <tr><td>M/J 2023</td><td>13</td><td>4(c)</td><td>4</td><td>Write a normalised 3NF design for the car rental database</td></tr>
+    <tr><td>O/N 2023</td><td>11</td><td>3(a)</td><td>3</td><td>Complete the E-R diagram for the shop database</td></tr>
+    <tr><td>O/N 2023</td><td>12</td><td>2(c)</td><td>4</td><td>Explain how to put a table into 1NF</td></tr>
+    <tr><td>M/J 2024</td><td>12</td><td>4(a), (d)</td><td>1 + 5</td><td>The relationship between two tables; additional tables and how they link</td></tr>
+    <tr><td>M/J 2024</td><td>13</td><td>4(a), (d)</td><td>1 + 5</td><td>The relationship between PERFORMANCE and SHOW; additional tables for customers and seats</td></tr>
+    <tr><td>O/N 2024</td><td>11</td><td>2(b)(i)</td><td>3</td><td>Complete the E-R diagram for FIXIT</td></tr>
+    <tr><td>O/N 2024</td><td>12</td><td>6(b)(i)</td><td>6</td><td>Identify each relationship and how it is implemented</td></tr>
+    <tr><td>M/J 2025</td><td>11</td><td>5(a), (d)</td><td>3 + 3</td><td>Complete the E-R diagram; why ORDER_ITEM cannot be stored in ORDER</td></tr>
+    <tr><td>O/N 2025</td><td>11</td><td>2(a), (b)</td><td>2 + 2</td><td>Complete the E-R diagram for WORKEXPERIENCE; why it is in 3NF</td></tr>
+    <tr><td>O/N 2025</td><td>13</td><td>5(a)</td><td>3</td><td>Complete the E-R diagram for REVIEWS</td></tr>
+    <tr><td>M/J 2026</td><td>11</td><td>4(a)</td><td>4</td><td>Describe the relationship between CUSTOMER and BORROW, and TOY_INSTANCE and TOY</td></tr>
+    <tr><td>M/J 2026</td><td>12</td><td>3(a)</td><td>2</td><td>Describe the relationships between player, character and group</td></tr>
+    <tr><td>M/J 2026</td><td>13</td><td>4(a)</td><td>6</td><td>A 3-table 3NF design for the school library</td></tr>
+  </table></div>
+  <p class="note">E-R diagrams are asked in Paper 1 almost every series and the marks are one per correct relationship; extra lines lose marks. The diagrams below follow the mark schemes. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+  <details class="eq"><summary><span class="src">M/J 2021 · 9618/12 · Q1(b)</span> <span class="cmd">Tick / Justify</span> <span class="mark">2 marks</span> HOUSE_RENTALS has CUSTOMER(CustomerID, FirstName, LastName, DateOfBirth, Email), HOUSE(HouseID, HouseNumber, Road, Town, Bedrooms, Bathrooms) and RENTAL(RentalID, CustomerID, HouseID, MonthlyCost, DepositPaid). Tick whether it is in 3NF or not, and justify using examples from the database.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Each field depends on the key only.</div>
+    <div class="ans"><p>In 3NF. <span class="mk k" data-t="1">All fields in all tables are fully dependent on the primary key and on no other fields</span> <span class="mk k" data-t="2">For example all fields in CUSTOMER are fully dependent on CustomerID</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/12 · Q6(a)</span> <span class="cmd">Tick / Draw</span> <span class="mark">2 + 3 marks</span> PLANTSALES has PLANT(PlantName, QuantityInStock, Cost), CUSTOMER(CustomerID, FirstName, LastName, Address, Email), PURCHASE(PurchaseID, CustomerID) and PURCHASE_ITEM(PurchaseID, PlantName, Quantity). (i) Tick the stage for each task: remove partial key dependencies; remove repeating groups; remove non-key dependencies. (ii) Draw an E-R diagram for the database.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Repeating groups: 0NF to 1NF. Partial: 1NF to 2NF. Non-key: 2NF to 3NF.</div>
+    <div class="ans"><p><b>(i)</b> <span class="mk k" data-t="1">Remove partial key dependencies: 1NF to 2NF</span> <span class="mk k" data-t="2">Remove repeating groups: 0NF to 1NF</span> <span class="mk k" data-t="3">Remove non-key dependencies: 2NF to 3NF</span> (1 tick correct: 1 mark; all 3: 2 marks)</p><p><b>(ii)</b> <span class="mk k" data-t="1">PLANT to PURCHASE_ITEM: one-to-many</span> <span class="mk k" data-t="2">PURCHASE to PURCHASE_ITEM: one-to-many</span> <span class="mk k" data-t="3">CUSTOMER to PURCHASE: one-to-many</span></p><svg viewBox="0 0 470 150" style="width:470px;max-width:100%;display:block" role="img" aria-label="PLANTSALES"><line class="w" x1="95.0" y1="44.0" x2="95.0" y2="100.0"/><line class="w" x1="88.0" y1="56.0" x2="102.0" y2="56.0"/><line class="w" x1="95.0" y1="86.0" x2="87.0" y2="100.0"/><line class="w" x1="95.0" y1="86.0" x2="95.0" y2="100.0"/><line class="w" x1="95.0" y1="86.0" x2="103.0" y2="100.0"/><line class="w" x1="290.0" y1="117.0" x2="170.0" y2="117.0"/><line class="w" x1="278.0" y1="110.0" x2="278.0" y2="124.0"/><line class="w" x1="184.0" y1="117.0" x2="170.0" y2="109.0"/><line class="w" x1="184.0" y1="117.0" x2="170.0" y2="117.0"/><line class="w" x1="184.0" y1="117.0" x2="170.0" y2="125.0"/><line class="w" x1="365.0" y1="44.0" x2="365.0" y2="100.0"/><line class="w" x1="358.0" y1="56.0" x2="372.0" y2="56.0"/><line class="w" x1="365.0" y1="86.0" x2="357.0" y2="100.0"/><line class="w" x1="365.0" y1="86.0" x2="365.0" y2="100.0"/><line class="w" x1="365.0" y1="86.0" x2="373.0" y2="100.0"/><rect class="ax" style="fill:var(--surface)" x="20" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="95.0" y="31.0" text-anchor="middle" style="font-size:11px">PLANT</text><rect class="ax" style="fill:var(--surface)" x="290" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="31.0" text-anchor="middle" style="font-size:11px">CUSTOMER</text><rect class="ax" style="fill:var(--surface)" x="20" y="100" width="150" height="34" rx="4"/><text class="lbl bd" x="95.0" y="121.0" text-anchor="middle" style="font-size:11px">PURCHASE_ITEM</text><rect class="ax" style="fill:var(--surface)" x="290" y="100" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="121.0" text-anchor="middle" style="font-size:11px">PURCHASE</text></svg></div>
+    <div class="warn"><b class="h">Common mistake</b>Drawing PLANT to CUSTOMER directly. They are only linked through the purchase tables.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/11 · Q4(b)</span> <span class="cmd">Give / Justify</span> <span class="mark">3 marks</span> MARKS has STUDENT(StudentID, FirstName, LastName), TEST(TestID, Description, TotalMarks) and STUDENT_TEST(StudentID, TestID, Mark). Give the highest level of Normal Form the database is in and justify your choice.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>3NF: no repeated attributes, no partial or transitive dependencies.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">3NF</span> Justification, any two: <span class="mk a" data-t="1">There are no repeated attributes (it is already in 2NF)</span> <span class="mk a" data-t="2">Each field is fully dependent on its primary key; no partial dependencies</span> <span class="mk a" data-t="3">There are no transitive dependencies</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/12 · Q5(a)</span> <span class="cmd">Complete</span> <span class="mark">2 marks</span> FILMS has ACTOR(ActorID, FirstName, LastName, DateOfBirth), FILM_FACT(FilmID, FilmTitle, ReleaseDate, Category) and FILM_ACTOR(ActorID, FilmID). Complete the E-R diagram.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>FILM_ACTOR is a linking table.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">ACTOR to FILM_ACTOR: one-to-many</span> <span class="mk k" data-t="2">FILM_FACT to FILM_ACTOR: one-to-many</span></p><svg viewBox="0 0 470 150" style="width:470px;max-width:100%;display:block" role="img" aria-label="FILMS"><line class="w" x1="120.5" y1="44.0" x2="204.5" y2="100.0"/><line class="w" x1="113.5" y1="56.0" x2="127.5" y2="56.0"/><line class="w" x1="204.5" y1="86.0" x2="196.5" y2="100.0"/><line class="w" x1="204.5" y1="86.0" x2="204.5" y2="100.0"/><line class="w" x1="204.5" y1="86.0" x2="212.5" y2="100.0"/><line class="w" x1="339.5" y1="44.0" x2="255.5" y2="100.0"/><line class="w" x1="332.5" y1="56.0" x2="346.5" y2="56.0"/><line class="w" x1="255.5" y1="86.0" x2="247.5" y2="100.0"/><line class="w" x1="255.5" y1="86.0" x2="255.5" y2="100.0"/><line class="w" x1="255.5" y1="86.0" x2="263.5" y2="100.0"/><rect class="ax" style="fill:var(--surface)" x="20" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="95.0" y="31.0" text-anchor="middle" style="font-size:11px">ACTOR</text><rect class="ax" style="fill:var(--surface)" x="290" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="31.0" text-anchor="middle" style="font-size:11px">FILM_FACT</text><rect class="ax" style="fill:var(--surface)" x="155" y="100" width="150" height="34" rx="4"/><text class="lbl bd" x="230.0" y="121.0" text-anchor="middle" style="font-size:11px">FILM_ACTOR</text></svg></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/11 · Q4(a)(b)</span> <span class="cmd">Complete</span> <span class="mark">3 + 3 marks</span> PHOTOGRAPHS has CUSTOMER(CustomerID, FirstName, LastName, Telephone), PARTY(PartyID, CustomerID, PartyDate, StartTime), PHOTO_DATA(PhotoID, PartyID, TimeTaken, CameraID) and CAMERA_DATA(CameraID, LensType, LightingType). (a) Complete the E-R diagram. (b) Describe the characteristics of a database in 3NF.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Follow the foreign keys. No repeating groups, no partial, no non-key dependencies.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">CUSTOMER to PARTY: 1:M</span> <span class="mk k" data-t="2">PARTY to PHOTO_DATA: 1:M</span> <span class="mk k" data-t="3">CAMERA_DATA to PHOTO_DATA: 1:M</span> (b) Any three: <span class="mk a" data-t="1">No repeating groups of attributes (the data is atomic)</span> <span class="mk a" data-t="2">No partial key dependencies</span> <span class="mk a" data-t="3">No non-key (transitive) dependencies</span></p><svg viewBox="0 0 470 150" style="width:470px;max-width:100%;display:block" role="img" aria-label="PHOTOGRAPHS"><line class="w" x1="290.0" y1="27.0" x2="170.0" y2="27.0"/><line class="w" x1="278.0" y1="20.0" x2="278.0" y2="34.0"/><line class="w" x1="184.0" y1="27.0" x2="170.0" y2="19.0"/><line class="w" x1="184.0" y1="27.0" x2="170.0" y2="27.0"/><line class="w" x1="184.0" y1="27.0" x2="170.0" y2="35.0"/><line class="w" x1="95.0" y1="44.0" x2="95.0" y2="100.0"/><line class="w" x1="88.0" y1="56.0" x2="102.0" y2="56.0"/><line class="w" x1="95.0" y1="86.0" x2="87.0" y2="100.0"/><line class="w" x1="95.0" y1="86.0" x2="95.0" y2="100.0"/><line class="w" x1="95.0" y1="86.0" x2="103.0" y2="100.0"/><line class="w" x1="290.0" y1="117.0" x2="170.0" y2="117.0"/><line class="w" x1="278.0" y1="110.0" x2="278.0" y2="124.0"/><line class="w" x1="184.0" y1="117.0" x2="170.0" y2="109.0"/><line class="w" x1="184.0" y1="117.0" x2="170.0" y2="117.0"/><line class="w" x1="184.0" y1="117.0" x2="170.0" y2="125.0"/><rect class="ax" style="fill:var(--surface)" x="20" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="95.0" y="31.0" text-anchor="middle" style="font-size:11px">PARTY</text><rect class="ax" style="fill:var(--surface)" x="290" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="31.0" text-anchor="middle" style="font-size:11px">CUSTOMER</text><rect class="ax" style="fill:var(--surface)" x="20" y="100" width="150" height="34" rx="4"/><text class="lbl bd" x="95.0" y="121.0" text-anchor="middle" style="font-size:11px">PHOTO_DATA</text><rect class="ax" style="fill:var(--surface)" x="290" y="100" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="121.0" text-anchor="middle" style="font-size:11px">CAMERA_DATA</text></svg></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/12 · Q5(a)</span> <span class="cmd">Explain</span> <span class="mark">3 marks</span> GARDEN has OWNER(OwnerID, FirstName, TelephoneNo, TreeID, TreePosition) and TREE(TreeID, ScientificName, MaxHeight, FastGrowing). The database is not in 3NF. Explain how it can be normalised to 3NF.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Owner and tree is many-to-many: a linking table.</div>
+    <div class="ans"><p>Any three: <span class="mk k" data-t="1">Remove the many-to-many relationship between OWNER and TREE</span> <span class="mk k" data-t="2">by removing TreeID and TreePosition from the OWNER table</span> <span class="mk k" data-t="3">and creating a linking table between OWNER and TREE</span> <span class="mk k" data-t="4">containing OwnerID, TreeID and TreePosition</span> <span class="mk k" data-t="5">with a (composite) primary key of OwnerID and TreeID, or a new named primary key</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/13 · Q6(c)</span> <span class="cmd">Describe</span> <span class="mark">3 marks</span> The database TECHNOLOGY is in 3NF. Complete the table by describing the three normal forms.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>1NF repeats; 2NF partial; 3NF non-key.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">1NF: no repeating groups or repeating attributes</span> <span class="mk k" data-t="2">2NF: all attributes are fully dependent on the (composite) primary key; no partial dependencies</span> <span class="mk k" data-t="3">3NF: all attributes are fully dependent on the primary key and no other attributes; no non-key or transitive dependencies</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/11 · Q2(b)(ii)</span> <span class="cmd">Match</span> <span class="mark">1 mark</span> Draw one line from each Normal Form to the most appropriate definition. Normal forms: 1NF, 2NF, 3NF. Definitions: all fields are fully dependent on the primary key; there are no repeating groups of attributes; there are no partial dependencies. (The paper's wording is shuffled, so match by meaning.)</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Repeating groups: 1NF. Partial: 2NF. Dependent on the key: 3NF.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">1NF: there are no repeating groups of attributes</span> <span class="mk k" data-t="2">2NF: there are no partial dependencies</span> <span class="mk k" data-t="3">3NF: all fields are fully dependent on the primary key (and on no other field)</span> (all three correct for the mark)</p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/13 · Q4(c)</span> <span class="cmd">Write</span> <span class="mark">4 marks</span> The car rental database is not normalised: BOOKING(CarRegistration, StartDate, EndDate, CarModel, CarColour, CustomerFirstName) and CUSTOMER(CustomerFirstName, CustomerLastName, EmailAddress, TelephoneNumber). Write a normalised 3NF database design using the field names given and underline the primary key fields.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Three tables: booking, car, customer.</div>
+    <div class="ans"><p>One answer: BOOKING(<u>BookingID</u>, CarRegistration, CustomerID, StartDate, EndDate); CAR(<u>CarRegistration</u>, CarModel, CarColour); CUSTOMER(<u>CustomerID</u>, CustomerFirstName, CustomerLastName, EmailAddress, TelephoneNumber).</p><p><span class="mk k" data-t="1">Only three tables with appropriate identifiers (customer, booking, car)</span> <span class="mk k" data-t="2">An appropriate primary key underlined in each table</span> <span class="mk k" data-t="3">BOOKING includes the primary keys of CAR and CUSTOMER as foreign keys</span> <span class="mk k" data-t="4">All original fields are in the correct tables</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Using CustomerFirstName as the customer key. Names are not unique; use a CustomerID.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/11 · Q3(a)</span> <span class="cmd">Complete</span> <span class="mark">3 marks</span> The shop database has CUSTOMER(CustomerID, FirstName, LastName, Town), SHOP_ORDER(OrderNo, CustomerID, OrderDate), SUPPLIER(SupplierID, EmailAddress, TelephoneNumber), ITEM(ItemNumber, SupplierID, Description, Price) and ORDER_ITEM(ItemNumber, OrderNo, Quantity). Complete the E-R diagram.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>ORDER_ITEM links SHOP_ORDER and ITEM.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">CUSTOMER to SHOP_ORDER: 1:M</span> <span class="mk k" data-t="2">SUPPLIER to ITEM: 1:M</span> <span class="mk k" data-t="3">SHOP_ORDER to ORDER_ITEM: 1:M and ITEM to ORDER_ITEM: 1:M</span></p><svg viewBox="0 0 470 220" style="width:470px;max-width:100%;display:block" role="img" aria-label="shop"><line class="w" x1="290.0" y1="27.0" x2="170.0" y2="27.0"/><line class="w" x1="278.0" y1="20.0" x2="278.0" y2="34.0"/><line class="w" x1="184.0" y1="27.0" x2="170.0" y2="19.0"/><line class="w" x1="184.0" y1="27.0" x2="170.0" y2="27.0"/><line class="w" x1="184.0" y1="27.0" x2="170.0" y2="35.0"/><line class="w" x1="95.0" y1="44.0" x2="95.0" y2="100.0"/><line class="w" x1="88.0" y1="56.0" x2="102.0" y2="56.0"/><line class="w" x1="95.0" y1="86.0" x2="87.0" y2="100.0"/><line class="w" x1="95.0" y1="86.0" x2="95.0" y2="100.0"/><line class="w" x1="95.0" y1="86.0" x2="103.0" y2="100.0"/><line class="w" x1="197.2" y1="170.0" x2="127.8" y2="134.0"/><line class="w" x1="204.2" y1="158.0" x2="190.2" y2="158.0"/><line class="w" x1="127.8" y1="148.0" x2="135.8" y2="134.0"/><line class="w" x1="127.8" y1="148.0" x2="127.8" y2="134.0"/><line class="w" x1="127.8" y1="148.0" x2="119.8" y2="134.0"/><line class="w" x1="332.2" y1="134.0" x2="262.8" y2="170.0"/><line class="w" x1="325.2" y1="146.0" x2="339.2" y2="146.0"/><line class="w" x1="262.8" y1="156.0" x2="254.8" y2="170.0"/><line class="w" x1="262.8" y1="156.0" x2="262.8" y2="170.0"/><line class="w" x1="262.8" y1="156.0" x2="270.8" y2="170.0"/><rect class="ax" style="fill:var(--surface)" x="20" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="95.0" y="31.0" text-anchor="middle" style="font-size:11px">SHOP_ORDER</text><rect class="ax" style="fill:var(--surface)" x="290" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="31.0" text-anchor="middle" style="font-size:11px">CUSTOMER</text><rect class="ax" style="fill:var(--surface)" x="20" y="100" width="150" height="34" rx="4"/><text class="lbl bd" x="95.0" y="121.0" text-anchor="middle" style="font-size:11px">ORDER_ITEM</text><rect class="ax" style="fill:var(--surface)" x="290" y="100" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="121.0" text-anchor="middle" style="font-size:11px">SUPPLIER</text><rect class="ax" style="fill:var(--surface)" x="155" y="170" width="150" height="34" rx="4"/><text class="lbl bd" x="230.0" y="191.0" text-anchor="middle" style="font-size:11px">ITEM</text></svg></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/12 · Q2(c)</span> <span class="cmd">Explain</span> <span class="mark">4 marks</span> Explain how to modify the table STUDENT(StudentName, DateOfBirth, TutorGroup, Subject, SubjectCode), where Subject and SubjectCode hold several values in one cell, to put it into First Normal Form.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Repeating groups; atomic; a key.</div>
+    <div class="ans"><p>Any four: <span class="mk k" data-t="1">Identify the repeating groups of attributes</span> <span class="mk k" data-t="2">Subject and SubjectCode</span> <span class="mk k" data-t="3">Ensure each field is atomic</span> <span class="mk k" data-t="4">StudentName should be split into, for example, FirstName and LastName</span> <span class="mk k" data-t="5">Identify the primary key for the table</span></p><div class="tw" style="display:inline-block;margin:4px 10px 4px 0;vertical-align:top"><table class="t mono"><caption style="text-align:left;font-weight:700">STUDENT (not normalised)</caption><tr><th>StudentName</th><th>DateOfBirth</th><th>TutorGroup</th><th>Subject</th><th>SubjectCode</th></tr><tr><td>Yuwei Chen</td><td>01/09/2004</td><td>SMH</td><td>English, Maths, Computer Science</td><td>EN, MA, CS</td></tr><tr><td>Claudia Raj</td><td>23/02/2005</td><td>JMB</td><td>Maths, Physics, Art</td><td>MA, PY, AR</td></tr></table></div><div class="tw" style="display:inline-block;margin:4px 10px 4px 0;vertical-align:top"><table class="t mono"><caption style="text-align:left;font-weight:700">STUDENT</caption><tr><th><u>StudentID</u></th><th>FirstName</th><th>LastName</th><th>DateOfBirth</th><th>TutorGroup</th><th>TutorName</th></tr><tr><td>S1</td><td>Yuwei</td><td>Chen</td><td>01/09/2004</td><td>SMH</td><td>Mr Hall</td></tr><tr><td>S2</td><td>Claudia</td><td>Raj</td><td>23/02/2005</td><td>JMB</td><td>Ms Brown</td></tr></table></div><div class="tw" style="display:inline-block;margin:4px 10px 4px 0;vertical-align:top"><table class="t mono"><caption style="text-align:left;font-weight:700">STUDENT_SUBJECT</caption><tr><th><u>StudentID</u></th><th><u>SubjectCode</u></th><th>Subject</th></tr><tr><td>S1</td><td>EN</td><td>English</td></tr><tr><td>S1</td><td>MA</td><td>Maths</td></tr><tr><td>S1</td><td>CS</td><td>Computer Science</td></tr><tr><td>S2</td><td>MA</td><td>Maths</td></tr><tr><td>S2</td><td>PY</td><td>Physics</td></tr></table></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/12 · Q4(a)(d)</span> <span class="cmd">Identify / Describe</span> <span class="mark">1 + 5 marks</span> EXAM(ExamID, Subject, Level, TotalMarks) and EXAM_QUESTION(ExamQuestionID, ExamID, QuestionNumber, Question, MaxMark). (a) Identify the relationship between EXAM and EXAM_QUESTION. (d) The database also needs to store the students, the exams they take and the marks for each question. Describe the additional tables and explain how all the tables are linked.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One to many. STUDENT, a linking table to EXAM, a linking table to EXAM_QUESTION.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">One-to-many</span></p><p><b>(d)</b> Any five: <span class="mk a" data-t="1">A STUDENT table with a suitable primary key</span> <span class="mk a" data-t="2">A linking table between STUDENT and EXAM with a suitable primary key and name</span> <span class="mk a" data-t="3">that includes the primary key of STUDENT as a foreign key</span> <span class="mk a" data-t="4">and the primary key of EXAM as a foreign key</span> <span class="mk a" data-t="5">A linking table between STUDENT and EXAM_QUESTION</span> <span class="mk a" data-t="6">that includes the key of the previous linking table as a foreign key</span> <span class="mk a" data-t="7">that stores the ExamQuestionID and the mark for that question</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/13 · Q4(a)(d)</span> <span class="cmd">Identify / Describe</span> <span class="mark">1 + 5 marks</span> The theatre database has SHOW(ShowID, Title, Duration), SEAT(SeatID, RowLetter, SeatNumber) and PERFORMANCE(PerformanceID, ShowID, ShowDate, StartTime). (a) Identify the relationship between PERFORMANCE and SHOW. (d) Customers give a first name, last name and email address when booking, and one booking can include multiple seats. Describe the additional tables and how they are linked.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Many to one. CUSTOMER, BOOKING, and a linking table to SEAT.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Many to one (many performances of each show)</span></p><p><b>(d)</b> Any five: <span class="mk a" data-t="1">A CUSTOMER table with a suitable primary key and fields including name and email</span> <span class="mk a" data-t="2">A BOOKING table with a suitable primary key</span> <span class="mk a" data-t="3">that stores the primary key of CUSTOMER as a foreign key</span> <span class="mk a" data-t="4">and the primary key of PERFORMANCE as a foreign key</span> <span class="mk a" data-t="5">A linking table between BOOKING and SEAT with a suitable primary key</span> <span class="mk a" data-t="6">that includes the primary key of BOOKING as a foreign key</span> <span class="mk a" data-t="7">that stores the SeatID</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/11 · Q2(b)(i)</span> <span class="cmd">Complete</span> <span class="mark">3 marks</span> FIXIT has PART(PartID, Description, Price, SupplierID), CUSTOMER(CustomerID, FirstName, LastName, ContactNumber), REPAIR(RepairNumber, StartDate, EndDate, CustomerID, Device) and REPAIR_PART(PartID, RepairNumber, Quantity). Complete the E-R diagram.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>REPAIR_PART is the linking table.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">PART to REPAIR_PART: 1:M</span> <span class="mk k" data-t="2">REPAIR to REPAIR_PART: 1:M</span> <span class="mk k" data-t="3">CUSTOMER to REPAIR: 1:M</span></p><svg viewBox="0 0 470 150" style="width:470px;max-width:100%;display:block" role="img" aria-label="FIXIT"><line class="w" x1="290.0" y1="27.0" x2="170.0" y2="27.0"/><line class="w" x1="278.0" y1="20.0" x2="278.0" y2="34.0"/><line class="w" x1="184.0" y1="27.0" x2="170.0" y2="19.0"/><line class="w" x1="184.0" y1="27.0" x2="170.0" y2="27.0"/><line class="w" x1="184.0" y1="27.0" x2="170.0" y2="35.0"/><line class="w" x1="95.0" y1="100.0" x2="95.0" y2="44.0"/><line class="w" x1="102.0" y1="88.0" x2="88.0" y2="88.0"/><line class="w" x1="95.0" y1="58.0" x2="103.0" y2="44.0"/><line class="w" x1="95.0" y1="58.0" x2="95.0" y2="44.0"/><line class="w" x1="95.0" y1="58.0" x2="87.0" y2="44.0"/><line class="w" x1="290.0" y1="117.0" x2="170.0" y2="117.0"/><line class="w" x1="278.0" y1="110.0" x2="278.0" y2="124.0"/><line class="w" x1="184.0" y1="117.0" x2="170.0" y2="109.0"/><line class="w" x1="184.0" y1="117.0" x2="170.0" y2="117.0"/><line class="w" x1="184.0" y1="117.0" x2="170.0" y2="125.0"/><rect class="ax" style="fill:var(--surface)" x="20" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="95.0" y="31.0" text-anchor="middle" style="font-size:11px">REPAIR_PART</text><rect class="ax" style="fill:var(--surface)" x="290" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="31.0" text-anchor="middle" style="font-size:11px">PART</text><rect class="ax" style="fill:var(--surface)" x="20" y="100" width="150" height="34" rx="4"/><text class="lbl bd" x="95.0" y="121.0" text-anchor="middle" style="font-size:11px">REPAIR</text><rect class="ax" style="fill:var(--surface)" x="290" y="100" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="121.0" text-anchor="middle" style="font-size:11px">CUSTOMER</text></svg></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/12 · Q6(b)(i)</span> <span class="cmd">Identify / Explain</span> <span class="mark">6 marks</span> The database includes CUSTOMER, EMPLOYEE, LOGIN_DATA (username and password for each employee), JOB and JOB_EMPLOYEE (the employees working on each job). Identify each relationship between the tables and explain how each is implemented in the normalised database.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Customer to job 1:M; employee to login 1:1; job and employee to JOB_EMPLOYEE 1:M.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">CUSTOMER to JOB is one-to-many, implemented by the primary key in CUSTOMER being a foreign key in JOB</span> <span class="mk k" data-t="2">EMPLOYEE to LOGIN_DATA is one-to-one, implemented by the primary key in EMPLOYEE being a foreign key in LOGIN_DATA</span> <span class="mk k" data-t="3">JOB to JOB_EMPLOYEE is one-to-many, implemented by the primary key in JOB being a foreign key in JOB_EMPLOYEE</span> <span class="mk k" data-t="4">EMPLOYEE to JOB_EMPLOYEE is one-to-many, implemented by the primary key in EMPLOYEE being a foreign key in JOB_EMPLOYEE</span> (relationship and implementation for each; max 6)</p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/11 · Q5(a)</span> <span class="cmd">Complete</span> <span class="mark">3 marks</span> FURNITURE has CUSTOMER, CUSTOMER_CARD_DATA(CardID, CustomerID, ...), ORDER(OrderID, CustomerID, ...) and ORDER_ITEM(OrderItemID, OrderID, ...). Complete the E-R diagram.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Three one-to-many relationships; no extra lines.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">CUSTOMER to CUSTOMER_CARD_DATA: 1:M</span> <span class="mk k" data-t="2">CUSTOMER to ORDER: 1:M</span> <span class="mk k" data-t="3">ORDER to ORDER_ITEM: 1:M</span> (max 2 if there are extra relationships)</p><svg viewBox="0 0 470 150" style="width:470px;max-width:100%;display:block" role="img" aria-label="FURNITURE"><line class="w" x1="170.0" y1="27.0" x2="290.0" y2="27.0"/><line class="w" x1="182.0" y1="34.0" x2="182.0" y2="20.0"/><line class="w" x1="276.0" y1="27.0" x2="290.0" y2="35.0"/><line class="w" x1="276.0" y1="27.0" x2="290.0" y2="27.0"/><line class="w" x1="276.0" y1="27.0" x2="290.0" y2="19.0"/><line class="w" x1="95.0" y1="44.0" x2="95.0" y2="100.0"/><line class="w" x1="88.0" y1="56.0" x2="102.0" y2="56.0"/><line class="w" x1="95.0" y1="86.0" x2="87.0" y2="100.0"/><line class="w" x1="95.0" y1="86.0" x2="95.0" y2="100.0"/><line class="w" x1="95.0" y1="86.0" x2="103.0" y2="100.0"/><line class="w" x1="170.0" y1="117.0" x2="290.0" y2="117.0"/><line class="w" x1="182.0" y1="124.0" x2="182.0" y2="110.0"/><line class="w" x1="276.0" y1="117.0" x2="290.0" y2="125.0"/><line class="w" x1="276.0" y1="117.0" x2="290.0" y2="117.0"/><line class="w" x1="276.0" y1="117.0" x2="290.0" y2="109.0"/><rect class="ax" style="fill:var(--surface)" x="20" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="95.0" y="31.0" text-anchor="middle" style="font-size:11px">CUSTOMER</text><rect class="ax" style="fill:var(--surface)" x="290" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="31.0" text-anchor="middle" style="font-size:11px">CUSTOMER_CARD_DATA</text><rect class="ax" style="fill:var(--surface)" x="20" y="100" width="150" height="34" rx="4"/><text class="lbl bd" x="95.0" y="121.0" text-anchor="middle" style="font-size:11px">ORDER</text><rect class="ax" style="fill:var(--surface)" x="290" y="100" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="121.0" text-anchor="middle" style="font-size:11px">ORDER_ITEM</text></svg></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/11 · Q5(d)</span> <span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain the reasons why the data in the table ORDER_ITEM cannot be stored in the table ORDER.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Each order has several items.</div>
+    <div class="ans"><p>Any three: <span class="mk k" data-t="1">Each order would only be able to have one item</span> <span class="mk k" data-t="2">or the database would not be normalised</span> <span class="mk k" data-t="3">it would not be in 1NF</span> <span class="mk k" data-t="4">due to repeated groups of attributes in the ORDER table</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/11 · Q2(a)(b)</span> <span class="cmd">Complete</span> <span class="mark">2 + 2 marks</span> WORKEXPERIENCE has STUDENT, PLACEMENT(PlacementID, StudentID, CompanyID, ...) and COMPANY. (a) Complete the E-R diagram. (b) Explain why the database is in 3NF.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>PLACEMENT holds both foreign keys.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">STUDENT to PLACEMENT: 1:M</span> <span class="mk k" data-t="2">COMPANY to PLACEMENT: 1:M</span> (b) Any two: <span class="mk a" data-t="1">There are no repeating groups of attributes</span> <span class="mk a" data-t="2">There are no many-to-many relationships</span> <span class="mk a" data-t="3">There are no partial key dependencies, no non-key dependencies and no transitive dependencies</span></p><svg viewBox="0 0 470 150" style="width:470px;max-width:100%;display:block" role="img" aria-label="WORKEXPERIENCE"><line class="w" x1="120.5" y1="44.0" x2="204.5" y2="100.0"/><line class="w" x1="113.5" y1="56.0" x2="127.5" y2="56.0"/><line class="w" x1="204.5" y1="86.0" x2="196.5" y2="100.0"/><line class="w" x1="204.5" y1="86.0" x2="204.5" y2="100.0"/><line class="w" x1="204.5" y1="86.0" x2="212.5" y2="100.0"/><line class="w" x1="339.5" y1="44.0" x2="255.5" y2="100.0"/><line class="w" x1="332.5" y1="56.0" x2="346.5" y2="56.0"/><line class="w" x1="255.5" y1="86.0" x2="247.5" y2="100.0"/><line class="w" x1="255.5" y1="86.0" x2="255.5" y2="100.0"/><line class="w" x1="255.5" y1="86.0" x2="263.5" y2="100.0"/><rect class="ax" style="fill:var(--surface)" x="20" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="95.0" y="31.0" text-anchor="middle" style="font-size:11px">STUDENT</text><rect class="ax" style="fill:var(--surface)" x="290" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="31.0" text-anchor="middle" style="font-size:11px">COMPANY</text><rect class="ax" style="fill:var(--surface)" x="155" y="100" width="150" height="34" rx="4"/><text class="lbl bd" x="230.0" y="121.0" text-anchor="middle" style="font-size:11px">PLACEMENT</text></svg></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/13 · Q5(a)</span> <span class="cmd">Complete</span> <span class="mark">3 marks</span> REVIEWS has CUSTOMER, PRODUCT, COMPLAINT(ComplaintID, ProductID, CustomerID, ComplaintDetails, StaffID) and STAFF. Complete the E-R diagram.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>COMPLAINT holds three foreign keys.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">CUSTOMER to COMPLAINT: 1:M</span> <span class="mk k" data-t="2">PRODUCT to COMPLAINT: 1:M</span> <span class="mk k" data-t="3">STAFF to COMPLAINT: 1:M</span></p><svg viewBox="0 0 470 220" style="width:470px;max-width:100%;display:block" role="img" aria-label="REVIEWS"><line class="w" x1="120.5" y1="44.0" x2="204.5" y2="100.0"/><line class="w" x1="113.5" y1="56.0" x2="127.5" y2="56.0"/><line class="w" x1="204.5" y1="86.0" x2="196.5" y2="100.0"/><line class="w" x1="204.5" y1="86.0" x2="204.5" y2="100.0"/><line class="w" x1="204.5" y1="86.0" x2="212.5" y2="100.0"/><line class="w" x1="339.5" y1="44.0" x2="255.5" y2="100.0"/><line class="w" x1="332.5" y1="56.0" x2="346.5" y2="56.0"/><line class="w" x1="255.5" y1="86.0" x2="247.5" y2="100.0"/><line class="w" x1="255.5" y1="86.0" x2="255.5" y2="100.0"/><line class="w" x1="255.5" y1="86.0" x2="263.5" y2="100.0"/><line class="w" x1="332.2" y1="170.0" x2="262.8" y2="134.0"/><line class="w" x1="339.2" y1="158.0" x2="325.2" y2="158.0"/><line class="w" x1="262.8" y1="148.0" x2="270.8" y2="134.0"/><line class="w" x1="262.8" y1="148.0" x2="262.8" y2="134.0"/><line class="w" x1="262.8" y1="148.0" x2="254.8" y2="134.0"/><rect class="ax" style="fill:var(--surface)" x="20" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="95.0" y="31.0" text-anchor="middle" style="font-size:11px">CUSTOMER</text><rect class="ax" style="fill:var(--surface)" x="290" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="31.0" text-anchor="middle" style="font-size:11px">PRODUCT</text><rect class="ax" style="fill:var(--surface)" x="155" y="100" width="150" height="34" rx="4"/><text class="lbl bd" x="230.0" y="121.0" text-anchor="middle" style="font-size:11px">COMPLAINT</text><rect class="ax" style="fill:var(--surface)" x="290" y="170" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="191.0" text-anchor="middle" style="font-size:11px">STAFF</text></svg></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/11 · Q4(a)</span> <span class="cmd">Describe</span> <span class="mark">4 marks</span> The toy shop database has CUSTOMER(CustomerID, ContactFirstName, Phone), TOY(ToyID, ToyName, CostPerDay), TOY_INSTANCE(UniqueToyID, ToyID, Quality) and BORROW(BorrowID, CustomerID, UniqueToyID, StartDate, NumberDays). Describe the relationship between CUSTOMER and BORROW, and between TOY_INSTANCE and TOY, including the primary and foreign keys.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>1:M and M:1; name the keys and how they link.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">CUSTOMER to BORROW is one-to-many</span> <span class="mk k" data-t="2">TOY_INSTANCE to TOY is many-to-one</span> <span class="mk k" data-t="3">The correct primary key and matching foreign key in both relationships (CustomerID in CUSTOMER and BORROW; ToyID in TOY and TOY_INSTANCE)</span> <span class="mk k" data-t="4">The primary key in the one table is the foreign key in the many table, which creates the relationship</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/12 · Q3(a)</span> <span class="cmd">Describe</span> <span class="mark">2 marks</span> A game database has three entities: players, the characters that players create, and the groups that players create and allow characters to join. Describe the relationships between the three entities.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A player has many characters; groups and characters are many-to-many.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">PLAYER to CHARACTER is one-to-many: one player can have many characters but each character is created by one player</span> <span class="mk k" data-t="2">GROUP and CHARACTER is many-to-many: one group can have many characters and one character can be in many groups</span></p><svg viewBox="0 0 470 150" style="width:470px;max-width:100%;display:block" role="img" aria-label="game"><line class="w" x1="170.0" y1="27.0" x2="290.0" y2="27.0"/><line class="w" x1="182.0" y1="34.0" x2="182.0" y2="20.0"/><line class="w" x1="276.0" y1="27.0" x2="290.0" y2="35.0"/><line class="w" x1="276.0" y1="27.0" x2="290.0" y2="27.0"/><line class="w" x1="276.0" y1="27.0" x2="290.0" y2="19.0"/><line class="w" x1="365.0" y1="44.0" x2="365.0" y2="100.0"/><line class="w" x1="365.0" y1="58.0" x2="373.0" y2="44.0"/><line class="w" x1="365.0" y1="58.0" x2="365.0" y2="44.0"/><line class="w" x1="365.0" y1="58.0" x2="357.0" y2="44.0"/><line class="w" x1="365.0" y1="86.0" x2="357.0" y2="100.0"/><line class="w" x1="365.0" y1="86.0" x2="365.0" y2="100.0"/><line class="w" x1="365.0" y1="86.0" x2="373.0" y2="100.0"/><rect class="ax" style="fill:var(--surface)" x="20" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="95.0" y="31.0" text-anchor="middle" style="font-size:11px">PLAYER</text><rect class="ax" style="fill:var(--surface)" x="290" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="31.0" text-anchor="middle" style="font-size:11px">CHARACTER</text><rect class="ax" style="fill:var(--surface)" x="290" y="100" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="121.0" text-anchor="middle" style="font-size:11px">GROUP</text></svg></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/13 · Q4(a)</span> <span class="cmd">Create</span> <span class="mark">6 marks</span> A school library stores data about books (author, title, category, number of pages), students (name and class) and the books they borrow for 14 days. The database must store whether a book is late. Create a 3-table design normalised to 3NF in the format TableName(Field1, Field2, ...), with primary keys underlined and foreign keys marked.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Book, Student, Borrow with two foreign keys.</div>
+    <div class="ans"><p>One answer: BOOK(<u>BookID</u>, Author, Title, Category, Pages); STUDENT(<u>StudentID</u>, FirstName, LastName, Class); BORROW(<u>BorrowID</u>, StudentID, BookID, DateBorrowed, Late).</p><p><span class="mk k" data-t="1">Three tables with suitable names</span> <span class="mk k" data-t="2">Each has a suitable primary key</span> <span class="mk k" data-t="3">Book has the author, title, category and number of pages</span> <span class="mk k" data-t="4">Student has the first name, last name and class</span> <span class="mk k" data-t="5">Borrow has the book and student keys, the date borrowed and a field to show late</span> <span class="mk k" data-t="6">The foreign keys in BORROW are clearly identified</span></p></div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Draw</span> <span class="mark">3 marks</span> A library has MEMBER(MemberID, Name), BOOK(BookID, Title) and LOAN(LoanID, MemberID, BookID, DueDate). Describe the relationships (by name and type) for an E-R diagram.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>LOAN holds two foreign keys.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">MEMBER to LOAN: one-to-many</span> <span class="mk k" data-t="2">BOOK to LOAN: one-to-many</span> <span class="mk k" data-t="3">Therefore LOAN is a linking table between MEMBER and BOOK (many-to-many)</span></p><div class="circ"><svg viewBox="0 0 470 140" style="width:470px;max-width:100%;display:block" role="img" aria-label="E-R diagram"><line class="w" x1="123.7" y1="44.0" x2="201.3" y2="90.0"/><line class="w" x1="116.7" y1="56.0" x2="130.7" y2="56.0"/><line class="w" x1="201.3" y1="76.0" x2="193.3" y2="90.0"/><line class="w" x1="201.3" y1="76.0" x2="201.3" y2="90.0"/><line class="w" x1="201.3" y1="76.0" x2="209.3" y2="90.0"/><line class="w" x1="336.3" y1="44.0" x2="258.7" y2="90.0"/><line class="w" x1="329.3" y1="56.0" x2="343.3" y2="56.0"/><line class="w" x1="258.7" y1="76.0" x2="250.7" y2="90.0"/><line class="w" x1="258.7" y1="76.0" x2="258.7" y2="90.0"/><line class="w" x1="258.7" y1="76.0" x2="266.7" y2="90.0"/><rect class="ax" style="fill:var(--surface)" x="20" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="95.0" y="31.0" text-anchor="middle" style="font-size:11px">MEMBER</text><rect class="ax" style="fill:var(--surface)" x="290" y="10" width="150" height="34" rx="4"/><text class="lbl bd" x="365.0" y="31.0" text-anchor="middle" style="font-size:11px">BOOK</text><rect class="ax" style="fill:var(--surface)" x="155" y="90" width="150" height="34" rx="4"/><text class="lbl bd" x="230.0" y="111.0" text-anchor="middle" style="font-size:11px">LOAN</text></svg></div></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> A table ORDER(OrderID, Item1, Item2, Item3) holds up to three items per order. Explain how to put it into 1NF.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Repeating group.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The repeating group Item1, Item2, Item3 is removed</span> <span class="mk k" data-t="2">A new ORDER_ITEM table has one row per item with OrderID as a foreign key</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> In ENROL(StudentID, CourseID, CourseName), explain why the table is not in 2NF.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Partial dependency.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The key is (StudentID, CourseID)</span> <span class="mk k" data-t="2">CourseName depends only on CourseID, which is part of the key (a partial dependency)</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> In STAFF(StaffID, DepartmentID, DepartmentName), explain why the table is not in 3NF.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Transitive dependency.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">DepartmentName depends on DepartmentID, which is not the primary key (a non-key dependency)</span> <span class="mk k" data-t="2">so DepartmentName should be moved to a DEPARTMENT table</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State two characteristics of a database in 3NF.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>No repeating groups, no dependencies.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">No repeating groups; the data is atomic</span> <span class="mk k" data-t="2">No partial key dependencies and no non-key dependencies</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Crow's foot at the foreign key end.</b> The 'many' side holds the foreign key.</li>
+    <li><b>No extra lines.</b> Only draw the relationships in the table list.</li>
+    <li><b>1NF: repeats and atomic.</b> 2NF: partial. 3NF: non-key.</li>
+    <li><b>Name the dependency.</b> Partial: part of the composite key.</li>
+    <li><b>A linking table has two foreign keys.</b> Two one-to-many lines.</li>
+    <li><b>Give each new table a primary key.</b> And mark the foreign keys.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>an E-R diagram</td><td>"A diagram of the tables and their relationships."</td></tr>
+    <tr><td>normalisation</td><td>"Organising data into tables to remove redundancy."</td></tr>
+    <tr><td>a partial dependency</td><td>"An attribute that depends on only part of a composite key."</td></tr>
+    <tr><td>a transitive dependency</td><td>"An attribute that depends on a non-key attribute."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Complete</td><td>Draw the relationships.</td></tr>
+    <tr><td>Describe</td><td>State the rules.</td></tr>
+    <tr><td>Explain</td><td>Reasons as well.</td></tr>
+    <tr><td>Write</td><td>Give the design.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); const B = (x, y, t, on) => SV.rect(x, y, 130, 30, on ? "f3" : "cell", { rx: 5 }) + SV.text(x + 65, y + 19, t, "lbl bd", { "text-anchor": "middle", style: "font-size:11px" }); let o = B(20, 20, "CUSTOMER", true) + B(280, 20, "PURCHASE", true) + B(280, 110, "PURCHASE_ITEM", true) + B(20, 110, "PLANT", true);
+    if (k >= 1) o += SV.path("M150,35 H280", "ax") + SV.text(215, 28, "1 ——< M", "sm", { "text-anchor": "middle" }); if (k >= 2) o += SV.path("M345,50 V110", "ax") + SV.text(380, 85, "1 —< M", "sm"); if (k >= 3) o += SV.path("M150,125 H280", "ax") + SV.text(215, 118, "1 ——< M", "sm", { "text-anchor": "middle" });
+    o += SV.text(20, 175, ["", "CustomerID: PK in CUSTOMER, FK in PURCHASE", "PurchaseID: PK in PURCHASE, FK in PURCHASE_ITEM", "PlantName: PK in PLANT, FK in PURCHASE_ITEM"][k], "lbl bd t3", { style: "font-size:12px" }); return o; };
+  Lib.stepper($("#stA"), { w: 440, h: 190, label: "E-R", base: { i: 0 }, draw, tween: 100, dwell: 2800, steps: ["Four tables, no relationships drawn yet.", "CustomerID is a foreign key in PURCHASE: <b>CUSTOMER 1:M PURCHASE</b>.", "PurchaseID is a foreign key in PURCHASE_ITEM: <b>PURCHASE 1:M PURCHASE_ITEM</b>.", "PlantName is a foreign key in PURCHASE_ITEM: <b>PLANT 1:M PURCHASE_ITEM</b>."].map((c, i) => ({ cap: c, s: { i } })) });
+})();
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); let o = SV.text(20, 20, k === 0 ? "StudentName   Subject (list)   SubjectCode (list)" : "StudentID  FirstName  LastName  |  StudentID  SubjectCode", "lbl bd", { style: "font-size:13px" });
+    const rows = k === 0 ? ["Yuwei Chen   English, Maths, CS   EN, MA, CS", "Claudia Raj   Maths, Physics, Art   MA, PY, AR"] : ["S1  Yuwei  Chen   |   S1  EN", "S1  Yuwei  Chen   |   S1  MA", "S2  Claudia  Raj   |   S2  MA"]; rows.forEach((r, i) => o += SV.rect(20, 32 + i * 28, 480, 24, k === 0 ? "f2" : "f1", { rx: 4 }) + SV.text(30, 49 + i * 28, r, "lbl", { style: "font-size:12px" })); o += SV.text(20, 135, k === 0 ? "repeating groups and a name that holds two items" : "atomic fields; repeating group moved to its own table: 1NF", "lbl bd t3", { style: "font-size:13px" }); return o; };
+  Lib.stepper($("#stB"), { w: 540, h: 150, label: "1NF", base: { i: 0 }, draw, tween: 100, dwell: 2800, steps: ["The table has <b>repeating groups</b> (lists of subjects) and a name that is not atomic.", "<b>1NF</b>: split the name, give a key and move the subjects into a table with one row each."].map((c, i) => ({ cap: c, s: { i } })) });
+})();
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); let o = ""; const T = (x, y, n, rows, on) => { let r = SV.rect(x, y, 230, 22 + rows.length * 20, on ? "f1" : "cell", { rx: 5 }) + SV.text(x + 8, y + 15, n, "lbl bd", { style: "font-size:12px" }); rows.forEach((t, i) => r += SV.text(x + 8, y + 35 + i * 20, t, "lbl", { style: "font-size:11px" })); return r; };
+    if (k === 0) o += T(20, 20, "STUDENT_SUBJECT", ["StudentID, SubjectCode, Subject", "(Subject depends on SubjectCode only)"], true); if (k === 1) o += T(20, 20, "STUDENT_SUBJECT", ["StudentID, SubjectCode"], true) + T(280, 20, "SUBJECT", ["SubjectCode, Subject"], true); if (k >= 2) o += T(20, 20, "STUDENT", ["StudentID, ..., TutorGroup"], true) + T(280, 20, "TUTOR_GROUP", ["TutorGroup, TutorName"], true);
+    o += SV.text(20, 120, ["partial dependency: Subject depends on part of the key", "2NF: Subject moved into its own table", "3NF: TutorName depends on TutorGroup, so it moves to its own table"][k], "lbl bd t3", { style: "font-size:13px" }); return o; };
+  Lib.stepper($("#stC"), { w: 540, h: 140, label: "2NF and 3NF", base: { i: 0 }, draw, tween: 100, dwell: 2800, steps: ["Subject depends only on SubjectCode, part of the composite key: a <b>partial dependency</b>.", "<b>2NF</b>: move it to a SUBJECT table.", "<b>3NF</b>: TutorName depends on TutorGroup, a <b>non-key dependency</b>: move it to its own table."].map((c, i) => ({ cap: c, s: { i } })) });
+})();
+
+btnTable("nB", "nO", [
+  ["A cell holds 'English, Maths, Physics'", "1NF broken", "A repeating group; data is not atomic"],
+  ["Subject name depends only on SubjectCode in a table keyed (StudentID, SubjectCode)", "2NF broken", "A partial dependency"],
+  ["TutorName depends on TutorGroup, which is not the key", "3NF broken", "A non-key (transitive) dependency"],
+  ["Every field depends on the primary key and nothing else", "In 3NF", "All three rules satisfied"]
+], ["Problem", "Result", "Why"]);
+btnTable("fB", "fO", [
+  ["CustomerID in SHOP_ORDER (PK in CUSTOMER)", "CUSTOMER 1:M SHOP_ORDER", "FK table is the many side"],
+  ["ShipID in CONTAINER (PK in SHIP)", "SHIP 1:M CONTAINER", "One ship, many containers"],
+  ["OrderNo and ItemNumber in ORDER_ITEM", "Linking table: SHOP_ORDER 1:M ORDER_ITEM, ITEM 1:M ORDER_ITEM", "Two FKs"],
+  ["StaffID in COMPLAINT (PK in STAFF)", "STAFF 1:M COMPLAINT", "One staff member, many complaints"]
+], ["Foreign key", "Relationship", "Why"]);
+$("#eG").innerHTML = "<svg viewBox=\"0 0 470 215\" style=\"width:470px;max-width:100%;display:block\" role=\"img\" aria-label=\"demo\"><line class=\"w\" x1=\"95.0\" y1=\"44.0\" x2=\"95.0\" y2=\"90.0\"/><line class=\"w\" x1=\"88.0\" y1=\"56.0\" x2=\"102.0\" y2=\"56.0\"/><line class=\"w\" x1=\"95.0\" y1=\"76.0\" x2=\"87.0\" y2=\"90.0\"/><line class=\"w\" x1=\"95.0\" y1=\"76.0\" x2=\"95.0\" y2=\"90.0\"/><line class=\"w\" x1=\"95.0\" y1=\"76.0\" x2=\"103.0\" y2=\"90.0\"/><line class=\"w\" x1=\"123.7\" y1=\"124.0\" x2=\"201.3\" y2=\"170.0\"/><line class=\"w\" x1=\"116.7\" y1=\"136.0\" x2=\"130.7\" y2=\"136.0\"/><line class=\"w\" x1=\"201.3\" y1=\"156.0\" x2=\"193.3\" y2=\"170.0\"/><line class=\"w\" x1=\"201.3\" y1=\"156.0\" x2=\"201.3\" y2=\"170.0\"/><line class=\"w\" x1=\"201.3\" y1=\"156.0\" x2=\"209.3\" y2=\"170.0\"/><line class=\"w\" x1=\"336.3\" y1=\"124.0\" x2=\"258.7\" y2=\"170.0\"/><line class=\"w\" x1=\"329.3\" y1=\"136.0\" x2=\"343.3\" y2=\"136.0\"/><line class=\"w\" x1=\"258.7\" y1=\"156.0\" x2=\"250.7\" y2=\"170.0\"/><line class=\"w\" x1=\"258.7\" y1=\"156.0\" x2=\"258.7\" y2=\"170.0\"/><line class=\"w\" x1=\"258.7\" y1=\"156.0\" x2=\"266.7\" y2=\"170.0\"/><rect class=\"ax\" style=\"fill:var(--surface)\" x=\"20\" y=\"10\" width=\"150\" height=\"34\" rx=\"4\"/><text class=\"lbl bd\" x=\"95.0\" y=\"31.0\" text-anchor=\"middle\" style=\"font-size:11px\">CUSTOMER</text><rect class=\"ax\" style=\"fill:var(--surface)\" x=\"20\" y=\"90\" width=\"150\" height=\"34\" rx=\"4\"/><text class=\"lbl bd\" x=\"95.0\" y=\"111.0\" text-anchor=\"middle\" style=\"font-size:11px\">SHOP_ORDER</text><rect class=\"ax\" style=\"fill:var(--surface)\" x=\"155\" y=\"170\" width=\"150\" height=\"34\" rx=\"4\"/><text class=\"lbl bd\" x=\"230.0\" y=\"191.0\" text-anchor=\"middle\" style=\"font-size:11px\">ORDER_ITEM</text><rect class=\"ax\" style=\"fill:var(--surface)\" x=\"290\" y=\"90\" width=\"150\" height=\"34\" rx=\"4\"/><text class=\"lbl bd\" x=\"365.0\" y=\"111.0\" text-anchor=\"middle\" style=\"font-size:11px\">ITEM</text></svg>" + '<p class="note">The shop database: CUSTOMER 1:M SHOP_ORDER, SHOP_ORDER 1:M ORDER_ITEM, ITEM 1:M ORDER_ITEM (ORDER_ITEM is the linking table that makes orders and items many-to-many).</p>';
+Lib.classify($("#cl1"), { prompt: "Which normal form does this problem break?", buckets: [{"label": "1NF"}, {"label": "2NF"}, {"label": "3NF"}], items: [{"text": "A field holds a list of subjects", "b": 0}, {"text": "An attribute depends on only part of a composite key", "b": 1}, {"text": "An attribute depends on another non-key attribute", "b": 2}, {"text": "The same group of fields repeats on every row", "b": 0}, {"text": "Partial dependency", "b": 1}, {"text": "Transitive (non-key) dependency", "b": 2}], done: "1NF: repeats. 2NF: part of the key. 3NF: non-key." });
+Lib.classify($("#cl2"), { prompt: "In an E-R diagram, is the table on the one side or the many side?", buckets: [{"label": "One side"}, {"label": "Many side"}], items: [{"text": "CUSTOMER, where CustomerID is the primary key", "b": 0}, {"text": "SHOP_ORDER, which holds the foreign key CustomerID", "b": 1}, {"text": "SHIP, where ShipID is the primary key", "b": 0}, {"text": "CONTAINER, which holds the foreign key ShipID", "b": 1}, {"text": "PLANT in PLANT to PURCHASE_ITEM", "b": 0}, {"text": "PURCHASE_ITEM in PURCHASE to PURCHASE_ITEM", "b": 1}], done: "The foreign key table is the many side." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["1NF", "No repeating groups; fields are atomic"], ["2NF", "No partial dependencies on a composite key"], ["3NF", "No non-key (transitive) dependencies"], ["Linking table", "Breaks up a many-to-many relationship"], ["Atomic", "A field holds one value only"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the normalisation steps in order.", items: ["Identify the primary key and make every field atomic", "Move repeating groups into their own table", "Remove partial dependencies (2NF)", "Remove non-key dependencies (3NF)", "Check every table has a primary key and foreign keys link them"], done: "1NF, repeats, 2NF, 3NF, keys." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "How many tables are there in the 3NF example in the Learn tab (STUDENT, STUDENT_SUBJECT, SUBJECT, TUTOR_GROUP)?", "a": 4, "unit": "", "tol": 0.01, "hint": "Count them.", "sol": "<b>4</b>."},
+  {"q": "A linking table joins two tables. How many one-to-many relationships does it make?", "a": 2, "unit": "", "tol": 0.01, "hint": "One to each.", "sol": "<b>2</b>."},
+  {"q": "In PLANTSALES there are 4 tables and 3 relationships. How many foreign keys are needed (one per relationship)?", "a": 3, "unit": "", "tol": 0.01, "hint": "One per line.", "sol": "<b>3</b>."},
+  {"q": "A table has a composite key (A, B) and attribute C depends only on A. Which normal form does it break? Answer 2 for 2NF.", "a": 2, "unit": "", "tol": 0.01, "hint": "Partial dependency.", "sol": "<b>2</b> (2NF)."},
+  {"q": "A student with 3 subjects is stored in 1 row with 3 subject columns (repeating group). In 1NF the subjects are moved to a table with one row per subject: how many rows for 3 subjects?", "a": 3, "unit": "", "tol": 0.01, "hint": "One per subject.", "sol": "<b>3</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "The crow's foot is drawn at:", opts: ["The many end", "The one end", "Neither", "Both"], a: 0, why: "Many end." },
+  { q: "3NF removes:", opts: ["Non-key dependencies", "Primary keys", "Foreign keys", "All tables"], a: 0, why: "Non-key dependencies." },
+  { q: "A repeating group breaks:", opts: ["1NF", "2NF", "3NF", "None"], a: 0, why: "1NF." },
+  { q: "2NF needs no:", opts: ["Partial dependencies", "Primary keys", "Records", "Tables"], a: 0, why: "Partial." },
+  { q: "A many-to-many relationship is broken up with:", opts: ["A linking table", "A larger field", "An index", "A view"], a: 0, why: "Linking table." },
+  { q: "An atomic field:", opts: ["Holds one value", "Is a key", "Is empty", "Is a table"], a: 0, why: "One value." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["E-R diagram", "Boxes for tables; lines for relationships."],
+  ["Crow's foot", "The many end of a relationship."],
+  ["1NF", "No repeating groups; atomic."],
+  ["2NF", "No partial dependencies."],
+  ["3NF", "No non-key dependencies."],
+  ["Linking table", "Two foreign keys; two 1:M."],
+  ["Partial dependency", "Depends on part of a composite key."],
+  ["Transitive dependency", "Depends on a non-key attribute."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>
