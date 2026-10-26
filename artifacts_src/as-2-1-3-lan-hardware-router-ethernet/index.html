@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LAN Hardware, Routers and Ethernet</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
+
+table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
+.synd{margin:8px 0;overflow-x:auto}
+.gantt{display:flex;margin:6px 0 0;font-family:var(--mono)}.gantt .gb{border:1.5px solid var(--ink);margin-left:-1.5px;text-align:center;padding:6px 0;font-weight:700;font-size:.85rem;background:var(--surface);min-width:0}
+.gantt .gb.c0{background:var(--accent-soft)}.gantt .gb.c1{background:var(--bad-soft)}.gantt .gb.c2{background:var(--good-soft)}.gantt .gb.c3{background:var(--warn-soft)}.gantt .gb.c4{background:var(--soft)}
+.gticks{display:flex;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:2px 0 10px}.gticks span{text-align:right;min-width:0}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 2.1.3</div>
+  <h1>LAN Hardware, Routers and Ethernet</h1>
+  <p class="cbook">Coursebook: Chapter 2 · Communication · section 2.1 Networks including the internet</p>
+  <p class="lead">NICs, switches, WAPs, bridges, repeaters, the router and its functions, and Ethernet with CSMA/CD collision handling; animations, labs and the real Paper 1 questions from 2021 to 2025.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A LAN is built from a few kinds of hardware: a <b>network interface card (NIC)</b> or <b>wireless NIC (WNIC)</b> in each device, <b>cables</b>, a <b>switch</b> that forwards data only to its destination, a <b>server</b>, a <b>wireless access point (WAP)</b> for wireless devices, a <b>bridge</b> to join two LANs and a <b>repeater</b> to restore a weakening signal. A <b>router</b> joins networks together: it receives packets, reads the destination IP address, uses its routing table to choose the best route and forwards the packet. <b>Ethernet</b> is the protocol used for wired LANs, and it uses <b>CSMA/CD</b> to cope with <b>collisions</b>: a device listens, sends only when the line is idle, and if a collision happens it stops, sends a jamming signal and retries after a random wait. A router and a switch do different jobs: a switch connects devices inside a LAN by MAC address; a router connects different networks by IP address.</p></div>
+
+  <h2>1 · LAN hardware</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Device</th><th>Purpose</th></tr>
+    <tr><td><b>Network interface card (NIC)</b></td><td>Lets a device connect to a wired network. It has a <b>MAC address</b> that identifies the device on the network.</td></tr>
+    <tr><td><b>Wireless NIC (WNIC)</b></td><td>Lets a device connect to a wireless network: it provides the interface and acts as an antenna, receiving radio waves and converting them to digital data (and the reverse), and checking that incoming transmissions have the right address.</td></tr>
+    <tr><td><b>Switch</b></td><td>Connects devices in a LAN. It stores the <b>MAC addresses</b> of the devices connected to it, receives packets and <b>forwards them only to the intended recipient</b>. (A hub, in contrast, sends data to every device.)</td></tr>
+    <tr><td><b>Server</b></td><td>A computer that provides services to the other computers: files, printing, logins, security.</td></tr>
+    <tr><td><b>Wireless access point (WAP)</b></td><td>Lets wireless devices connect to a wired network using radio signals (Wi-Fi). It provides radio communication between a central device and the nodes.</td></tr>
+    <tr><td><b>Cables</b></td><td>Copper or fibre-optic links between devices (see 2.1.2).</td></tr>
+    <tr><td><b>Bridge</b></td><td>Connects two LANs or segments that use the <b>same protocol</b> and transmits data between them.</td></tr>
+    <tr><td><b>Repeater</b></td><td>Restores a digital signal so it can be transmitted over greater distances.</td></tr>
+  </table></div>
+
+  <h2>2 · The router</h2>
+  <p>A <b>router</b> connects a LAN to other networks such as the internet. Its functions:</p>
+  <ul>
+    <li><b>Receives packets</b> from devices on the LAN or from the internet.</li>
+    <li><b>Analyses the destination IP address</b> of each packet.</li>
+    <li>Looks the address up in its <b>routing table</b> and <b>forwards the packet</b> towards its destination, finding the most efficient route; it maintains and updates the routing table.</li>
+    <li>Allocates <b>private IP addresses</b> to devices on the LAN, and may share one public address between them (NAT).</li>
+    <li>Implements a <b>firewall</b>, and may change the format of a packet for the next network.</li>
+    <li>A home router usually also contains a switch and a WAP, and stores a table of the MAC and IP addresses of the devices attached to it.</li>
+  </ul>
+  <p>A router does <b>not</b> direct each packet to all devices (that is a hub) and does not look up the IP address of a URL (that is a DNS server).</p>
+
+  <h2>3 · Ethernet and CSMA/CD</h2>
+  <p><b>Ethernet</b> is a protocol (suite) for data transmission over standard wired network connections. Data is sent in <b>frames</b>; each frame has a source and destination (MAC or IP) address and error-checking data, so damaged frames can be resent. When devices share one transmission medium, two may transmit at the same moment and the signals <b>collide</b>. Ethernet manages this with <b>CSMA/CD</b>, Carrier Sense Multiple Access with Collision Detection:</p>
+  <ol>
+    <li><b>Carrier sense</b>: a device that wants to transmit <b>listens to the channel</b>.</li>
+    <li>It sends data <b>only when the line is idle</b>, no other data being transmitted.</li>
+    <li><b>Multiple access</b> means more than one computer is connected to the same medium, so two can start at once.</li>
+    <li><b>Collision detection</b>: if a collision is detected, the devices <b>stop (abort) transmission</b> and send a <b>jamming signal</b>.</li>
+    <li>Each device waits a <b>random time</b> before it tries to resend. If further collisions occur, the random wait time is <b>increased</b>.</li>
+  </ol>
+  <p>Drawbacks of CSMA/CD: waiting times can grow without limit and constant jamming could stop anything being sent; certain nodes cannot be prioritised; it is only suitable for short-distance networks and does not scale well, as more nodes mean much longer waits.</p>
+
+  <h2>4 · Common ways to lose marks</h2>
+  <ul>
+    <li>Confusing a hub and a switch. A switch sends a packet only to the intended device.</li>
+    <li>Describing CSMA/CD without the random wait. The order is listen, send if idle, detect collision, jam, wait a random time, resend.</li>
+    <li>Saying a router "connects computers". Say it connects networks and routes packets using IP addresses and a routing table.</li>
+    <li>Giving the NIC's purpose as "to connect to the internet". It provides the interface to the network and identifies the device with a MAC address.</li>
+    <li>Mixing up a bridge (joins two LANs with the same protocol) and a repeater (restores the signal).</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · CSMA/CD: a collision and the retry</h2>
+  <p>Press Play.</p>
+  <div id="stA"></div>
+  <h2>2 · A router forwards a packet</h2>
+  <div id="stB"></div>
+  <h2>3 · A switch forwards only to the receiver</h2>
+  <div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Collisions and random waits</h2>
+  <p>Two devices try to send. After each collision each waits a random number of time slots. Press Send until a frame gets through.</p>
+  <div class="card"><div class="btnrow" id="cB"></div><div id="cT"></div><div class="verdict" id="cV"></div></div>
+  <h2>Lab 2 · Which device?</h2>
+  <div class="card"><div id="dB" class="btnrow"></div><div id="dO"></div></div>
+  <h2>Lab 3 · Hub or switch?</h2>
+  <p>Choose the sender and the receiver. See which devices get the frame.</p>
+  <div class="card"><div class="btnrow" id="hB"></div><div class="btnrow" id="hS"></div><div id="hG"></div><div class="verdict" id="hV"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which device?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Router or switch?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Match the device to its purpose</h2><div id="m1" class="card"></div>
+  <h2>4 · Put the CSMA/CD steps in order</h2><div id="o1" class="card"></div>
+  <h2>5 · Working out</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>The box from your internet provider</h3><p>It is a router, a switch and a wireless access point in one: it connects your home network to the internet, connects wired devices and gives Wi-Fi to the rest.</p><div class="use"><b>Exam use:</b> a router connects networks; the WAP gives Wi-Fi.</div></div>
+  <div class="rw"><h3>The network socket in a classroom</h3><p>Behind it, cables run to a switch in a cabinet. The switch sends each packet only to the computer it is meant for.</p><div class="use"><b>Exam use:</b> a switch forwards to the intended device.</div></div>
+  <div class="rw"><h3>A Wi-Fi extender</h3><p>It repeats the signal so it reaches rooms that are too far from the router. That is a repeater.</p><div class="use"><b>Exam use:</b> a repeater restores the signal over greater distance.</div></div>
+  <div class="rw"><h3>Talking on a walkie-talkie</h3><p>If two people talk at once you hear nothing. Both stop, and each waits a random moment before trying again. That is how Ethernet handles collisions.</p><div class="use"><b>Exam use:</b> CSMA/CD: random wait after a collision.</div></div>
+  <div class="rw"><h3>The MAC address on a laptop's sticker</h3><p>Every network card has its own MAC address, so the switch knows which device is which.</p><div class="use"><b>Exam use:</b> the NIC identifies the device on the network.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on LAN hardware, routers and CSMA/CD (Paper 1), 2021 to 2025. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2021</td><td>11, 13</td><td>4(c)(i)</td><td>2</td><td>Tick the tasks performed by a router</td></tr>
+    <tr><td>O/N 2021</td><td>11, 13</td><td>8(b), (c)</td><td>2 + 4</td><td>Two devices to connect 30 computers; the functions of a wireless NIC</td></tr>
+    <tr><td>O/N 2021</td><td>12</td><td>3(b)(ii)</td><td>3</td><td>Three functions of a home router</td></tr>
+    <tr><td>M/J 2022</td><td>12</td><td>9(a), (c)</td><td>4 + 4</td><td>Complete a table of network devices; describe CSMA/CD</td></tr>
+    <tr><td>M/J 2023</td><td>12</td><td>1(d)</td><td>3</td><td>What is meant by Ethernet</td></tr>
+    <tr><td>O/N 2023</td><td>11</td><td>2(a), (b)</td><td>3 + 3</td><td>The function of a router; the purpose of a switch, a WAP and a bridge</td></tr>
+    <tr><td>O/N 2023</td><td>12</td><td>7(c)</td><td>3</td><td>Three tasks performed to deal with collisions using CSMA/CD</td></tr>
+    <tr><td>M/J 2024</td><td>13</td><td>5(b), (c)</td><td>2 + 2 + 2</td><td>How packets travel in a star; how a collision is managed; two drawbacks of CSMA/CD</td></tr>
+    <tr><td>M/J 2025</td><td>12</td><td>6(e)</td><td>3</td><td>The role of a switch in a network</td></tr>
+    <tr><td>O/N 2025</td><td>12</td><td>5(d)</td><td>3</td><td>How collisions are detected and managed on an Ethernet bus network</td></tr>
+  </table></div>
+  <p class="note">LAN hardware, the router and CSMA/CD are among the most repeated Paper 1 topics. Questions are reworded from the papers; check the original paper and mark scheme for the exact wording.</p>
+  <details class="eq"><summary><span class="src">M/J 2021 · 9618/11/13 · Q4(c)(i)</span> <span class="cmd">Tick</span> <span class="mark">2 marks</span> Melinda connects her laptop to the internet through her router. Tick one box in each row to identify whether the task is performed by the router or not: (1) receives packets from devices; (2) finds the IP address of a Uniform Resource Locator (URL); (3) directs each packet to all devices attached to it; (4) stores the IP and/or MAC address of all devices attached to it.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>One mark for the first two ticks and one mark for the last two.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">(1) Performed by the router; (2) not performed by the router (a DNS server does this)</span> <span class="mk a" data-t="1">(3) not performed by the router (a hub does this); (4) performed by the router</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Ticking (3) as the router's job. A router sends each packet towards its destination, not to all devices.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/11/13 · Q8(b)(c)</span> <span class="cmd">Identify / Describe</span> <span class="mark">2 + 4 marks</span> One classroom has 30 computers, each with a network interface card (NIC). (b) Identify two possible devices that can be used to physically connect the 30 computers to the rest of the network. (c) The school has several laptops, each with a Wireless Network Interface Card (WNIC). Describe the functions of a Wireless Network Interface Card.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(b) Router, switch or hub. (c) Interface to the wireless network, antenna, analogue to digital, checks addresses.</div>
+    <div class="ans"><p><b>(b)</b> Any two: <span class="mk k" data-t="1">Router</span> <span class="mk k" data-t="2">Switch</span> <span class="mk k" data-t="3">Hub</span></p><p><b>(c)</b> Any four: <span class="mk a" data-t="1">Provides the interface to the wireless network, as an antenna</span> <span class="mk a" data-t="2">Receives analogue radio waves and converts them to digital or binary</span> <span class="mk a" data-t="3">Checks incoming transmissions for the correct MAC or IP address</span> <span class="mk a" data-t="4">and ignores transmissions not intended for it</span> <span class="mk a" data-t="5">Encrypts or encodes the data, and decrypts or decodes it</span> <span class="mk a" data-t="6">Takes digital input, converts it to analogue waves and sends them via the antenna</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2021 · 9618/12 · Q3(b)(ii)</span> <span class="cmd">Identify</span> <span class="mark">3 marks</span> The home router has a wireless access point (WAP) to allow the devices to connect wirelessly. Identify three functions of the router in Andy's network.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Receive, forward, find the destination, allocate addresses, routing table.</div>
+    <div class="ans"><p>Any three: <span class="mk k" data-t="1">To receive packets from devices or the internet</span> <span class="mk k" data-t="2">To forward or route packets to the destination</span> <span class="mk k" data-t="3">To find the destination of the packet</span> <span class="mk k" data-t="4">To assign or allocate private IP addresses to devices on the LAN</span> <span class="mk k" data-t="5">To store, update or maintain a routing table</span> <span class="mk k" data-t="6">To find the most efficient path to the destination</span> <span class="mk k" data-t="7">To maintain a table of MAC and IP addresses</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/11 · Q2(a)(b)</span> <span class="cmd">Describe</span> <span class="mark">3 + 3 marks</span> (a) The school LAN connects to the internet using a router. Describe the function of a router in a network. (b) Complete the table by writing the purpose of each of these other hardware devices used to support the LAN: switch; Wireless Access Point (WAP); bridge.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(b) one purpose for each of three devices.</div>
+    <div class="ans"><p><b>(a)</b> Any three: <span class="mk k" data-t="1">Receives packets from the internet or external network</span> <span class="mk k" data-t="2">Implements a firewall</span> <span class="mk k" data-t="3">Analyses the destination IP address of each packet</span> <span class="mk k" data-t="4">Forwards the packet towards its destination, using the routing table</span> <span class="mk k" data-t="5">Maintains and updates the routing table</span> <span class="mk k" data-t="6">Allocates private IP addresses</span> <span class="mk k" data-t="7">Finds the most efficient route to the destination</span> <span class="mk k" data-t="8">Changes the packet format for the next network (NAT lets many devices share one public address)</span></p><p><b>(b)</b> <span class="mk k" data-t="1">Switch: to connect individual devices to each other, receive transmissions and forward them to their destination</span> <span class="mk a" data-t="1">WAP: to allow wireless-enabled devices to connect to a wired network using radio signals</span> <span class="mk n" data-t="1">Bridge: to connect two LANs or segments with the same protocol and transmit data between them</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2022 · 9618/12 · Q9(a)(c)</span> <span class="cmd">Complete / Describe</span> <span class="mark">4 + 4 marks</span> (a) Complete the table of four network devices and descriptions: a device that receives and sends data between two networks operating on the same protocol; Wireless Network Interface Card (WNIC); a device that restores the digital signal so it can be transmitted over greater distances; Wireless Access Point (WAP). (c) Ethernet uses Carrier Sense Multiple Access/Collision Detection (CSMA/CD). Describe CSMA/CD.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) Router, ?, repeater, ?</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">Router: receives and sends data between two networks operating on the same protocol</span> <span class="mk k" data-t="2">WNIC: hardware that allows a device to connect to a wireless network, or provides a MAC address to identify the device on the wireless network</span> <span class="mk k" data-t="3">Repeater: restores the digital signal so it can be transmitted over greater distances</span> <span class="mk k" data-t="4">WAP: hardware that provides radio communication from the central device to the nodes on the network and vice versa</span></p><p><b>(c)</b> Any four: <span class="mk a" data-t="1">A workstation wishing to transmit listens to the communication channel</span> <span class="mk a" data-t="2">Data is only sent when the channel is free</span> <span class="mk a" data-t="3">Because more than one computer is connected to the same medium, two workstations can start transmitting at the same time, causing a collision</span> <span class="mk a" data-t="4">If a collision happens, the workstations send a jamming signal or abort transmission</span> <span class="mk a" data-t="5">and each waits a random amount of time before attempting to resend</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>In (a), writing 'bridge' for the first device. A bridge joins LANs with the same protocol; the description 'two networks' is a router.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/12 · Q1(d)</span> <span class="cmd">Describe</span> <span class="mark">3 marks</span> Computers can be connected using Ethernet. Describe what is meant by Ethernet.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A protocol; wired; CSMA/CD; frames with addresses and error checking.</div>
+    <div class="ans"><p>Any three: <span class="mk k" data-t="1">A protocol (suite)</span> <span class="mk k" data-t="2">for data transmission over standard or universal wired network connections</span> <span class="mk k" data-t="3">Uses Carrier Sense Multiple Access / Collision Detection (CSMA/CD)</span> <span class="mk k" data-t="4">Data is transmitted in frames</span> <span class="mk k" data-t="5">each frame has a source and destination (IP or MAC) address</span> <span class="mk k" data-t="6">and error-checking data (so damaged frames can be resent)</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/12 · Q7(c)</span> <span class="cmd">State</span> <span class="mark">3 marks</span> State three tasks performed by devices to deal with collisions when using the Carrier Sense Multiple Access / Collision Detection (CSMA/CD) protocol in a network.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Monitor, wait for quiet, jam, random wait, increase it.</div>
+    <div class="ans"><p>Any three: <span class="mk k" data-t="1">To monitor the communications channel</span> <span class="mk k" data-t="2">To send data only when no data is being transmitted (the line is quiet or idle)</span> <span class="mk k" data-t="3">To detect a collision and then stop transmission, or transmit a jamming signal</span> <span class="mk k" data-t="4">To calculate a random wait or back-off time</span> <span class="mk k" data-t="5">then retransmit the data after that random wait time</span> <span class="mk k" data-t="6">Increase the random time if there are multiple collisions</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/13 · Q5(b)(c)</span> <span class="cmd">Explain / Describe / Identify</span> <span class="mark">2 + 2 + 2 marks</span> (b) Explain how packets are transmitted between two devices in a star topology. (c)(i) A collision is detected on part of the network that uses Ethernet. Describe how the collision is managed using CSMA/CD. (ii) Identify two drawbacks of using CSMA/CD.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(b) to the switch, address checked, forwarded directly.</div>
+    <div class="ans"><p><b>(b)</b> <span class="mk k" data-t="1">The sending computer transmits packets directly to the switch or central device</span> <span class="mk k" data-t="2">The switch checks the destination address of the packet and forwards it directly to that device</span></p><p><b>(c)(i)</b> Any two: <span class="mk a" data-t="1">A jamming signal is transmitted by the sending device</span> <span class="mk a" data-t="2">Transmission is aborted</span> <span class="mk a" data-t="3">The sending device waits a random time before trying to send again</span> <span class="mk a" data-t="4">If further collisions occur the wait time is increased</span></p><p><b>(ii)</b> Any two: <span class="mk n" data-t="1">The random time is increased each time, so waiting could be infinite</span> <span class="mk n" data-t="2">The jamming signal may be constant, so nothing ever sends</span> <span class="mk n" data-t="3">Certain nodes cannot be prioritised</span> <span class="mk n" data-t="4">High power consumption</span> <span class="mk n" data-t="5">Only suitable for a short-distance network</span> <span class="mk n" data-t="6">Not scalable: more nodes mean exponentially longer waits</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/12 · Q6(e)</span> <span class="cmd">Describe</span> <span class="mark">3 marks</span> Describe the role of a switch in a network.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Stores MAC addresses, receives packets, forwards to the intended recipient.</div>
+    <div class="ans"><p>Any three: <span class="mk k" data-t="1">To store the MAC addresses of devices connected to it</span> <span class="mk k" data-t="2">To receive packets from devices</span> <span class="mk k" data-t="3">To forward packets directly to the intended recipient</span> <span class="mk k" data-t="4">To provide a central point of connection for the network</span> <span class="mk k" data-t="5">To enable connected devices to communicate</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/12 · Q5(d)</span> <span class="cmd">Describe</span> <span class="mark">3 marks</span> Another type of network is a bus network. Ethernet is used to transmit and receive data between the devices on the bus network. Describe how collisions are detected and managed on this network.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>CSMA/CD with its steps.</div>
+    <div class="ans"><p>Any three: <span class="mk k" data-t="1">The use of CSMA/CD</span> <span class="mk k" data-t="2">The workstations listen to the communication channel</span> <span class="mk k" data-t="3">and send data only when no data is being transmitted (the line is idle)</span> <span class="mk k" data-t="4">If a collision is detected, transmission is aborted</span> <span class="mk k" data-t="5">and a jamming signal is sent</span> <span class="mk k" data-t="6">The workstation calculates a random wait time before trying to retransmit</span> <span class="mk k" data-t="7">The random time is increased if there are multiple collisions</span></p></div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain the difference between a hub and a switch.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Where does the data go?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A hub sends data to every connected device</span> <span class="mk k" data-t="2">A switch stores MAC addresses and forwards the data only to the intended recipient</span> <span class="mk k" data-t="3">So a switch reduces collisions and wasted traffic</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State two tasks performed by a router.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>IP addresses and routes.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Analyses the destination IP address of each packet</span> <span class="mk k" data-t="2">Forwards it towards its destination using a routing table</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">3 marks</span> Describe what a device does when it wants to transmit on an Ethernet bus.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Listen first.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">It listens to the channel</span> <span class="mk k" data-t="2">It sends only when the line is idle</span> <span class="mk k" data-t="3">If a collision is detected it aborts, sends a jamming signal and waits a random time before trying again</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Distinguish</span> <span class="mark">2 marks</span> Distinguish between a repeater and a bridge.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Signal or networks.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">A repeater restores the signal so it can travel further</span> <span class="mk k" data-t="2">A bridge connects two LANs or segments that use the same protocol</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why the wait time after a collision is random.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>What if both waited the same?</div>
+    <div class="ans"><p><span class="mk k" data-t="1">If both devices waited the same time they would collide again</span> <span class="mk k" data-t="2">Random waits make it likely one device sends first</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Switch: only to the recipient.</b> Hub: to everyone.</li>
+    <li><b>Router: IP addresses and routing table.</b> It connects networks.</li>
+    <li><b>CSMA/CD order.</b> Listen, send if idle, collision, jam, random wait, resend.</li>
+    <li><b>NIC: MAC address.</b> WNIC: also an antenna.</li>
+    <li><b>Bridge v repeater.</b> Bridge joins LANs; repeater restores the signal.</li>
+    <li><b>Ethernet: frames.</b> With addresses and error-checking data.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>a switch</td><td>"Forwards packets only to the intended recipient."</td></tr>
+    <tr><td>a router</td><td>"Connects networks and forwards packets using IP addresses."</td></tr>
+    <tr><td>a collision</td><td>"Two devices transmitting at the same time on one medium."</td></tr>
+    <tr><td>a MAC address</td><td>"The address that identifies a network card."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Identify / State</td><td>Give the points.</td></tr>
+    <tr><td>Describe</td><td>Say what it does, in steps.</td></tr>
+    <tr><td>Explain</td><td>Give reasons.</td></tr>
+    <tr><td>Complete</td><td>Fill the table.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); let o = SV.path("M30,100 H570", "ax", { style: "stroke-width:5" }); [[100, "A"], [300, "B"], [500, "C"]].forEach(([x, n]) => { o += SV.rect(x - 28, 30, 56, 36, k >= 1 && (n === "A" || n === "C") ? "cell-warn" : "cell", { rx: 6 }) + SV.text(x, 53, n, "lbl bd", { "text-anchor": "middle" }) + SV.path("M" + x + ",66 V100", "ax"); });
+    if (k === 0) o += SV.text(30, 150, "A and C both want to send to B. Both listen to the line.", "lbl bd", { style: "font-size:13px" }); if (k === 1) o += SV.text(30, 150, "The line is idle: both start sending at the same moment.", "lbl bd", { style: "font-size:13px" });
+    if (k >= 2) o += SV.circle(300, 100, 14, "dot2") + SV.text(300, 135, "collision!", "lbl bd t2", { "text-anchor": "middle" }); if (k === 3) o += SV.text(30, 165, "Both stop (abort) and send a jamming signal.", "lbl bd", { style: "font-size:13px" }); if (k >= 4) o += SV.text(30, 165, "A waits 2 slots, C waits 5 slots (random).", "lbl bd t3", { style: "font-size:13px" }); if (k >= 5) o += SV.circle(200, 100, 8, "dot3") + SV.text(30, 190, "A resends first and the frame gets through. C then sees the line busy and waits.", "lbl bd t3", { style: "font-size:13px" }); return o; };
+  Lib.stepper($("#stA"), { w: 600, h: 205, label: "CSMA/CD", base: { i: 0 }, draw, tween: 100, dwell: 2800, steps: [{ cap: "<b>Carrier sense</b>: both A and C listen to the shared line before sending.", s: { i: 0 } }, { cap: "The line is idle, so both begin to send at the same time.", s: { i: 1 } }, { cap: "The signals <b>collide</b>.", s: { i: 2 } }, { cap: "<b>Collision detected</b>: both devices stop and send a jamming signal.", s: { i: 3 } }, { cap: "Each waits a <b>random time</b> before trying again. Random times make another collision unlikely.", s: { i: 4 } }, { cap: "The device with the shorter wait sends first and succeeds. If there were more collisions the random wait would be increased.", s: { i: 5 } }] });
+})();
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); let o = SV.rect(20, 50, 120, 60, "cell", { rx: 8 }) + SV.text(80, 85, "LAN device", "lbl bd", { "text-anchor": "middle" }) + SV.rect(240, 40, 120, 80, "f3", { rx: 10 }) + SV.text(300, 70, "Router", "lbl bd", { "text-anchor": "middle" }) + SV.text(300, 92, "routing table", "sm", { "text-anchor": "middle" }) + SV.rect(460, 50, 120, 60, "cell", { rx: 8 }) + SV.text(520, 85, "Internet", "lbl bd", { "text-anchor": "middle" });
+    if (k >= 1) o += SV.path("M140,80 H240", "ax", { style: "stroke:var(--accent);stroke-width:3" }) + SV.text(190, 70, "packet", "sm", { "text-anchor": "middle" }); if (k >= 2) o += SV.text(300, 150, "destination IP 93.184.x.x read", "lbl bd", { "text-anchor": "middle", style: "font-size:12.5px" }); if (k >= 3) o += SV.text(300, 170, "looked up in the routing table: best route found", "lbl bd t3", { "text-anchor": "middle", style: "font-size:12.5px" }); if (k >= 4) o += SV.path("M360,80 H460", "ax", { style: "stroke:var(--good);stroke-width:3" }) + SV.text(410, 70, "forwarded", "sm", { "text-anchor": "middle" }); return o; };
+  Lib.stepper($("#stB"), { w: 600, h: 185, label: "Router", base: { i: 0 }, draw, tween: 100, dwell: 2600, steps: [{ cap: "A device on the LAN wants to reach something on the internet.", s: { i: 0 } }, { cap: "The router <b>receives the packet</b> from the device.", s: { i: 1 } }, { cap: "It <b>analyses the destination IP address</b>.", s: { i: 2 } }, { cap: "It looks the address up in its <b>routing table</b> and chooses the most efficient route.", s: { i: 3 } }, { cap: "It <b>forwards</b> the packet towards its destination.", s: { i: 4 } }] });
+})();
+(function () {
+  const draw = (s) => { const k = Math.round(s.i); let o = SV.rect(250, 70, 100, 50, "f3", { rx: 10 }) + SV.text(300, 100, "Switch", "lbl bd", { "text-anchor": "middle" });
+    [[80, 40, "A"], [80, 150, "B"], [520, 40, "C"], [520, 150, "D"]].forEach(([x, y, n]) => { const to = k >= 3 && n === "D", from = k >= 1 && n === "A"; o += SV.path("M" + x + "," + y + " L300,95", "ax", { style: "stroke:" + (to || from ? "var(--good)" : "var(--muted)") + ";stroke-width:" + (to || from ? 4 : 2) }); o += SV.rect(x - 26, y - 16, 52, 32, to ? "cell-ok" : from ? "cell-warn" : "cell", { rx: 6 }) + SV.text(x, y + 5, n, "lbl bd", { "text-anchor": "middle" }); });
+    if (k >= 2) o += SV.text(300, 150, "MAC table: D is on port 4", "lbl bd", { "text-anchor": "middle", style: "font-size:12.5px" }); if (k >= 3) o += SV.text(300, 175, "B and C do not receive the frame", "lbl bd t3", { "text-anchor": "middle", style: "font-size:12.5px" }); return o; };
+  Lib.stepper($("#stC"), { w: 600, h: 190, label: "Switch", base: { i: 0 }, draw, tween: 100, dwell: 2600, steps: [{ cap: "A wants to send a frame to D. All devices connect to the switch.", s: { i: 0 } }, { cap: "A sends the frame to the switch.", s: { i: 1 } }, { cap: "The switch checks the <b>destination MAC address</b> against its table.", s: { i: 2 } }, { cap: "It forwards the frame <b>only to D</b>. A hub would have sent it to everyone.", s: { i: 3 } }] });
+})();
+
+(function () {
+  let st = { a: 0, b: 0 }, tries = 0, log = []; const b = $("#cB"); const rnd = () => Math.floor(Math.random() * 4);
+  const paint = () => { $("#cT").innerHTML = '<div class="tw"><table class="t mono"><tr><th>Attempt</th><th>A waits</th><th>C waits</th><th>Result</th></tr>' + log.map((r, i) => `<tr><td>${i + 1}</td><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("") + "</table></div>"; $("#cV").innerHTML = log.length ? (log[log.length - 1][2].startsWith("sent") ? "A frame got through after <b>" + log.length + "</b> attempt" + (log.length > 1 ? "s" : "") + ". The random waits are what avoided a repeat collision." : "Collision again: the wait range grows after each collision.") : "Both devices send at once and collide. Press Retry to give each a random wait."; };
+  const step = () => { const range = Math.min(8, 2 + log.length * 2), a = Math.floor(Math.random() * range), c = Math.floor(Math.random() * range); log.push([a + " slots", c + " slots", a === c ? "collision again" : "sent by " + (a < c ? "A" : "C") + " first"]); if (log.length > 8) log.shift(); paint(); };
+  [["Retry", step], ["Start again", () => { log = []; paint(); }]].forEach(([t, f]) => { const x = document.createElement("button"); x.textContent = t; x.onclick = f; b.appendChild(x); }); paint();
+})();
+btnTable("dB", "dO", [
+  ["Gives a laptop a wireless connection", "WNIC", "Interface and antenna to the wireless network"],
+  ["Connects the LAN to the internet", "Router", "Routes packets between networks by IP address"],
+  ["Connects 30 classroom computers", "Switch", "Forwards frames only to the intended computer"],
+  ["Lets phones join the wired LAN by Wi-Fi", "WAP", "Radio communication to the wired network"],
+  ["Joins two LANs that use the same protocol", "Bridge", "Transmits data between the networks"],
+  ["Strengthens a signal on a long cable", "Repeater", "Restores the digital signal"]
+], ["Task", "Device", "Purpose"]);
+(function () {
+  let mode = "switch", from = "A", to = "D"; const b = $("#hB"), s = $("#hS"), g = $("#hG"); const nodes = { A: [60, 40], B: [60, 150], C: [540, 40], D: [540, 150] };
+  const paint = () => { let o = '<svg viewBox="0 0 600 190" style="width:600px;max-width:100%;display:block">' + SV.rect(250, 70, 100, 50, "f3", { rx: 10 }) + SV.text(300, 100, mode === "switch" ? "Switch" : "Hub", "lbl bd", { "text-anchor": "middle" }); const got = from === to ? [] : mode === "hub" ? Object.keys(nodes).filter((n) => n !== from) : [to];
+    Object.entries(nodes).forEach(([n, [x, y]]) => { const rx = got.includes(n); o += SV.path("M" + x + "," + y + " L300,95", "ax", { style: "stroke:" + (rx || n === from ? "var(--good)" : "var(--muted)") + ";stroke-width:" + (rx || n === from ? 4 : 2) }) + SV.rect(x - 26, y - 16, 52, 32, n === from ? "cell-warn" : rx ? "cell-ok" : "cell", { rx: 6 }) + SV.text(x, y + 5, n, "lbl bd", { "text-anchor": "middle" }); });
+    g.innerHTML = o + "</svg>"; $("#hV").innerHTML = from === to ? "Choose different devices." : `${mode === "hub" ? "A hub" : "A switch"} sends the frame from ${from} to <b>${got.join(", ")}</b>. ` + (mode === "hub" ? "Every device receives it, so more traffic and more collisions." : "Only the intended device receives it.");
+    b.querySelectorAll("button").forEach((x) => (x.className = x.dataset.k === mode ? "on" : "")); s.querySelectorAll("button").forEach((x) => (x.className = x.dataset.k === from + to ? "on" : "")); };
+  [["switch", "Switch"], ["hub", "Hub"]].forEach(([k, t]) => { const x = document.createElement("button"); x.textContent = t; x.dataset.k = k; x.onclick = () => { mode = k; paint(); }; b.appendChild(x); });
+  [["A", "D"], ["B", "C"], ["C", "A"]].forEach(([f, t]) => { const x = document.createElement("button"); x.textContent = f + " to " + t; x.dataset.k = f + t; x.onclick = () => { from = f; to = t; paint(); }; s.appendChild(x); }); paint();
+})();
+Lib.classify($("#cl1"), { prompt: "Which device does the description match?", buckets: [{"label": "NIC / WNIC"}, {"label": "Switch"}, {"label": "Bridge"}, {"label": "Repeater"}], items: [{"text": "Provides a MAC address to identify the device on the network", "b": 0}, {"text": "Forwards packets only to the intended recipient", "b": 1}, {"text": "Restores the signal for greater distances", "b": 3}, {"text": "Joins two LANs that use the same protocol", "b": 2}, {"text": "Acts as an antenna for a laptop", "b": 0}, {"text": "Stores the MAC addresses of connected devices", "b": 1}], done: "NIC identifies, switch forwards, bridge joins, repeater restores." });
+Lib.classify($("#cl2"), { prompt: "Is it done by a router or by a switch?", buckets: [{"label": "Router"}, {"label": "Switch"}], items: [{"text": "Joins the LAN to the internet", "b": 0}, {"text": "Connects devices inside a LAN by MAC address", "b": 1}, {"text": "Reads the destination IP address and uses a routing table", "b": 0}, {"text": "Allocates private IP addresses", "b": 0}, {"text": "Forwards a frame only to the receiving device on the LAN", "b": 1}, {"text": "Finds the most efficient route to the destination", "b": 0}], done: "Router: between networks, IP. Switch: inside a LAN, MAC." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Router", "Forwards packets between networks using IP addresses"], ["Switch", "Sends packets only to the intended device"], ["WAP", "Lets wireless devices join a wired network"], ["CSMA/CD", "Listen, send when idle, detect collisions"], ["Jamming signal", "Sent when a collision is detected"]], done: "Learn these terms." });
+Lib.order($("#o1"), { prompt: "Put the CSMA/CD steps in order.", items: ["The device listens to the channel", "It sends data when the line is idle", "A collision is detected", "A jamming signal is sent and transmission aborted", "Each device waits a random time and resends"], done: "Listen, send, collision, jam, random wait." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "Two devices collide. Device A waits 3 slots and device B waits 5 slots. How many slots after the collision does A resend?", "a": 3, "unit": "", "tol": 0.01, "hint": "A's own wait.", "sol": "<b>3</b>."},
+  {"q": "In the same case, how many slots later than A does B resend?", "a": 2, "unit": "", "tol": 0.01, "hint": "5 − 3.", "sol": "<b>2</b>."},
+  {"q": "A hub sends a frame to every connected device. A 6-port hub with one sender: how many devices receive it?", "a": 5, "unit": "", "tol": 0.01, "hint": "All the others.", "sol": "<b>5</b>."},
+  {"q": "A switch with one sender and one intended receiver: how many devices receive the frame?", "a": 1, "unit": "", "tol": 0.01, "hint": "Only the receiver.", "sol": "<b>1</b>."},
+  {"q": "How many items make up the Ethernet frame description in the Learn tab (source, destination, error-check)?", "a": 3, "unit": "", "tol": 0.01, "hint": "Source address, destination address, error checking.", "sol": "<b>3</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "A switch forwards packets:", opts: ["To all devices", "Only to the intended recipient", "To the internet", "Nowhere"], a: 1, why: "Only to the recipient." },
+  { q: "A router uses:", opts: ["A routing table", "A keyboard", "A monitor", "A pen"], a: 0, why: "A routing table." },
+  { q: "When a collision is detected, devices:", opts: ["Send faster", "Abort and wait a random time", "Switch off", "Change topology"], a: 1, why: "Abort and wait." },
+  { q: "A repeater:", opts: ["Restores the signal", "Allocates IP addresses", "Stores files", "Prints"], a: 0, why: "Restores the signal." },
+  { q: "A bridge joins:", opts: ["Two LANs with the same protocol", "A PC and a printer", "Two monitors", "A network and a battery"], a: 0, why: "Two LANs, same protocol." },
+  { q: "The NIC's MAC address:", opts: ["Identifies the device on the network", "Is the internet speed", "Is the monitor size", "Is a password"], a: 0, why: "Identifies the device." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["NIC", "Interface to the network; has a MAC address."],
+  ["Switch", "Forwards only to the recipient; stores MAC addresses."],
+  ["Router", "Connects networks; routing table; IP addresses."],
+  ["WAP", "Wireless devices to a wired network."],
+  ["Bridge", "Joins two LANs, same protocol."],
+  ["Repeater", "Restores the signal."],
+  ["Ethernet", "Wired LAN protocol using frames and CSMA/CD."],
+  ["CSMA/CD", "Listen, send if idle, detect, jam, random wait."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>
