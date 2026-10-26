@@ -370,7 +370,7 @@ ENDFUNCTION</pre><pre class="plain">def fact(n):
 <!-- EXPLORE -->
 <section id="explore" role="tabpanel" hidden>
   <h2>Lab 1 · Wind and unwind any Fact(n)</h2>
-  <p>Drag the slider and watch the diagram. The blue arrows are the calls going down, the green arrows are the answers coming back.</p>
+  <p>Press Next and Previous to change n and watch the diagram. The blue arrows are the calls going down, the green arrows are the answers coming back.</p>
   <div class="card"><div id="wlS"></div><div id="wlOut"></div></div>
 
   <h2>Lab 2 · Recursion explorer</h2>
@@ -1055,14 +1055,18 @@ function stepper(el, cfg) {
   paint(drawn); go(0); fit();
 }
 
-/* ---------- slider ---------- */
+/* ---------- slider (back / next buttons) ---------- */
 function slider(el, o) {
-  const id = o.id;
-  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
-  const i = $("#" + id, el), out = $("#" + id + "o", el);
-  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
-  i.addEventListener("input", upd); upd();
-  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+  const id = o.id, step = o.step || 1;
+  let v = o.value;
+  el.innerHTML = `<div class="sl"><label>${o.label}<output id="${id}o"></output></label><div class="stp-ctl"><button class="b" data-a="prev">◀ Previous</button><button class="b" data-a="next">Next ▶</button></div></div>`;
+  const out = $("#" + id + "o", el), prev = $("[data-a=prev]", el), next = $("[data-a=next]", el);
+  const upd = () => { prev.disabled = v <= o.min; next.disabled = v >= o.max; out.textContent = (o.fmt || ((x) => x))(v); o.onInput && o.onInput(v); };
+  const set = (x) => { v = Math.max(o.min, Math.min(o.max, x)); upd(); };
+  prev.onclick = () => set(v - step);
+  next.onclick = () => set(v + step);
+  upd();
+  return { get: () => v, set };
 }
 
 /* ---------- classify (also powers match) ---------- */
