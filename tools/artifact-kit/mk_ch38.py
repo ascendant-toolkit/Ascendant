@@ -13,7 +13,7 @@ def MCQ(old=(), new=""):
 learn = '''
   <div class="card big"><h3>This part in four sentences</h3>
   <p>A <b>maximum price</b> (ceiling) is a legal limit set <b>below</b> the equilibrium price, so quantity demanded exceeds quantity supplied and there is a <b>shortage</b>. A <b>minimum price</b> (floor) is set <b>above</b> equilibrium, so supply exceeds demand and there is a <b>surplus</b>. Neither works unless it is <b>binding</b>, meaning it sits on the wrong side of the market price. Both create winners and losers, so the evaluation is about who gains, who loses and what the government does next.</p></div>
-''' + S.b((39, 46)).replace('2 · Price controls','1 · Price controls') + '''
+''' + snip('gp_lead') + S.b((39, 46)).replace('2 · Price controls','1 · Price controls') + '''
   <h2>2 · Who gains and who loses</h2>
   <div class="tw"><table class="t">
     <tr><th></th><th>Maximum price (below equilibrium)</th><th>Minimum price (above equilibrium)</th></tr>
