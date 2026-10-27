@@ -1,6 +1,6 @@
 """Builds the four ch38 part pages (gp1..gp4) from slices of gp.* plus new content. Run: python3 tools/artifact-kit/mk_ch38.py"""
 from splitter import Src, page, write, key
-S = Src("gp")
+S = Src("gp0")  # frozen slice source; gp.body.html now carries the extended whole-chapter page
 HEAD = S.j_((1, 9))
 import pathlib
 _D = pathlib.Path(__file__).parent
