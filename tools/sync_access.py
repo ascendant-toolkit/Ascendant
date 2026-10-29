@@ -4,7 +4,8 @@ import json, os, pathlib, re, sys, urllib.parse, urllib.request
 
 url, key = os.environ["SUPABASE_URL"].rstrip("/"), os.environ["SUPABASE_SERVICE_KEY"]
 seed = pathlib.Path(__file__).resolve().parent.parent / "supabase" / "artifact_access_seed.sql"
-rows = [{"slug": s, "courses": re.findall(r"'([^']+)'", c)} for s, c in re.findall(r"\('([^']+)', array\[([^\]]*)\]\)", seed.read_text(encoding="utf-8"))]
+rows = [{"slug": s, "courses": re.findall(r"'([^']+)'", c), "min_tier": t}
+        for s, c, t in re.findall(r"\('([^']+)', array\[([^\]]*)\], '([^']+)'\)", seed.read_text(encoding="utf-8"))]
 if not rows:
     sys.exit("No rows parsed from the seed file; refusing to touch the table.")
 
