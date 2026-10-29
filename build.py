@@ -628,7 +628,7 @@ def encrypt_payload(master, slug, payload):
     return iv + AESGCM(key).encrypt(iv, plain, None)
 
 
-def shell_page(slug, title):
+def shell_page(slug, title, courses, tier):
     r = "../../"
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -639,7 +639,7 @@ def shell_page(slug, title):
 <script src="{r}assets/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="{r}assets/app.js"></script>
-<script src="{r}assets/gateload.js" data-slug="{slug}"></script>
+<script src="{r}assets/gateload.js" data-slug="{slug}" data-courses="{",".join(courses)}" data-tier="{tier}"></script>
 </body></html>
 """
 
@@ -685,7 +685,7 @@ def build_artifacts():
         if locked:
             index = bundle.pop("index.html")
             (dest / "payload.bin").write_bytes(encrypt_payload(master, a["slug"], {"index": index, "files": bundle}))
-            (dest / "index.html").write_text(bust(shell_page(a["slug"], a["title"])), encoding="utf-8")
+            (dest / "index.html").write_text(bust(shell_page(a["slug"], a["title"], courses, a.get("tier", "full"))), encoding="utf-8")
         if courses:
             seed.append((a["slug"], courses, a.get("tier", "full")))
     lines = ["-- Written by build.py. Safe to rerun: lists the locked lessons, which courses unlock each and the lowest tier that opens it (see schema.sql, v7).",

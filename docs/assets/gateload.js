@@ -48,6 +48,21 @@
   }
   window.Gate = { open, decrypt, assemble };
 
+  // artifact_key() only says yes or no, so work out the reason here from whoami(), mirroring its subject and tier checks.
+  const TIERS = ["free", "basic", "full", "vip"], NAMES = { free: "Free", basic: "Basic", full: "Full", vip: "VIP" };
+  function explain(me) {
+    const courses = (el.dataset.courses || "").split(",").filter(Boolean), need = el.dataset.tier || "full";
+    if (!courses.some((c) => (me.subjects || []).includes(c)))
+      return deny("You are not registered for this subject", "Ask for it from your profile page. Your teacher will approve it.", "Go to Profile");
+    const ents = (me.entitlements || []).filter((e) => e.product === "school-all" || courses.includes(e.product));
+    // No matching entitlement counts as full, as in artifact_key().
+    const held = ents.length ? Math.max(...ents.map((e) => TIERS.indexOf(e.tier))) : TIERS.indexOf("full");
+    if (held < TIERS.indexOf(need))
+      return deny(`Upgrade to ${NAMES[need]} to open this lesson`,
+        `This lesson is part of the ${NAMES[need]} plan. Your access to this subject is ${NAMES[TIERS[held]] || "limited"}.`, "See your plan");
+    deny("This lesson is not ready yet", "It was added recently and is still being set up. Please try again later.", "Go to Profile");
+  }
+
   async function run() {
     if (!S || !S.configured) return deny("Lessons are not available", "The account service is not connected.", "Go to Profile");
     const me = await S.whoami();
@@ -57,7 +72,7 @@
     }
     const { data, error } = await S.sb.rpc("artifact_key", { _slug: slug });
     if (error) return deny("Could not open this lesson", "Please check your connection and try again.", "Go to Profile");
-    if (!data) return deny("You are not registered for this subject", "Ask for it from your profile page. Your teacher will approve it.", "Go to Profile");
+    if (!data) return explain(me);
     if (msg) msg.textContent = "Opening lesson…";
     await open(data);
   }
