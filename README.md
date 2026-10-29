@@ -35,7 +35,7 @@ The site decides which courses someone sees from `whoami().subjects`, so the fro
 
 ## Schools (Supabase)
 
-A school licence (`schools` in `supabase/schema.sql`, section "Schools (v8)") covers some subjects at one tier for a number of student seats until an end date. Create and edit schools from the Admin panel's Schools tab, then add the school's teacher there; they get a generated password like students do.
+A school licence (`schools` in `supabase/schema.sql`, section "Schools (v8)") covers some subjects at one tier for a number of student seats until an end date. Create and edit them from the Admin panel's "Schools & tutors" tab, then add the teacher there; they get a generated password like students do. A private tutor is the same thing with type "Tutor" (a label for the list and pricing; access works the same), usually with a handful of seats.
 
 - A school teacher signs in on the Profile page and sees their own school: they add students (up to the seat limit), copy logins, reset logins, remove students and see each student's progress and scores. They can open the licence's lessons at its tier, but not submit assessments.
 - Students on a school get its subjects at its tier on top of anything set on their own profile, and lose them when the end date passes. Removing a student frees the seat and keeps their progress.

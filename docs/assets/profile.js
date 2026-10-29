@@ -306,20 +306,21 @@
     return `<div class="row"><h3>${esc(p.name)}</h3><button class="btn ghost" value="close" formnovalidate>Close</button></div><p class="hint">${esc(p.email)}</p>${subj}`;
   }
 
-  const schoolOptions = (state, v = "") => `<option value="">No school</option>` +
+  const schoolOptions = (state, v = "") => `<option value="">None</option>` +
     state.schools.map((sc) => `<option value="${esc(sc.id)}" ${sc.id === v ? "selected" : ""}>${esc(sc.name)}</option>`).join("");
   const dateValue = (d) => (d ? new Date(d).toISOString().slice(0, 10) : "");
   const endOfDay = (v) => (v ? new Date(v + "T23:59:59").toISOString() : null);
 
   const licenceFields = (sc = {}) => `
-    <label>School name<input name="sname" value="${esc(sc.name || "")}" required></label>
+    <div class="fields3"><label>Type<select name="kind">${[["school", "School"], ["tutor", "Tutor"]].map(([k, l]) => `<option value="${k}" ${k === (sc.kind || "school") ? "selected" : ""}>${l}</option>`).join("")}</select></label>
+      <label>Name<input name="sname" value="${esc(sc.name || "")}" required placeholder="School, or the tutor's name or business"></label></div>
     <p class="hint">Subjects on the licence</p><div class="chks">${subjectBoxes(sc.products || [])}</div>
     <div class="fields3">${tierSelect("tier", sc.tier || "full")}
       <label>Seats<input type="number" name="seats" min="0" value="${sc.seats ?? 30}" required></label>
       <label>End date<input type="date" name="ends" value="${dateValue(sc.expires_at)}"></label></div>
     <label>Note (optional)<input name="snote" value="${esc(sc.note || "")}"></label>`;
   const licenceValues = (f) => ({
-    name: f.elements.sname.value.trim(), products: [...f.querySelectorAll("[name=subj]:checked")].map((c) => c.value),
+    kind: f.elements.kind.value, name: f.elements.sname.value.trim(), products: [...f.querySelectorAll("[name=subj]:checked")].map((c) => c.value),
     tier: f.elements.tier.value, seats: Number(f.elements.seats.value), expires_at: endOfDay(f.elements.ends.value), note: f.elements.snote.value.trim() || null,
   });
 
@@ -328,24 +329,24 @@
       const studs = state.people.filter((p) => p.school_id === sc.id), tch = state.schoolTeachers.filter((t) => t.school_id === sc.id);
       const warn = !isLive(sc) || studs.length >= sc.seats;
       return `<details class="card block cls ${warn ? "attn" : ""}" name="cls" data-cls="sch-${esc(sc.id)}" ${openClass === "sch-" + sc.id ? "open" : ""}>
-        <summary><h3>${esc(sc.name)}</h3><span class="hint">${esc(licenceLine(sc, studs.length))}</span></summary>
+        <summary><h3>${esc(sc.name)}</h3>${sc.kind === "tutor" ? '<span class="pill soft">Tutor</span>' : ""}<span class="hint">${esc(licenceLine(sc, studs.length))}</span></summary>
         <div class="row"><div class="pills">${pills(sc.products)}</div>
-          <span class="acts"><button class="mini" data-sedit="${esc(sc.id)}">Edit licence</button> <button class="mini danger" data-sdel="${esc(sc.id)}">Delete school</button></span></div>
+          <span class="acts"><button class="mini" data-sedit="${esc(sc.id)}">Edit licence</button> <button class="mini danger" data-sdel="${esc(sc.id)}">Delete</button></span></div>
         ${sc.note ? `<p class="hint">${esc(sc.note)}</p>` : ""}
         <div class="subj"><h4>Teachers (${tch.length})</h4></div>
         ${tch.length ? `<div class="tablewrap"><table class="tbl"><thead><tr><th>Name</th><th>Email</th><th>Password</th><th></th></tr></thead><tbody>
           ${tch.map((t) => `<tr data-email="${esc(t.email)}"><td>${esc(t.name)}</td><td>${esc(t.email)}</td><td><code>${esc(t.password)}</code></td><td><button class="mini danger" data-strm="1">Remove</button></td></tr>`).join("")}</tbody></table></div>`
-          : '<p class="hint">No teachers yet. Add one so the school can manage its own students.</p>'}
+          : '<p class="hint">No teachers yet. Add one so they can manage their own students.</p>'}
         <form class="inline f-steach" data-school="${esc(sc.id)}"><label>Name<input name="tname" required></label><label>Email<input type="email" name="temail" required></label>
           <button class="btn" type="submit">Add teacher</button><p class="msg" hidden></p></form>
         <div class="subj"><h4>Students (${studs.length} of ${sc.seats})</h4></div>
-        ${studs.length ? classTable(state, studs) : '<p class="hint">No students yet. The school\'s teachers add them from their profile page.</p>'}
+        ${studs.length ? classTable(state, studs) : '<p class="hint">No students yet. Its teachers add them from their profile page.</p>'}
       </details>`;
     }).join("");
-    return `<section class="card block"><h3>New school</h3>
-        <p class="hint">A school licence covers the ticked subjects at one tier for a number of student seats. Its teachers sign in on the Profile page and add their own students, up to the seat limit. Students lose access when the end date passes; their progress is kept.</p>
-        <form id="f-school">${licenceFields()}<button class="btn" type="submit">Create school</button><p class="msg" hidden></p></form></section>
-      ${list || '<p class="hint">No schools yet.</p>'}`;
+    return `<section class="card block"><h3>New school or tutor</h3>
+        <p class="hint">A licence, for a school or a private tutor, covers the ticked subjects at one tier for a number of student seats. Its teachers sign in on the Profile page and add their own students, up to the seat limit. Students lose access when the end date passes; their progress is kept.</p>
+        <form id="f-school">${licenceFields()}<button class="btn" type="submit">Create licence</button><p class="msg" hidden></p></form></section>
+      ${list || '<p class="hint">No schools or tutors yet.</p>'}`;
   }
 
   async function renderAdmin(host) {
@@ -362,7 +363,7 @@
     host.innerHTML = `
       <div class="tabs admintabs" role="tablist">
         <button data-at="approvals">Approvals${alerts ? ` (${alerts})` : ""}</button><button data-at="students">Classes</button>
-        <button data-at="schools">Schools</button><button data-at="add">Add students</button><button data-at="pw">Passwords</button><button data-at="me">My profile</button></div>
+        <button data-at="schools">Schools &amp; tutors</button><button data-at="add">Add students</button><button data-at="pw">Passwords</button><button data-at="me">My profile</button></div>
       <div class="tabpanel" data-panel="approvals"><section class="card block ${retakes.length ? "attn" : ""}"><h3>Retake requests (${retakes.length})</h3>
         ${retakes.length ? `<ul class="plain">${retakes.map(({ a, p }) => `<li class="row" data-id="${a.id}"><span><b>${esc(p.name)}</b> <span class="hint">${esc(catalog.artifacts[a.slug]?.title || a.slug)} · scored ${a.pct}% · asked ${fmt(a.requested_at)}</span></span>
           <span><button class="mini ok" data-rt="yes">Allow retake</button> <button class="mini danger" data-rt="no">Decline</button></span></li>`).join("")}</ul>` : '<p class="hint">Nothing waiting.</p>'}</section>
@@ -374,7 +375,7 @@
         <form id="f-add"><label>One student per line: <b>Name, email</b> or <b>Name, email, second email</b> (a password is generated for each)
           <textarea name="lines" rows="5" required placeholder="An Nguyen, an@school.edu.vn, parent@gmail.com"></textarea></label>
           <div class="chks">${classBoxes()}</div>
-          ${state.schools.length ? `<label>School (optional: puts them on that school's licence)<select name="school">${schoolOptions(state)}</select></label>` : ""}
+          ${state.schools.length ? `<label>School or tutor (optional: puts them on that licence)<select name="school">${schoolOptions(state)}</select></label>` : ""}
           <button class="btn" type="submit">Add students</button><p class="msg" hidden></p></form></section></div>
       <div class="tabpanel" data-panel="pw"><section class="card block"><h3>Student passwords (${state.people.length})</h3>
         <p class="hint">Assigned passwords, visible to admins only. Students sign in with these. If a student changes their own password this list is out of date; Reset login puts it back to the listed one.</p>
@@ -520,7 +521,7 @@
     }));
     host.querySelectorAll("[data-sdel]").forEach((b) => b.addEventListener("click", async () => {
       const sc = state.schools.find((x) => x.id === b.dataset.sdel);
-      if (!confirm(`Delete ${sc.name}? Its teacher logins are deleted. Its students stay on the site with no school (and lose the school's subjects).`)) return;
+      if (!confirm(`Delete ${sc.name}? Its teacher logins are deleted. Its students stay on the site with no licence (and lose its subjects).`)) return;
       const { error } = await sb.rpc("admin_delete_school", { _school: sc.id });
       if (error) alert(error.message); else renderAdmin(host);
     }));
@@ -535,7 +536,7 @@
     }));
     host.querySelectorAll("[data-strm]").forEach((b) => b.addEventListener("click", async () => {
       const email = b.closest("tr").dataset.email;
-      if (!confirm(`Remove teacher ${email}? Their login is deleted. The school's students are not affected.`)) return;
+      if (!confirm(`Remove teacher ${email}? Their login is deleted. Their students are not affected.`)) return;
       const { error } = await sb.rpc("admin_remove_school_teacher", { t_email: email });
       if (error) alert(error.message); else renderAdmin(host);
     }));
@@ -589,8 +590,8 @@
           <p class="hint">Classes</p><div class="chks">${classBoxes(p.classes || [])}</div>
           <p class="hint">Subjects (a class adds its own subject automatically)</p><div class="chks">${subjectBoxes(p.subjects)}</div>
           ${tierSelect("tier", state.ents.find((x) => x.email === email)?.tier || "full", "Tier for these subjects")}
-          ${state.schools.length ? `<label>School<select name="school">${schoolOptions(state, p.school_id || "")}</select></label>
-          <p class="hint">A school gives its own subjects at the licence's tier, on top of the ones ticked above.</p>` : ""}
+          ${state.schools.length ? `<label>School or tutor<select name="school">${schoolOptions(state, p.school_id || "")}</select></label>
+          <p class="hint">A school or tutor licence gives its own subjects at its tier, on top of the ones ticked above.</p>` : ""}
           <p class="hint">To change the main email address, delete the student and add them again. A second email gets its own login with the same password.</p>
           <div class="row"><button class="btn" value="save">Save</button><button class="btn ghost" value="cancel" formnovalidate>Cancel</button></div>`;
         dlg.showModal();
@@ -616,13 +617,13 @@
     }));
   }
 
-  // ---------- school teacher ----------
-  // Manages their own school's students within the licence's seats and sees only their progress.
+  // ---------- school or tutor teacher ----------
+  // Manages their own licence's students within the licence's seats and sees only their progress.
   async function viewSchool(me) {
     const sc = me.school, subjects = sc.products.filter((k) => catalog.courses[k]);
-    root.innerHTML = `<p class="hint">Loading your school…</p>`;
+    root.innerHTML = `<p class="hint">Loading your students…</p>`;
     const { data, error } = await sb.rpc("school_dashboard");
-    if (error) { root.innerHTML = `<p class="msg err">Could not load your school: ${esc(error.message)}</p>`; return; }
+    if (error) { root.innerHTML = `<p class="msg err">Could not load your students: ${esc(error.message)}</p>`; return; }
     const students = data.students, byEmail = new Map();
     data.progress.forEach((r) => { if (!byEmail.has(r.email)) byEmail.set(r.email, new Map()); byEmail.get(r.email).set(r.slug, r.done_at); });
     const all = subjectSlugs(subjects), left = Math.max(0, sc.seats - students.length);
@@ -640,7 +641,7 @@
       ${sc.active ? "" : `<section class="card block attn"><h3>This licence has ended</h3><p>Your students can't open lessons until it is renewed. Their progress is kept.</p></section>`}
       <section class="card block"><h3>Add students</h3><p class="hint">${plural(left, "seat")} free of ${sc.seats}. A password is generated for each student; give it to them with their email.</p>
         <form id="f-sadd"><label>One student per line: <b>Name, email</b> or <b>Name, email, second email</b>
-          <textarea name="lines" rows="5" required placeholder="An Nguyen, an@school.edu.vn"></textarea></label>
+          <textarea name="lines" rows="5" required placeholder="An Nguyen, an@gmail.com"></textarea></label>
           <button class="btn" type="submit" ${left && sc.active ? "" : "disabled"}>Add students</button><p class="msg" hidden></p></form></section>
       <section class="card block"><div class="row"><h3>Students (${students.length})</h3>${students.length ? '<button class="mini" id="copypw">Copy logins as table</button>' : ""}</div>
         ${students.length ? `<div class="tablewrap"><table class="tbl"><thead><tr><th>Student</th><th>Password</th><th>Status</th><th>Progress</th><th></th></tr></thead><tbody id="sstu">${rows}</tbody></table></div>`
@@ -688,7 +689,7 @@
         if (!confirm(`Recreate the login for ${p.name} with the listed password? Their progress is kept.`)) return;
         const { error } = await sb.rpc("school_reset_login", { _email: p.email });
         alert(error ? "Could not reset: " + error.message : `Done. ${p.name} can sign in with: ${p.password}`);
-      } else if (confirm(`Remove ${p.name} from ${sc.name}? This frees their seat. They lose access to the school's lessons; their progress is kept if they're added back.`)) {
+      } else if (confirm(`Remove ${p.name} from ${sc.name}? This frees their seat. They lose access to these lessons; their progress is kept if they're added back.`)) {
         const { error } = await sb.rpc("school_remove_student", { _email: p.email });
         if (error) alert(error.message); else viewSchool(me);
       }

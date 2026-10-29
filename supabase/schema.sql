@@ -35,6 +35,9 @@ create table if not exists public.schools (
   note       text,
   created_at timestamptz not null default now()
 );
+alter table public.schools add column if not exists kind text not null default 'school';  -- 'school' or 'tutor': a label for the admin list and pricing; access works the same
+alter table public.schools drop constraint if exists schools_kind_check;
+alter table public.schools add constraint schools_kind_check check (kind in ('school', 'tutor'));
 alter table public.schools enable row level security;
 create table if not exists public.school_teachers (
   email     text primary key check (email = lower(email)),
@@ -132,7 +135,7 @@ begin
   if new.school_id is null or (tg_op = 'UPDATE' and new.school_id is not distinct from old.school_id) then return new; end if;
   select seats into cap from schools where id = new.school_id;
   select count(*) into n from profiles where school_id = new.school_id and email <> new.email;
-  if n >= cap then raise exception 'All % seats on this school licence are in use', cap; end if;
+  if n >= cap then raise exception 'All % seats on this licence are in use', cap; end if;
   return new;
 end $$;
 drop trigger if exists check_school_seats on public.profiles;
@@ -236,7 +239,7 @@ begin
     select * into sc from schools where id = st.school_id;
     live := sc.expires_at is null or sc.expires_at > now();
     return json_build_object('email', e, 'name', st.name, 'is_admin', false, 'is_teacher', true, 'is_school_teacher', true,
-                             'school', json_build_object('id', sc.id, 'name', sc.name, 'products', sc.products, 'tier', sc.tier,
+                             'school', json_build_object('id', sc.id, 'name', sc.name, 'kind', sc.kind, 'products', sc.products, 'tier', sc.tier,
                                                          'seats', sc.seats, 'expires_at', sc.expires_at, 'active', live),
                              'subjects', case when live then sc.products else '{}'::text[] end, 'requested', array[]::text[],
                              'entitlements', coalesce((select json_agg(json_build_object('product', u, 'plan', 'school', 'tier', sc.tier, 'expires_at', sc.expires_at))
@@ -888,7 +891,7 @@ create or replace function public.school_dashboard() returns json
 language plpgsql security definer set search_path = public as $$
 declare sid text := my_school();
 begin
-  if sid is null then raise exception 'School teachers only'; end if;
+  if sid is null then raise exception 'Licence teachers only'; end if;
   return json_build_object(
     'students', coalesce((select json_agg(json_build_object('email', email, 'email2', email2, 'name', name, 'password', password,
                             'signed_up_at', signed_up_at, 'last_seen', last_seen) order by name) from profiles where school_id = sid), '[]'::json),
@@ -905,9 +908,9 @@ create or replace function public.school_add_student(_name text, _email text, _e
 language plpgsql security definer set search_path = public as $$
 declare sid text := my_school(); e text := lower(trim(_email)); e2 text := nullif(lower(trim(coalesce(_email2, ''))), ''); p profiles;
 begin
-  if sid is null then raise exception 'School teachers only'; end if;
+  if sid is null then raise exception 'Licence teachers only'; end if;
   if length(_password) < 8 then raise exception 'Password too short'; end if;
-  if (select expires_at from schools where id = sid) <= now() then raise exception 'This school licence has ended'; end if;
+  if (select expires_at from schools where id = sid) <= now() then raise exception 'This licence has ended'; end if;
   select * into p from profiles where email = e;
   if found then
     if p.school_id = sid then return; end if;
@@ -925,7 +928,7 @@ create or replace function public.school_remove_student(_email text) returns voi
 language plpgsql security definer set search_path = public as $$
 declare sid text := my_school();
 begin
-  if sid is null then raise exception 'School teachers only'; end if;
+  if sid is null then raise exception 'Licence teachers only'; end if;
   update profiles set school_id = null where email = lower(_email) and school_id = sid;
 end $$;
 
@@ -934,7 +937,7 @@ create or replace function public.school_reset_login(_email text) returns void
 language plpgsql security definer set search_path = public, auth as $$
 declare sid text := my_school(); p profiles;
 begin
-  if sid is null then raise exception 'School teachers only'; end if;
+  if sid is null then raise exception 'Licence teachers only'; end if;
   select * into p from profiles where email = lower(_email) and school_id = sid;
   if not found or p.password = '' then raise exception 'No such student'; end if;
   delete from auth.users where email = p.email or email = p.email2;
