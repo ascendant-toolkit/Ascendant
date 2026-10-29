@@ -172,7 +172,7 @@ begin
   if not found then return null; end if;
   return json_build_object('email', p.email, 'email2', p.email2, 'login', e, 'name', p.name, 'is_admin', false,
                            'subjects', effective_subjects(p.email), 'requested', p.requested, 'paywall', paywall_on(),
-                           'entitlements', coalesce((select json_agg(json_build_object('product', product, 'plan', plan, 'expires_at', expires_at))
+                           'entitlements', coalesce((select json_agg(json_build_object('product', product, 'plan', plan, 'tier', tier, 'expires_at', expires_at))
                                                        from entitlements where email = p.email and is_active(starts_at, expires_at)), '[]'::json));
 end $$;
 
@@ -609,6 +609,7 @@ create table if not exists public.entitlements (
   product    text not null references public.products (id),
   source     text not null default 'manual' check (source in ('manual', 'payment', 'school')),
   plan       text not null default 'free' check (plan in ('free', 'annual', 'seasonal', 'school')),
+  tier       text not null default 'full' check (tier in ('free', 'basic', 'full', 'vip')),  -- depth of access; 'full' is the historical default
   org        text,                              -- school name for school licences
   starts_at  timestamptz not null default now(),
   expires_at timestamptz,                       -- null = no expiry
@@ -617,6 +618,9 @@ create table if not exists public.entitlements (
   primary key (email, product)
 );
 alter table public.entitlements enable row level security;
+alter table public.entitlements add column if not exists tier text not null default 'full';  -- for tables created before v7
+alter table public.entitlements drop constraint if exists entitlements_tier_check;
+alter table public.entitlements add constraint entitlements_tier_check check (tier in ('free', 'basic', 'full', 'vip'));
 drop policy if exists entitlements_select on public.entitlements;
 create policy entitlements_select on public.entitlements for select using (email = my_key() or is_admin());
 drop policy if exists entitlements_admin on public.entitlements;
@@ -624,6 +628,13 @@ create policy entitlements_admin on public.entitlements for all using (is_admin(
 
 create or replace function public.is_active(_starts timestamptz, _expires timestamptz) returns boolean
 language sql stable as $$ select _starts <= now() and (_expires is null or _expires > now()) $$;
+
+-- Access tiers are an ordered ladder: free < basic < full < vip. A lesson names the lowest tier that opens it
+-- (artifact_courses.min_tier); a student clears it when they hold that subject at an equal or higher tier.
+create or replace function public.tier_rank(_tier text) returns int
+language sql immutable as $$
+  select case _tier when 'free' then 0 when 'basic' then 1 when 'full' then 2 when 'vip' then 3 else -1 end
+$$;
 
 create or replace function public.paywall_on() returns boolean
 language sql stable security definer set search_path = public as $$
@@ -690,15 +701,16 @@ end $$;
 
 -- Admin: give someone a product (annual or seasonal pass, school licence). Replaces any existing row for that product.
 create or replace function public.admin_grant(target text, _product text, _plan text default 'annual',
-                                              _expires timestamptz default null, _org text default null, _note text default null)
+                                              _expires timestamptz default null, _org text default null, _note text default null,
+                                              _tier text default 'full')
 returns void language plpgsql security definer set search_path = public as $$
 begin
   if not is_admin() then raise exception 'Admins only'; end if;
   if not exists (select 1 from profiles where email = lower(target)) then raise exception 'No such student'; end if;
-  insert into entitlements (email, product, source, plan, org, expires_at, note)
-    values (lower(target), _product, case when _plan = 'school' then 'school' else 'payment' end, _plan, _org, _expires, _note)
+  insert into entitlements (email, product, source, plan, tier, org, expires_at, note)
+    values (lower(target), _product, case when _plan = 'school' then 'school' else 'payment' end, _plan, _tier, _org, _expires, _note)
     on conflict (email, product) do update
-      set source = excluded.source, plan = excluded.plan, org = excluded.org, starts_at = now(), expires_at = excluded.expires_at, note = excluded.note;
+      set source = excluded.source, plan = excluded.plan, tier = excluded.tier, org = excluded.org, starts_at = now(), expires_at = excluded.expires_at, note = excluded.note;
 end $$;
 
 create or replace function public.admin_revoke(target text, _product text) returns void
@@ -714,14 +726,18 @@ end $$;
 -- co-teachers and members whose subjects (see effective_subjects) include one of the lesson's courses.
 -- supabase/artifact_access_seed.sql, written by build.py, lists each locked lesson and its courses.
 create table if not exists public.artifact_courses (
-  slug    text primary key,
-  courses text[] not null
+  slug     text primary key,
+  courses  text[] not null,
+  min_tier text not null default 'full'   -- lowest tier that opens this lesson; 'full' is the historical default
 );
 alter table public.artifact_courses enable row level security;   -- no policies: read only inside artifact_key()
+alter table public.artifact_courses add column if not exists min_tier text not null default 'full';  -- for tables created before v7
+alter table public.artifact_courses drop constraint if exists artifact_courses_min_tier_check;
+alter table public.artifact_courses add constraint artifact_courses_min_tier_check check (min_tier in ('free', 'basic', 'full', 'vip'));
 
 create or replace function public.artifact_key(_slug text) returns text
 language plpgsql stable security definer set search_path = public, extensions as $$
-declare e text := lower(auth.jwt() ->> 'email'); c text[]; m text; staff boolean;
+declare e text := lower(auth.jwt() ->> 'email'); c text[]; m text; mt text; trank int; staff boolean;
 begin
   if e is null then return null; end if;
   select value into m from settings where key = 'gate_master';
@@ -729,11 +745,20 @@ begin
   -- Admins and co-teachers can open any lesson, even one not yet listed in artifact_courses.
   staff := exists (select 1 from admins where email = e) or exists (select 1 from teachers where email = e);
   if not staff then
-    select courses into c from artifact_courses where slug = _slug;
+    select courses, min_tier into c, mt from artifact_courses where slug = _slug;
     if c is null then return null; end if;
+    -- Subject gate (unchanged): the student must hold one of the lesson's subjects.
     if not exists (select 1 from profiles p where (p.email = e or p.email2 = e) and effective_subjects(p.email) && c) then
       return null;
     end if;
+    -- Tier gate: the highest tier they hold on one of this lesson's products (school-all counts) must reach min_tier.
+    -- A student with the subject but no matching entitlement row (legacy / paywall-off) is treated as 'full', so nobody loses access.
+    select coalesce(max(tier_rank(ent.tier)), tier_rank('full')) into trank
+      from profiles p
+      join entitlements ent on ent.email = p.email and is_active(ent.starts_at, ent.expires_at)
+                           and (ent.product = any (c) or ent.product = 'school-all')
+     where (p.email = e or p.email2 = e);
+    if trank < tier_rank(mt) then return null; end if;
   end if;
   return encode(hmac(convert_to('artifact:' || _slug, 'utf8'), convert_to(m, 'utf8'), 'sha256'), 'base64');
 end $$;

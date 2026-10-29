@@ -488,7 +488,7 @@ def build_catalog():
                 sl = [a["slug"] for a in by_chapter.get((ckey, key), []) if is_review(a)]
                 for x in allsl:
                     artifacts.setdefault(x, {"title": arts[x]["title"], "url": f"artifacts/{x}/", "role": "review" if is_review(arts[x]) else "resource",
-                                             "chapterTitle": f"{c['title']}: {ch['title']}"})
+                                             "tier": arts[x].get("tier", "full"), "chapterTitle": f"{c['title']}: {ch['title']}"})
                 for x in sl:
                     if x not in slugs:
                         slugs.append(x)
@@ -496,7 +496,7 @@ def build_catalog():
             groups.append({"title": title, "chapters": items})
         courses[ckey] = {"title": c["title"], "accent": c["accent"], "url": f"{ckey}/", "groups": groups, "slugs": slugs}
     for x, a in arts.items():
-        artifacts.setdefault(x, {"title": a["title"], "url": f"artifacts/{x}/", "role": "review" if is_review(a) else "resource", "chapterTitle": a["title"]})
+        artifacts.setdefault(x, {"title": a["title"], "url": f"artifacts/{x}/", "role": "review" if is_review(a) else "resource", "tier": a.get("tier", "full"), "chapterTitle": a["title"]})
     order = [a["slug"] for a in ARTIFACTS]
     assessed = {k: {"pass": v["pass_pct"], "n": len(v["questions"])} for k, v in ASSESSED.items()}
     write("assets/catalog.json", json.dumps({"courses": courses, "artifacts": artifacts, "order": order, "assessed": assessed}, separators=(",", ":")))
@@ -687,12 +687,12 @@ def build_artifacts():
             (dest / "payload.bin").write_bytes(encrypt_payload(master, a["slug"], {"index": index, "files": bundle}))
             (dest / "index.html").write_text(bust(shell_page(a["slug"], a["title"])), encoding="utf-8")
         if courses:
-            seed.append((a["slug"], courses))
-    lines = ["-- Written by build.py. Safe to rerun: lists the locked lessons and which courses unlock each (see schema.sql, v6).",
-             "insert into public.artifact_courses (slug, courses) values"]
-    lines.append(",\n".join("  ('%s', array[%s])" % (s, ",".join("'%s'" % c for c in cs)) for s, cs in seed))
-    lines.append("on conflict (slug) do update set courses = excluded.courses;")
-    lines.append("delete from public.artifact_courses where slug not in (%s);" % ",".join("'%s'" % s for s, _ in seed))
+            seed.append((a["slug"], courses, a.get("tier", "full")))
+    lines = ["-- Written by build.py. Safe to rerun: lists the locked lessons, which courses unlock each and the lowest tier that opens it (see schema.sql, v7).",
+             "insert into public.artifact_courses (slug, courses, min_tier) values"]
+    lines.append(",\n".join("  ('%s', array[%s], '%s')" % (s, ",".join("'%s'" % c for c in cs), t) for s, cs, t in seed))
+    lines.append("on conflict (slug) do update set courses = excluded.courses, min_tier = excluded.min_tier;")
+    lines.append("delete from public.artifact_courses where slug not in (%s);" % ",".join("'%s'" % s for s, _, _ in seed))
     seed_file = ROOT / "supabase" / "artifact_access_seed.sql"
     text = "\n".join(lines) + "\n"
     if not seed_file.exists() or seed_file.read_text(encoding="utf-8") != text:

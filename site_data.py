@@ -212,6 +212,9 @@ INVESTING = {
 # Artifacts. 'src' is the folder under artifacts_src/. 'places' is a list of
 # (course, chapter id) pairs; the first is the primary home (used for the back link).
 # 'public': True leaves the artifact open to visitors who are not signed in (used for the home page sample).
+# 'tier': lowest access tier that opens the lesson once signed in: "free", "basic", "full" (default) or "vip".
+#   Leave it out for "full" (today's behaviour: anyone holding the subject sees it). Set "free"/"basic" to widen
+#   a lesson to cheaper tiers, "vip" to restrict it to the top tier. Enforced server-side in artifact_key().
 # 'role': "review" is the main chapter review (tracked on the Profile page); anything else is a
 # supplementary "resource" shown on the chapter's Resources tab. Sub-section reviews (5.1, 5.2, ...) are reviews too. Leave it out for resources.
 # 'at': coursebook position of a resource, e.g. "31.2" or "19.1.4". Resources sort by it, in
