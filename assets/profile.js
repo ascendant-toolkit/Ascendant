@@ -17,6 +17,12 @@
   const classSubjects = (ids) => [...new Set(CLASSES.filter((c) => ids.includes(c.id)).map((c) => c.subject))];
   const union = (a, b) => [...new Set([...a, ...b])];
 
+  const TIERS = ["free", "basic", "full", "vip"], TIER_NAMES = { free: "Free", basic: "Basic", full: "Full", vip: "VIP" };
+  const tierSelect = (name, v = "full", label = "Tier") =>
+    `<label>${label}<select name="${name}">${TIERS.map((t) => `<option value="${t}" ${t === v ? "selected" : ""}>${TIER_NAMES[t]}</option>`).join("")}</select></label>`;
+  const isLive = (sc) => !sc.expires_at || new Date(sc.expires_at) > new Date();
+  const licenceLine = (sc, used) => `${TIER_NAMES[sc.tier]} · ${used} of ${sc.seats} seats used · ${sc.expires_at ? (isLive(sc) ? "ends " : "ended ") + fmt(sc.expires_at) : "no end date"}`;
+
   // Academic words for assigned passwords: two words and two digits, e.g. OutcomeMethod47.
   const WORDS = ("analyse approach assess assume benefit concept consist context contrast create data define derive "
     + "design device distinct economy element evaluate evidence factor feature final focus formula function "
@@ -33,6 +39,20 @@
       const pw = cap(a) + cap(b) + String(10 + rnd(90));
       if (a !== b && !taken.has(pw)) return pw;
     }
+  }
+
+  // "Name, email" or "Name, email, second email" per line, as typed into the add-students boxes.
+  function parseStudentLines(text) {
+    const rows = [], bad = [];
+    text.split("\n").map((l) => l.trim()).filter(Boolean).forEach((l) => {
+      const parts = l.split(/[,\t;]/).map((x) => x.trim()).filter(Boolean);
+      const emails = parts.filter((x) => x.includes("@")).map((x) => x.toLowerCase());
+      const name = parts.filter((x) => !x.includes("@")).join(" ").trim();
+      const [email, email2] = emails;
+      if (!name || !email || emails.length > 2 || !emails.every((x) => EMAIL_RE.test(x)) || email === email2) bad.push(l);
+      else rows.push({ line: l, name, email, email2: email2 || null });
+    });
+    return { rows, bad };
   }
 
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -104,6 +124,12 @@
       }).join("")}</div></div>`).join("");
   }
 
+  const accountCard = () => `<section class="card block"><h3>Account</h3>
+        <form id="f-pw" class="inline"><label>New password<input type="password" name="password" autocomplete="new-password" minlength="8" required></label>
+        <label>Confirm<input type="password" name="confirm" autocomplete="new-password" minlength="8" required></label>
+        <button class="btn" type="submit">Change password</button><p class="msg" hidden></p></form>
+        <p><button class="btn ghost" id="signout">Sign out</button></p></section>`;
+
   // ---------- student dashboard ----------
   function viewDashboard(me, done, attempts = []) {
     const mine = me.subjects.filter((k) => catalog.courses[k]);
@@ -121,11 +147,7 @@
     }).join("");
     const nextA = next && catalog.artifacts[next];
 
-    const account = `<section class="card block"><h3>Account</h3>
-        <form id="f-pw" class="inline"><label>New password<input type="password" name="password" autocomplete="new-password" minlength="8" required></label>
-        <label>Confirm<input type="password" name="confirm" autocomplete="new-password" minlength="8" required></label>
-        <button class="btn" type="submit">Change password</button><p class="msg" hidden></p></form>
-        <p><button class="btn ghost" id="signout">Sign out</button></p></section>`;
+    const account = accountCard();
 
     // Teachers get the chapter map only: no percentages, up next, history or scores.
     if (me.is_admin || me.is_teacher) {
@@ -138,7 +160,7 @@
     }
 
     return `
-      <section class="idcard"><h1>${esc(me.name)}</h1><p class="email">${esc(me.email)}${me.email2 ? ` · ${esc(me.email2)}` : ""}</p>${subjectPanel(me)}</section><!--split-->
+      <section class="idcard"><h1>${esc(me.name)}</h1><p class="email">${esc(me.email)}${me.email2 ? ` · ${esc(me.email2)}` : ""}${me.school ? ` · ${esc(me.school)}` : ""}</p>${subjectPanel(me)}</section><!--split-->
       <div class="grid two dash">
         <section class="card block"><h3>Overall progress</h3><div class="row"><span class="big">${pct(doneN, all.size)}%</span><span class="hint">${doneN} of ${all.size} activities</span></div>
           <div class="bar2"><i style="width:${pct(doneN, all.size)}%"></i></div></section>
@@ -179,17 +201,27 @@
 
   // ---------- admin console ----------
   async function loadAdmin() {
-    const [{ data: people, error }, { data: prog }, { data: teachers }, { data: attempts }] = await Promise.all([
+    const [{ data: people, error }, { data: prog }, { data: teachers }, { data: attempts }, { data: schools }, { data: schoolTeachers }, { data: ents }] = await Promise.all([
       sb.from("profiles").select("*").order("name"),
       sb.rpc("admin_progress"),
       sb.from("teachers").select("*").order("name"),
       sb.rpc("admin_attempts"),
+      sb.from("schools").select("*").order("name"),
+      sb.from("school_teachers").select("*").order("name"),
+      sb.from("entitlements").select("email,product,tier"),
     ]);
     if (error) throw error;
     const byEmail = new Map();
     (prog || []).forEach((r) => { if (!byEmail.has(r.email)) byEmail.set(r.email, new Map()); byEmail.get(r.email).set(r.slug, r.done_at); });
-    return { people: people || [], teachers: teachers || [], byEmail, attempts: attempts || [] };
+    return { people: people || [], teachers: teachers || [], byEmail, attempts: attempts || [],
+             schools: schools || [], schoolTeachers: schoolTeachers || [], ents: ents || [] };
   }
+
+  // A student's subjects: their own plus their school's while its licence runs.
+  const subjectsOf = (state, p) => {
+    const sc = p.school_id && state.schools.find((x) => x.id === p.school_id);
+    return sc && isLive(sc) ? union(p.subjects, sc.products) : p.subjects;
+  };
 
   const subjectBoxes = (chosen = []) => COURSE_KEYS.map((k) =>
     `<label class="chk"><input type="checkbox" name="subj" value="${k}" ${chosen.includes(k) ? "checked" : ""}> ${esc(catalog.courses[k].title)}</label>`).join("");
@@ -199,7 +231,7 @@
       `<label class="chk"><input type="checkbox" name="cls" value="${g.id}" ${chosen.includes(g.id) ? "checked" : ""}> ${esc(g.label)}</label>`).join("")}</div>`).join("");
 
   const progressOf = (state, p) => {
-    const all = subjectSlugs(p.subjects), d = state.byEmail.get(p.email) || new Map();
+    const all = subjectSlugs(subjectsOf(state, p)), d = state.byEmail.get(p.email) || new Map();
     const n = [...all].filter((s) => d.has(s)).length;
     return { n, total: all.size, pct: pct(n, all.size) };
   };
@@ -214,7 +246,7 @@
     const bar = (id, title, list, inner) => `<details class="card block cls" name="cls" data-cls="${id}" ${openClass === id ? "open" : ""}>
         <summary><h3>${esc(title)}</h3>${list.length ? `<span class="hint">average progress ${avgOf(list)}%</span>` : ""}</summary>${inner}</details>`;
     const out = [];
-    const loose = state.people.filter((p) => !(p.classes || []).length);
+    const loose = state.people.filter((p) => !(p.classes || []).length && !p.school_id);
     if (loose.length) out.push(bar("none", "Not in a class", loose, classTable(state, loose)));
     CLASS_LIST.forEach((c) => {
       const ids = c.groups.map((g) => g.id);
@@ -233,18 +265,18 @@
       const ids = c.groups.map((g) => g.id);
       return group(c.title, state.people.filter((p) => (p.classes || []).some((x) => ids.includes(x))));
     });
-    const loose = state.people.filter((p) => !(p.classes || []).length);
+    const loose = state.people.filter((p) => !(p.classes || []).length && !p.school_id);
     if (loose.length) out.unshift(group("Not in a class", loose));
     return out.join("");
   }
 
   function adminRows(state, list) {
     return list.map((p) => {
-      const all = subjectSlugs(p.subjects), d = state.byEmail.get(p.email) || new Map();
+      const mine = subjectsOf(state, p), all = subjectSlugs(mine), d = state.byEmail.get(p.email) || new Map();
       const n = [...all].filter((s) => d.has(s)).length;
       const status = p.signed_up_at ? (p.last_seen ? "Active " + fmt(p.last_seen) : "Signed up") : "Not signed up";
       return `<tr data-email="${esc(p.email)}"><td><b>${esc(p.name)}</b><br><span class="hint">${esc(p.email)}${p.email2 ? `<br>${esc(p.email2)}` : ""}</span></td>
-        <td><div class="pills">${pills(p.subjects)}</div></td><td>${esc(status)}</td><td>${pct(n, all.size)}%<br><span class="hint">${n}/${all.size}</span></td>
+        <td><div class="pills">${pills(mine)}</div></td><td>${esc(status)}</td><td>${pct(n, all.size)}%<br><span class="hint">${n}/${all.size}</span></td>
         <td class="acts"><button class="mini ok" data-act="view">Progress</button><button class="mini" data-act="edit">Edit</button><button class="mini" data-act="reset">Reset login</button><button class="mini danger" data-act="del">Delete</button></td></tr>`;
     }).join("");
   }
@@ -266,12 +298,54 @@
         ${q ? (t ? review(t) + `${t.requested_at && !t.reset_at ? '<span class="pill soft">Retake requested</span> ' : ""}<button class="mini" data-reset="${t.id}">Allow retake</button>` : '<p class="hint">Assessment not attempted.</p>') : '<p class="hint">No assessment on this lesson.</p>'}
         ${olds(slug).length ? `<p class="hint">Earlier attempts</p>${olds(slug).map(review).join("")}` : ""}</div>`;
     };
-    const subj = p.subjects.filter((k) => catalog.courses[k]).map((k) => {
+    const subj = subjectsOf(state, p).filter((k) => catalog.courses[k]).map((k) => {
       const c = catalog.courses[k], n = c.slugs.filter((x) => done.has(x)).length;
       return `<section class="subj"><h4>${esc(c.title)} · ${n}/${c.slugs.length} complete</h4>${chapterMap(c, done)}
         ${c.slugs.map(lesson).join("") || '<p class="hint">No lessons yet.</p>'}</section>`;
     }).join("") || '<p class="hint">No subjects assigned.</p>';
     return `<div class="row"><h3>${esc(p.name)}</h3><button class="btn ghost" value="close" formnovalidate>Close</button></div><p class="hint">${esc(p.email)}</p>${subj}`;
+  }
+
+  const schoolOptions = (state, v = "") => `<option value="">No school</option>` +
+    state.schools.map((sc) => `<option value="${esc(sc.id)}" ${sc.id === v ? "selected" : ""}>${esc(sc.name)}</option>`).join("");
+  const dateValue = (d) => (d ? new Date(d).toISOString().slice(0, 10) : "");
+  const endOfDay = (v) => (v ? new Date(v + "T23:59:59").toISOString() : null);
+
+  const licenceFields = (sc = {}) => `
+    <label>School name<input name="sname" value="${esc(sc.name || "")}" required></label>
+    <p class="hint">Subjects on the licence</p><div class="chks">${subjectBoxes(sc.products || [])}</div>
+    <div class="fields3">${tierSelect("tier", sc.tier || "full")}
+      <label>Seats<input type="number" name="seats" min="0" value="${sc.seats ?? 30}" required></label>
+      <label>End date<input type="date" name="ends" value="${dateValue(sc.expires_at)}"></label></div>
+    <label>Note (optional)<input name="snote" value="${esc(sc.note || "")}"></label>`;
+  const licenceValues = (f) => ({
+    name: f.elements.sname.value.trim(), products: [...f.querySelectorAll("[name=subj]:checked")].map((c) => c.value),
+    tier: f.elements.tier.value, seats: Number(f.elements.seats.value), expires_at: endOfDay(f.elements.ends.value), note: f.elements.snote.value.trim() || null,
+  });
+
+  function schoolsPanel(state) {
+    const list = state.schools.map((sc) => {
+      const studs = state.people.filter((p) => p.school_id === sc.id), tch = state.schoolTeachers.filter((t) => t.school_id === sc.id);
+      const warn = !isLive(sc) || studs.length >= sc.seats;
+      return `<details class="card block cls ${warn ? "attn" : ""}" name="cls" data-cls="sch-${esc(sc.id)}" ${openClass === "sch-" + sc.id ? "open" : ""}>
+        <summary><h3>${esc(sc.name)}</h3><span class="hint">${esc(licenceLine(sc, studs.length))}</span></summary>
+        <div class="row"><div class="pills">${pills(sc.products)}</div>
+          <span class="acts"><button class="mini" data-sedit="${esc(sc.id)}">Edit licence</button> <button class="mini danger" data-sdel="${esc(sc.id)}">Delete school</button></span></div>
+        ${sc.note ? `<p class="hint">${esc(sc.note)}</p>` : ""}
+        <div class="subj"><h4>Teachers (${tch.length})</h4></div>
+        ${tch.length ? `<div class="tablewrap"><table class="tbl"><thead><tr><th>Name</th><th>Email</th><th>Password</th><th></th></tr></thead><tbody>
+          ${tch.map((t) => `<tr data-email="${esc(t.email)}"><td>${esc(t.name)}</td><td>${esc(t.email)}</td><td><code>${esc(t.password)}</code></td><td><button class="mini danger" data-strm="1">Remove</button></td></tr>`).join("")}</tbody></table></div>`
+          : '<p class="hint">No teachers yet. Add one so the school can manage its own students.</p>'}
+        <form class="inline f-steach" data-school="${esc(sc.id)}"><label>Name<input name="tname" required></label><label>Email<input type="email" name="temail" required></label>
+          <button class="btn" type="submit">Add teacher</button><p class="msg" hidden></p></form>
+        <div class="subj"><h4>Students (${studs.length} of ${sc.seats})</h4></div>
+        ${studs.length ? classTable(state, studs) : '<p class="hint">No students yet. The school\'s teachers add them from their profile page.</p>'}
+      </details>`;
+    }).join("");
+    return `<section class="card block"><h3>New school</h3>
+        <p class="hint">A school licence covers the ticked subjects at one tier for a number of student seats. Its teachers sign in on the Profile page and add their own students, up to the seat limit. Students lose access when the end date passes; their progress is kept.</p>
+        <form id="f-school">${licenceFields()}<button class="btn" type="submit">Create school</button><p class="msg" hidden></p></form></section>
+      ${list || '<p class="hint">No schools yet.</p>'}`;
   }
 
   async function renderAdmin(host) {
@@ -288,7 +362,7 @@
     host.innerHTML = `
       <div class="tabs admintabs" role="tablist">
         <button data-at="approvals">Approvals${alerts ? ` (${alerts})` : ""}</button><button data-at="students">Classes</button>
-        <button data-at="add">Add students</button><button data-at="pw">Passwords</button><button data-at="me">My profile</button></div>
+        <button data-at="schools">Schools</button><button data-at="add">Add students</button><button data-at="pw">Passwords</button><button data-at="me">My profile</button></div>
       <div class="tabpanel" data-panel="approvals"><section class="card block ${retakes.length ? "attn" : ""}"><h3>Retake requests (${retakes.length})</h3>
         ${retakes.length ? `<ul class="plain">${retakes.map(({ a, p }) => `<li class="row" data-id="${a.id}"><span><b>${esc(p.name)}</b> <span class="hint">${esc(catalog.artifacts[a.slug]?.title || a.slug)} · scored ${a.pct}% · asked ${fmt(a.requested_at)}</span></span>
           <span><button class="mini ok" data-rt="yes">Allow retake</button> <button class="mini danger" data-rt="no">Decline</button></span></li>`).join("")}</ul>` : '<p class="hint">Nothing waiting.</p>'}</section>
@@ -300,6 +374,7 @@
         <form id="f-add"><label>One student per line: <b>Name, email</b> or <b>Name, email, second email</b> (a password is generated for each)
           <textarea name="lines" rows="5" required placeholder="An Nguyen, an@school.edu.vn, parent@gmail.com"></textarea></label>
           <div class="chks">${classBoxes()}</div>
+          ${state.schools.length ? `<label>School (optional: puts them on that school's licence)<select name="school">${schoolOptions(state)}</select></label>` : ""}
           <button class="btn" type="submit">Add students</button><p class="msg" hidden></p></form></section></div>
       <div class="tabpanel" data-panel="pw"><section class="card block"><h3>Student passwords (${state.people.length})</h3>
         <p class="hint">Assigned passwords, visible to admins only. Students sign in with these. If a student changes their own password this list is out of date; Reset login puts it back to the listed one.</p>
@@ -313,6 +388,7 @@
           <button class="btn" type="submit">Add co-teacher</button><p class="msg" hidden></p></form></section></div>
       <div class="tabpanel" data-panel="students"><div class="row"><h3>Classes</h3><button class="mini" id="csv">Export CSV</button></div>
         <p class="hint">Open a class to manage its students.</p>${classAccordion(state)}</div>
+      <div class="tabpanel" data-panel="schools">${schoolsPanel(state)}</div>
       <div class="tabpanel" data-panel="me">${adminMe}</div>
       <dialog id="dlg"><form method="dialog" id="f-edit"></form></dialog>
       <dialog id="dlg2" class="wide"><form method="dialog" id="f-view"></form></dialog>`;
@@ -329,23 +405,19 @@
       e.preventDefault();
       const f = e.target, m = $(".msg", f);
       const classes = [...f.querySelectorAll("[name=cls]:checked")].map((c) => c.value);
-      if (!classes.length) return msg(m, "Tick at least one class.", false);
+      const school_id = f.elements.school?.value || null;
+      if (!classes.length && !school_id) return msg(m, "Tick at least one class or pick a school.", false);
       const subjects = classSubjects(classes);
       const taken = new Set(state.people.map((x) => x.password));
       const have = new Map(state.people.map((x) => [x.email, x]));
       const used = new Set(state.people.flatMap((x) => [x.email, x.email2].filter(Boolean)));
-      const fresh = [], existing = [], bad = [];
-      f.lines.value.split("\n").map((l) => l.trim()).filter(Boolean).forEach((l) => {
-        const parts = l.split(/[,\t;]/).map((x) => x.trim()).filter(Boolean);
-        const emails = parts.filter((x) => x.includes("@")).map((x) => x.toLowerCase());
-        const name = parts.filter((x) => !x.includes("@")).join(" ").trim();
-        const [email, email2] = emails;
-        if (!name || !email || emails.length > 2 || !emails.every((x) => EMAIL_RE.test(x)) || email === email2) return bad.push(l);
-        if (have.has(email)) return existing.push({ email, name, subjects, classes });
-        if (emails.some((x) => used.has(x))) return bad.push(l + " (email already in use)");
-        emails.forEach((x) => used.add(x));
+      const fresh = [], existing = [], { rows, bad } = parseStudentLines(f.lines.value);
+      rows.forEach(({ line, name, email, email2 }) => {
+        if (have.has(email)) return existing.push({ email, name, subjects, classes, school_id });
+        if ([email, email2].some((x) => x && used.has(x))) return bad.push(line + " (email already in use)");
+        [email, email2].filter(Boolean).forEach((x) => used.add(x));
         const password = genPassword(taken); taken.add(password);
-        fresh.push({ email, email2: email2 || null, name, subjects, classes, password });
+        fresh.push({ email, email2, name, subjects, classes, password, school_id });
       });
       if (bad.length) return msg(m, `Check these lines (need a name and one or two valid emails): ${bad.join(" | ")}`, false);
       if (fresh.length) {
@@ -360,7 +432,7 @@
       }
       for (const r of existing) {
         const old = have.get(r.email);
-        const { error } = await sb.from("profiles").update({ name: r.name, subjects: union(old.subjects, r.subjects), classes: union(old.classes || [], r.classes) }).eq("email", r.email);
+        const { error } = await sb.from("profiles").update({ name: r.name, subjects: union(old.subjects, r.subjects), classes: union(old.classes || [], r.classes), school_id: r.school_id || old.school_id }).eq("email", r.email);
         if (error) return msg(m, error.message, false);
       }
       renderAdmin(host);
@@ -393,7 +465,7 @@
     $("#csv").addEventListener("click", () => {
       const head = ["Name", "Email", "Email 2", "Classes", "Subjects", "Done", "Total", "Percent"];
       const lines = state.people.map((p) => {
-        const all = subjectSlugs(p.subjects), d = state.byEmail.get(p.email) || new Map(), n = [...all].filter((s) => d.has(s)).length;
+        const all = subjectSlugs(subjectsOf(state, p)), d = state.byEmail.get(p.email) || new Map(), n = [...all].filter((s) => d.has(s)).length;
         return [p.name, p.email, p.email2 || "", (p.classes || []).join(" "), p.subjects.join(" "), n, all.size, pct(n, all.size)].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",");
       });
       const a = document.createElement("a");
@@ -418,6 +490,55 @@
       const { error } = await sb.rpc("admin_remove_teacher", { t_email: email });
       if (error) alert(error.message); else renderAdmin(host);
     });
+
+    $("#f-school").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const f = e.target, m = $(".msg", f), v = licenceValues(f);
+      if (!v.products.length) return msg(m, "Tick at least one subject.", false);
+      const base = v.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "school";
+      let id = base;
+      for (let i = 2; state.schools.some((x) => x.id === id); i++) id = `${base}-${i}`;
+      const { error } = await sb.from("schools").insert({ id, ...v });
+      if (error) return msg(m, error.message, false);
+      openClass = "sch-" + id;
+      renderAdmin(host);
+    });
+    host.querySelectorAll("[data-sedit]").forEach((b) => b.addEventListener("click", () => {
+      const sc = state.schools.find((x) => x.id === b.dataset.sedit), dlg = $("#dlg"), f = $("#f-edit");
+      f.innerHTML = `<h3>Edit licence</h3>${licenceFields(sc)}
+        <p class="hint">Lowering seats below the number of students doesn't remove anyone, but no one can be added until there's room.</p>
+        <div class="row"><button class="btn" value="save">Save</button><button class="btn ghost" value="cancel" formnovalidate>Cancel</button></div>`;
+      dlg.showModal();
+      f.onsubmit = async (ev) => {
+        if (ev.submitter?.value !== "save") return;
+        const v = licenceValues(f);
+        if (!v.products.length) { ev.preventDefault(); return alert("Tick at least one subject."); }
+        const { error } = await sb.from("schools").update(v).eq("id", sc.id);
+        if (error) return alert(error.message);
+        renderAdmin(host);
+      };
+    }));
+    host.querySelectorAll("[data-sdel]").forEach((b) => b.addEventListener("click", async () => {
+      const sc = state.schools.find((x) => x.id === b.dataset.sdel);
+      if (!confirm(`Delete ${sc.name}? Its teacher logins are deleted. Its students stay on the site with no school (and lose the school's subjects).`)) return;
+      const { error } = await sb.rpc("admin_delete_school", { _school: sc.id });
+      if (error) alert(error.message); else renderAdmin(host);
+    }));
+    host.querySelectorAll(".f-steach").forEach((f) => f.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const m = $(".msg", f), email = f.temail.value.trim().toLowerCase();
+      if (!EMAIL_RE.test(email)) return msg(m, "Enter a valid email.", false);
+      const taken = new Set([...state.people, ...state.teachers, ...state.schoolTeachers].map((x) => x.password));
+      const { error } = await sb.rpc("admin_add_school_teacher", { _school: f.dataset.school, t_name: f.tname.value.trim(), t_email: email, t_password: genPassword(taken) });
+      if (error) return msg(m, error.message, false);
+      renderAdmin(host);
+    }));
+    host.querySelectorAll("[data-strm]").forEach((b) => b.addEventListener("click", async () => {
+      const email = b.closest("tr").dataset.email;
+      if (!confirm(`Remove teacher ${email}? Their login is deleted. The school's students are not affected.`)) return;
+      const { error } = await sb.rpc("admin_remove_school_teacher", { t_email: email });
+      if (error) alert(error.message); else renderAdmin(host);
+    }));
 
     host.querySelectorAll("details.cls").forEach(toggleClass);
     host.querySelectorAll(".stu").forEach((tb) => tb.addEventListener("click", async (e) => {
@@ -467,6 +588,9 @@
           <p class="hint">Changing the password only affects new logins. Use Reset login to apply it to a student who already has one.</p>
           <p class="hint">Classes</p><div class="chks">${classBoxes(p.classes || [])}</div>
           <p class="hint">Subjects (a class adds its own subject automatically)</p><div class="chks">${subjectBoxes(p.subjects)}</div>
+          ${tierSelect("tier", state.ents.find((x) => x.email === email)?.tier || "full", "Tier for these subjects")}
+          ${state.schools.length ? `<label>School<select name="school">${schoolOptions(state, p.school_id || "")}</select></label>
+          <p class="hint">A school gives its own subjects at the licence's tier, on top of the ones ticked above.</p>` : ""}
           <p class="hint">To change the main email address, delete the student and add them again. A second email gets its own login with the same password.</p>
           <div class="row"><button class="btn" value="save">Save</button><button class="btn ghost" value="cancel" formnovalidate>Cancel</button></div>`;
         dlg.showModal();
@@ -476,8 +600,12 @@
           const subjects = union([...f.querySelectorAll("[name=subj]:checked")].map((c) => c.value), classSubjects(classes));
           const e2 = f.elements.email2.value.trim().toLowerCase();
           if (e2 && !EMAIL_RE.test(e2)) return alert("Second email is not valid.");
-          const { error } = await sb.from("profiles").update({ name: f.elements.name.value.trim(), subjects, classes, password: f.elements.password.value.trim() }).eq("email", email);
+          const school_id = f.elements.school ? f.elements.school.value || null : p.school_id;
+          const { error } = await sb.from("profiles").update({ name: f.elements.name.value.trim(), subjects, classes, school_id, password: f.elements.password.value.trim() }).eq("email", email);
           if (error) return alert(error.message);
+          // Subject changes write entitlement rows (trigger), so set the tier after the profile update.
+          const { error: et } = await sb.from("entitlements").update({ tier: f.elements.tier.value }).eq("email", email).neq("plan", "school");
+          if (et) alert("Saved, but the tier failed: " + et.message);
           if (e2 !== (p.email2 || "")) {
             const { error: e3 } = await sb.rpc("admin_set_email2", { target: email, new_email2: e2 });
             if (e3) alert("Saved, but the second email failed: " + e3.message);
@@ -486,6 +614,85 @@
         };
       }
     }));
+  }
+
+  // ---------- school teacher ----------
+  // Manages their own school's students within the licence's seats and sees only their progress.
+  async function viewSchool(me) {
+    const sc = me.school, subjects = sc.products.filter((k) => catalog.courses[k]);
+    root.innerHTML = `<p class="hint">Loading your school…</p>`;
+    const { data, error } = await sb.rpc("school_dashboard");
+    if (error) { root.innerHTML = `<p class="msg err">Could not load your school: ${esc(error.message)}</p>`; return; }
+    const students = data.students, byEmail = new Map();
+    data.progress.forEach((r) => { if (!byEmail.has(r.email)) byEmail.set(r.email, new Map()); byEmail.get(r.email).set(r.slug, r.done_at); });
+    const all = subjectSlugs(subjects), left = Math.max(0, sc.seats - students.length);
+    const doneOf = (p) => byEmail.get(p.email) || new Map();
+    const rows = students.map((p) => {
+      const d = doneOf(p), n = [...all].filter((x) => d.has(x)).length;
+      const status = p.signed_up_at ? (p.last_seen ? "Active " + fmt(p.last_seen) : "Signed up") : "Not signed up";
+      return `<tr data-email="${esc(p.email)}"><td><b>${esc(p.name)}</b><br><span class="hint">${esc(p.email)}${p.email2 ? `<br>${esc(p.email2)}` : ""}</span></td>
+        <td><code>${esc(p.password)}</code></td><td>${esc(status)}</td><td>${pct(n, all.size)}%<br><span class="hint">${n}/${all.size}</span></td>
+        <td class="acts"><button class="mini ok" data-act="view">Progress</button><button class="mini" data-act="reset">Reset login</button><button class="mini danger" data-act="rm">Remove</button></td></tr>`;
+    }).join("");
+    root.innerHTML = `
+      <section class="idcard"><h1>${esc(me.name)}</h1><p class="email">${esc(me.email)} · ${esc(sc.name)}</p>
+        <div class="pills">${pills(subjects)}</div><p class="hint">${esc(licenceLine(sc, students.length))}</p></section>
+      ${sc.active ? "" : `<section class="card block attn"><h3>This licence has ended</h3><p>Your students can't open lessons until it is renewed. Their progress is kept.</p></section>`}
+      <section class="card block"><h3>Add students</h3><p class="hint">${plural(left, "seat")} free of ${sc.seats}. A password is generated for each student; give it to them with their email.</p>
+        <form id="f-sadd"><label>One student per line: <b>Name, email</b> or <b>Name, email, second email</b>
+          <textarea name="lines" rows="5" required placeholder="An Nguyen, an@school.edu.vn"></textarea></label>
+          <button class="btn" type="submit" ${left && sc.active ? "" : "disabled"}>Add students</button><p class="msg" hidden></p></form></section>
+      <section class="card block"><div class="row"><h3>Students (${students.length})</h3>${students.length ? '<button class="mini" id="copypw">Copy logins as table</button>' : ""}</div>
+        ${students.length ? `<div class="tablewrap"><table class="tbl"><thead><tr><th>Student</th><th>Password</th><th>Status</th><th>Progress</th><th></th></tr></thead><tbody id="sstu">${rows}</tbody></table></div>`
+          : '<p class="hint">No students yet.</p>'}
+        <p class="hint">If a student changes their own password, the one listed here is out of date. Reset login puts it back to the listed one.</p></section>
+      ${accountCard()}
+      <dialog id="dlg2" class="wide"><form method="dialog" id="f-view"></form></dialog>`;
+    wireAccount();
+
+    $("#f-sadd").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const f = e.target, m = $(".msg", f), { rows: list, bad } = parseStudentLines(f.lines.value);
+      if (bad.length) return msg(m, `Check these lines (need a name and one or two valid emails): ${bad.join(" | ")}`, false);
+      if (list.length > left) return msg(m, `That's ${list.length} students but only ${plural(left, "seat")} left.`, false);
+      const taken = new Set(students.map((x) => x.password));
+      for (const [i, r] of list.entries()) {
+        const password = genPassword(taken); taken.add(password);
+        const { error } = await sb.rpc("school_add_student", { _name: r.name, _email: r.email, _email2: r.email2, _password: password });
+        if (error) { msg(m, `${i ? `Added ${plural(i, "student")}. ` : ""}Stopped at "${r.line}": ${error.message}`, false); return setTimeout(() => viewSchool(me), 2500); }
+      }
+      viewSchool(me);
+    });
+    $("#copypw")?.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(["Name\tEmail\tEmail 2\tPassword", ...students.map((p) => [p.name, p.email, p.email2 || "", p.password].join("\t"))].join("\n"));
+      $("#copypw").textContent = "Copied";
+    });
+    $("#sstu")?.addEventListener("click", async (e) => {
+      const btn = e.target.closest("[data-act]");
+      if (!btn) return;
+      const p = students.find((x) => x.email === btn.closest("tr").dataset.email);
+      if (btn.dataset.act === "view") {
+        const d = doneOf(p), score = (slug) => data.attempts.find((a) => a.email === p.email && a.slug === slug);
+        $("#f-view").innerHTML = `<div class="row"><h3>${esc(p.name)}</h3><button class="btn ghost" value="close" formnovalidate>Close</button></div><p class="hint">${esc(p.email)}</p>
+          ${subjects.map((k) => {
+            const c = catalog.courses[k], n = c.slugs.filter((x) => d.has(x)).length;
+            return `<section class="subj"><h4>${esc(c.title)} · ${n}/${c.slugs.length} complete</h4>${chapterMap(c, d)}
+              ${c.slugs.map((slug) => {
+                const a = catalog.artifacts[slug], t = score(slug);
+                return `<div class="lessonrow"><div class="row"><span><b>${esc(a.title)}</b> <span class="hint">${esc(a.chapterTitle)}</span></span>
+                  <span>${t ? `<b>${t.pct}%</b> <span class="hint">${fmt(t.at)}</span> ` : ""}${d.has(slug) ? '<span class="ok-txt">✓ Complete</span>' : '<span class="no-txt">Not complete</span>'}</span></div></div>`;
+              }).join("")}</section>`;
+          }).join("") || '<p class="hint">No subjects on this licence.</p>'}`;
+        $("#dlg2").showModal();
+      } else if (btn.dataset.act === "reset") {
+        if (!confirm(`Recreate the login for ${p.name} with the listed password? Their progress is kept.`)) return;
+        const { error } = await sb.rpc("school_reset_login", { _email: p.email });
+        alert(error ? "Could not reset: " + error.message : `Done. ${p.name} can sign in with: ${p.password}`);
+      } else if (confirm(`Remove ${p.name} from ${sc.name}? This frees their seat. They lose access to the school's lessons; their progress is kept if they're added back.`)) {
+        const { error } = await sb.rpc("school_remove_student", { _email: p.email });
+        if (error) alert(error.message); else viewSchool(me);
+      }
+    });
   }
 
   // ---------- boot ----------
@@ -508,6 +715,7 @@
       }
       return viewSignedOut();
     }
+    if (me.is_school_teacher) return viewSchool(me);
     const done = await S.loadProgress();
     let attempts = [];
     if (!me.is_admin && !me.is_teacher) attempts = (await S.sb.rpc("my_attempts")).data || [];

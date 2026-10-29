@@ -23,6 +23,27 @@ create table if not exists public.teachers (
 );
 alter table public.teachers enable row level security;
 
+-- Schools (v8): a school licence covers some subjects at one tier, for a number of student seats, until an end date.
+-- Its teachers add and remove their own students (up to the seat limit) and see only their own school's progress.
+create table if not exists public.schools (
+  id         text primary key check (id ~ '^[a-z0-9-]+$'),
+  name       text not null,
+  products   text[] not null default '{}',   -- any of: ig-econ, ig-cs, a-econ, a-cs
+  tier       text not null default 'full' check (tier in ('free', 'basic', 'full', 'vip')),
+  seats      int not null default 30 check (seats >= 0),
+  expires_at timestamptz,                    -- null = no end date
+  note       text,
+  created_at timestamptz not null default now()
+);
+alter table public.schools enable row level security;
+create table if not exists public.school_teachers (
+  email     text primary key check (email = lower(email)),
+  school_id text not null references public.schools (id) on delete cascade,
+  name      text not null,
+  password  text not null
+);
+alter table public.school_teachers enable row level security;
+
 create table if not exists public.profiles (
   email        text primary key check (email = lower(email)),
   name         text not null,
@@ -43,6 +64,7 @@ create unique index if not exists profiles_email2_key on public.profiles (email2
 alter table public.profiles add column if not exists password text not null default '';
 alter table public.profiles add column if not exists classes text[] not null default '{}';    -- ig1-cs, ig2-cs, a-cs, ig2-econ, a-econ
 alter table public.profiles add column if not exists requested text[] not null default '{}';  -- subjects awaiting approval
+alter table public.profiles add column if not exists school_id text references public.schools (id) on delete set null;  -- v8: seat on a school licence
 
 create table if not exists public.progress (
   email   text not null check (email = lower(email)),
@@ -72,6 +94,7 @@ create or replace function public.is_member() returns boolean
 language sql stable security definer set search_path = public as $$
   select exists (select 1 from admins   where email = lower(auth.jwt() ->> 'email'))
       or exists (select 1 from teachers where email = lower(auth.jwt() ->> 'email'))
+      or exists (select 1 from school_teachers where email = lower(auth.jwt() ->> 'email'))
       or exists (select 1 from profiles where email = lower(auth.jwt() ->> 'email') or email2 = lower(auth.jwt() ->> 'email'))
 $$;
 
@@ -82,6 +105,39 @@ create policy profiles_admin_all on public.profiles
 drop policy if exists teachers_admin_all on public.teachers;
 create policy teachers_admin_all on public.teachers
   for all using (is_admin()) with check (is_admin());
+
+drop policy if exists schools_admin_all on public.schools;
+create policy schools_admin_all on public.schools for all using (is_admin()) with check (is_admin());
+drop policy if exists school_teachers_admin_all on public.school_teachers;
+create policy school_teachers_admin_all on public.school_teachers for all using (is_admin()) with check (is_admin());
+
+-- The school of the signed-in school teacher (null for anyone else).
+create or replace function public.my_school() returns text
+language sql stable security definer set search_path = public as $$
+  select school_id from school_teachers where email = lower(auth.jwt() ->> 'email')
+$$;
+
+-- Subjects and tier a student holds through their school's licence, while it is running.
+create or replace function public.school_access(_email text) returns table (product text, tier text, expires_at timestamptz)
+language sql stable security definer set search_path = public as $$
+  select u, s.tier, s.expires_at from profiles p join schools s on s.id = p.school_id, unnest(s.products) u
+   where p.email = _email and (s.expires_at is null or s.expires_at > now())
+$$;
+
+-- A school can't hold more students than it has seats (checked whenever someone joins one).
+create or replace function public.check_school_seats() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare cap int; n int;
+begin
+  if new.school_id is null or (tg_op = 'UPDATE' and new.school_id is not distinct from old.school_id) then return new; end if;
+  select seats into cap from schools where id = new.school_id;
+  select count(*) into n from profiles where school_id = new.school_id and email <> new.email;
+  if n >= cap then raise exception 'All % seats on this school licence are in use', cap; end if;
+  return new;
+end $$;
+drop trigger if exists check_school_seats on public.profiles;
+create trigger check_school_seats before insert or update of school_id on public.profiles
+  for each row execute function public.check_school_seats();
 
 drop policy if exists progress_select on public.progress;
 create policy progress_select on public.progress
@@ -99,14 +155,16 @@ language plpgsql security definer set search_path = public as $$
 begin
   if exists (select 1 from profiles where email <> new.email and (email = new.email or email2 = new.email))
      or exists (select 1 from admins where email = new.email)
-     or exists (select 1 from teachers where email = new.email) then
+     or exists (select 1 from teachers where email = new.email)
+     or exists (select 1 from school_teachers where email = new.email) then
     raise exception 'Email % is already in use', new.email;
   end if;
   if new.email2 is not null and (
        exists (select 1 from profiles where email <> new.email and (email = new.email2 or email2 = new.email2))
        or exists (select 1 from profiles where email = new.email2)
        or exists (select 1 from admins where email = new.email2)
-       or exists (select 1 from teachers where email = new.email2)) then
+       or exists (select 1 from teachers where email = new.email2)
+       or exists (select 1 from school_teachers where email = new.email2)) then
     raise exception 'Email % is already in use', new.email2;
   end if;
   return new;
@@ -126,6 +184,10 @@ begin
     return new;
   end if;
   if exists (select 1 from teachers t where t.email = lower(new.email) and t.password <> ''
+             and new.encrypted_password = crypt(t.password, new.encrypted_password)) then
+    return new;
+  end if;
+  if exists (select 1 from school_teachers t where t.email = lower(new.email) and t.password <> ''
              and new.encrypted_password = crypt(t.password, new.encrypted_password)) then
     return new;
   end if;
@@ -156,7 +218,7 @@ create trigger lock_email before update of email on auth.users
 -- Who am I? Returns null if the signed-in user is not on the roster.
 create or replace function public.whoami() returns json
 language plpgsql security definer set search_path = public as $$
-declare e text := lower(auth.jwt() ->> 'email'); a admins; p profiles;
+declare e text := lower(auth.jwt() ->> 'email'); a admins; p profiles; st school_teachers; sc schools; live boolean;
 begin
   if e is null then return null; end if;
   select * into a from admins where email = e;
@@ -168,12 +230,29 @@ begin
     return json_build_object('email', e, 'name', (select name from teachers where email = e), 'is_admin', false, 'is_teacher', true,
                              'subjects', array['ig-econ','ig-cs','a-econ','a-cs'], 'requested', array[]::text[]);
   end if;
+  -- School teachers count as teachers (they preview assessments, don't submit them) but only for their licence's subjects and tier.
+  select * into st from school_teachers where email = e;
+  if found then
+    select * into sc from schools where id = st.school_id;
+    live := sc.expires_at is null or sc.expires_at > now();
+    return json_build_object('email', e, 'name', st.name, 'is_admin', false, 'is_teacher', true, 'is_school_teacher', true,
+                             'school', json_build_object('id', sc.id, 'name', sc.name, 'products', sc.products, 'tier', sc.tier,
+                                                         'seats', sc.seats, 'expires_at', sc.expires_at, 'active', live),
+                             'subjects', case when live then sc.products else '{}'::text[] end, 'requested', array[]::text[],
+                             'entitlements', coalesce((select json_agg(json_build_object('product', u, 'plan', 'school', 'tier', sc.tier, 'expires_at', sc.expires_at))
+                                                         from unnest(case when live then sc.products else '{}'::text[] end) u), '[]'::json));
+  end if;
   update profiles set last_seen = now() where email = e or email2 = e returning * into p;
   if not found then return null; end if;
   return json_build_object('email', p.email, 'email2', p.email2, 'login', e, 'name', p.name, 'is_admin', false,
                            'subjects', effective_subjects(p.email), 'requested', p.requested, 'paywall', paywall_on(),
-                           'entitlements', coalesce((select json_agg(json_build_object('product', product, 'plan', plan, 'tier', tier, 'expires_at', expires_at))
-                                                       from entitlements where email = p.email and is_active(starts_at, expires_at)), '[]'::json));
+                           'school', (select name from schools where id = p.school_id),
+                           'entitlements', coalesce((select json_agg(x) from (
+                               select json_build_object('product', product, 'plan', plan, 'tier', tier, 'expires_at', expires_at) x
+                                 from entitlements where email = p.email and is_active(starts_at, expires_at)
+                               union all
+                               select json_build_object('product', product, 'plan', 'school', 'tier', tier, 'expires_at', expires_at)
+                                 from school_access(p.email)) q), '[]'::json));
 end $$;
 
 -- Admin: every progress row in one JSON value (avoids the 1000-row API cap).
@@ -182,18 +261,6 @@ language plpgsql security definer set search_path = public as $$
 begin
   if not is_admin() then raise exception 'Admins only'; end if;
   return coalesce((select json_agg(json_build_object('email', email, 'slug', slug, 'done_at', done_at)) from progress), '[]'::json);
-end $$;
-
--- Admin: remove a student, their login and their progress.
-create or replace function public.admin_delete_student(target text) returns void
-language plpgsql security definer set search_path = public, auth as $$
-begin
-  if not is_admin() then raise exception 'Admins only'; end if;
-  target := lower(target);
-  delete from progress where email = target;
-  delete from entitlements where email = target;
-  delete from auth.users where email = target or email = (select email2 from profiles where email = target);
-  delete from profiles where email = target;
 end $$;
 
 -- Creates a ready-to-use, already-confirmed login directly (no sign-up, no email, no Confirm-email setting).
@@ -281,6 +348,7 @@ begin
   if not is_admin() then raise exception 'Admins only'; end if;
   if length(t_password) < 8 then raise exception 'Password too short'; end if;
   if exists (select 1 from admins where email = e) or exists (select 1 from teachers where email = e)
+     or exists (select 1 from school_teachers where email = e)
      or exists (select 1 from profiles where email = e or email2 = e) then
     raise exception 'Email % is already in use', e;
   end if;
@@ -426,7 +494,8 @@ declare a assessments; e text := my_key(); q jsonb; typed text; got int; tot int
 begin
   if not is_member() then raise exception 'Sign in first'; end if;
   if exists (select 1 from admins where email = lower(auth.jwt() ->> 'email'))
-     or exists (select 1 from teachers where email = lower(auth.jwt() ->> 'email')) then
+     or exists (select 1 from teachers where email = lower(auth.jwt() ->> 'email'))
+     or exists (select 1 from school_teachers where email = lower(auth.jwt() ->> 'email')) then
     raise exception 'Teacher accounts preview the assessment but do not submit it';
   end if;
   select * into a from assessments where slug = _slug;
@@ -533,6 +602,7 @@ begin
   target := lower(target);
   delete from progress where email = target;
   delete from assessment_attempts where email = target;
+  delete from entitlements where email = target;
   delete from auth.users where email = target or email = (select email2 from profiles where email = target);
   delete from profiles where email = target;
 end $$;
@@ -648,6 +718,8 @@ language sql stable security definer set search_path = public as $$
       from entitlements p where p.email = _email and is_active(p.starts_at, p.expires_at)
     union
     select unnest(subjects) from profiles where email = _email and not paywall_on()
+    union
+    select product from school_access(_email)
   ) x
 $$;
 
@@ -747,20 +819,127 @@ begin
   if not staff then
     select courses, min_tier into c, mt from artifact_courses where slug = _slug;
     if c is null then return null; end if;
+    -- School teachers open their licence's subjects at their licence's tier while it runs.
+    if exists (select 1 from school_teachers where email = e) then
+      if not exists (select 1 from school_teachers t join schools s on s.id = t.school_id
+                      where t.email = e and s.products && c and tier_rank(s.tier) >= tier_rank(mt)
+                        and (s.expires_at is null or s.expires_at > now())) then
+        return null;
+      end if;
+      return encode(hmac(convert_to('artifact:' || _slug, 'utf8'), convert_to(m, 'utf8'), 'sha256'), 'base64');
+    end if;
     -- Subject gate (unchanged): the student must hold one of the lesson's subjects.
     if not exists (select 1 from profiles p where (p.email = e or p.email2 = e) and effective_subjects(p.email) && c) then
       return null;
     end if;
-    -- Tier gate: the highest tier they hold on one of this lesson's products (school-all counts) must reach min_tier.
+    -- Tier gate: the highest tier they hold on one of this lesson's products (school-all and school licences count) must reach min_tier.
     -- A student with the subject but no matching entitlement row (legacy / paywall-off) is treated as 'full', so nobody loses access.
-    select coalesce(max(tier_rank(ent.tier)), tier_rank('full')) into trank
-      from profiles p
-      join entitlements ent on ent.email = p.email and is_active(ent.starts_at, ent.expires_at)
-                           and (ent.product = any (c) or ent.product = 'school-all')
-     where (p.email = e or p.email2 = e);
+    select coalesce(max(r), tier_rank('full')) into trank from (
+      select tier_rank(ent.tier) r
+        from profiles p
+        join entitlements ent on ent.email = p.email and is_active(ent.starts_at, ent.expires_at)
+                             and (ent.product = any (c) or ent.product = 'school-all')
+       where (p.email = e or p.email2 = e)
+      union all
+      select tier_rank(sa.tier) from profiles p, school_access(p.email) sa
+       where (p.email = e or p.email2 = e) and sa.product = any (c)) z;
     if trank < tier_rank(mt) then return null; end if;
   end if;
   return encode(hmac(convert_to('artifact:' || _slug, 'utf8'), convert_to(m, 'utf8'), 'sha256'), 'base64');
+end $$;
+
+-- ===================== Schools (v8) =====================
+-- Admins edit schools directly (RLS). Teacher logins and anything a school teacher does go through these functions.
+create or replace function public.admin_add_school_teacher(_school text, t_name text, t_email text, t_password text) returns void
+language plpgsql security definer set search_path = public as $$
+declare e text := lower(trim(t_email));
+begin
+  if not is_admin() then raise exception 'Admins only'; end if;
+  if length(t_password) < 8 then raise exception 'Password too short'; end if;
+  if exists (select 1 from admins where email = e) or exists (select 1 from teachers where email = e)
+     or exists (select 1 from school_teachers where email = e)
+     or exists (select 1 from profiles where email = e or email2 = e) then
+    raise exception 'Email % is already in use', e;
+  end if;
+  insert into school_teachers (email, school_id, name, password) values (e, _school, trim(t_name), t_password);
+  perform _create_login(e, t_password);
+end $$;
+
+create or replace function public.admin_remove_school_teacher(t_email text) returns void
+language plpgsql security definer set search_path = public, auth as $$
+declare e text := lower(t_email);
+begin
+  if not is_admin() then raise exception 'Admins only'; end if;
+  delete from auth.users where email = e;
+  delete from school_teachers where email = e;
+end $$;
+
+-- Admin: delete a school and its teacher logins. Its students stay on the site, with no school.
+create or replace function public.admin_delete_school(_school text) returns void
+language plpgsql security definer set search_path = public, auth as $$
+begin
+  if not is_admin() then raise exception 'Admins only'; end if;
+  delete from auth.users where email in (select email from school_teachers where school_id = _school);
+  delete from schools where id = _school;
+end $$;
+
+-- School teacher: their students, progress and live assessment scores.
+create or replace function public.school_dashboard() returns json
+language plpgsql security definer set search_path = public as $$
+declare sid text := my_school();
+begin
+  if sid is null then raise exception 'School teachers only'; end if;
+  return json_build_object(
+    'students', coalesce((select json_agg(json_build_object('email', email, 'email2', email2, 'name', name, 'password', password,
+                            'signed_up_at', signed_up_at, 'last_seen', last_seen) order by name) from profiles where school_id = sid), '[]'::json),
+    'progress', coalesce((select json_agg(json_build_object('email', g.email, 'slug', g.slug, 'done_at', g.done_at))
+                            from progress g join profiles p on p.email = g.email where p.school_id = sid), '[]'::json),
+    'attempts', coalesce((select json_agg(json_build_object('email', a.email, 'slug', a.slug, 'pct', a.pct, 'score', a.score, 'max', a.max_score, 'at', a.submitted_at)
+                            order by a.submitted_at desc)
+                            from assessment_attempts a join profiles p on p.email = a.email where p.school_id = sid and a.reset_at is null), '[]'::json));
+end $$;
+
+-- School teacher: add a student to their school (seat limit is checked by check_school_seats).
+-- A student who left a school keeps their login and progress and can be added back.
+create or replace function public.school_add_student(_name text, _email text, _email2 text, _password text) returns void
+language plpgsql security definer set search_path = public as $$
+declare sid text := my_school(); e text := lower(trim(_email)); e2 text := nullif(lower(trim(coalesce(_email2, ''))), ''); p profiles;
+begin
+  if sid is null then raise exception 'School teachers only'; end if;
+  if length(_password) < 8 then raise exception 'Password too short'; end if;
+  if (select expires_at from schools where id = sid) <= now() then raise exception 'This school licence has ended'; end if;
+  select * into p from profiles where email = e;
+  if found then
+    if p.school_id = sid then return; end if;
+    if p.school_id is not null or cardinality(p.subjects) > 0 then raise exception 'Email % is already in use', e; end if;
+    update profiles set school_id = sid, name = trim(_name) where email = e;
+    return;
+  end if;
+  insert into profiles (email, email2, name, password, school_id) values (e, e2, trim(_name), _password, sid);
+  perform _create_login(e, _password);
+  if e2 is not null then perform _create_login(e2, _password); end if;
+end $$;
+
+-- School teacher: take a student off the licence (frees the seat; their login and progress are kept).
+create or replace function public.school_remove_student(_email text) returns void
+language plpgsql security definer set search_path = public as $$
+declare sid text := my_school();
+begin
+  if sid is null then raise exception 'School teachers only'; end if;
+  update profiles set school_id = null where email = lower(_email) and school_id = sid;
+end $$;
+
+-- School teacher: recreate a student's login(s) with the listed password.
+create or replace function public.school_reset_login(_email text) returns void
+language plpgsql security definer set search_path = public, auth as $$
+declare sid text := my_school(); p profiles;
+begin
+  if sid is null then raise exception 'School teachers only'; end if;
+  select * into p from profiles where email = lower(_email) and school_id = sid;
+  if not found or p.password = '' then raise exception 'No such student'; end if;
+  delete from auth.users where email = p.email or email = p.email2;
+  perform _create_login(p.email, p.password);
+  if p.email2 is not null then perform _create_login(p.email2, p.password); end if;
 end $$;
 
 -- Bootstrap: create the admin logins from admins.initial_password.

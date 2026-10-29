@@ -33,6 +33,15 @@ The site decides which courses someone sees from `whoami().subjects`, so the fro
 - `admin_grant(email, product, plan, expires, org, note)` and `admin_revoke(email, product)` manage passes and school licences.
 - This controls what the site shows. The lesson files are still public static pages, so real protection of paid content needs the content served from Supabase (not built yet).
 
+## Schools (Supabase)
+
+A school licence (`schools` in `supabase/schema.sql`, section "Schools (v8)") covers some subjects at one tier for a number of student seats until an end date. Create and edit schools from the Admin panel's Schools tab, then add the school's teacher there; they get a generated password like students do.
+
+- A school teacher signs in on the Profile page and sees their own school: they add students (up to the seat limit), copy logins, reset logins, remove students and see each student's progress and scores. They can open the licence's lessons at its tier, but not submit assessments.
+- Students on a school get its subjects at its tier on top of anything set on their own profile, and lose them when the end date passes. Removing a student frees the seat and keeps their progress.
+- The seat limit is enforced in the database (`check_school_seats`), so it holds for teachers and admins alike.
+- An admin can move a student between schools, or set the tier of a student's own subjects, from the student's Edit dialog.
+
 ## Locked lessons
 
 Every lesson that belongs to a course is published as an encrypted `payload.bin` plus a tiny shell page (`assets/gateload.js`). The shell asks Supabase for the lesson's key (`artifact_key()` in `schema.sql`); the database only releases it to admins, co-teachers and members whose subjects include the lesson's course. Without a key the file is unreadable, so view-source or the GitHub repo shows nothing useful. Course pages, titles and descriptions stay public. Artifacts marked `"public": True` in `site_data.py`, and ones in no course (Investing), stay open.
