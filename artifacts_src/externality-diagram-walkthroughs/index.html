@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Externality Diagrams, Step by Step</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
+
+table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
+.synd{margin:8px 0;overflow-x:auto}
+.gantt{display:flex;margin:6px 0 0;font-family:var(--mono)}.gantt .gb{border:1.5px solid var(--ink);margin-left:-1.5px;text-align:center;padding:6px 0;font-weight:700;font-size:.85rem;background:var(--surface);min-width:0}
+.gantt .gb.c0{background:var(--accent-soft)}.gantt .gb.c1{background:var(--bad-soft)}.gantt .gb.c2{background:var(--good-soft)}.gantt .gb.c3{background:var(--warn-soft)}.gantt .gb.c4{background:var(--soft)}
+.gticks{display:flex;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:2px 0 10px}.gticks span{text-align:right;min-width:0}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Economics · 9708 · Syllabus 7.4 · Externalities</div>
+  <h1>Externality Diagrams, Step by Step</h1>
+  <p class="lead">Five animated walk-throughs, each in three stages: what causes the externality, why it is a problem, and which government intervention puts output back at the socially optimum quantity. Step through each diagram, build the fix yourself, then practise.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Step through</button>
+  <button role="tab" data-p="build">Build the fix</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real cases</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>The three-stage method</h3>
+  <p>Every externality diagram tells the same story. <b>Cause:</b> decision makers count only their <b>private</b> costs and benefits, so a cost or benefit lands on a third party who is not part of the deal (an <b>external</b> cost or benefit). <b>Problem:</b> the market settles at the private equilibrium (Q1), but the <b>socially optimum</b> quantity (Q*) is where marginal social benefit equals marginal social cost, so output is too high or too low and there is a <b>welfare loss</b>. <b>Solution:</b> the government <b>internalises</b> the externality so that the decision maker faces the full social cost or benefit, which moves output to Q*. A correct diagram always ends at Q*.</p></div>
+
+  <h2>1 · The four cases at a glance</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Case</th><th>Where the social curve sits</th><th>Market output</th><th>Intervention</th><th>What moves</th></tr>
+    <tr><td><b>Negative externality of production</b> (pollution from a factory)</td><td>MSC above MPC by the MEC</td><td>Too much (Q1 &gt; Q*)</td><td>Indirect tax equal to the MEC, or tradable permits or regulation</td><td>S shifts up (left) onto MSC</td></tr>
+    <tr><td><b>Negative externality of consumption</b> (second-hand smoke)</td><td>MSB below MPB by the MEC</td><td>Too much (Q1 &gt; Q*)</td><td>Indirect tax equal to the MEC at Q*</td><td>S shifts up (left) to cut quantity to Q*</td></tr>
+    <tr><td><b>Positive externality of consumption</b> (vaccination)</td><td>MSB above MPB by the MEB</td><td>Too little (Q1 &lt; Q*)</td><td>Subsidy equal to the MEB, or direct provision</td><td>S shifts down (right) to raise quantity to Q*</td></tr>
+    <tr><td><b>Positive externality of production</b> (R&amp;D with spillovers)</td><td>MSC below MPC by the MEB</td><td>Too little (Q1 &lt; Q*)</td><td>Subsidy equal to the MEB</td><td>S shifts down (right) onto MSC</td></tr>
+  </table></div>
+
+  <h2>2 · How to read the labels</h2>
+  <div class="grid2">
+    <div class="card"><h3>Private and social</h3><p><b>MPC</b> and <b>MPB</b> are what the producer or consumer counts. <b>MSC = MPC + MEC</b> when production harms others, and <b>MSB = MPB + MEB</b> when consumption helps others. A curve shifts only if there is an externality on that side.</p></div>
+    <div class="card"><h3>Q1, Q* and the welfare loss</h3><p><b>Q1</b> is where the market clears (private MB = private MC). <b>Q*</b> is where MSB = MSC. The <b>welfare loss</b> is the triangle between MSB and MSC for the units between Q1 and Q*: each is either costing society more than it is worth, or is worth more than it costs but is not made.</p></div>
+  </div>
+  <div class="tip"><b class="h">Size the fix correctly</b>The tax or subsidy should equal the marginal externality <i>at Q*</i>. Too small and some welfare loss is left; too large and the market overshoots Q*, creating a new welfare loss on the other side. The <b>Build the fix</b> tab lets you test this.</div>
+  <p class="note">The numbers used throughout (D, S, an external cost or benefit of $20 per unit) are illustrative, chosen so that every diagram is easy to read and Q* comes out exactly.</p>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <p>Choose a case, then press Play or click the numbered steps. The chips at the top of each diagram show whether you are looking at the <b>cause</b>, the <b>problem</b> or the <b>solution</b>.</p>
+  <div id="scnB" class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:10px"></div>
+  <div id="scnBox"></div>
+</section>
+
+<section id="build" role="tabpanel" hidden>
+  <h2>1 · Set the right tax</h2>
+  <p>A factory pollutes: the marginal external cost (MEC) is $20 per unit, so the socially optimum output is Q* = 37.5. Move the tax and watch the new equilibrium.</p>
+  <div class="card"><div id="g1"></div>
+    <svg id="labA" viewBox="0 34 840 311" role="img" aria-label="Tax set by the player on a negative externality" style="width:100%;height:auto;display:block"></svg>
+    <div class="key" id="legA"></div>
+    <div class="grid2" style="margin-top:8px"><div class="card"><h3>New output</h3><p id="a1" style="font-size:1.5rem;font-weight:700;margin:0"></p></div><div class="card"><h3>Welfare loss left</h3><p id="a2" style="font-size:1.5rem;font-weight:700;margin:0"></p></div><div class="card"><h3>Verdict</h3><p id="a3"></p></div></div></div>
+
+  <h2>2 · Set the right subsidy</h2>
+  <p>Vaccination gives a marginal external benefit (MEB) of $20 per unit, so Q* = 62.5. Move the subsidy and watch the new equilibrium.</p>
+  <div class="card"><div id="g2"></div>
+    <svg id="labB" viewBox="0 34 840 311" role="img" aria-label="Subsidy set by the player on a positive externality" style="width:100%;height:auto;display:block"></svg>
+    <div class="key" id="legB"></div>
+    <div class="grid2" style="margin-top:8px"><div class="card"><h3>New output</h3><p id="b1" style="font-size:1.5rem;font-weight:700;margin:0"></p></div><div class="card"><h3>Welfare loss left</h3><p id="b2" style="font-size:1.5rem;font-weight:700;margin:0"></p></div><div class="card"><h3>Verdict</h3><p id="b3"></p></div></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Negative or positive externality?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Match the curve gap to the case</h2><div id="m1" class="card"></div>
+  <h2>3 · Put the drawing steps in order</h2><div id="o1" class="card"></div>
+  <h2>4 · Calculations</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Cases are described in general terms. Check current details before quoting a specific rate, date or figure in an exam answer.</p>
+  <div class="rw"><h3>London congestion charge: a charge on a negative externality</h3><p>Introduced in central London in 2003, drivers pay a daily charge to enter the zone. Each driver adds to delay, noise and pollution for others, which the driver does not pay for. The charge is a tax that makes drivers face more of the social cost. Traffic entering the zone was reported to fall after the charge began, although the effect could weaken over time as the road network and traffic patterns change.</p><div class="use"><b>In an exam:</b> use it for an indirect tax on a negative externality of consumption, and evaluate by noting the charge is a single price that may not match the true external cost, and that it could hit lower-income drivers hardest.</div></div>
+  <div class="rw"><h3>EU Emissions Trading System: a cap and tradable permits</h3><p>Started in 2005, the system sets a cap on carbon emissions from power stations and heavy industry and issues permits that firms can trade. The cap fixes the quantity, much like the vertical supply in the fifth walk-through, and the market finds the permit price. Early on, too many permits were handed out and the price fell very low, which shows how much depends on setting the cap correctly.</p><div class="use"><b>In an exam:</b> use it to explain why permits are a quantity-based alternative to a tax, and to evaluate the problem of knowing where to set the cap.</div></div>
+  <div class="rw"><h3>England's carrier bag charge</h3><p>A 5p charge on single-use plastic bags began in large shops in 2015 and was later raised and extended. Giving away bags free meant that the litter and marine pollution they cause were not in the price. Use of bags in the main supermarkets was reported to fall sharply, which suggests a small charge could change behaviour a good deal when substitutes (reusable bags) are easy to find.</p><div class="use"><b>In an exam:</b> use it to show that the size of the response depends on the elasticity of demand.</div></div>
+  <div class="rw"><h3>The UK soft drinks levy</h3><p>From 2018 the Soft Drinks Industry Levy charged producers according to the sugar content of their drinks. The aim was to reduce the health costs of sugar, a cost partly borne by the NHS and so by other taxpayers. Many producers reformulated their drinks to cut sugar, which shows how a tax on producers can shift supply as well as demand.</p><div class="use"><b>In an exam:</b> use it for a tax aimed at a negative externality of consumption, and for the argument that the burden may be shared between firms and consumers.</div></div>
+  <div class="rw"><h3>Vaccination programmes</h3><p>The NHS offers some vaccines free to eligible groups. A person who is vaccinated is less likely to pass on the disease, so others gain without paying, a positive externality of consumption that leads to under-consumption if people pay the full price. Free provision is the extreme form of a subsidy: the price to the user falls to zero.</p><div class="use"><b>In an exam:</b> use it for a subsidy or provision on a positive externality, and mention the opportunity cost to the taxpayer.</div></div>
+  <div class="rw"><h3>Research and development tax relief</h3><p>The UK and many other governments give firms tax relief on qualifying R&amp;D spending. Innovation tends to spill over to rivals and to the wider economy, so a firm's private return is lower than the social return. The relief lowers the firm's cost of research, a subsidy that moves the supply of R&amp;D towards the social optimum.</p><div class="use"><b>In an exam:</b> use it for a positive externality of production, and evaluate by pointing out that spillovers are hard to measure and that some firms may claim relief for work they would have done anyway.</div></div>
+  <div class="rw"><h3>Solar panel feed-in tariffs</h3><p>From 2010 the UK paid households and businesses for the electricity they generated from solar panels. Cleaner generation benefits people who never pay for it, so the market on its own could be expected to install too few panels. The payments acted as a subsidy, and the cost to bill-payers and the fall in the scheme's rates as panel costs dropped show the trade-offs.</p><div class="use"><b>In an exam:</b> use it to link a subsidy to the external benefit and to discuss government failure through cost and poorly targeted payments.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam practice</h2>
+  <p>These questions were written for this page. Open each one for reminders, a model answer and the common mistake.</p>
+<div class="key" aria-label="Colour key"><span class="k"><i></i>Knowledge (K)</span><span class="a"><i></i>Application (A)</span><span class="n"><i></i>Analysis (N)</span><span class="e"><i></i>Evaluation (E)</span></div>
+
+  <details class="eq"><summary>Q1 <span class="cmd">Explain</span> <span class="mark">6 marks</span> Explain, with the help of a diagram, why a market may produce too much of a good whose production causes pollution.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Draw MPC (the supply curve), MSC above it, and demand. Mark Q1 where demand meets MPC and Q* where demand meets MSC. Shade the welfare loss. Then explain the diagram in words: a diagram that is not referred to in the text scores less.</div>
+    <div class="ans"><p><span class="mk k" data-t="K">Production causes a negative externality when it imposes a cost on third parties, such as pollution, that the producer does not pay for. The marginal external cost (MEC) is added to the marginal private cost (MPC) to give the marginal social cost (MSC).</span> <span class="mk n" data-t="N">Firms decide output using only their private costs, so the market clears where demand (MPB) meets supply (MPC), at Q1. The socially optimum output is lower, at Q*, where MSB equals MSC.</span></p>
+    <p><span class="mk n" data-t="N">Between Q* and Q1 each unit costs society more (MSC) than it is worth to consumers (MSB). Output is therefore too high and there is a welfare loss, shown by the triangle between MSC and demand.</span> <span class="mk a" data-t="A">For example, a power station that burns coal sells electricity without paying for the harm caused to the health of people nearby, so more electricity is likely to be produced than is best for society.</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Drawing MSC below MPC. A negative externality of production always puts MSC above MPC. Another is to shade the whole area under the curves instead of the triangle between Q* and Q1.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q2 <span class="cmd">Explain</span> <span class="mark">6 marks</span> Explain how a subsidy could correct the under-consumption of a good with a positive externality of consumption.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Say what the externality is, show why the market under-provides, then say what the subsidy does to supply and where output ends up. Finish on Q*.</div>
+    <div class="ans"><p><span class="mk k" data-t="K">A positive externality of consumption arises when consuming a good benefits third parties, so the marginal social benefit (MSB) is above the marginal private benefit (MPB) by the marginal external benefit (MEB).</span> <span class="mk n" data-t="N">Consumers decide using only MPB, so the market settles at Q1 where MPB equals MPC. The socially optimum quantity, Q*, is higher, where MSB equals MSC, so the good is under-consumed and there is a welfare loss.</span> <span class="mk a" data-t="A">For example, a person who has a vaccination also reduces the chance that others catch the disease.</span></p>
+    <p><span class="mk n" data-t="N">A subsidy equal to the MEB at Q* lowers firms' costs, so supply shifts down and to the right. The price paid by consumers falls, quantity demanded extends to Q*, and the welfare loss is removed.</span> <span class="mk e" data-t="E">The subsidy has an opportunity cost for the taxpayer, and it could be set wrongly if the MEB is hard to measure.</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Shifting the demand curve. A subsidy to producers shifts supply. The demand curve (MPB) stays where it is.</div>
+  </div></details>
+
+  <details class="eq"><summary>Q3 <span class="cmd">Evaluate</span> <span class="mark">12 marks</span> Evaluate whether an indirect tax is the best way for a government to deal with a negative externality of consumption.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Explain how the tax works using the diagram, then weigh it against at least one alternative (regulation, permits, information) and say what the answer depends on. Use "likely" and "could".</div>
+    <div class="ans"><p><span class="mk k" data-t="K">An indirect tax is a tax on a good that raises the cost of supplying it. For a negative externality of consumption, such as second-hand smoke, the market over-consumes because buyers ignore the harm to others (MSB is below MPB).</span> <span class="mk n" data-t="N">A tax equal to the marginal external cost at Q* shifts supply upwards and to the left, raising the price and cutting quantity from Q1 to Q*, so the externality is internalised and the welfare loss removed. The tax also raises revenue that could be used to treat those who are harmed.</span></p>
+    <p><span class="mk e" data-t="E">However, the tax may not be the best solution. The marginal external cost is hard to measure, so the tax could be set too high or too low. If demand is inelastic, as it could be for an addictive good, the quantity may fall by less than hoped and the burden of the tax would fall mostly on consumers, which could hit low-income households hardest.</span> <span class="mk e" data-t="E">Regulation, such as a ban in public places, gives more certainty about the quantity, and information campaigns could change preferences, though both have costs and may be slow.</span></p>
+    <p><span class="mk e" data-t="E">Overall, a tax is likely to be effective when demand is elastic enough to respond and the external cost can be estimated reasonably well. Where demand is inelastic or the harm is severe, a tax combined with regulation and education is more likely to reach the socially optimum quantity.</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Describing how the tax works and stopping there. Evaluation needs a reasoned judgement about when it works well and what it depends on.</div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Tell the whole story.</b> Cause, problem, solution. Many answers stop after the welfare loss and forget to show the intervention.</li>
+    <li><b>End at Q*.</b> After the tax or subsidy, mark the new equilibrium at the socially optimum quantity and say that the welfare loss has gone.</li>
+    <li><b>Know which curve moves.</b> Costs change with a tax or subsidy, so supply shifts. The demand curve moves only if preferences change (for example through education).</li>
+    <li><b>Match the direction.</b> Negative externality: too much, tax pushes supply up and left. Positive externality: too little, subsidy pushes supply down and right.</li>
+    <li><b>Size it at Q*.</b> The tax or subsidy equals the marginal externality at the socially optimum quantity.</li>
+    <li><b>Label everything.</b> MPB, MPC, MSB or MSC, Q1, Q*, P1, P*, and the welfare loss. Refer to them in your text.</li>
+    <li><b>Evaluate the policy.</b> Measuring the externality, elasticity, who bears the tax, the cost of a subsidy, and the risk of government failure.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>The cause</td><td>"Because producers ignore the cost imposed on third parties, MSC is above MPC and the market produces where MPB = MPC rather than where MSB = MSC."</td></tr>
+    <tr><td>The problem</td><td>"Between Q* and Q1 the cost to society of each unit exceeds its benefit, so there is a welfare loss shown by the shaded triangle."</td></tr>
+    <tr><td>The solution</td><td>"A tax equal to the marginal external cost shifts supply to S plus tax, which lies on MSC, so output falls to the socially optimum Q*."</td></tr>
+    <tr><td>Evaluation</td><td>"How effective this is could depend on the elasticity of demand and on how accurately the external cost can be measured."</td></tr>
+  </table></div>
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Explain</td><td>Give reasons, with a chain of cause and effect, using the diagram.</td></tr>
+    <tr><td>Analyse</td><td>Break the problem down and follow the logic through the cause, the effect on output and the welfare loss.</td></tr>
+    <tr><td>Evaluate</td><td>Weigh the arguments for and against and reach a supported judgement.</td></tr>
+  </table></div>
+  <h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+/* ---------- shared geometry: price p and quantity q both 0..100 ---------- */
+const OP = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const X = (q) => 70 + q * 6.4, Y = (p) => 310 - p * 2.4;
+const lt = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...OP(v) });
+const gs = (v) => ({ style: `stroke-width:1.4;opacity:${0.75 * Math.max(0, Math.min(1, v))}` });
+const lineAt = (c, q) => c[0] + c[1] * q;
+const seg = (c) => { const [a, b] = c; let lo = 0, hi = 100; if (b > 0) { lo = Math.max(lo, (4 - a) / b); hi = Math.min(hi, (96 - a) / b); } else { lo = Math.max(lo, (96 - a) / b); hi = Math.min(hi, (4 - a) / b); } return [lo, hi]; };
+function curve(c, cls, v, name, tcls) {
+  const [lo, hi] = seg(c);
+  return SV.line(X(lo), Y(lineAt(c, lo)), X(hi), Y(lineAt(c, hi)), cls, OP(v)) + (name ? lt(X(hi) + 6, Y(lineAt(c, hi)) + 4, name, tcls, v) : "");
+}
+const guide = (q, p, pn, qn, v, qdy = 16) => SV.line(X(q), Y(p), X(q), Y(0), "ax", gs(v)) + SV.line(X(0), Y(p), X(q), Y(p), "ax", gs(v)) + (pn ? SV.text(62, Y(p) + 4, pn, "sm", { "text-anchor": "end", ...OP(v) }) : "") + (qn ? SV.text(X(q), Y(0) + qdy, qn, "sm", { "text-anchor": "middle", ...OP(v) }) : "");
+function vArrow(x, p1, p2, cls, v) {
+  const y1 = Y(p1), y2 = Y(p2), top = Math.min(y1, y2), bot = Math.max(y1, y2);
+  return `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x, top + 8, x, bot - 8, cls)}${SV.arrowHead(x, top, "u", cls === "c4" ? "dot4" : "dot3")}${SV.arrowHead(x, bot, "d", cls === "c4" ? "dot4" : "dot3")}</g>`;
+}
+const axesSvg = (xl) => SV.line(70, Y(0), 720, Y(0), "ax") + SV.line(70, Y(0), 70, 52, "ax") + SV.text(824, Y(0) + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(76, 46, "Price, cost, benefit ($)", "sm");
+function chips(ph) {
+  const T = ["1 · Cause", "2 · Problem", "3 · Solution"], C = ["f1", "f2", "f3"];
+  return T.map((t, i) => { const a = Math.max(0, 1 - Math.abs(ph - (i + 1))); return SV.rect(70 + i * 168, 6, 156, 28, C[i], { rx: 14, opacity: 0.12 + 0.6 * a }) + SV.text(148 + i * 168, 25, t, "lbl bd", { "text-anchor": "middle", opacity: 0.55 + 0.45 * a }); }).join("");
+}
+
+/* ---------- the five scenarios ----------
+   D, S are the private curves [intercept, slope]; ex the social curve that is revealed; sgn +1 tax, -1 subsidy; Qs, Ps the social optimum;
+   N the new market equilibrium after the fix; tri the welfare loss triangle; tl where the intervention label sits (q, p). */
+const D0 = [90, -0.8], S0 = [10, 0.8];
+const SC = [
+  { key: "A", btn: "Pollution from production", x: "Quantity of electricity", Dn: "D = MPB = MSB", Sn: "S = MPC", exn: "MSC", exl: "MEC", ex: [30, 0.8], side: "S", coin: true, iv: "tax", sgn: 1, ivn: "S + tax",
+    Q1: 50, P1: 50, Qs: 37.5, Ps: 60, N: [37.5, 60], tri: [[37.5, 60], [50, 70], [50, 50]], tl: [41.5, 50], ivl: "tax",
+    caps: [
+      "<b>Cause (1/2):</b> a power station sells electricity. It counts only what it pays itself, its marginal private cost, so <b>S = MPC</b>. Consumers' demand is the marginal private benefit, <b>D = MPB</b>, which here equals the marginal social benefit (MSB).",
+      "<b>Cause (2/2):</b> burning fuel pollutes the air and nearby residents bear the cost without being paid. This is a <b>marginal external cost (MEC)</b> of $20 a unit. Adding it to MPC gives the <b>marginal social cost, MSC</b>, which lies $20 above S at every quantity.",
+      "<b>Problem (1/3):</b> the free market ignores the MEC. It clears where MPB = MPC, at <b>Q1 = 50</b> and a price of P1 = $50.",
+      "<b>Problem (2/3):</b> the socially optimum output is where <b>MSB = MSC</b>, at <b>Q* = 37.5</b> and P* = $60. Q* is below Q1.",
+      "<b>Problem (3/3):</b> between Q* and Q1 each unit costs society more (MSC) than it is worth to buyers (MSB). The shaded triangle (WL) is the <b>welfare loss</b>: the market overproduces by 12.5 units.",
+      "<b>Solution (1/2):</b> the government puts an <b>indirect tax equal to the MEC</b> ($20 a unit) on the producer. Costs rise by the tax at every quantity, so supply shifts up and to the left, from S to S + tax. The firm now pays for the harm: the externality is <b>internalised</b>.",
+      "<b>Solution (2/2):</b> S + tax now lies on MSC and cuts demand at <b>Q* = 37.5</b>. The welfare loss has gone. Buyers pay $60, of which $20 is tax, so the firm keeps $40 a unit. <i>Evaluate:</i> the MEC is hard to measure, and the tax could be passed on to consumers or push production abroad."] },
+  { key: "B", btn: "Second-hand smoke (consumption)", x: "Quantity of cigarettes", Dn: "D = MPB", Sn: "S = MPC = MSC", exn: "MSB", exl: "MEC", ex: [70, -0.8], side: "D", coin: false, iv: "tax", sgn: 1, ivn: "S + tax",
+    Q1: 50, P1: 50, Qs: 37.5, Ps: 40, N: [37.5, 60], tri: [[37.5, 40], [50, 30], [50, 50]], tl: [41.5, 50], ivl: "tax", p2: "P2",
+    caps: [
+      "<b>Cause (1/2):</b> smokers buy cigarettes by comparing their own benefit (<b>D = MPB</b>) with the price. Supplying cigarettes costs firms <b>MPC</b>, and here that is also the cost to society (MSC), because the externality arises in <i>consumption</i>.",
+      "<b>Cause (2/2):</b> smoking harms bystanders through second-hand smoke: a <b>marginal external cost of $20</b> a unit. Society therefore values each cigarette at less than the smoker does, so <b>MSB = MPB − MEC</b>, below D at every quantity.",
+      "<b>Problem (1/3):</b> buyers ignore the harm to others. The market clears where MPB = MPC, at <b>Q1 = 50</b> and P1 = $50.",
+      "<b>Problem (2/3):</b> the socially optimum quantity is where <b>MSB = MSC</b>, at <b>Q* = 37.5</b>, with a social price of P* = $40. Q* is below Q1.",
+      "<b>Problem (3/3):</b> between Q* and Q1 the cost of each unit (MSC) is above its value to society (MSB). The shaded triangle (WL) is the <b>welfare loss</b>: 12.5 units are over-consumed.",
+      "<b>Solution (1/2):</b> the government puts an <b>indirect tax of $20</b> a unit, equal to the MEC at Q*, on cigarettes. Supply shifts up and to the left, from S to S + tax, and the price smokers face rises.",
+      "<b>Solution (2/2):</b> S + tax meets demand (MPB) at <b>Q* = 37.5</b>, so the welfare loss has gone. Smokers pay P2 = $60, of which $20 is tax, and sellers keep $40, the social price P*. <i>Evaluate:</i> addiction could make demand inelastic, and the tax is regressive."] },
+  { key: "C", btn: "Vaccination (positive consumption)", x: "Quantity of vaccinations", Dn: "D = MPB", Sn: "S = MPC = MSC", exn: "MSB", exl: "MEB", ex: [110, -0.8], side: "D", coin: false, iv: "sub", sgn: -1, ivn: "S − subsidy",
+    Q1: 50, P1: 50, Qs: 62.5, Ps: 60, N: [62.5, 40], tri: [[62.5, 60], [50, 70], [50, 50]], tl: [65.5, 55], ivl: "subsidy", p2: "P2",
+    caps: [
+      "<b>Cause (1/2):</b> people choose whether to be vaccinated by weighing their own benefit (<b>D = MPB</b>) against the price. Supplying vaccinations costs <b>MPC</b>, which is also the cost to society (MSC).",
+      "<b>Cause (2/2):</b> each vaccination also lowers the chance that other people catch the disease: a <b>marginal external benefit (MEB)</b> of $20. So <b>MSB = MPB + MEB</b>, above D at every quantity.",
+      "<b>Problem (1/3):</b> buyers ignore the benefit to others. The market clears where MPB = MPC, at <b>Q1 = 50</b> and P1 = $50.",
+      "<b>Problem (2/3):</b> the socially optimum quantity is where <b>MSB = MSC</b>, at <b>Q* = 62.5</b>, with P* = $60. Q* is above Q1.",
+      "<b>Problem (3/3):</b> between Q1 and Q* each vaccination is worth more to society (MSB) than it costs (MSC), but it is not bought. The shaded triangle (WL) is the <b>welfare loss</b>: the good is under-consumed by 12.5 units.",
+      "<b>Solution (1/2):</b> the government pays a <b>subsidy of $20</b> a unit, equal to the MEB. Firms' costs fall by the subsidy at every quantity, so supply shifts down and to the right, from S to S − subsidy.",
+      "<b>Solution (2/2):</b> S − subsidy meets demand (MPB) at <b>Q* = 62.5</b>, so the welfare loss has gone. Patients pay P2 = $40, and providers receive $60 (P*) once the $20 subsidy is added. <i>Evaluate:</i> the subsidy costs the taxpayer about $1,250 and the MEB is hard to measure."] },
+  { key: "D", btn: "R&D spillovers (positive production)", x: "Quantity of research projects", Dn: "D = MPB = MSB", Sn: "S = MPC", exn: "MSC", exl: "MEB", ex: [-10, 0.8], side: "S", coin: true, iv: "sub", sgn: -1, ivn: "S − subsidy",
+    Q1: 50, P1: 50, Qs: 62.5, Ps: 40, N: [62.5, 40], tri: [[62.5, 40], [50, 50], [50, 30]], tl: [65.5, 55], ivl: "subsidy",
+    caps: [
+      "<b>Cause (1/2):</b> a firm decides how much research to do by weighing its own costs (<b>S = MPC</b>) against what it gains (<b>D = MPB</b>, equal here to the marginal social benefit, MSB).",
+      "<b>Cause (2/2):</b> research spills over: rivals copy and build on the findings without paying for them. That is a <b>marginal external benefit (MEB)</b> of $20 in production, so the cost to society is lower than the firm's: <b>MSC = MPC − MEB</b>, below S at every quantity.",
+      "<b>Problem (1/3):</b> the firm ignores the spillover and clears where MPB = MPC, at <b>Q1 = 50</b> and P1 = $50.",
+      "<b>Problem (2/3):</b> the socially optimum quantity is where <b>MSB = MSC</b>, at <b>Q* = 62.5</b>, with P* = $40. Q* is above Q1.",
+      "<b>Problem (3/3):</b> between Q1 and Q* the social cost of research (MSC) is below its social benefit (MSB), but the firm does not do it. The shaded triangle (WL) is the <b>welfare loss</b>: research is under-provided by 12.5 units.",
+      "<b>Solution (1/2):</b> the government gives a <b>subsidy of $20</b> a unit, equal to the MEB, to the firm. The firm's marginal cost falls by the subsidy, so supply shifts down and to the right, from S to S − subsidy.",
+      "<b>Solution (2/2):</b> S − subsidy now lies on MSC and meets demand at <b>Q* = 62.5</b>, so the welfare loss has gone. <i>Evaluate:</i> spillovers are hard to measure, and the firm might have done the research anyway, which would waste the subsidy."] },
+  { key: "E", btn: "Pollution: tradable permits", x: "Quantity of electricity", Dn: "D = MPB = MSB", Sn: "S = MPC", exn: "MSC", exl: "MEC", ex: [30, 0.8], side: "S", coin: false, iv: "cap", sgn: 1, ivn: "Permit cap",
+    Q1: 50, P1: 50, Qs: 37.5, Ps: 60, N: [37.5, 60], tri: [[37.5, 60], [50, 70], [50, 50]], tl: [41, 50], ivl: "permit",
+    caps: [
+      "<b>Cause (1/2):</b> the same power station as the first case. It counts only its private cost, <b>S = MPC</b>, against consumers' demand, <b>D = MPB = MSB</b>.",
+      "<b>Cause (2/2):</b> its pollution imposes a <b>marginal external cost of $20</b> a unit on others, so <b>MSC = MPC + MEC</b>, above S at every quantity.",
+      "<b>Problem (1/3):</b> the market clears where MPB = MPC, at <b>Q1 = 50</b> and P1 = $50.",
+      "<b>Problem (2/3):</b> the socially optimum output is where MSB = MSC, at <b>Q* = 37.5</b> and P* = $60.",
+      "<b>Problem (3/3):</b> between Q* and Q1 each unit costs more than it is worth, so the shaded triangle (WL) is a <b>welfare loss</b>: 12.5 units of overproduction.",
+      "<b>Solution (1/2):</b> instead of a tax, the government sets a <b>cap at Q* = 37.5</b> and issues permits for exactly that much output, which firms may trade. Supply becomes vertical at the cap: nobody may produce more without a permit.",
+      "<b>Solution (2/2):</b> demand meets the cap at <b>Q* = 37.5</b> and a price of $60. The welfare loss has gone. The scarce permits sell for about $20 each, the same as the tax, and firms that find cutting pollution cheapest sell permits to those that find it dearer. <i>Evaluate:</i> the cap has to be set accurately and monitored."] },
+];
+
+function scnDraw(c, s) {
+  const [Qs, Ps] = [c.Qs, c.Ps];
+  let o = chips(s.ph) + axesSvg(c.x);
+  o += curve(D0, "c1", 1, c.Dn, "t1") + curve(S0, "c2", 1, c.Sn, "t2");
+  o += curve(c.ex, "c3", s.e, c.exn, "t3").replace(/(<text[^>]*?)opacity="[^"]*"/, (m, a) => (c.coin ? a + `opacity="${Math.max(0, Math.min(1, s.e * (1 - s.m)))}"` : m));
+  // external cost or benefit bracket, drawn between the private and social curve
+  const base = c.side === "S" ? S0 : D0, qb = 20, ym = lineAt(base, 22.3) + (lineAt(c.ex, 22.3) - lineAt(base, 22.3)) / 2;
+  o += vArrow(X(qb), lineAt(base, qb), lineAt(c.ex, qb), "c3", s.br) + lt(X(qb) + 14, Y(ym) + 4, c.exl, "t3", s.br);
+  if (s.w > 0) {
+    const t = c.tri, cx = (t[0][0] + t[1][0] + t[2][0]) / 3, cy = (t[0][1] + t[1][1] + t[2][1]) / 3;
+    o += SV.poly(t.map(([q, p]) => [X(q), Y(p)]), "f2", { style: `opacity:${Math.min(1, s.w) * 0.5}` }) + SV.text(X(cx), Y(cy) + 4, "WL", "lbl bd t2", { "text-anchor": "middle", ...OP(s.w) });
+  }
+  // private equilibrium
+  o += guide(c.Q1, c.P1, "P1", "Q1", s.pg) + SV.circle(X(c.Q1), Y(c.P1), 6, "dot2", OP(s.pg));
+  // social optimum
+  o += guide(Qs, Ps, "P*", "Q*", s.sg) + SV.circle(X(Qs), Y(Ps), 6, "dot3", OP(s.sg));
+  // the fix
+  if (s.m > 0) {
+    if (c.iv === "cap") {
+      const top = lineAt(S0, Qs) + (96 - lineAt(S0, Qs)) * s.m;
+      o += SV.line(X(Qs), Y(lineAt(S0, Qs)), X(Qs), Y(top), "c4", OP(Math.min(1, s.m * 3))) + lt(X(Qs) + 8, Y(96) + 4, c.ivn, "t4", s.m);
+    } else {
+      o += curve([S0[0] + c.sgn * 20 * s.m, S0[1]], "c4", Math.min(1, s.m * 3), c.ivn, "t4").replace(/(<text[^>]*?)opacity="[^"]*"/, (m, a) => a + `opacity="${s.m > 0.98 ? 1 : 0}"`);
+    }
+  }
+  if (s.nd > 0) {
+    const [nq, np] = c.N;
+    if (c.p2) o += SV.line(X(0), Y(np), X(nq), Y(np), "ax", gs(s.nd)) + SV.text(62, Y(np) + 4, c.p2, "sm", { "text-anchor": "end", ...OP(s.nd) });
+    o += SV.circle(X(nq), Y(np), 8, "dot4", OP(s.nd * 0.5)) + SV.circle(X(nq), Y(np), 5, "dot3", OP(s.nd));
+    const lo = lineAt(S0, Qs), hi = lo + c.sgn * 20, bx = X(Qs) + (c.sgn > 0 ? 6 : 6);
+    o += vArrow(bx, lo, hi, "c4", s.nd) + lt(X(Qs) + 16, Y(c.tl[1]) + 4, c.ivl, "t4", s.nd);
+  }
+  return o;
+}
+const BASE0 = { ph: 1, e: 0, br: 0, pg: 0, sg: 0, w: 0, m: 0, nd: 0 };
+const STEPS = [
+  { ph: 1 }, { ph: 1, e: 1, br: 1 }, { ph: 2, e: 1, br: 1, pg: 1 }, { ph: 2, e: 1, br: 1, pg: 1, sg: 1 }, { ph: 2, e: 1, br: 1, pg: 1, sg: 1, w: 1 },
+  { ph: 3, e: 1, br: 0.4, pg: 0.45, sg: 1, w: 0.6, m: 1 }, { ph: 3, e: 1, br: 0.4, pg: 0.45, sg: 1, w: 0, m: 1, nd: 1 },
+];
+const scnBox = $("#scnBox"), scnB = $("#scnB");
+SC.forEach((c, i) => {
+  const d = document.createElement("div"); d.id = "scn" + c.key; d.hidden = i > 0; scnBox.appendChild(d);
+  Lib.stepper(d, { w: 840, h: 345, label: c.btn + ": cause, problem and solution", base: BASE0, draw: (s) => scnDraw(c, s), tween: 800, dwell: 6400, steps: STEPS.map((s, k) => ({ cap: c.caps[k], s })) });
+  const b = document.createElement("button"); b.className = "b" + (i ? "" : " pri"); b.textContent = (i + 1) + " · " + c.btn; b.onclick = () => { SC.forEach((z, k) => { $("#scn" + z.key).hidden = k !== i; }); $$("button", scnB).forEach((x, k) => x.classList.toggle("pri", k === i)); }; scnB.appendChild(b);
+});
+
+/* ---------- labs: set the tax or subsidy yourself ---------- */
+const labA = { svg: "#labA", id: "#a", x: "Quantity of electricity", Qs: 37.5, Ps: 60, soc: [30, 0.8], Qn: (t) => (80 - t) / 1.6, sh: (t) => [10 + t, 0.8], over: true, dir: "above", what: "tax", mx: "cost" };
+const labB = { svg: "#labB", id: "#b", x: "Quantity of vaccinations", Qs: 62.5, Ps: 60, soc: [110, -0.8], Qn: (s) => (80 + s) / 1.6, sh: (s) => [10 - s, 0.8], over: false, dir: "below", what: "subsidy", mx: "benefit" };
+function labDraw(o, v) {
+  const Qn = o.Qn(v), other = o === labA ? [30, 0.8] : [110, -0.8], priv = o === labA ? D0 : S0;
+  const wl = 0.8 * (Qn - o.Qs) ** 2, d = Math.abs(Qn - o.Qs), np = lineAt(D0, Qn);
+  let s = SV.line(70, Y(0), 720, Y(0), "ax") + SV.line(70, Y(0), 70, 52, "ax") + SV.text(824, Y(0) + 26, o.x, "sm", { "text-anchor": "end" }) + SV.text(76, 46, "Price, cost, benefit ($)", "sm");
+  s += curve(D0, "c1", 1) + curve(S0, "c2", 1) + curve(o.soc, "c3", 1);
+  if (v > 0) s += curve(o.sh(v), "c4", 1);
+  if (wl > 0.5) s += SV.poly([[o.Qs, o.Ps], [Qn, lineAt(other, Qn)], [Qn, lineAt(priv, Qn)]].map(([q, p]) => [X(q), Y(p)]), "f2", { style: "opacity:.5" });
+  s += guide(o.Qs, o.Ps, "", d < 0.3 ? "Q* = Q2" : "Q*", 1, 16) + SV.line(X(Qn), Y(np), X(Qn), Y(0), "ax", gs(1)) + SV.line(X(0), Y(np), X(Qn), Y(np), "ax", gs(1));
+  s += SV.circle(X(o.Qs), Y(o.Ps), 5, "dot3") + SV.circle(X(Qn), Y(np), 6, "dot4");
+  if (d >= 0.3) s += SV.text(X(Qn), Y(0) + (d < 6 ? 31 : 16), "Q2", "sm", { "text-anchor": "middle" });
+  s += SV.text(62, Y(np) + 4, "P2", "sm", { "text-anchor": "end" });
+  $(o.svg).innerHTML = s;
+  const short = o.over ? Qn > o.Qs : Qn < o.Qs;
+  $(o.id + "1").textContent = Qn.toFixed(1) + (d < 0.3 ? " (= Q*)" : "");
+  $(o.id + "2").textContent = wl < 0.5 ? "None" : "$" + Math.round(wl);
+  $(o.id + "3").textContent = d < 0.3 ? "Just right: the " + o.what + " equals the marginal external " + o.mx + " at Q*, so output is socially optimum and there is no welfare loss." : short ? "Not enough: output is still " + o.dir + " Q*, so some welfare loss remains." : "Too much: output has overshot Q*, so a new welfare loss appears on the other side.";
+}
+const legend = (a) => a.map(([c, t]) => `<span style="display:inline-flex;gap:6px;align-items:center;margin-right:12px"><i style="width:22px;height:4px;border-radius:2px;background:var(--${c})"></i>${t}</span>`).join("");
+$("#legA").innerHTML = legend([["accent", "D = MPB = MSB"], ["bad", "S = MPC"], ["good", "MSC"], ["warn", "S + tax"]]);
+$("#legB").innerHTML = legend([["accent", "D = MPB"], ["bad", "S = MPC = MSC"], ["good", "MSB"], ["warn", "S − subsidy"]]);
+Lib.slider($("#g1"), { id: "tx", label: "Tax per unit ($) ", min: 0, max: 40, step: 1, value: 0, fmt: (v) => "$" + v, onInput: (v) => labDraw(labA, v) });
+Lib.slider($("#g2"), { id: "sb", label: "Subsidy per unit ($) ", min: 0, max: 40, step: 1, value: 0, fmt: (v) => "$" + v, onInput: (v) => labDraw(labB, v) });
+
+/* ---------- practise ---------- */
+Lib.classify($("#cl1"), { prompt: "Is the externality negative or positive? The right fix follows from the answer.", buckets: [{ label: "Negative: tax, permits or regulation" }, { label: "Positive: subsidy or provision" }], items: [
+  { text: "A chemical works releases fumes into a nearby town", b: 0 }, { text: "Each extra driver adds to delay for everyone else on the road", b: 0 },
+  { text: "Staff trained by one firm later share their skills with other firms", b: 1 }, { text: "Smokers breathing out smoke around non-smokers", b: 0 },
+  { text: "Higher vaccination rates mean fewer infections for everyone", b: 1 }, { text: "A distillery's waste water kills fish downstream", b: 0 },
+  { text: "A university's research lets many firms develop new products", b: 1 }, { text: "Homeowners who plant trees cool and clean the air of the whole street", b: 1 }],
+  done: "Negative externalities cause too much to be produced or consumed, so the fix cuts the quantity. Positive ones cause too little, so the fix raises it." });
+Lib.match($("#m1"), { prompt: "Match the curve gap to the case.", pairs: [
+  ["MSC is above MPC", "Negative externality of production"], ["MSB is below MPB", "Negative externality of consumption"], ["MSB is above MPB", "Positive externality of consumption"], ["MSC is below MPC", "Positive externality of production"], ["The vertical gap between MSC and MPC", "Marginal external cost"]],
+  done: "Always identify which side (cost or benefit) carries the externality before drawing." });
+Lib.order($("#o1"), { prompt: "Put the steps for drawing a negative externality of production in order.", items: [
+  "Label the axes and draw D (= MPB = MSB) and S (= MPC)", "Draw MSC above S, parallel, and mark the MEC between them", "Mark Q1 where D meets S", "Mark Q* where D meets MSC", "Shade the welfare loss triangle between Q* and Q1", "Show the tax shifting S up to S + tax, onto MSC", "Mark the new equilibrium at Q* and state that the welfare loss has gone"],
+  done: "Cause, problem, solution: the diagram builds in the same order as the argument." });
+Lib.calc($("#c1"), { qs: [
+  { q: "The MEC is $20 a unit and the socially optimum output is 37.5 units. How much tax revenue does a tax equal to the MEC raise ($)?", a: 750, unit: "$", tol: 1, hint: "Tax × quantity at Q*.", sol: "20 × 37.5 = <b>$750</b>." },
+  { q: "Market output is 50 and the socially optimum output is 37.5. The MEC at 50 is $20. What is the welfare loss ($)?", a: 125, unit: "$", tol: 1, hint: "A triangle: ½ × base × height.", sol: "½ × (50 − 37.5) × 20 = <b>$125</b>." },
+  { q: "A vaccination has a marginal private cost of $40 and a marginal external benefit of $20. The government subsidises each by the MEB. The socially optimum output is 62.5. What does the subsidy cost ($)?", a: 1250, unit: "$", tol: 1, hint: "Subsidy × quantity at Q*.", sol: "20 × 62.5 = <b>$1,250</b>." },
+  { q: "At one output the marginal private cost is $14 and the marginal external cost is $6. What is the marginal social cost ($)?", a: 20, unit: "$", tol: 0.1, hint: "MSC = MPC + MEC.", sol: "14 + 6 = <b>$20</b>." }] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "Which curve lies above the supply curve (MPC) when a firm's production creates a negative externality?", opts: ["MSB", "MSC", "MPB", "MEB"], a: 1, why: "MSC = MPC + MEC, so it sits above MPC by the external cost." },
+  { q: "A firm's MPC is $30 and the MEC is $8. What is the MSC?", opts: ["$22", "$30", "$38", "$8"], a: 2, why: "30 + 8 = 38." },
+  { q: "To reach the socially optimum quantity, a tax on a negative externality should equal:", opts: ["The firm's profit", "The marginal external cost at Q*", "The price at Q1", "The welfare loss"], a: 1, why: "The tax makes the producer pay the marginal external cost at the socially optimum output." },
+  { q: "A positive externality of consumption causes:", opts: ["Overproduction because MSC > MSB", "Under-consumption because MSB > MPB", "Overconsumption because MPB > MSB", "No change in output"], a: 1, why: "Consumers ignore the benefit to others, so they buy less than the social optimum." },
+  { q: "A government sets a tax higher than the marginal external cost. What is likely?", opts: ["Output stays at Q1", "Output falls below Q*, creating a new welfare loss", "Output rises above Q*", "The welfare loss rises at Q1"], a: 1, why: "An oversized tax over-corrects: units that are worth more than they cost to society are no longer made." },
+  { q: "Which statement about a subsidy on a positive externality of production is correct?", opts: ["Supply shifts left", "Demand shifts right", "Supply shifts right towards Q*", "The MSC curve shifts"], a: 2, why: "The subsidy lowers costs, so supply shifts down and to the right; MSC is a fixed description of the true cost." }] });
+Lib.cards($("#fc1"), { cards: [
+  ["Externality", "A cost or benefit to a third party that is not reflected in the market price."],
+  ["Marginal external cost (MEC)", "The extra cost imposed on third parties by one more unit produced or consumed."],
+  ["Marginal social cost (MSC)", "MPC + MEC: the full cost to society of one more unit."],
+  ["Marginal social benefit (MSB)", "MPB + MEB: the full benefit to society of one more unit."],
+  ["Socially optimum quantity (Q*)", "The output where MSB = MSC."],
+  ["Welfare loss", "The loss of net benefit to society from producing or consuming a quantity other than Q*."],
+  ["Internalising an externality", "Making the decision maker face the external cost or benefit, for example through a tax or subsidy."],
+  ["Tradable permits", "A cap on total pollution, with permits that firms can buy and sell, fixing the quantity and letting the market set the price."]] });
+
+Lib.initTabs();
+</script>
+</body></html>
