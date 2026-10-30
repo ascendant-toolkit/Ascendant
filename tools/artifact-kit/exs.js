@@ -76,6 +76,16 @@ const SC = [
       "<b>Problem (3/3):</b> between Q* and Q1 each unit costs more than it is worth, so the shaded triangle (WL) is a <b>welfare loss</b>: 12.5 units of overproduction.",
       "<b>Solution (1/2):</b> instead of a tax, the government sets a <b>cap at Q* = 37.5</b> and issues permits for exactly that much output, which firms may trade. Supply becomes vertical at the cap: nobody may produce more without a permit.",
       "<b>Solution (2/2):</b> demand meets the cap at <b>Q* = 37.5</b> and a price of $60. The welfare loss has gone. The scarce permits sell for about $20 each, the same as the tax, and firms that find cutting pollution cheapest sell permits to those that find it dearer. <i>Evaluate:</i> the cap has to be set accurately and monitored."] },
+  { key: "F", btn: "Vaccination: information campaign", x: "Quantity of vaccinations", Dn: "D = MPB", Sn: "S = MPC = MSC", exn: "MSB", exl: "MEB", ex: [110, -0.8], side: "D", coin: true, iv: "info", sgn: 0, ivn: "D2 (= MSB)",
+    Q1: 50, P1: 50, Qs: 62.5, Ps: 60, N: [62.5, 60], tri: [[62.5, 60], [50, 70], [50, 50]], tl: [65.5, 55], ivl: "",
+    caps: [
+      "<b>Cause (1/2):</b> people choose whether to be vaccinated by weighing their own benefit (<b>D = MPB</b>) against the price. Supplying vaccinations costs <b>MPC</b>, which is also the cost to society (MSC).",
+      "<b>Cause (2/2):</b> each vaccination also protects other people: a <b>marginal external benefit (MEB)</b> of $20, so <b>MSB = MPB + MEB</b>. Many people also underestimate the private benefit of vaccination (<b>information failure</b>), which is why it is called a <b>merit good</b>.",
+      "<b>Problem (1/3):</b> people act on their own, incomplete view of the benefit. The market clears where MPB = MPC, at <b>Q1 = 50</b> and P1 = $50.",
+      "<b>Problem (2/3):</b> the socially optimum quantity is where <b>MSB = MSC</b>, at <b>Q* = 62.5</b>, with P* = $60. Q* is above Q1.",
+      "<b>Problem (3/3):</b> between Q1 and Q* each vaccination is worth more to society than it costs, but it is not bought. The shaded triangle (WL) is the <b>welfare loss</b>: under-consumption of 12.5 units.",
+      "<b>Solution (1/2):</b> the government runs an <b>information campaign</b> (advertising, education, reminders) that shows people the full benefits. People now value vaccination more, so <b>demand (MPB) shifts up and to the right</b>, from D to D2. Nothing is paid to firms: the aim is to change what consumers choose.",
+      "<b>Solution (2/2):</b> if the campaign is successful, D2 lies on MSB and meets supply at <b>Q* = 62.5</b>, so the welfare loss has gone. Unlike a subsidy, the price does not fall. <i>Evaluate:</i> it is cheaper per head and respects choice, but it is hard to know how far demand will move, effects could fade, and it could take time."] },
 ];
 
 function scnDraw(c, s) {
@@ -99,6 +109,8 @@ function scnDraw(c, s) {
     if (c.iv === "cap") {
       const top = lineAt(S0, Qs) + (96 - lineAt(S0, Qs)) * s.m;
       o += SV.line(X(Qs), Y(lineAt(S0, Qs)), X(Qs), Y(top), "c4", OP(Math.min(1, s.m * 3))) + lt(X(Qs) + 8, Y(96) + 4, c.ivn, "t4", s.m);
+    } else if (c.iv === "info") {
+      o += curve([D0[0] + 20 * s.m, D0[1]], "c4", Math.min(1, s.m * 3), c.ivn, "t4").replace(/(<text[^>]*?)opacity="[^"]*"/, (m, a) => a + `opacity="${s.m > 0.98 ? 1 : 0}"`);
     } else {
       o += curve([S0[0] + c.sgn * 20 * s.m, S0[1]], "c4", Math.min(1, s.m * 3), c.ivn, "t4").replace(/(<text[^>]*?)opacity="[^"]*"/, (m, a) => a + `opacity="${s.m > 0.98 ? 1 : 0}"`);
     }
@@ -107,8 +119,8 @@ function scnDraw(c, s) {
     const [nq, np] = c.N;
     if (c.p2) o += SV.line(X(0), Y(np), X(nq), Y(np), "ax", gs(s.nd)) + SV.text(62, Y(np) + 4, c.p2, "sm", { "text-anchor": "end", ...OP(s.nd) });
     o += SV.circle(X(nq), Y(np), 8, "dot4", OP(s.nd * 0.5)) + SV.circle(X(nq), Y(np), 5, "dot3", OP(s.nd));
-    const lo = lineAt(S0, Qs), hi = lo + c.sgn * 20, bx = X(Qs) + (c.sgn > 0 ? 6 : 6);
-    o += vArrow(bx, lo, hi, "c4", s.nd) + lt(X(Qs) + 16, Y(c.tl[1]) + 4, c.ivl, "t4", s.nd);
+    const lo = lineAt(S0, Qs), hi = lo + c.sgn * 20, bx = X(Qs) + 6;
+    if (c.iv !== "info") o += vArrow(bx, lo, hi, "c4", s.nd) + lt(X(Qs) + 16, Y(c.tl[1]) + 4, c.ivl, "t4", s.nd);
   }
   return o;
 }
@@ -174,6 +186,7 @@ Lib.quiz($("#qz1"), { qs: [
   { q: "To reach the socially optimum quantity, a tax on a negative externality should equal:", opts: ["The firm's profit", "The marginal external cost at Q*", "The price at Q1", "The welfare loss"], a: 1, why: "The tax makes the producer pay the marginal external cost at the socially optimum output." },
   { q: "A positive externality of consumption causes:", opts: ["Overproduction because MSC > MSB", "Under-consumption because MSB > MPB", "Overconsumption because MPB > MSB", "No change in output"], a: 1, why: "Consumers ignore the benefit to others, so they buy less than the social optimum." },
   { q: "A government sets a tax higher than the marginal external cost. What is likely?", opts: ["Output stays at Q1", "Output falls below Q*, creating a new welfare loss", "Output rises above Q*", "The welfare loss rises at Q1"], a: 1, why: "An oversized tax over-corrects: units that are worth more than they cost to society are no longer made." },
+  { q: "A government advertising campaign persuades more people to be vaccinated. What happens on the diagram?", opts: ["Supply shifts right", "Demand (MPB) shifts right towards MSB", "MSB shifts left", "The price falls to zero"], a: 1, why: "Information changes what consumers value, so it shifts demand, not supply." },
   { q: "Which statement about a subsidy on a positive externality of production is correct?", opts: ["Supply shifts left", "Demand shifts right", "Supply shifts right towards Q*", "The MSC curve shifts"], a: 2, why: "The subsidy lowers costs, so supply shifts down and to the right; MSC is a fixed description of the true cost." }] });
 Lib.cards($("#fc1"), { cards: [
   ["Externality", "A cost or benefit to a third party that is not reflected in the market price."],
