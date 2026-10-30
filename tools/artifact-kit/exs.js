@@ -129,7 +129,7 @@ const STEPS = [
   { ph: 1 }, { ph: 1, e: 1, br: 1 }, { ph: 2, e: 1, br: 1, pg: 1 }, { ph: 2, e: 1, br: 1, pg: 1, sg: 1 }, { ph: 2, e: 1, br: 1, pg: 1, sg: 1, w: 1 },
   { ph: 3, e: 1, br: 0.4, pg: 0.45, sg: 1, w: 0.6, m: 1 }, { ph: 3, e: 1, br: 0.4, pg: 0.45, sg: 1, w: 0, m: 1, nd: 1 },
 ];
-const scnBox = $("#scnBox"), scnB = $("#scnB");
+const scnBox = $("#scnBox"), scnB = $("#scnBtns");
 SC.forEach((c, i) => {
   const d = document.createElement("div"); d.id = "scn" + c.key; d.hidden = i > 0; scnBox.appendChild(d);
   Lib.stepper(d, { w: 840, h: 345, label: c.btn + ": cause, problem and solution", base: BASE0, draw: (s) => scnDraw(c, s), tween: 800, dwell: 6400, steps: STEPS.map((s, k) => ({ cap: c.caps[k], s })) });
