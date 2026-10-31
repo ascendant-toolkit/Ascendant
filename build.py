@@ -466,7 +466,7 @@ def build_home():
     steps_html = "".join(f'<li><span class="n">{i}</span><div><b>{t}</b><p>{d}</p></div></li>' for i, (t, d) in enumerate(steps, 1))
     body = f"""<div id="memberbar" class="memberbar" hidden><span>Welcome back.</span><a class="btn" id="memberlink" href="dashboard/">Open your dashboard →</a></div>
 <section class="lp-hero"><div class="lp-copy"><p class="kicker">Cambridge IGCSE and A-Level</p>
-<h1>The whole syllabus, taught like a tutor would.</h1>
+<h1>A teacher's toolkit, your syllabus fully resourced.</h1>
 <p class="lead">Economics and Computer Science, chapter by chapter: animated explainers, hands-on activities, exam questions with model answers, marked assessments and progress tracking, all in one place.</p>
 <p class="cta"><a class="btn" href="pricing/">See plans</a><a class="btn ghost" id="sample" href="artifacts/{sample["slug"]}/#learn">Try a free lesson</a><a class="btn ghost" href="profile/">Sign in</a></p>
 <ul class="lp-stats"><li><b>{total}</b><span>interactive activities</span></li><li><b>{chapters}</b><span>chapters</span></li><li><b>4</b><span>Cambridge syllabuses</span></li></ul></div>
