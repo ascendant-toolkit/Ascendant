@@ -466,8 +466,8 @@ def build_home():
     steps_html = "".join(f'<li><span class="n">{i}</span><div><b>{t}</b><p>{d}</p></div></li>' for i, (t, d) in enumerate(steps, 1))
     body = f"""<div id="memberbar" class="memberbar" hidden><span>Welcome back.</span><a class="btn" id="memberlink" href="dashboard/">Open your dashboard →</a></div>
 <section class="lp-hero"><div class="lp-copy"><p class="kicker">Cambridge IGCSE and A-Level</p>
-<h1>A teacher's toolkit. A student's study partner.</h1>
-<p class="lead">Your syllabus, fully resourced. Economics and Computer Science, chapter by chapter: animated explainers, hands-on activities, exam questions with model answers, marked assessments and progress tracking, all in one place.</p>
+<h1>A teaching and learning toolkit: for everyone</h1>
+<p class="lead">Your syllabus, fully resourced, chapter by chapter: with animated explainers, hands-on activities, exam questions with model answers, marked assessments and progress tracking, all in one place.</p>
 <p class="cta"><a class="btn" href="pricing/">See plans</a><a class="btn ghost" id="sample" href="artifacts/{sample["slug"]}/#learn">Try a free lesson</a><a class="btn ghost" href="profile/">Sign in</a></p>
 <ul class="lp-stats"><li><b>{total}</b><span>interactive activities</span></li><li><b>{chapters}</b><span>chapters</span></li><li><b>4</b><span>Cambridge syllabuses</span></li></ul></div>
 <div class="lp-visual" aria-hidden="false"><div class="lp-pane lp-pane-a"><span class="lp-tag">Economics &middot; Explore</span>{HERO_CHART}<p>Shift the curves and watch the market move.</p></div>
