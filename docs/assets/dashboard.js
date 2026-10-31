@@ -43,8 +43,6 @@
     const all = subjectSlugs(mine), total = all.size;
     const doneN = [...all].filter((s) => done.has(s)).length;
     const overall = pct(doneN, total);
-    const next = catalog.order.find((s) => all.has(s) && !done.has(s));
-    const nextA = next && catalog.artifacts[next];
     const weekAgo = Date.now() - 7 * 864e5;
     const week = [...done.values()].filter((d) => d && new Date(d).getTime() >= weekAgo).length;
     const scored = attempts.filter((t) => catalog.artifacts[t.slug]);
@@ -67,14 +65,23 @@
       `<div class="stat" data-accent="amber">${IC.cal}<span class="statbig">${week}</span><b>Lessons this week</b><span class="hint">completed in the last 7 days</span></div>`,
     ].join("");
 
-    const resume = nextA
-      ? `<section class="card block dash-resume" data-accent="teal"><div><p class="kicker">Pick up where you left off</p>
-          <h3>${esc(nextA.title)}</h3><p class="hint">${esc(nextA.chapterTitle)}</p></div>
-          <a class="btn" href="${S.base}${nextA.url}">Continue →</a></section>`
-      : `<section class="card block dash-resume" data-accent="teal"><div><p class="kicker">${total ? "Nice work" : "Welcome"}</p>
-          <h3>${total ? "You’ve finished everything available" : "No subjects yet"}</h3>
-          <p class="hint">${total ? "New lessons are added regularly — check back soon." : "Ask for your subjects on the Profile page."}</p></div>
-          ${total ? "" : `<a class="btn" href="${S.profileUrl}">Go to Profile</a>`}</section>`;
+    const resumeCard = (k) => {
+      const c = catalog.courses[k], set = new Set(c.slugs);
+      const nx = catalog.order.find((s) => set.has(s) && !done.has(s));
+      const a = nx && catalog.artifacts[nx];
+      return a
+        ? `<section class="card block dash-resume" data-accent="${c.accent}"><div><p class="kicker">Pick up where you left off</p>
+            <h3>${esc(a.title)}</h3><p class="hint">${esc(a.chapterTitle)}</p></div>
+            <a class="btn" href="${S.base}${a.url}">Continue →</a></section>`
+        : `<section class="card block dash-resume" data-accent="${c.accent}"><div><p class="kicker">Nice work</p>
+            <h3>All caught up in ${esc(c.title)}</h3><p class="hint">You’ve finished every lesson available in this subject.</p></div>
+            <a class="btn" href="${S.base}${c.url}">Review →</a></section>`;
+    };
+    const resume = mine.length
+      ? `<div class="dash-resume-stack">${mine.map(resumeCard).join("")}</div>`
+      : `<section class="card block dash-resume" data-accent="teal"><div><p class="kicker">Welcome</p>
+          <h3>No subjects yet</h3><p class="hint">Ask for your subjects on the Profile page.</p></div>
+          <a class="btn" href="${S.profileUrl}">Go to Profile</a></section>`;
 
     const subjectCards = mine.map((k) => {
       const c = catalog.courses[k], t = c.slugs.length, n = c.slugs.filter((s) => done.has(s)).length;
