@@ -5,6 +5,16 @@ SITE_TITLE = "Ascendant"
 LANDING_PAGE = False
 SITE_TAGLINE = "Interactive lessons, walkthroughs and revision activities for GCSE and A-Level Economics and Computer Science."
 
+# Lemon Squeezy checkout links. Fill each in once the product/variant exists; an empty string makes that
+# plan show "Available at launch" (links to the join form) instead of a live buy button. USD prices are set
+# in build.py (build_pricing); Lemon Squeezy shows the buyer their local currency and handles VAT.
+CHECKOUT_URLS = {
+    "basic":   {"m": "", "y": ""},
+    "full":    {"m": "", "y": ""},
+    "all":     {"m": "", "y": ""},
+    "teacher": {"m": "", "y": ""},
+}
+
 # Each course: key -> metadata. 'levels' is used by A-Level courses (AS / A Level split).
 # Chapters are dicts: id (url slug), label (shown on card), title, group (optional heading in grid).
 
@@ -229,7 +239,7 @@ ARTIFACTS = [
     {"src": "number-systems", "role": "review", "at": "1.1", "title": "Number Systems", "kind": "Interactive",
      "desc": "1.1 Binary, denary and hex conversions, addition and overflow, logical shifts, two's complement, labs and exam questions.",
      "places": [("ig-cs", "ch-01")]},
-    {"src": "twos-complement-questions", "at": "1.1", "title": "Two's Complement: Every Question Type", "kind": "Exam skills",
+    {"src": "twos-complement-questions", "at": "1.1", "title": "Two's Complement: Every Question Type", "kind": "Exam skills", "tier": "full",
      "desc": "What each two's complement question is asking, which method to use, model answers, animations, labs and a drill.",
      "places": [("ig-cs", "ch-01")]},
     {"src": "text-sound-and-images", "role": "review", "at": "1.2", "title": "Text, Sound and Images", "kind": "Interactive",
@@ -407,7 +417,7 @@ ARTIFACTS = [
     {"src": "ig-fiscal-policy", "at": "4.2", "title": "Fiscal Policy: Whole-Topic Overview", "kind": "Interactive",
      "desc": "All of 4.2 on one page: budget, spending, taxation, multiplier and fiscal policy and the aims, with animated diagrams, labs and exam practice.",
      "places": [("ig-econ", "s4-2")]},
-    {"src": "ig-fiscal-evaluation", "title": "Fiscal Policy: Evaluation Technique", "kind": "Exam skills", "at": "4.2.6",
+    {"src": "ig-fiscal-evaluation", "title": "Fiscal Policy: Evaluation Technique", "kind": "Exam skills", "at": "4.2.6", "tier": "full",
      "desc": "How to earn Level 3 on fiscal policy Discuss questions: the seven fiscal policy levers, animated chains, labs, ten past questions, four colour-coded model answers.",
      "places": [("ig-econ", "s4-2")]},
     {"src": "ig-monetary-definitions", "role": "review", "at": "4.3.1", "title": "Money Supply and Monetary Policy", "kind": "Interactive",
@@ -932,7 +942,7 @@ ARTIFACTS = [
      "places": [("a-cs", "a-level/s19-1")]},
 
     # A-Level Economics
-    {"src": "as-resit-exam-technique", "title": "AS Resit Exam Technique Pack", "kind": "Exam pack",
+    {"src": "as-resit-exam-technique", "title": "AS Resit Exam Technique Pack", "kind": "Exam pack", "tier": "full",
      "desc": "Nine printable resources for Paper 2: command words, scope, evaluation, application, and 8- and 12-mark structure.",
      "places": [("a-econ", "as/exam-technique")]},
     {"src": "a-level-paper4-essay", "at": "3", "title": "Paper 4: The 20-Mark Essay", "kind": "Interactive",
@@ -944,7 +954,7 @@ ARTIFACTS = [
     {"src": "a-level-paper4-data-response", "at": "2", "title": "Paper 4 Section A: Data Response Technique", "kind": "Interactive",
      "desc": "The 20-mark data response question: how the marks are split, what each part asks, using the data, evaluating in short parts and three full reworded questions.",
      "places": [("a-econ", "a-level/exam-prep")]},
-    {"src": "a-level-revision-plan", "at": "4", "title": "A Level Economics Revision Plan and Exam Day", "kind": "Interactive",
+    {"src": "a-level-revision-plan", "at": "4", "title": "A Level Economics Revision Plan and Exam Day", "kind": "Interactive", "tier": "full",
      "desc": "A three-phase revision plan with a planner weighted by syllabus size and your confidence, a topic tracker, a past paper routine, how to revise, a last-week checklist and an exam-day plan.",
      "places": [("a-econ", "a-level/exam-prep")]},
     {"src": "a-level-bop-policies", "role": "review", "title": "Policies to Correct Balance of Payments Disequilibrium", "kind": "Interactive", "at": "11.1.1",

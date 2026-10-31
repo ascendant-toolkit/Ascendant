@@ -14,7 +14,7 @@ import re
 import shutil
 from pathlib import Path
 
-from site_data import A_CS_MOVED, A_ECON_MOVED, ARTIFACTS, COURSES, INVESTING, LANDING_PAGE, SITE_TAGLINE, SITE_TITLE
+from site_data import A_CS_MOVED, A_ECON_MOVED, ARTIFACTS, CHECKOUT_URLS, COURSES, INVESTING, LANDING_PAGE, SITE_TAGLINE, SITE_TITLE
 
 ROOT = Path(__file__).parent
 OUT = ROOT / "docs"
@@ -28,6 +28,7 @@ NAV = [
     ("a-cs", "A CS", "a-cs/"),
     ("investing", "Investing", "investing/"),
     ("other", "Other", "other/"),
+    ("pricing", "Plans", "pricing/"),
     ("profile", "Profile", "profile/"),
 ]
 
@@ -469,6 +470,103 @@ def build_other_profile():
                                        auth=True, extra='<script src="../assets/profile.js"></script>'))
 
 
+def build_pricing():
+    """Plans and pricing page at /pricing/. Prices are USD; Lemon Squeezy converts and handles VAT.
+    Buy buttons go live as CHECKOUT_URLS (site_data.py) are filled; until then they point at the join form."""
+    r = "../"
+    join = f"{r}profile/"
+
+    def buy(plan, label):
+        u = CHECKOUT_URLS.get(plan, {})
+        y, m = u.get("y", ""), u.get("m", "")
+        if y or m:
+            return f'<a class="btn cta-buy" data-y="{esc(y)}" data-m="{esc(m)}" href="{esc(y or m)}">{label}</a>'
+        return f'<a class="btn ghost" href="{join}">Available at launch</a>'
+
+    def price(y, m):
+        return (f'<p class="price" data-y="{y}" data-m="{m}">'
+                f'<span class="amt">${y}</span><span class="per">/year</span></p>')
+
+    def feats(items):
+        return '<ul class="feat">' + "".join(f"<li>{esc(t)}</li>" for t in items) + "</ul>"
+
+    def plan(name, price_html, tagline, items, cta, cls="", accent="", badge=""):
+        acc = f' data-accent="{accent}"' if accent else ""
+        bdg = f'<span class="badge">{esc(badge)}</span>' if badge else ""
+        return (f'<article class="plan {cls}"{acc}>{bdg}<h3>{esc(name)}</h3>{price_html}'
+                f'<p class="tagline">{esc(tagline)}</p>{feats(items)}{cta}</article>')
+
+    free = plan("Free", '<p class="price"><span class="amt">$0</span><span class="per">forever</span></p>',
+                "A proper taste of how it works.",
+                ["Four full sample lessons", "Interactive charts and code walkthroughs", "Progress tracking"],
+                f'<a class="btn ghost" href="{join}">Create a free account</a>')
+    basic = plan("Basic", price(59, 7), "One subject, the whole syllabus to learn from.",
+                 ["Every lesson and interactive tool for one subject", "All chapters and levels in that subject",
+                  "Learn on any device"], buy("basic", "Choose Basic"))
+    full = plan("Full", price(119, 14), "Everything a tutor would give you, for one subject.",
+                ["Everything in Basic", "Server-marked assessments with instant feedback",
+                 "Progress and homework tracking", "Exam-technique packs and model answers"],
+                buy("full", "Get Full"), cls="featured", accent="teal", badge="Most popular")
+    allp = plan("All-Access", price(199, 24), "Both subjects, every level, the lot.",
+                ["Everything in Full", "Every subject and level we offer", "Exam-question packs",
+                 "Early access to new content"], buy("all", "Go All-Access"))
+    teacher = plan("Teacher", price(299, 35), "One teacher, all your classes.",
+                   ["Full content for the subjects you teach", "Class progress and homework dashboards",
+                    "Assign and track assessments", "Lesson-delivery mode for the classroom"],
+                   buy("teacher", "Choose Teacher"))
+    school = plan("School", '<p class="price"><span class="amt">from $12</span><span class="per">/student / year</span></p>',
+                  "Whole-school access, managed centrally.",
+                  ["Every subject and level for every student", "Free teacher accounts and dashboards",
+                   "From 25 seats, invoiced annually"], f'<a class="btn" href="{join}">Talk to us</a>')
+
+    cycle = ('<div class="cycle" role="group" aria-label="Billing period">'
+             '<button type="button" data-cycle="y" class="on">Annual <span class="save">save ~30%</span></button>'
+             '<button type="button" data-cycle="m">Monthly</button></div>')
+    faq = [("Can I cancel any time?",
+            "Yes. Cancel whenever you like and you keep access until the end of the period you have paid for. "
+            "Monthly plans stop at the next month, annual plans run to the end of the year, and there are no further charges."),
+           ("Do you offer refunds?",
+            "There is a 14-day money-back guarantee on your first purchase. If it is not for you, get in touch within "
+            "two weeks and we will refund it in full, no questions asked."),
+           ("What if I change my mind part-way through an annual plan?",
+            "After the first 14 days an annual plan is non-refundable and you keep full access until it ends. If you have a "
+            "genuine reason, get in touch: any goodwill refund is worked out at the standard monthly price for the months "
+            "you have used, not the discounted annual rate."),
+           ("Which currency am I charged in?",
+            "Prices are shown in US dollars. At checkout you are billed in your local currency, with any VAT or sales tax "
+            "added and handled for you."),
+           ("Why is annual cheaper?",
+            "Paying for the year up front saves you around 30% against paying monthly: roughly three months free.")]
+    faq_html = "".join(f"<details><summary>{esc(q)}</summary><p>{esc(a)}</p></details>" for q, a in faq)
+
+    body = (
+        '<section class="hero"><p class="kicker">Cambridge IGCSE &amp; A-Level · Economics &amp; Computer Science</p>'
+        "<h1>One platform instead of a shelf of resources.</h1>"
+        '<p class="lead">The full syllabus as interactive lessons, with assessments, model answers, exam practice and '
+        "progress tracking in one place: the explaining, practising and marking a tutor or teacher would do, built for "
+        "Cambridge Economics and Computer Science.</p></section>"
+        f"{cycle}"
+        f'<div class="plans-wrap">{free}{basic}{full}{allp}</div>'
+        '<section class="sec" aria-labelledby="ts"><h2 id="ts">For teachers and schools</h2>'
+        '<p class="lede">Teach with it in the classroom, or roll it out across a whole school.</p>'
+        f'<div class="plans-wrap plans-two">{teacher}{school}</div></section>'
+        '<p class="hint">Prices in USD per subject (except All-Access, Teacher and School). Converted to your local '
+        "currency at checkout.</p>"
+        f'<section class="sec" aria-labelledby="rf"><h2 id="rf">Billing, cancellation and refunds</h2>'
+        f'<div class="faq">{faq_html}</div></section>')
+
+    script = ("<script>(function(){"
+              "function set(c){"
+              "document.querySelectorAll('.cycle button').forEach(function(b){b.classList.toggle('on',b.dataset.cycle===c);});"
+              "document.querySelectorAll('.price[data-y]').forEach(function(p){"
+              "p.querySelector('.amt').textContent='$'+(c==='y'?p.dataset.y:p.dataset.m);"
+              "p.querySelector('.per').textContent=c==='y'?'/year':'/month';});"
+              "document.querySelectorAll('.cta-buy').forEach(function(a){var u=c==='y'?a.dataset.y:a.dataset.m;if(u)a.href=u;});}"
+              "document.querySelectorAll('.cycle button').forEach(function(b){b.addEventListener('click',function(){set(b.dataset.cycle);});});"
+              "})();</script>")
+    write("pricing/index.html", layout("Plans", body, "pricing/", "pricing", [("Home", ""), ("Plans", None)], extra=script))
+
+
 def build_catalog():
     """Machine-readable course map used by the profile page for progress."""
     arts = {a["slug"]: a for a in ARTIFACTS}
@@ -488,7 +586,7 @@ def build_catalog():
                 sl = [a["slug"] for a in by_chapter.get((ckey, key), []) if is_review(a)]
                 for x in allsl:
                     artifacts.setdefault(x, {"title": arts[x]["title"], "url": f"artifacts/{x}/", "role": "review" if is_review(arts[x]) else "resource",
-                                             "tier": arts[x].get("tier", "full"), "chapterTitle": f"{c['title']}: {ch['title']}"})
+                                             "tier": arts[x].get("tier", "basic"), "chapterTitle": f"{c['title']}: {ch['title']}"})
                 for x in sl:
                     if x not in slugs:
                         slugs.append(x)
@@ -496,7 +594,7 @@ def build_catalog():
             groups.append({"title": title, "chapters": items})
         courses[ckey] = {"title": c["title"], "accent": c["accent"], "url": f"{ckey}/", "groups": groups, "slugs": slugs}
     for x, a in arts.items():
-        artifacts.setdefault(x, {"title": a["title"], "url": f"artifacts/{x}/", "role": "review" if is_review(a) else "resource", "tier": a.get("tier", "full"), "chapterTitle": a["title"]})
+        artifacts.setdefault(x, {"title": a["title"], "url": f"artifacts/{x}/", "role": "review" if is_review(a) else "resource", "tier": a.get("tier", "basic"), "chapterTitle": a["title"]})
     order = [a["slug"] for a in ARTIFACTS]
     assessed = {k: {"pass": v["pass_pct"], "n": len(v["questions"])} for k, v in ASSESSED.items()}
     write("assets/catalog.json", json.dumps({"courses": courses, "artifacts": artifacts, "order": order, "assessed": assessed}, separators=(",", ":")))
@@ -685,9 +783,9 @@ def build_artifacts():
         if locked:
             index = bundle.pop("index.html")
             (dest / "payload.bin").write_bytes(encrypt_payload(master, a["slug"], {"index": index, "files": bundle}))
-            (dest / "index.html").write_text(bust(shell_page(a["slug"], a["title"], courses, a.get("tier", "full"))), encoding="utf-8")
+            (dest / "index.html").write_text(bust(shell_page(a["slug"], a["title"], courses, a.get("tier", "basic"))), encoding="utf-8")
         if courses:
-            seed.append((a["slug"], courses, a.get("tier", "full")))
+            seed.append((a["slug"], courses, a.get("tier", "basic")))
     lines = ["-- Written by build.py. Safe to rerun: lists the locked lessons, which courses unlock each and the lowest tier that opens it (see schema.sql, v7).",
              "insert into public.artifact_courses (slug, courses, min_tier) values"]
     lines.append(",\n".join("  ('%s', array[%s], '%s')" % (s, ",".join("'%s'" % c for c in cs), t) for s, cs, t in seed))
@@ -713,6 +811,7 @@ def main():
     build_courses()
     build_investing()
     build_other_profile()
+    build_pricing()
     build_catalog()
     build_assessments()
     build_artifacts()
