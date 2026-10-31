@@ -51,12 +51,20 @@
     const avg = scored.length ? Math.round(scored.reduce((s, t) => s + t.pct, 0) / scored.length) : null;
     const recent = [...done.entries()].filter(([s]) => catalog.artifacts[s]).sort((a, b) => (b[1] || "").localeCompare(a[1] || "")).slice(0, 4);
     const first = (me.name || "").trim().split(/\s+/)[0] || me.name;
+    const h = new Date().getHours();
+    const greet = h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+
+    const IC = {
+      star: `<svg class="stat-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z" stroke-linejoin="round"/></svg>`,
+      check: `<svg class="stat-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+      cal: `<svg class="stat-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4" stroke-linecap="round"/></svg>`,
+    };
 
     const tiles = [
       `<div class="stat ring-tile">${ring(overall)}<div><b>Overall progress</b><span class="hint">${doneN} of ${total} activities</span></div></div>`,
-      `<div class="stat" data-accent="green"><span class="statbig">${avg === null ? "–" : avg + "%"}</span><b>Average score</b><span class="hint">${scored.length ? "across " + scored.length + " assessment" + (scored.length === 1 ? "" : "s") : "no assessments yet"}</span></div>`,
-      `<div class="stat" data-accent="indigo"><span class="statbig">${doneN}</span><b>Lessons complete</b><span class="hint">${Math.max(0, total - doneN)} still to finish</span></div>`,
-      `<div class="stat" data-accent="amber"><span class="statbig">${week}</span><b>Lessons this week</b><span class="hint">completed in the last 7 days</span></div>`,
+      `<div class="stat" data-accent="green">${IC.star}<span class="statbig">${avg === null ? "–" : avg + "%"}</span><b>Average score</b><span class="hint">${scored.length ? "across " + scored.length + " assessment" + (scored.length === 1 ? "" : "s") : "no assessments yet"}</span></div>`,
+      `<div class="stat" data-accent="indigo">${IC.check}<span class="statbig">${doneN}</span><b>Lessons complete</b><span class="hint">${Math.max(0, total - doneN)} still to finish</span></div>`,
+      `<div class="stat" data-accent="amber">${IC.cal}<span class="statbig">${week}</span><b>Lessons this week</b><span class="hint">completed in the last 7 days</span></div>`,
     ].join("");
 
     const resume = nextA
@@ -87,7 +95,7 @@
       <p class="hint" style="margin-top:14px"><a class="lnk" href="${S.profileUrl}">Manage your account, plan and password on your Profile →</a></p></section>`;
 
     root.innerHTML = `
-      <section class="dash-head"><p class="kicker">Dashboard</p><h1>Welcome back, ${esc(first)}</h1>
+      <section class="dash-head"><p class="kicker">Dashboard</p><h1>${greet}, ${esc(first)}</h1>
         <p class="hint">${me.school ? esc(me.school) + " · " : ""}${mine.length ? mine.map((k) => esc(catalog.courses[k].title)).join(" · ") : "No subjects yet"}</p></section>
       ${resume}
       <div class="stat-tiles">${tiles}</div>
