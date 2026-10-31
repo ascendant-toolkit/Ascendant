@@ -416,9 +416,11 @@ def build_landing():
     write("welcome/index.html", layout(SITE_TITLE, body, "welcome/", "home", extra='<script src="../assets/home.js"></script>'))
 
 
+NUM_WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight"}
+
 HOME_FAQ = [
     ("Who is it for?", "Cambridge IGCSE and A-Level students in Economics and Computer Science, the teachers who teach them, and schools and tutors who want one place for lessons, practice and progress."),
-    ("Which exam board is this for?", "Cambridge International only: IGCSE Economics 0455, IGCSE Computer Science 0478, A-Level Economics 9708 and A-Level Computer Science 9618."),
+    ("Which exam board is this for?", "Cambridge International only: " + ", ".join(f"{lvl} {subj} {code}" for _, lvl, subj, code in SYLLABI[:-1]) + f" and {SYLLABI[-1][1]} {SYLLABI[-1][2]} {SYLLABI[-1][3]}."),
     ("Can I try it first?", "Yes. A free account opens four full sample lessons, so you can judge the quality before paying anything."),
     ("Is it a replacement for a tutor?", "For most students it covers what a tutor does week to week: explaining the topic, setting practice, marking it and showing what to fix. Many students use it alongside their class teacher, and some use it instead of paid tutoring."),
     ("Can my school or tutoring business use it?", "Yes. Schools and tutors get a licence for a set number of students, free teacher accounts, and dashboards to see each student's progress. See the plans page or get in touch."),
@@ -457,6 +459,7 @@ def build_home():
                      f'<span class="t">{subj}</span><span class="code">Cambridge {code}</span>'
                      f'<span class="sub">{SYL_BLURB[ckey]}</span>'
                      f'<span class="count">{plural(n, "activity")} across {chs} chapters</span></a>')
+    nsyl = NUM_WORDS.get(len(SYLLABI), str(len(SYLLABI))).capitalize()
     sample = next(a for a in ARTIFACTS if a.get("public"))
     tabs = "".join(f'<li><b>{t}</b><span>{d}</span></li>' for t, d in TABS)
     faq = "".join(f'<details><summary>{q}</summary><p>{a}</p></details>' for q, a in HOME_FAQ)
@@ -469,7 +472,7 @@ def build_home():
 <h1>A teaching and learning toolkit: for everyone</h1>
 <p class="lead">Your syllabus, fully resourced, chapter by chapter: with animated explainers, hands-on activities, exam questions with model answers, marked assessments and progress tracking, all in one place.</p>
 <p class="cta"><a class="btn" href="pricing/">See plans</a><a class="btn ghost" id="sample" href="artifacts/{sample["slug"]}/#learn">Try a free lesson</a><a class="btn ghost" href="profile/">Sign in</a></p>
-<ul class="lp-stats"><li><b>{total}</b><span>interactive activities</span></li><li><b>{chapters}</b><span>chapters</span></li><li><b>4</b><span>Cambridge syllabuses</span></li></ul></div>
+<ul class="lp-stats"><li><b>{total}</b><span>interactive activities</span></li><li><b>{chapters}</b><span>chapters</span></li><li><b>{len(SYLLABI)}</b><span>Cambridge syllabuses</span></li></ul></div>
 <div class="lp-visual" aria-hidden="false"><div class="lp-pane lp-pane-a"><span class="lp-tag">Economics &middot; Explore</span>{HERO_CHART}<p>Shift the curves and watch the market move.</p></div>
 <div class="lp-pane lp-pane-b"><span class="lp-tag">Computer Science &middot; Watch</span>{HERO_CODE}<p>Step through code and see every value change.</p></div></div></section>
 
@@ -481,7 +484,7 @@ def build_home():
 <p>Every chapter, every explainer, marked assessments and progress tracking, on demand.</p></div></div>
 <p class="hint">Prices in USD, shown in your local currency at checkout. Tutor rates are typical for international Cambridge students.</p></section>
 
-<section class="sec" aria-labelledby="syl"><h2 id="syl">Four Cambridge syllabuses</h2>
+<section class="sec" aria-labelledby="syl"><h2 id="syl">{nsyl} Cambridge syllabuses</h2>
 <p class="lede">Built chapter by chapter against the syllabus.</p><div class="grid two">{"".join(cards)}</div>
 <p class="hint" id="homehint" hidden>Sign in on the <a href="profile/">Profile</a> page to open your courses.</p></section>
 
