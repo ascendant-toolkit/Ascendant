@@ -445,7 +445,7 @@ def build_other_profile():
             + ph("Extra-curricular activities", "Clubs, competitions and projects.") + ph("Side projects", "Things built for fun.") + "</div>")
     write("other/index.html", layout("Other", body, "other/", "other", [("Home", ""), ("Other", None)]))
 
-    body = (head("Profile", "Your details, subjects and progress.", "Students")
+    body = (head("Profile", "Sign in, or manage your details, subjects and progress.", "Account")
             + '<div id="profile-root"><noscript>This page needs JavaScript.</noscript></div>')
     write("profile/index.html", layout("Profile", body, "profile/", "profile", [("Home", ""), ("Profile", None)],
                                        auth=True, extra='<script src="../assets/profile.js"></script>'))

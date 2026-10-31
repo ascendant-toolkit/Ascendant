@@ -272,7 +272,12 @@ create or replace function public._create_login(_email text, _password text) ret
 language plpgsql security definer set search_path = public, extensions, auth as $$
 declare uid uuid := gen_random_uuid(); e text := lower(_email);
 begin
-  if exists (select 1 from auth.users where email = e) then return; end if;
+  -- A leftover login for this address (an earlier test, a deleted profile) would otherwise keep its old password.
+  if exists (select 1 from auth.users where email = e) then
+    update auth.users set encrypted_password = crypt(_password, gen_salt('bf')),
+        email_confirmed_at = coalesce(email_confirmed_at, now()), updated_at = now() where email = e;
+    return;
+  end if;
   insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
       raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
       confirmation_token, recovery_token, email_change_token_new, email_change,
