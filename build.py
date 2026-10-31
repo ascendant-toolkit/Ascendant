@@ -26,7 +26,6 @@ NAV = [
     ("ig-cs", "IG CS", "ig-cs/"),
     ("a-econ", "A Econ", "a-econ/"),
     ("a-cs", "A CS", "a-cs/"),
-    ("other", "Other", "other/"),
     ("pricing", "Plans", "pricing/"),
     ("dashboard", "Dashboard", "dashboard/"),
     ("profile", "Profile", "profile/"),
