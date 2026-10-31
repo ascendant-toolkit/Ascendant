@@ -706,6 +706,7 @@ def main():
     OUT.mkdir()
     shutil.copytree(ROOT / "assets", OUT / "assets")
     (OUT / ".nojekyll").write_text("")
+    (OUT / "CNAME").write_text("ascendant.academy\n")
     build_home()
     if LANDING_PAGE:
         build_landing()
