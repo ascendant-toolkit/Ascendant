@@ -472,6 +472,7 @@ def build_home():
     body = f"""<div id="memberbar" class="memberbar" hidden><span>Welcome back.</span><a class="btn" id="memberlink" href="dashboard/">Open your dashboard →</a></div>
 <section class="lp-hero"><div class="lp-copy"><p class="kicker">Cambridge IGCSE and A-Level</p>
 <h1>A teaching and learning toolkit: for everyone</h1>
+<p class="lp-sub">Students &middot; Tutors &middot; Teachers &middot; Schools</p>
 <p class="lead">Your syllabus, fully resourced, chapter by chapter: with animated explainers, hands-on activities, exam questions with model answers, marked assessments and progress tracking, all in one place.</p>
 <p class="cta"><a class="btn" href="pricing/">See plans</a><a class="btn ghost" id="sample" href="artifacts/{sample["slug"]}/#learn">Try a free lesson</a><a class="btn ghost" href="profile/">Sign in</a></p>
 <ul class="lp-stats"><li><b>{total}</b><span>interactive activities</span></li><li><b>{chapters}</b><span>chapters</span></li><li><b>{len(SYLLABI)}</b><span>Cambridge syllabuses</span></li></ul></div>
