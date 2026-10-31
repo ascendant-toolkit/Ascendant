@@ -487,6 +487,14 @@ def build_home():
 <div class="lp-col"><span class="lp-tag">Progress</span><b class="lp-pt">See who is keeping up</b><p>Class dashboards show what each student has finished and how they scored.</p></div>
 <div class="lp-col"><span class="lp-tag">At home</span><b class="lp-pt">Learning that carries on</b><p>Students pick up where they left off on any device, for revision and independent study.</p></div></div></section>
 
+<section class="sec" aria-labelledby="stu"><h2 id="stu">Everything a student needs, to learn and revise</h2>
+<p class="lede">Clear explanations, plenty of practice and honest feedback, for every chapter of the syllabus.</p>
+<div class="lp-compare">
+<div class="lp-col"><span class="lp-tag">Understand</span><b class="lp-pt">Learn it properly</b><p>Plain-English explanations and step-by-step animations that show how each idea works.</p></div>
+<div class="lp-col"><span class="lp-tag">Practise</span><b class="lp-pt">Hands-on activities</b><p>Sliders, simulations, drag-and-drop and quick quizzes, with instant feedback as you go.</p></div>
+<div class="lp-col"><span class="lp-tag">Exam ready</span><b class="lp-pt">Questions with model answers</b><p>Past-paper style questions with mark scheme points, plus marked assessments that show what to fix.</p></div>
+<div class="lp-col"><span class="lp-tag">Progress</span><b class="lp-pt">Know where you stand</b><p>Your dashboard tracks every lesson and score, and takes you straight back to where you left off.</p></div></div></section>
+
 <section class="sec" aria-labelledby="syl"><h2 id="syl">{nsyl} Cambridge syllabuses</h2>
 <p class="lede">Built chapter by chapter against the syllabus.</p><div class="grid two">{"".join(cards)}</div>
 <p class="hint" id="homehint" hidden>Sign in on the <a href="profile/">Profile</a> page to open your courses.</p></section>
