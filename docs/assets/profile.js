@@ -170,7 +170,7 @@
     const avail = COURSE_KEYS.filter((k) => !me.subjects.includes(k) && !pend.includes(k));
     const pendHtml = pend.map((k) => `<span class="pill pending" data-accent="${catalog.courses[k].accent}">${esc(catalog.courses[k].title)} · waiting for approval <button class="x" data-cancel="${k}" title="Cancel request">×</button></span>`).join("");
     const req = !me.is_admin && !me.is_teacher && avail.length
-      ? `<p class="hint">Join a subject: ${avail.map((k) => `<button class="mini" data-req="${k}">+ ${esc(catalog.courses[k].title)}</button>`).join(" ")}</p>` : "";
+      ? `<p class="hint subj-more">Need another subject? Ask your teacher, or see <a class="lnk" href="${S.base}pricing/">Plans</a>.</p>` : "";
     return `<div class="pills">${pills(me.subjects.filter((k) => catalog.courses[k]))}${pendHtml}</div>${req}`;
   }
 
@@ -232,7 +232,7 @@
     // The progress overview lives on the dashboard now; the profile keeps subjects, plan and account.
     return `
       <section class="idcard"><h1>${esc(me.name)}</h1><p class="email">${esc(me.email)}${me.email2 ? ` · ${esc(me.email2)}` : ""}${me.school ? ` · ${esc(me.school)}` : ""}</p>${subjectPanel(me)}
-        <p class="hint"><a class="btn" href="${S.base}dashboard/">Open your dashboard →</a></p></section><!--split-->
+        <p class="idcard-cta"><a class="btn" href="${S.base}dashboard/">Open your dashboard →</a></p></section><!--split-->
       ${planCard(me)}
       ${account}`;
   }
