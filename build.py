@@ -14,7 +14,7 @@ import re
 import shutil
 from pathlib import Path
 
-from site_data import A_CS_MOVED, A_ECON_MOVED, ARTIFACTS, CHECKOUT_URLS, COURSES, INVESTING, LANDING_PAGE, SITE_TAGLINE, SITE_TITLE
+from site_data import A_CS_MOVED, A_ECON_MOVED, ARTIFACTS, CHECKOUT_URLS, COURSES, LANDING_PAGE, SITE_TAGLINE, SITE_TITLE
 
 ROOT = Path(__file__).parent
 OUT = ROOT / "docs"
@@ -26,7 +26,6 @@ NAV = [
     ("ig-cs", "IG CS", "ig-cs/"),
     ("a-econ", "A Econ", "a-econ/"),
     ("a-cs", "A CS", "a-cs/"),
-    ("investing", "Investing", "investing/"),
     ("other", "Other", "other/"),
     ("pricing", "Plans", "pricing/"),
     ("dashboard", "Dashboard", "dashboard/"),
@@ -61,7 +60,7 @@ def rel_root(path):
 def layout(title, body, path, active, crumbs=None, accent=None, auth=False, extra=""):
     root = rel_root(path)
     nav = "".join(
-        f'<a href="{root}{href}"{" class=on aria-current=page" if key == active else ""}{f" data-course={key}" if key in COURSES else ""}{" data-admin hidden" if key == "investing" else ""}>{label}</a>'
+        f'<a href="{root}{href}"{" class=on aria-current=page" if key == active else ""}{f" data-course={key}" if key in COURSES else ""}>{label}</a>'
         for key, label, href in NAV
     )
     crumb_html = ""
@@ -71,7 +70,7 @@ def layout(title, body, path, active, crumbs=None, accent=None, auth=False, extr
             parts.append(f'<a href="{root}{href}">{esc(label)}</a>' if href is not None else f"<span>{esc(label)}</span>")
         crumb_html = f'<nav class="crumbs" aria-label="Breadcrumb">{"<i>/</i>".join(parts)}</nav>'
     acc = f' data-accent="{accent}"' if accent else ""
-    gate = [active] if active in COURSES else (["admin"] if active == "investing" else [])
+    gate = [active] if active in COURSES else []
     full_title = SITE_TITLE if title == SITE_TITLE else f"{title} · {SITE_TITLE}"
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
@@ -143,9 +142,6 @@ for ckey, c in COURSES.items():
                     "path": f"{ckey}/{lv['id']}/{ch['id']}/", "ch": ch,
                     "parents": [(lv["title"], f"{ckey}/{lv['id']}/")],
                 }
-
-# Investing: a single flat page, so one pseudo-chapter that points at the topic page itself.
-chapter_info[("investing", "all")] = {"path": "investing/", "ch": {"n": None, "label": "★", "title": "Investing", "group": None}, "parents": []}
 
 by_chapter = {}
 for a in ARTIFACTS:
@@ -437,25 +433,10 @@ def build_home():
             '<p class="hint" id="homehint" hidden>Sign in on the <a href="profile/">Profile</a> page with the account your teacher set up to open your courses.</p>'
             f'<div class="grid two more">'
             f'<a class="card slim" id="sample" hidden href="artifacts/{sample["slug"]}/#learn"><span class="t">Try a sample lesson</span><span class="sub">{esc(sample["title"])}: open it without signing in.</span></a>'
-            f'<a class="card slim" href="investing/" data-admin hidden data-accent="{INVESTING["accent"]}"><span class="t">Investing</span><span class="sub">{esc(INVESTING["blurb"])}</span></a>'
             '<a class="card slim" href="other/"><span class="t">Other</span><span class="sub">Study tips, extra-curricular activities and side projects.</span></a>'
             '<a class="card slim" href="profile/"><span class="t">Profile</span><span class="sub">Student accounts, progress and scores.</span></a>'
             '</div>')
     write("index.html", layout(SITE_TITLE, body, "", "home", extra='<script src="assets/home.js"></script>'))
-
-
-def build_investing():
-    arts = by_chapter.get(("investing", "all"), [])
-    if arts:
-        items = "".join(
-            f'<div class="card art"><span class="tag">{esc(a["kind"])}</span>'
-            f'<a class="t" href="../artifacts/{a["slug"]}/">{esc(a["title"])}</a><span class="sub">{esc(a["desc"])}</span>'
-            f'<span class="foot"><a class="go" href="../artifacts/{a["slug"]}/">Open →</a></span></div>' for a in arts)
-        grid = f'<div class="grid arts">{items}</div>'
-    else:
-        grid = '<div class="placeholder"><p>The first lessons are on their way.</p></div>'
-    write("investing/index.html", layout("Investing", head(INVESTING["title"], INVESTING["blurb"], "Topic") + grid,
-                                         "investing/", "investing", [("Home", ""), ("Investing", None)], INVESTING["accent"]))
 
 
 def build_other_profile():
@@ -821,7 +802,6 @@ def main():
     if LANDING_PAGE:
         build_landing()
     build_courses()
-    build_investing()
     build_other_profile()
     build_dashboard()
     build_pricing()

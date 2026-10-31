@@ -212,13 +212,6 @@ COURSES = {
     },
 }
 
-# Investing is a public topic page rather than a course: no chapters, no login gate, no progress tracking.
-# Place its artifacts with places=[("investing", "all")].
-INVESTING = {
-    "nav": "Investing", "title": "Investing", "accent": "green",
-    "blurb": "Plain-English lessons on how investing works, with historical examples. Educational only, not advice.",
-}
-
 # Artifacts. 'src' is the folder under artifacts_src/. 'places' is a list of
 # (course, chapter id) pairs; the first is the primary home (used for the back link).
 # 'public': True leaves the artifact open to visitors who are not signed in (used for the home page sample).
@@ -230,11 +223,6 @@ INVESTING = {
 # 'at': coursebook position of a resource, e.g. "31.2" or "19.1.4". Resources sort by it, in
 # coursebook order; ones without it come last, in the order listed here.
 ARTIFACTS = [
-    # Investing
-    {"src": "panic-at-the-bottom", "title": "Buying Panic at the Bottom", "kind": "Interactive",
-     "desc": "A five-signal mean-reversion setup (RSI, Bollinger Bands, 30% dip, volume spike, support) and its take-profit exit, explained with replayable charts.",
-     "places": [("investing", "all")]},
-
     # IGCSE Computer Science
     {"src": "number-systems", "role": "review", "at": "1.1", "title": "Number Systems", "kind": "Interactive",
      "desc": "1.1 Binary, denary and hex conversions, addition and overflow, logical shifts, two's complement, labs and exam questions.",
