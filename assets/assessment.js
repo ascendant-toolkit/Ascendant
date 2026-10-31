@@ -119,6 +119,12 @@
     }
     const { data, error } = await S.sb.rpc("get_assessment", { _slug: slug });
     if (error || !data) { root.innerHTML = `<p class="msg err">${error ? esc(error.message) : "There is no assessment for this lesson yet."}</p>`; return; }
+    if (data.locked) {
+      root.innerHTML = `<section class="card block"><h3>Assessments are part of the Full plan</h3>
+        <p class="hint">Your access to this subject does not include the server-marked assessments, feedback and model answers. Upgrade to Full to take them.</p>
+        <p><a class="btn" href="${S.base}pricing/">See plans</a> <a class="btn ghost" href="${lessonUrl()}">Back to the lesson</a></p></section>`;
+      return;
+    }
     quiz = data;
     if (data.attempt) viewResult(data.attempt, false);
     else viewForm(!!(me.is_admin || me.is_teacher));

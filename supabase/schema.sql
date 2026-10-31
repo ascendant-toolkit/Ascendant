@@ -474,11 +474,17 @@ end $$;
 -- Questions without keys or feedback, plus this student's live attempt (with feedback) if they have one.
 create or replace function public.get_assessment(_slug text) returns json
 language plpgsql security definer set search_path = public as $$
-declare a assessments; att assessment_attempts; e text := my_key();
+declare a assessments; att assessment_attempts; e text := my_key(); jwt_e text := lower(auth.jwt() ->> 'email');
 begin
   if not is_member() then raise exception 'Sign in first'; end if;
   select * into a from assessments where slug = _slug;
   if not found then return null; end if;
+  -- Assessments (with their model answers) are a Full-tier feature. Staff preview them; students need Full on the subject.
+  if not (exists (select 1 from admins where email = jwt_e) or exists (select 1 from teachers where email = jwt_e)
+          or exists (select 1 from school_teachers where email = jwt_e))
+     and not tier_at_least(e, (select courses from artifact_courses where slug = _slug), 'full') then
+    return json_build_object('slug', a.slug, 'title', a.title, 'locked', 'full');
+  end if;
   select * into att from assessment_attempts where email = e and slug = _slug and reset_at is null;
   return json_build_object(
     'slug', a.slug, 'title', a.title, 'pass', a.pass_pct,
@@ -503,6 +509,9 @@ begin
   end if;
   select * into a from assessments where slug = _slug;
   if not found then raise exception 'No assessment for this lesson'; end if;
+  if not tier_at_least(e, (select courses from artifact_courses where slug = _slug), 'full') then
+    raise exception 'Assessments are part of the Full plan. Upgrade your access to submit.';
+  end if;
   if exists (select 1 from assessment_attempts where email = e and slug = _slug and reset_at is null) then
     raise exception 'Already submitted. Ask your teacher to reset it for a retake.';
   end if;
@@ -707,6 +716,21 @@ language sql stable as $$ select _starts <= now() and (_expires is null or _expi
 create or replace function public.tier_rank(_tier text) returns int
 language sql immutable as $$
   select case _tier when 'free' then 0 when 'basic' then 1 when 'full' then 2 when 'vip' then 3 else -1 end
+$$;
+
+-- Does this student hold one of _courses at _min tier or higher? Mirrors artifact_key's tier gate, including its
+-- fallback: a student with the subject but no matching entitlement (legacy / paywall-off) counts as 'full'.
+create or replace function public.tier_at_least(_email text, _courses text[], _min text) returns boolean
+language sql stable security definer set search_path = public as $$
+  select coalesce(max(r), tier_rank('full')) >= tier_rank(_min) from (
+    select tier_rank(ent.tier) r
+      from profiles p
+      join entitlements ent on ent.email = p.email and is_active(ent.starts_at, ent.expires_at)
+                           and (ent.product = any (_courses) or ent.product = 'school-all')
+     where (p.email = _email or p.email2 = _email)
+    union all
+    select tier_rank(sa.tier) from profiles p, school_access(p.email) sa
+     where (p.email = _email or p.email2 = _email) and sa.product = any (_courses)) z
 $$;
 
 create or replace function public.paywall_on() returns boolean
