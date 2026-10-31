@@ -416,12 +416,14 @@ def build_landing():
     write("welcome/index.html", layout(SITE_TITLE, body, "welcome/", "home", extra='<script src="../assets/home.js"></script>'))
 
 
-NUM_WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight"}
+NUM_WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten"}
+N_FREE = len([a for a in ARTIFACTS if a.get("tier") == "free"])
+FREE_WORD = NUM_WORDS.get(N_FREE, str(N_FREE))
 
 HOME_FAQ = [
     ("Who is it for?", "Cambridge IGCSE and A-Level students in Economics and Computer Science, the teachers who teach them, and schools and tutors who want one place for lessons, practice and progress."),
     ("Which exam board is this for?", "Cambridge International only: " + ", ".join(f"{lvl} {subj} {code}" for _, lvl, subj, code in SYLLABI[:-1]) + f" and {SYLLABI[-1][1]} {SYLLABI[-1][2]} {SYLLABI[-1][3]}."),
-    ("Can I try it first?", "Yes. A free account opens four full sample lessons, so you can judge the quality before paying anything."),
+    ("Can I try it first?", f"Yes. A free account opens {FREE_WORD} full sample lessons, so you can judge the quality before paying anything."),
     ("Is it a replacement for a tutor?", "For most students it covers what a tutor does week to week: explaining the topic, setting practice, marking it and showing what to fix. Many students use it alongside their class teacher, and some use it instead of paid tutoring."),
     ("Can my school or tutoring business use it?", "Yes. Schools and tutors get a licence for a set number of students, free teacher accounts, and dashboards to see each student's progress. See the plans page or get in touch."),
     ("Does it work on a phone?", "Yes. Every page works on phones, tablets and laptops, in light or dark mode."),
@@ -463,7 +465,7 @@ def build_home():
     sample = next(a for a in ARTIFACTS if a.get("public"))
     tabs = "".join(f'<li><b>{t}</b><span>{d}</span></li>' for t, d in TABS)
     faq = "".join(f'<details><summary>{q}</summary><p>{a}</p></details>' for q, a in HOME_FAQ)
-    steps = [("Pick your plan", "Start free with four sample lessons, or choose the plan for your subject. Schools and tutors get a licence for their students."),
+    steps = [("Pick your plan", f"Start free with {FREE_WORD} sample lessons, or choose the plan for your subject. Schools and tutors get a licence for their students."),
              ("Sign in anywhere", "Your account follows you from school to home, on any phone, tablet or laptop."),
              ("Learn, practise, track", "Work through each chapter, take the assessments, and watch your progress build on your dashboard.")]
     steps_html = "".join(f'<li><span class="n">{i}</span><div><b>{t}</b><p>{d}</p></div></li>' for i, (t, d) in enumerate(steps, 1))
@@ -559,7 +561,7 @@ def build_pricing():
 
     free = plan("Free", '<p class="price"><span class="amt">$0</span><span class="per">forever</span></p>',
                 "A proper taste of how it works.",
-                ["Four full sample lessons", "Interactive charts and code walkthroughs", "Progress tracking"],
+                [f"{FREE_WORD.capitalize()} full sample lessons", "Interactive charts and code walkthroughs", "Progress tracking"],
                 f'<a class="btn ghost" href="{join}">Create a free account</a>')
     basic = plan("Basic", price(59, 7), "One subject, the whole syllabus to learn from.",
                  ["Every lesson and interactive tool for one subject", "All chapters and levels in that subject",
