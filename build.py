@@ -424,7 +424,7 @@ HOME_FAQ = [
     ("Who is it for?", "Cambridge IGCSE and A-Level students in Economics and Computer Science, the teachers who teach them, and schools and tutors who want one place for lessons, practice and progress."),
     ("Which exam board is this for?", "Cambridge International only: " + ", ".join(f"{lvl} {subj} {code}" for _, lvl, subj, code in SYLLABI[:-1]) + f" and {SYLLABI[-1][1]} {SYLLABI[-1][2]} {SYLLABI[-1][3]}."),
     ("Can I try it first?", f"Yes. A free account opens {FREE_WORD} full sample lessons, so you can judge the quality before paying anything."),
-    ("Is it a replacement for a tutor?", "For most students it covers what a tutor does week to week: explaining the topic, setting practice, marking it and showing what to fix. Many students use it alongside their class teacher, and some use it instead of paid tutoring."),
+    ("Does it replace classroom teaching?", "No. It is built to support teachers: ready-made lessons and practice to use in class, and a way for students to revise and learn independently at home."),
     ("Can my school or tutoring business use it?", "Yes. Schools and tutors get a licence for a set number of students, free teacher accounts, and dashboards to see each student's progress. See the plans page or get in touch."),
     ("Does it work on a phone?", "Yes. Every page works on phones, tablets and laptops, in light or dark mode."),
     ("Is this official Cambridge material?", "No. This is an independent resource and is not endorsed by or affiliated with Cambridge University Press &amp; Assessment. Cambridge IGCSE and Cambridge International AS &amp; A Level are trademarks of their owners."),
@@ -479,13 +479,13 @@ def build_home():
 <div class="lp-visual" aria-hidden="false"><div class="lp-pane lp-pane-a"><span class="lp-tag">Economics &middot; Explore</span>{HERO_CHART}<p>Shift the curves and watch the market move.</p></div>
 <div class="lp-pane lp-pane-b"><span class="lp-tag">Computer Science &middot; Watch</span>{HERO_CODE}<p>Step through code and see every value change.</p></div></div></section>
 
-<section class="sec" aria-labelledby="val"><h2 id="val">A tutor's worth of teaching, whenever you need it</h2>
-<p class="lede">A good Cambridge tutor explains, sets practice, marks it and shows you what to fix. The site does the same, for every chapter, at any hour.</p>
-<div class="lp-compare"><div class="lp-col"><span class="lp-tag">Private tutor</span><b class="lp-big">$40&ndash;50</b><span class="lp-per">per hour, typically</span>
-<p>Over a school year that is $1,000+ for one subject, with one explanation at a time.</p></div>
-<div class="lp-col lp-win" data-accent="teal"><span class="lp-tag">Ascendant Full</span><b class="lp-big">$119</b><span class="lp-per">per year, one subject</span>
-<p>Every chapter, every explainer, marked assessments and progress tracking, on demand.</p></div></div>
-<p class="hint">Prices in USD, shown in your local currency at checkout. Tutor rates are typical for international Cambridge students.</p></section>
+<section class="sec" aria-labelledby="val"><h2 id="val">Everything a department needs, ready to teach</h2>
+<p class="lede">Spend less time building and marking resources. Every chapter arrives fully resourced, and every student's progress is easy to see.</p>
+<div class="lp-compare">
+<div class="lp-col"><span class="lp-tag">In the classroom</span><b class="lp-pt">Ready to teach</b><p>Lessons, animations and interactive labs for the whole syllabus, with a delivery mode for teaching from the front.</p></div>
+<div class="lp-col"><span class="lp-tag">Assessment</span><b class="lp-pt">Marked for you</b><p>Short assessments are marked instantly with feedback, so teachers get their time back.</p></div>
+<div class="lp-col"><span class="lp-tag">Progress</span><b class="lp-pt">See who is keeping up</b><p>Class dashboards show what each student has finished and how they scored.</p></div>
+<div class="lp-col"><span class="lp-tag">At home</span><b class="lp-pt">Learning that carries on</b><p>Students pick up where they left off on any device, for revision and independent study.</p></div></div></section>
 
 <section class="sec" aria-labelledby="syl"><h2 id="syl">{nsyl} Cambridge syllabuses</h2>
 <p class="lede">Built chapter by chapter against the syllabus.</p><div class="grid two">{"".join(cards)}</div>
@@ -567,7 +567,7 @@ def build_pricing():
     basic = plan("Basic", price(59, 7), "One subject, the whole syllabus to learn from.",
                  ["Every lesson and interactive tool for one subject", "All chapters and levels in that subject",
                   "Learn on any device"], buy("basic", "Choose Basic"))
-    full = plan("Full", price(119, 14), "Everything a tutor would give you, for one subject.",
+    full = plan("Full", price(119, 14), "Everything for one subject, from learning to exam practice.",
                 ["Everything in Basic", "Server-marked assessments with instant feedback",
                  "Progress and homework tracking", "Exam-technique packs and model answers"],
                 buy("full", "Get Full"), cls="featured", accent="teal", badge="Most popular")
@@ -607,7 +607,7 @@ def build_pricing():
         '<section class="hero"><p class="kicker">Cambridge IGCSE &amp; A-Level · Economics &amp; Computer Science</p>'
         "<h1>One platform instead of a shelf of resources.</h1>"
         '<p class="lead">The full syllabus as interactive lessons, with assessments, model answers, exam practice and '
-        "progress tracking in one place: the explaining, practising and marking a tutor or teacher would do, built for "
+        "progress tracking in one place: the explaining, practising and marking, built for "
         "Cambridge Economics and Computer Science.</p></section>"
         f"{cycle}"
         f'<div class="plans-wrap">{free}{basic}{full}{allp}</div>'
