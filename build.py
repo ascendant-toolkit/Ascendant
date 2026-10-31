@@ -469,8 +469,7 @@ def build_home():
              ("Sign in anywhere", "Your account follows you from school to home, on any phone, tablet or laptop."),
              ("Learn, practise, track", "Work through each chapter, take the assessments, and watch your progress build on your dashboard.")]
     steps_html = "".join(f'<li><span class="n">{i}</span><div><b>{t}</b><p>{d}</p></div></li>' for i, (t, d) in enumerate(steps, 1))
-    body = f"""<div id="memberbar" class="memberbar" hidden><span>Welcome back.</span><a class="btn" id="memberlink" href="dashboard/">Open your dashboard →</a></div>
-<section class="lp-hero"><div class="lp-copy"><p class="kicker">Cambridge IGCSE and A-Level</p>
+    body = f"""<section class="lp-hero"><div class="lp-copy"><p class="kicker">Cambridge IGCSE and A-Level</p>
 <h1>A teaching and learning toolkit: for everyone</h1>
 <p class="lp-sub">Students &middot; Tutors &middot; Teachers &middot; Schools</p>
 <p class="lead">Your syllabus, fully resourced, chapter by chapter: with animated explainers, hands-on activities, exam questions with model answers, marked assessments and progress tracking, all in one place.</p>
