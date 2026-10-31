@@ -67,8 +67,13 @@
   }
   const sb = S.sb;
 
+  // A reset link lands back on the Profile page carrying a recovery token. Catch it before the normal boot
+  // so the user sets a new password instead of being bounced to the dashboard.
+  let recovering = location.hash.includes("type=recovery");
+  sb.auth.onAuthStateChange((event) => { if (event === "PASSWORD_RECOVERY") { recovering = true; viewRecovery(); } });
+
   // ---------- signed-out view ----------
-  // Logins are created by the admin panel, so students only ever sign in.
+  // Class logins are created by the admin panel; anyone with a real email can reset their own password.
   function viewSignedOut() {
     root.innerHTML = `
       <div class="auth-card"><h2>Sign in</h2>
@@ -77,8 +82,10 @@
           <label>Password<input type="password" name="password" autocomplete="current-password" required></label>
           <button class="btn" type="submit">Sign in</button><p class="msg" hidden></p>
           <p class="hint">Use the email and password your teacher gave you. If you cannot sign in, ask your teacher.</p>
+          <p class="hint"><a href="#" id="forgot">Forgot your password?</a></p>
         </form>
       </div>`;
+    $("#forgot").addEventListener("click", (e) => { e.preventDefault(); viewForgot(); });
     $("#f-in").addEventListener("submit", async (e) => {
       e.preventDefault();
       const f = e.target, m = $(".msg", f), btn = $("button", f);
@@ -92,6 +99,55 @@
       if (next && next.startsWith(S.base)) { sessionStorage.removeItem("site.next"); location.href = next; return; }
       if (who && !who.is_admin && !who.is_teacher && !who.is_school_teacher) { location.href = S.base + "dashboard/"; return; }
       boot();
+    });
+  }
+
+  // Ask Supabase to email a reset link. The reply never says whether the email exists, to avoid leaking accounts.
+  function viewForgot() {
+    root.innerHTML = `
+      <div class="auth-card"><h2>Reset your password</h2>
+        <form id="f-forgot">
+          <label>Email<input type="email" name="email" autocomplete="username" required></label>
+          <button class="btn" type="submit">Email me a reset link</button><p class="msg" hidden></p>
+          <p class="hint">We'll send a link to set a new password. If it doesn't arrive, check your spam folder. Class students can also ask their teacher.</p>
+          <p class="hint"><a href="#" id="back">Back to sign in</a></p>
+        </form>
+      </div>`;
+    $("#back").addEventListener("click", (e) => { e.preventDefault(); viewSignedOut(); });
+    $("#f-forgot").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const f = e.target, m = $(".msg", f), btn = $("button", f);
+      const email = f.email.value.trim().toLowerCase();
+      btn.disabled = true;
+      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: new URL(S.base + "profile/", location.href).href });
+      btn.disabled = false;
+      if (error && /rate|limit|too many/i.test(error.message)) return msg(m, "Too many attempts. Wait a few minutes and try again.", false);
+      msg(m, "If that email has an account, a reset link is on its way.", true);
+    });
+  }
+
+  // Reached from the emailed link: Supabase signs the user in just long enough to set a new password.
+  function viewRecovery() {
+    root.innerHTML = `
+      <div class="auth-card"><h2>Set a new password</h2>
+        <form id="f-rec">
+          <label>New password<input type="password" name="password" autocomplete="new-password" minlength="8" required></label>
+          <label>Confirm<input type="password" name="confirm" autocomplete="new-password" minlength="8" required></label>
+          <button class="btn" type="submit">Save password</button><p class="msg" hidden></p>
+        </form>
+      </div>`;
+    $("#f-rec").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const f = e.target, m = $(".msg", f), btn = $("button", f);
+      if (f.password.value !== f.confirm.value) return msg(m, "Passwords do not match.", false);
+      btn.disabled = true;
+      const { error } = await sb.auth.updateUser({ password: f.password.value });
+      if (error) { btn.disabled = false; return msg(m, error.message, false); }
+      history.replaceState(null, "", location.pathname);  // drop the token from the URL
+      recovering = false;
+      msg(m, "Password saved. Signing you in…", true);
+      const who = await S.whoami(true);
+      location.href = who && !who.is_admin && !who.is_teacher && !who.is_school_teacher ? S.base + "dashboard/" : S.base + "profile/";
     });
   }
 
@@ -699,6 +755,7 @@
 
   // ---------- boot ----------
   async function boot() {
+    if (recovering) return viewRecovery();
     const me = await S.whoami(true);
     if (!me && !(await S.session())) return viewSignedOut();  // sign-in needs nothing else, so show it straight away
     try { catalog = catalog || (await S.catalog()); } catch (e) {
