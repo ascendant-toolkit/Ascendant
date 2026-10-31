@@ -29,6 +29,7 @@ NAV = [
     ("investing", "Investing", "investing/"),
     ("other", "Other", "other/"),
     ("pricing", "Plans", "pricing/"),
+    ("dashboard", "Dashboard", "dashboard/"),
     ("profile", "Profile", "profile/"),
 ]
 
@@ -470,6 +471,17 @@ def build_other_profile():
                                        auth=True, extra='<script src="../assets/profile.js"></script>'))
 
 
+def build_dashboard():
+    """Post-login student dashboard at /dashboard/. An auth shell that dashboard.js fills from the same
+    data the profile page loads (whoami, loadProgress, my_attempts, catalog). dashboard.js sends
+    teachers/admins to Profile (their consoles live there) and signed-out visitors to sign in."""
+    body = ('<div id="dashboard-root"><noscript>This page needs JavaScript to show your dashboard.</noscript>'
+            '<p class="hint">Loading your dashboard…</p></div>')
+    write("dashboard/index.html", layout("Dashboard", body, "dashboard/", "dashboard",
+                                          [("Home", ""), ("Dashboard", None)], auth=True,
+                                          extra='<script src="../assets/dashboard.js"></script>'))
+
+
 def build_pricing():
     """Plans and pricing page at /pricing/. Prices are USD; Lemon Squeezy converts and handles VAT.
     Buy buttons go live as CHECKOUT_URLS (site_data.py) are filled; until then they point at the join form."""
@@ -811,6 +823,7 @@ def main():
     build_courses()
     build_investing()
     build_other_profile()
+    build_dashboard()
     build_pricing()
     build_catalog()
     build_assessments()

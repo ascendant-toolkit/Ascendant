@@ -85,8 +85,12 @@
       const email = f.email.value.trim().toLowerCase(), password = f.password.value;
       btn.disabled = true;
       const { error } = await sb.auth.signInWithPassword({ email, password });
-      btn.disabled = false;
-      if (error) return msg(m, "Wrong email or password.", false);
+      if (error) { btn.disabled = false; return msg(m, "Wrong email or password.", false); }
+      // First page after signing in is the dashboard (students); teachers/admins stay on their Profile console.
+      const who = await S.whoami(true);
+      const next = sessionStorage.getItem("site.next");
+      if (next && next.startsWith(S.base)) { sessionStorage.removeItem("site.next"); location.href = next; return; }
+      if (who && !who.is_admin && !who.is_teacher && !who.is_school_teacher) { location.href = S.base + "dashboard/"; return; }
       boot();
     });
   }
@@ -130,6 +134,16 @@
         <button class="btn" type="submit">Change password</button><p class="msg" hidden></p></form>
         <p><button class="btn ghost" id="signout">Sign out</button></p></section>`;
 
+  const courseTitle = (p) => catalog.courses[p]?.title || (p === "school-all" ? "All subjects" : p);
+  function planCard(me) {
+    const seen = new Set();
+    const ents = (me.entitlements || []).filter((e) => { const k = e.product + "|" + e.tier; if (seen.has(k)) return false; seen.add(k); return true; });
+    const body = ents.length
+      ? `<ul class="plain">${ents.map((e) => `<li>${esc(courseTitle(e.product))} · <b>${TIER_NAMES[e.tier] || e.tier}</b>${e.expires_at ? ` <span class="hint">until ${fmt(e.expires_at)}</span>` : ""}</li>`).join("")}</ul>`
+      : `<p class="hint">You have full access while the site is in its launch period.</p>`;
+    return `<section class="card block"><h3>Your plan</h3>${body}<p><a class="lnk" href="${S.base}pricing/">See all plans →</a></p></section>`;
+  }
+
   // ---------- student dashboard ----------
   function viewDashboard(me, done, attempts = []) {
     const mine = me.subjects.filter((k) => catalog.courses[k]);
@@ -159,24 +173,11 @@
         <p class="hint">Course map. Each square is a chapter or syllabus section: filled means every activity is done, half means started, grey means nothing there yet.</p>${maps}${account}`;
     }
 
+    // The progress overview lives on the dashboard now; the profile keeps subjects, plan and account.
     return `
-      <section class="idcard"><h1>${esc(me.name)}</h1><p class="email">${esc(me.email)}${me.email2 ? ` · ${esc(me.email2)}` : ""}${me.school ? ` · ${esc(me.school)}` : ""}</p>${subjectPanel(me)}</section><!--split-->
-      <div class="grid two dash">
-        <section class="card block"><h3>Overall progress</h3><div class="row"><span class="big">${pct(doneN, all.size)}%</span><span class="hint">${doneN} of ${all.size} activities</span></div>
-          <div class="bar2"><i style="width:${pct(doneN, all.size)}%"></i></div></section>
-        <section class="card block"><h3>Up next</h3>${nextA
-          ? `<p><a class="lnk" href="${S.base}${nextA.url}">${esc(nextA.title)}</a></p><p class="hint">${esc(nextA.chapterTitle)}</p>`
-          : `<p class="hint">${all.size ? "You have finished everything currently available. Well done." : "Nothing to show until subjects are assigned."}</p>`}</section>
-      </div>
-      ${perSubject}
-      <div class="grid two dash">
-        <section class="card block"><h3>Recently completed</h3>${recent.length
-          ? `<ul class="plain">${recent.map(([s, d]) => `<li><a class="lnk" href="${S.base}${catalog.artifacts[s].url}">${esc(catalog.artifacts[s].title)}</a> <span class="hint">${fmt(d)}</span></li>`).join("")}</ul>`
-          : `<p class="hint">Mark an activity as done and it will show up here.</p>`}</section>
-        <section class="card block"><h3>Assessment scores</h3>${attempts.length
-          ? `<ul class="plain">${attempts.filter((t) => catalog.artifacts[t.slug]).map((t) => `<li><a class="lnk" href="${S.base}assess/?a=${encodeURIComponent(t.slug)}">${esc(catalog.artifacts[t.slug].title)}</a> <b class="${t.pct >= (catalog.assessed[t.slug]?.pass ?? 80) ? "ok-txt" : "no-txt"}">${t.pct}%</b> <span class="hint">${fmt(t.at)}</span></li>`).join("")}</ul>`
-          : `<p class="hint">Lessons with an assessment show your score and feedback here. Score ${Math.min(...Object.values(catalog.assessed || {}).map((a) => a.pass), 80)}% or more to complete the lesson.</p>`}</section>
-      </div>
+      <section class="idcard"><h1>${esc(me.name)}</h1><p class="email">${esc(me.email)}${me.email2 ? ` · ${esc(me.email2)}` : ""}${me.school ? ` · ${esc(me.school)}` : ""}</p>${subjectPanel(me)}
+        <p class="hint"><a class="btn" href="${S.base}dashboard/">Open your dashboard →</a></p></section><!--split-->
+      ${planCard(me)}
       ${account}`;
   }
 
