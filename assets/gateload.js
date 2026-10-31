@@ -53,7 +53,7 @@
   function explain(me) {
     const courses = (el.dataset.courses || "").split(",").filter(Boolean), need = el.dataset.tier || "full";
     if (!courses.some((c) => (me.subjects || []).includes(c)))
-      return deny("You are not registered for this subject", "Ask for it from your profile page. Your teacher will approve it.", "Go to Profile");
+      return deny("You are not registered for this subject", "Ask your teacher to add it, or see the plans.", "Go to Profile");
     const ents = (me.entitlements || []).filter((e) => e.product === "school-all" || courses.includes(e.product));
     // No matching entitlement counts as full, as in artifact_key().
     const held = ents.length ? Math.max(...ents.map((e) => TIERS.indexOf(e.tier))) : TIERS.indexOf("full");
