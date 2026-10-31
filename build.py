@@ -416,25 +416,91 @@ def build_landing():
     write("welcome/index.html", layout(SITE_TITLE, body, "welcome/", "home", extra='<script src="../assets/home.js"></script>'))
 
 
+HOME_FAQ = [
+    ("Who is it for?", "Cambridge IGCSE and A-Level students in Economics and Computer Science, the teachers who teach them, and schools and tutors who want one place for lessons, practice and progress."),
+    ("Which exam board is this for?", "Cambridge International only: IGCSE Economics 0455, IGCSE Computer Science 0478, A-Level Economics 9708 and A-Level Computer Science 9618."),
+    ("Can I try it first?", "Yes. A free account opens four full sample lessons, so you can judge the quality before paying anything."),
+    ("Is it a replacement for a tutor?", "For most students it covers what a tutor does week to week: explaining the topic, setting practice, marking it and showing what to fix. Many students use it alongside their class teacher, and some use it instead of paid tutoring."),
+    ("Can my school or tutoring business use it?", "Yes. Schools and tutors get a licence for a set number of students, free teacher accounts, and dashboards to see each student's progress. See the plans page or get in touch."),
+    ("Does it work on a phone?", "Yes. Every page works on phones, tablets and laptops, in light or dark mode."),
+    ("Is this official Cambridge material?", "No. This is an independent resource and is not endorsed by or affiliated with Cambridge University Press &amp; Assessment. Cambridge IGCSE and Cambridge International AS &amp; A Level are trademarks of their owners."),
+]
+
+# Hero visual: a demand curve that shifts right while the equilibrium dot follows it.
+HERO_CHART = """<svg class="lp-chart" viewBox="0 0 320 240" role="img" aria-label="Supply and demand diagram with the demand curve shifting right">
+<line x1="40" y1="20" x2="40" y2="205" class="ax"/><line x1="40" y1="205" x2="300" y2="205" class="ax"/>
+<text x="14" y="30" class="lb">P</text><text x="292" y="224" class="lb">Q</text>
+<line x1="70" y1="190" x2="270" y2="40" class="sup"/><text x="262" y="34" class="lb s">S</text>
+<g><line x1="60" y1="45" x2="220" y2="185" class="dem0"/>
+<line x1="60" y1="45" x2="220" y2="185" class="dem"><animateTransform attributeName="transform" type="translate" values="0 0;48 0;48 0;0 0;0 0" keyTimes="0;.3;.7;.9;1" dur="7s" repeatCount="indefinite"/></line>
+<text x="206" y="204" class="lb d">D</text></g>
+<circle r="6" class="eq"><animateMotion dur="7s" repeatCount="indefinite" keyTimes="0;.3;.7;.9;1" calcMode="linear" path="M 153.8 127 L 179.7 107.7 L 179.7 107.7 L 153.8 127 L 153.8 127"/></circle>
+</svg>"""
+
+HERO_CODE = """<pre class="lp-code" aria-label="Pseudocode trace example"><span class="c">// trace it, line by line</span>
+<b>FOR</b> i <b>&larr;</b> 1 <b>TO</b> 3
+   total <b>&larr;</b> total + i
+<b>NEXT</b> i
+<span class="c">i = 3, total = 6</span></pre>"""
+
+
 def build_home():
+    r = ""
     cards = []
     total = len({a["slug"] for a in ARTIFACTS})
-    for ckey, _, _, _ in SYLLABI:
+    chapters = 0
+    for ckey, lvl, subj, code in SYLLABI:
         c = COURSES[ckey]
-        n = len({a["slug"] for a in ARTIFACTS if any(p[0] == ckey for p in a["places"])})
-        cards.append(f'<a class="card course" data-accent="{c["accent"]}" data-home-course="{ckey}" href="{ckey}/"><span class="num">{esc(c["nav"])}</span>'
-                     f'<span class="t">{esc(c["title"])}</span><span class="sub">{esc(c["blurb"])}</span>'
-                     f'<span class="count">{plural(n, "activity")}</span></a>')
+        n, chs = course_stats(ckey)
+        chapters += chs
+        cards.append(f'<a class="card course syl" data-accent="{c["accent"]}" data-home-course="{ckey}" href="{ckey}/"><span class="tag">{lvl}</span>'
+                     f'<span class="t">{subj}</span><span class="code">Cambridge {code}</span>'
+                     f'<span class="sub">{SYL_BLURB[ckey]}</span>'
+                     f'<span class="count">{plural(n, "activity")} across {chs} chapters</span></a>')
     sample = next(a for a in ARTIFACTS if a.get("public"))
-    body = (f'<section class="hero"><p class="kicker">GCSE and A-Level</p><h1>Economics and Computer Science, made interactive.</h1>'
-            f'<p class="lead">{esc(SITE_TAGLINE)}</p><p class="stat">{total} activities and counting</p></section>'
-            f'<div class="grid two">{"".join(cards)}</div>'
-            '<p class="hint" id="homehint" hidden>Sign in on the <a href="profile/">Profile</a> page with the account your teacher set up to open your courses.</p>'
-            f'<div class="grid two more">'
-            f'<a class="card slim" id="sample" hidden href="artifacts/{sample["slug"]}/#learn"><span class="t">Try a sample lesson</span><span class="sub">{esc(sample["title"])}: open it without signing in.</span></a>'
-            '<a class="card slim" href="other/"><span class="t">Other</span><span class="sub">Study tips, extra-curricular activities and side projects.</span></a>'
-            '<a class="card slim" href="profile/"><span class="t">Profile</span><span class="sub">Student accounts, progress and scores.</span></a>'
-            '</div>')
+    tabs = "".join(f'<li><b>{t}</b><span>{d}</span></li>' for t, d in TABS)
+    faq = "".join(f'<details><summary>{q}</summary><p>{a}</p></details>' for q, a in HOME_FAQ)
+    steps = [("Pick your plan", "Start free with four sample lessons, or choose the plan for your subject. Schools and tutors get a licence for their students."),
+             ("Sign in anywhere", "Your account follows you from school to home, on any phone, tablet or laptop."),
+             ("Learn, practise, track", "Work through each chapter, take the assessments, and watch your progress build on your dashboard.")]
+    steps_html = "".join(f'<li><span class="n">{i}</span><div><b>{t}</b><p>{d}</p></div></li>' for i, (t, d) in enumerate(steps, 1))
+    body = f"""<div id="memberbar" class="memberbar" hidden><span>Welcome back.</span><a class="btn" id="memberlink" href="dashboard/">Open your dashboard →</a></div>
+<section class="lp-hero"><div class="lp-copy"><p class="kicker">Cambridge IGCSE and A-Level</p>
+<h1>The whole syllabus, taught like a tutor would.</h1>
+<p class="lead">Economics and Computer Science, chapter by chapter: animated explainers, hands-on activities, exam questions with model answers, marked assessments and progress tracking, all in one place.</p>
+<p class="cta"><a class="btn" href="pricing/">See plans</a><a class="btn ghost" id="sample" href="artifacts/{sample["slug"]}/#learn">Try a free lesson</a><a class="btn ghost" href="profile/">Sign in</a></p>
+<ul class="lp-stats"><li><b>{total}</b><span>interactive activities</span></li><li><b>{chapters}</b><span>chapters</span></li><li><b>4</b><span>Cambridge syllabuses</span></li></ul></div>
+<div class="lp-visual" aria-hidden="false"><div class="lp-pane lp-pane-a"><span class="lp-tag">Economics &middot; Explore</span>{HERO_CHART}<p>Shift the curves and watch the market move.</p></div>
+<div class="lp-pane lp-pane-b"><span class="lp-tag">Computer Science &middot; Watch</span>{HERO_CODE}<p>Step through code and see every value change.</p></div></div></section>
+
+<section class="sec" aria-labelledby="val"><h2 id="val">A tutor's worth of teaching, whenever you need it</h2>
+<p class="lede">A good Cambridge tutor explains, sets practice, marks it and shows you what to fix. The site does the same, for every chapter, at any hour.</p>
+<div class="lp-compare"><div class="lp-col"><span class="lp-tag">Private tutor</span><b class="lp-big">$40&ndash;50</b><span class="lp-per">per hour, typically</span>
+<p>Over a school year that is $1,000+ for one subject, with one explanation at a time.</p></div>
+<div class="lp-col lp-win" data-accent="teal"><span class="lp-tag">Ascendant Full</span><b class="lp-big">$119</b><span class="lp-per">per year, one subject</span>
+<p>Every chapter, every explainer, marked assessments and progress tracking, on demand.</p></div></div>
+<p class="hint">Prices in USD, shown in your local currency at checkout. Tutor rates are typical for international Cambridge students.</p></section>
+
+<section class="sec" aria-labelledby="syl"><h2 id="syl">Four Cambridge syllabuses</h2>
+<p class="lede">Built chapter by chapter against the syllabus.</p><div class="grid two">{"".join(cards)}</div>
+<p class="hint" id="homehint" hidden>Sign in on the <a href="profile/">Profile</a> page to open your courses.</p></section>
+
+<section class="sec" aria-labelledby="ins"><h2 id="ins">What is in every chapter</h2>
+<p class="lede">Chapters share the same seven tabs, so you always know where to find things.</p><ul class="tabsum">{tabs}</ul></section>
+
+<section class="sec" aria-labelledby="who"><h2 id="who">Built for the way you study or teach</h2>
+<div class="lp-who">
+<article class="card" data-accent="teal"><h3 class="t">Students</h3><p class="sub">Learn from home or school, take marked assessments with instant feedback, and see exactly what is left to cover.</p><a class="go" href="pricing/">Student plans →</a></article>
+<article class="card" data-accent="indigo"><h3 class="t">Teachers</h3><p class="sub">Ready-made lessons for the whole syllabus, class progress at a glance, and a delivery mode for the classroom. Less time building resources.</p><a class="go" href="pricing/">Teacher plan →</a></article>
+<article class="card" data-accent="plum"><h3 class="t">Schools and tutors</h3><p class="sub">One licence for your students, free teacher accounts, and dashboards to see who is keeping up. Invoiced annually.</p><a class="go" href="pricing/">School licences →</a></article></div></section>
+
+<section class="sec" aria-labelledby="how"><h2 id="how">How it works</h2><ol class="steps">{steps_html}</ol></section>
+
+<section class="sec lp-final"><div class="free-card"><h2>Judge it for yourself</h2>
+<p class="lede">Open a complete sample lesson, no card needed.</p>
+<p class="cta"><a class="btn" href="artifacts/{sample["slug"]}/#learn">Try a free lesson</a><a class="btn ghost" href="pricing/">See plans</a></p></div></section>
+
+<section class="sec" aria-labelledby="fq"><h2 id="fq">Questions</h2><div class="faq">{faq}</div></section>"""
     write("index.html", layout(SITE_TITLE, body, "", "home", extra='<script src="assets/home.js"></script>'))
 
 

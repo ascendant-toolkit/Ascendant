@@ -13,6 +13,11 @@
       $("#sample") && ($("#sample").hidden = false);
       return;
     }
+    const bar = $("#memberbar");
+    if (bar) {
+      bar.hidden = false;
+      if (me.is_admin || me.is_teacher || me.is_school_teacher) { $("#memberlink").href = S.profileUrl; $("#memberlink").textContent = "Open your profile →"; }
+    }
     if (!me.is_admin) cards.forEach((a) => { a.hidden = !me.subjects.includes(a.dataset.homeCourse); });
     if ($("#pitch")) {
       $("#pitch").hidden = true;
