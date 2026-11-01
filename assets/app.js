@@ -2,6 +2,8 @@
 (function () {
   const cfg = window.SITE_CONFIG || {};
   const base = new URL("../", document.currentScript.src).href; // site root
+  // A password-reset link can land on any page (Supabase falls back to its Site URL). Hand the token to the Profile page, which owns the set-new-password screen.
+  if (location.hash.includes("type=recovery") && !location.pathname.endsWith("/profile/")) { location.replace(base + "profile/" + location.hash); return; }
   const configured = !!(cfg.supabaseUrl && cfg.anonKey && window.supabase);
   const sb = configured ? window.supabase.createClient(cfg.supabaseUrl, cfg.anonKey) : null;
 
