@@ -21,7 +21,16 @@
   const tierSelect = (name, v = "full", label = "Tier") =>
     `<label>${label}<select name="${name}">${TIERS.map((t) => `<option value="${t}" ${t === v ? "selected" : ""}>${TIER_NAMES[t]}</option>`).join("")}</select></label>`;
   const isLive = (sc) => !sc.expires_at || new Date(sc.expires_at) > new Date();
-  const licenceLine = (sc, used) => `${TIER_NAMES[sc.tier]} · ${used} of ${sc.seats} seats used · ${sc.expires_at ? (isLive(sc) ? "ends " : "ended ") + fmt(sc.expires_at) : "no end date"}`;
+  // Seats: old-style licences cap total students; per-subject licences cap each subject (seat_limits overrides seats).
+  const seatCap = (sc, k) => (sc.per_subject ? Number(sc.seat_limits?.[k] ?? sc.seats) : sc.seats);
+  const schoolSubs = (sc, p) => (p.school_subjects == null ? sc.products : p.school_subjects.filter((k) => sc.products.includes(k)));
+  const seatsUsed = (sc, studs, k) => studs.filter((p) => schoolSubs(sc, p).includes(k)).length;
+  const seatsFull = (sc, studs) => (sc.per_subject ? sc.products.some((k) => seatsUsed(sc, studs, k) >= seatCap(sc, k)) : studs.length >= sc.seats);
+  const shortTitle = (k) => (catalog.courses[k]?.title || k).replace("A-Level", "A").replace("IGCSE", "IG").replace("Computer Science", "CS").replace("Economics", "Econ");
+  const seatText = (sc, studs) => (sc.per_subject
+    ? sc.products.map((k) => `${shortTitle(k)} ${seatsUsed(sc, studs, k)}/${seatCap(sc, k)}`).join(", ") + " seats used"
+    : `${studs.length} of ${sc.seats} seats used`);
+  const licenceLine = (sc, studs) => `${TIER_NAMES[sc.tier]} · ${seatText(sc, studs)} · ${sc.expires_at ? (isLive(sc) ? "ends " : "ended ") + fmt(sc.expires_at) : "no end date"}`;
 
   // Academic words for assigned passwords: two words and two digits, e.g. OutcomeMethod47.
   const WORDS = ("analyse approach assess assume benefit concept consist context contrast create data define derive "
@@ -277,7 +286,7 @@
   // A student's subjects: their own plus their school's while its licence runs.
   const subjectsOf = (state, p) => {
     const sc = p.school_id && state.schools.find((x) => x.id === p.school_id);
-    return sc && isLive(sc) ? union(p.subjects, sc.products) : p.subjects;
+    return sc && isLive(sc) ? union(p.subjects, schoolSubs(sc, p)) : p.subjects;
   };
 
   const subjectBoxes = (chosen = []) => COURSE_KEYS.map((k) =>
@@ -375,18 +384,23 @@
     <div class="fields3">${tierSelect("tier", sc.tier || "full")}
       <label>Seats<input type="number" name="seats" min="0" value="${sc.seats ?? 30}" required></label>
       <label>End date<input type="date" name="ends" value="${dateValue(sc.expires_at)}"></label></div>
+    <label class="chk"><input type="checkbox" name="persub" ${sc.per_subject ? "checked" : ""}> Seats are per subject (each student takes the subjects their teacher picks; Seats above is the limit for each subject)</label>
+    <details><summary class="hint">Different seat limit for a subject (optional, per-subject licences)</summary><div class="fields3">${COURSE_KEYS.map((k) =>
+      `<label>${esc(shortTitle(k))}<input type="number" min="0" name="lim-${k}" value="${sc.seat_limits?.[k] ?? ""}" placeholder="${sc.seats ?? 30}"></label>`).join("")}</div></details>
     <label>Note (optional)<input name="snote" value="${esc(sc.note || "")}"></label>`;
   const licenceValues = (f) => ({
     kind: f.elements.kind.value, name: f.elements.sname.value.trim(), products: [...f.querySelectorAll("[name=subj]:checked")].map((c) => c.value),
     tier: f.elements.tier.value, seats: Number(f.elements.seats.value), expires_at: endOfDay(f.elements.ends.value), note: f.elements.snote.value.trim() || null,
+    per_subject: f.elements.persub.checked,
+    seat_limits: (() => { const o = {}; COURSE_KEYS.forEach((k) => { const v = f.elements["lim-" + k].value; if (v !== "") o[k] = Number(v); }); return Object.keys(o).length ? o : null; })(),
   });
 
   function schoolsPanel(state) {
     const list = state.schools.map((sc) => {
       const studs = state.people.filter((p) => p.school_id === sc.id), tch = state.schoolTeachers.filter((t) => t.school_id === sc.id);
-      const warn = !isLive(sc) || studs.length >= sc.seats;
+      const warn = !isLive(sc) || seatsFull(sc, studs);
       return `<details class="card block cls ${warn ? "attn" : ""}" name="cls" data-cls="sch-${esc(sc.id)}" ${openClass === "sch-" + sc.id ? "open" : ""}>
-        <summary><h3>${esc(sc.name)}</h3>${sc.kind === "tutor" ? '<span class="pill soft">Tutor</span>' : ""}<span class="hint">${esc(licenceLine(sc, studs.length))}</span></summary>
+        <summary><h3>${esc(sc.name)}</h3>${sc.kind === "tutor" ? '<span class="pill soft">Tutor</span>' : ""}<span class="hint">${esc(licenceLine(sc, studs))}</span></summary>
         <div class="row"><div class="pills">${pills(sc.products)}</div>
           <span class="acts"><button class="mini" data-sedit="${esc(sc.id)}">Edit licence</button> <button class="mini danger" data-sdel="${esc(sc.id)}">Delete</button></span></div>
         ${sc.note ? `<p class="hint">${esc(sc.note)}</p>` : ""}
@@ -396,7 +410,7 @@
           : '<p class="hint">No teachers yet. Add one so they can manage their own students.</p>'}
         <form class="inline f-steach" data-school="${esc(sc.id)}"><label>Name<input name="tname" required></label><label>Email<input type="email" name="temail" required></label>
           <button class="btn" type="submit">Add teacher</button><p class="msg" hidden></p></form>
-        <div class="subj"><h4>Students (${studs.length} of ${sc.seats})</h4></div>
+        <div class="subj"><h4>Students (${studs.length}${sc.per_subject ? "" : " of " + sc.seats})</h4></div>
         ${studs.length ? classTable(state, studs) : '<p class="hint">No students yet. Its teachers add them from their profile page.</p>'}
       </details>`;
     }).join("");
@@ -683,25 +697,26 @@
     if (error) { root.innerHTML = `<p class="msg err">Could not load your students: ${esc(error.message)}</p>`; return; }
     const students = data.students, byEmail = new Map();
     data.progress.forEach((r) => { if (!byEmail.has(r.email)) byEmail.set(r.email, new Map()); byEmail.get(r.email).set(r.slug, r.done_at); });
-    const all = subjectSlugs(subjects), left = Math.max(0, sc.seats - students.length);
+    const left = sc.per_subject ? null : Math.max(0, sc.seats - students.length);
     const doneOf = (p) => byEmail.get(p.email) || new Map();
     const rows = students.map((p) => {
-      const d = doneOf(p), n = [...all].filter((x) => d.has(x)).length;
+      const d = doneOf(p), all = subjectSlugs(schoolSubs(sc, p).filter((k) => catalog.courses[k])), n = [...all].filter((x) => d.has(x)).length;
       const status = p.signed_up_at ? (p.last_seen ? "Active " + fmt(p.last_seen) : "Signed up") : "Not signed up";
       return `<tr data-email="${esc(p.email)}"><td><b>${esc(p.name)}</b><br><span class="hint">${esc(p.email)}${p.email2 ? `<br>${esc(p.email2)}` : ""}</span></td>
-        <td><code>${esc(p.password)}</code></td><td>${esc(status)}</td><td>${pct(n, all.size)}%<br><span class="hint">${n}/${all.size}</span></td>
-        <td class="acts"><button class="mini ok" data-act="view">Progress</button><button class="mini" data-act="reset">Reset login</button><button class="mini danger" data-act="rm">Remove</button></td></tr>`;
+        <td><code>${esc(p.password)}</code></td>${sc.per_subject ? `<td>${schoolSubs(sc, p).map((k) => esc(shortTitle(k))).join(", ") || "None"}</td>` : ""}<td>${esc(status)}</td><td>${pct(n, all.size)}%<br><span class="hint">${n}/${all.size}</span></td>
+        <td class="acts"><button class="mini ok" data-act="view">Progress</button>${sc.per_subject ? '<button class="mini" data-act="subs">Subjects</button>' : ""}<button class="mini" data-act="reset">Reset login</button><button class="mini danger" data-act="rm">Remove</button></td></tr>`;
     }).join("");
     root.innerHTML = `
       <section class="idcard"><h1>${esc(me.name)}</h1><p class="email">${esc(me.email)} · ${esc(sc.name)}</p>
-        <div class="pills">${pills(subjects)}</div><p class="hint">${esc(licenceLine(sc, students.length))}</p></section>
+        <div class="pills">${pills(subjects)}</div><p class="hint">${esc(licenceLine(sc, students))}</p></section>
       ${sc.active ? "" : `<section class="card block attn"><h3>This licence has ended</h3><p>Your students can't open lessons until it is renewed. Their progress is kept.</p></section>`}
-      <section class="card block"><h3>Add students</h3><p class="hint">${plural(left, "seat")} free of ${sc.seats}. A password is generated for each student; give it to them with their email.</p>
+      <section class="card block"><h3>Add students</h3><p class="hint">${sc.per_subject ? esc(seatText(sc, students)) + "." : plural(left, "seat") + " free of " + sc.seats + "."} A password is generated for each student; give it to them with their email.</p>
+        ${sc.per_subject ? `<p class="hint">Subjects for the students you add</p><div class="chks" id="addsubs">${subjects.map((k) => `<label class="chk"><input type="checkbox" value="${k}" checked> ${esc(catalog.courses[k].title)}</label>`).join("")}</div>` : ""}
         <form id="f-sadd"><label>One student per line: <b>Name, email</b> or <b>Name, email, second email</b>
           <textarea name="lines" rows="5" required placeholder="An Nguyen, an@gmail.com"></textarea></label>
-          <button class="btn" type="submit" ${left && sc.active ? "" : "disabled"}>Add students</button><p class="msg" hidden></p></form></section>
+          <button class="btn" type="submit" ${(sc.per_subject || left) && sc.active ? "" : "disabled"}>Add students</button><p class="msg" hidden></p></form></section>
       <section class="card block"><div class="row"><h3>Students (${students.length})</h3>${students.length ? '<button class="mini" id="copypw">Copy logins as table</button>' : ""}</div>
-        ${students.length ? `<div class="tablewrap"><table class="tbl"><thead><tr><th>Student</th><th>Password</th><th>Status</th><th>Progress</th><th></th></tr></thead><tbody id="sstu">${rows}</tbody></table></div>`
+        ${students.length ? `<div class="tablewrap"><table class="tbl"><thead><tr><th>Student</th><th>Password</th>${sc.per_subject ? "<th>Subjects</th>" : ""}<th>Status</th><th>Progress</th><th></th></tr></thead><tbody id="sstu">${rows}</tbody></table></div>`
           : '<p class="hint">No students yet.</p>'}
         <p class="hint">If a student changes their own password, the one listed here is out of date. Reset login puts it back to the listed one.</p></section>
       ${accountCard()}
@@ -712,11 +727,16 @@
       e.preventDefault();
       const f = e.target, m = $(".msg", f), { rows: list, bad } = parseStudentLines(f.lines.value);
       if (bad.length) return msg(m, `Check these lines (need a name and one or two valid emails): ${bad.join(" | ")}`, false);
-      if (list.length > left) return msg(m, `That's ${list.length} students but only ${plural(left, "seat")} left.`, false);
+      const picked = sc.per_subject ? [...root.querySelectorAll("#addsubs input:checked")].map((c) => c.value) : null;
+      if (sc.per_subject) {
+        if (!picked.length) return msg(m, "Tick at least one subject.", false);
+        const full = picked.find((k) => seatCap(sc, k) - seatsUsed(sc, students, k) < list.length);
+        if (full) return msg(m, `That's ${list.length} students but ${catalog.courses[full].title} has only ${plural(Math.max(0, seatCap(sc, full) - seatsUsed(sc, students, full)), "seat")} left.`, false);
+      } else if (list.length > left) return msg(m, `That's ${list.length} students but only ${plural(left, "seat")} left.`, false);
       const taken = new Set(students.map((x) => x.password));
       for (const [i, r] of list.entries()) {
         const password = genPassword(taken); taken.add(password);
-        const { error } = await sb.rpc("school_add_student", { _name: r.name, _email: r.email, _email2: r.email2, _password: password });
+        const { error } = await sb.rpc("school_add_student", { _name: r.name, _email: r.email, _email2: r.email2, _password: password, _subjects: picked });
         if (error) { msg(m, `${i ? `Added ${plural(i, "student")}. ` : ""}Stopped at "${r.line}": ${error.message}`, false); return setTimeout(() => viewSchool(me), 2500); }
       }
       viewSchool(me);
@@ -732,7 +752,7 @@
       if (btn.dataset.act === "view") {
         const d = doneOf(p), score = (slug) => data.attempts.find((a) => a.email === p.email && a.slug === slug);
         $("#f-view").innerHTML = `<div class="row"><h3>${esc(p.name)}</h3><button class="btn ghost" value="close" formnovalidate>Close</button></div><p class="hint">${esc(p.email)}</p>
-          ${subjects.map((k) => {
+          ${schoolSubs(sc, p).filter((k) => catalog.courses[k]).map((k) => {
             const c = catalog.courses[k], n = c.slugs.filter((x) => d.has(x)).length;
             return `<section class="subj"><h4>${esc(c.title)} · ${n}/${c.slugs.length} complete</h4>${chapterMap(c, d)}
               ${c.slugs.map((slug) => {
@@ -742,6 +762,20 @@
               }).join("")}</section>`;
           }).join("") || '<p class="hint">No subjects on this licence.</p>'}`;
         $("#dlg2").showModal();
+      } else if (btn.dataset.act === "subs") {
+        const have = schoolSubs(sc, p);
+        $("#f-view").innerHTML = `<div class="row"><h3>${esc(p.name)}: subjects</h3><button class="btn ghost" value="close" formnovalidate>Close</button></div>
+          <p class="hint">Tick the subjects this student takes. Changing them uses or frees a seat in each subject.</p>
+          <div class="chks" id="subsbox">${subjects.map((k) => `<label class="chk"><input type="checkbox" value="${k}" ${have.includes(k) ? "checked" : ""}> ${esc(catalog.courses[k].title)}</label>`).join("")}</div>
+          <p><button class="btn" type="button" id="savesubs">Save subjects</button> <span class="msg" id="subsmsg" hidden></span></p>`;
+        $("#dlg2").showModal();
+        $("#savesubs").addEventListener("click", async () => {
+          const chosen = [...$("#subsbox").querySelectorAll("input:checked")].map((c) => c.value), m = $("#subsmsg");
+          if (!chosen.length) return msg(m, "Tick at least one subject.", false);
+          const { error } = await sb.rpc("school_set_student_subjects", { _email: p.email, _subjects: chosen });
+          if (error) return msg(m, error.message.replace(/^.*?All /, "All "), false);
+          $("#dlg2").close(); viewSchool(me);
+        });
       } else if (btn.dataset.act === "reset") {
         if (!confirm(`Recreate the login for ${p.name} with the listed password? Their progress is kept.`)) return;
         const { error } = await sb.rpc("school_reset_login", { _email: p.email });

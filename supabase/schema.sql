@@ -38,6 +38,10 @@ create table if not exists public.schools (
 alter table public.schools add column if not exists kind text not null default 'school';  -- 'school' or 'tutor': a label for the admin list and pricing; access works the same
 alter table public.schools drop constraint if exists schools_kind_check;
 alter table public.schools add constraint schools_kind_check check (kind in ('school', 'tutor'));
+-- v10: per-subject seats. per_subject=false keeps the old behaviour (seats = total students, each gets every subject).
+-- per_subject=true: seats is the cap for each subject (seat_limits overrides it per subject) and a student only holds the subjects their teacher picked.
+alter table public.schools add column if not exists per_subject boolean not null default false;
+alter table public.schools add column if not exists seat_limits jsonb;
 alter table public.schools enable row level security;
 create table if not exists public.school_teachers (
   email     text primary key check (email = lower(email)),
@@ -68,6 +72,7 @@ alter table public.profiles add column if not exists password text not null defa
 alter table public.profiles add column if not exists classes text[] not null default '{}';    -- ig1-cs, ig2-cs, a-cs, ig2-econ, a-econ
 alter table public.profiles add column if not exists requested text[] not null default '{}';  -- subjects awaiting approval
 alter table public.profiles add column if not exists school_id text references public.schools (id) on delete set null;  -- v8: seat on a school licence
+alter table public.profiles add column if not exists school_subjects text[];  -- v10: subjects held via the licence; null = all of the licence's subjects
 
 create table if not exists public.progress (
   email   text not null check (email = lower(email)),
@@ -120,26 +125,45 @@ language sql stable security definer set search_path = public as $$
   select school_id from school_teachers where email = lower(auth.jwt() ->> 'email')
 $$;
 
+-- The subjects a student holds through a licence: the ones their teacher picked (within the licence), or all of them if none were picked.
+create or replace function public.school_student_subjects(_products text[], _picked text[]) returns text[]
+language sql immutable as $$
+  select case when _picked is null then _products
+              else coalesce(array(select x from unnest(_picked) x where x = any (_products)), '{}'::text[]) end
+$$;
+
 -- Subjects and tier a student holds through their school's licence, while it is running.
 create or replace function public.school_access(_email text) returns table (product text, tier text, expires_at timestamptz)
 language sql stable security definer set search_path = public as $$
-  select u, s.tier, s.expires_at from profiles p join schools s on s.id = p.school_id, unnest(s.products) u
+  select u, s.tier, s.expires_at from profiles p join schools s on s.id = p.school_id,
+         unnest(school_student_subjects(s.products, p.school_subjects)) u
    where p.email = _email and (s.expires_at is null or s.expires_at > now())
 $$;
 
--- A school can't hold more students than it has seats (checked whenever someone joins one).
+-- A school can't hold more students than it has seats. Old-style licences cap total students; per-subject licences cap each subject.
 create or replace function public.check_school_seats() returns trigger
 language plpgsql security definer set search_path = public as $$
-declare cap int; n int;
+declare sc schools; cap int; n int; k text;
 begin
-  if new.school_id is null or (tg_op = 'UPDATE' and new.school_id is not distinct from old.school_id) then return new; end if;
-  select seats into cap from schools where id = new.school_id;
-  select count(*) into n from profiles where school_id = new.school_id and email <> new.email;
-  if n >= cap then raise exception 'All % seats on this licence are in use', cap; end if;
+  if new.school_id is null then return new; end if;
+  select * into sc from schools where id = new.school_id;
+  if not sc.per_subject then
+    if tg_op = 'UPDATE' and new.school_id is not distinct from old.school_id then return new; end if;
+    select count(*) into n from profiles where school_id = new.school_id and email <> new.email;
+    if n >= sc.seats then raise exception 'All % seats on this licence are in use', sc.seats; end if;
+    return new;
+  end if;
+  if tg_op = 'UPDATE' and new.school_id is not distinct from old.school_id and new.school_subjects is not distinct from old.school_subjects then return new; end if;
+  foreach k in array school_student_subjects(sc.products, new.school_subjects) loop
+    cap := coalesce((sc.seat_limits ->> k)::int, sc.seats);
+    select count(*) into n from profiles q where q.school_id = new.school_id and q.email <> new.email
+       and k = any (school_student_subjects(sc.products, q.school_subjects));
+    if n >= cap then raise exception 'All % seats for % are in use', cap, k; end if;
+  end loop;
   return new;
 end $$;
 drop trigger if exists check_school_seats on public.profiles;
-create trigger check_school_seats before insert or update of school_id on public.profiles
+create trigger check_school_seats before insert or update of school_id, school_subjects on public.profiles
   for each row execute function public.check_school_seats();
 
 drop policy if exists progress_select on public.progress;
@@ -240,7 +264,7 @@ begin
     live := sc.expires_at is null or sc.expires_at > now();
     return json_build_object('email', e, 'name', st.name, 'is_admin', false, 'is_teacher', true, 'is_school_teacher', true,
                              'school', json_build_object('id', sc.id, 'name', sc.name, 'kind', sc.kind, 'products', sc.products, 'tier', sc.tier,
-                                                         'seats', sc.seats, 'expires_at', sc.expires_at, 'active', live),
+                                                         'seats', sc.seats, 'per_subject', sc.per_subject, 'seat_limits', sc.seat_limits, 'expires_at', sc.expires_at, 'active', live),
                              'subjects', case when live then sc.products else '{}'::text[] end, 'requested', array[]::text[],
                              'entitlements', coalesce((select json_agg(json_build_object('product', u, 'plan', 'school', 'tier', sc.tier, 'expires_at', sc.expires_at))
                                                          from unnest(case when live then sc.products else '{}'::text[] end) u), '[]'::json));
@@ -923,7 +947,7 @@ begin
   if sid is null then raise exception 'Licence teachers only'; end if;
   return json_build_object(
     'students', coalesce((select json_agg(json_build_object('email', email, 'email2', email2, 'name', name, 'password', password,
-                            'signed_up_at', signed_up_at, 'last_seen', last_seen) order by name) from profiles where school_id = sid), '[]'::json),
+                            'signed_up_at', signed_up_at, 'last_seen', last_seen, 'school_subjects', school_subjects) order by name) from profiles where school_id = sid), '[]'::json),
     'progress', coalesce((select json_agg(json_build_object('email', g.email, 'slug', g.slug, 'done_at', g.done_at))
                             from progress g join profiles p on p.email = g.email where p.school_id = sid), '[]'::json),
     'attempts', coalesce((select json_agg(json_build_object('email', a.email, 'slug', a.slug, 'pct', a.pct, 'score', a.score, 'max', a.max_score, 'at', a.submitted_at)
@@ -933,23 +957,41 @@ end $$;
 
 -- School teacher: add a student to their school (seat limit is checked by check_school_seats).
 -- A student who left a school keeps their login and progress and can be added back.
-create or replace function public.school_add_student(_name text, _email text, _email2 text, _password text) returns void
+drop function if exists public.school_add_student(text, text, text, text);
+create or replace function public.school_add_student(_name text, _email text, _email2 text, _password text, _subjects text[] default null) returns void
 language plpgsql security definer set search_path = public as $$
-declare sid text := my_school(); e text := lower(trim(_email)); e2 text := nullif(lower(trim(coalesce(_email2, ''))), ''); p profiles;
+declare sid text := my_school(); e text := lower(trim(_email)); e2 text := nullif(lower(trim(coalesce(_email2, ''))), ''); p profiles; sc schools; picked text[];
 begin
   if sid is null then raise exception 'Licence teachers only'; end if;
   if length(_password) < 8 then raise exception 'Password too short'; end if;
-  if (select expires_at from schools where id = sid) <= now() then raise exception 'This licence has ended'; end if;
+  select * into sc from schools where id = sid;
+  if sc.expires_at <= now() then raise exception 'This licence has ended'; end if;
+  picked := case when sc.per_subject and _subjects is not null then school_student_subjects(sc.products, _subjects) else null end;
+  if sc.per_subject and picked is not null and cardinality(picked) = 0 then raise exception 'Choose at least one subject'; end if;
   select * into p from profiles where email = e;
   if found then
     if p.school_id = sid then return; end if;
     if p.school_id is not null or cardinality(p.subjects) > 0 then raise exception 'Email % is already in use', e; end if;
-    update profiles set school_id = sid, name = trim(_name) where email = e;
+    update profiles set school_id = sid, name = trim(_name), school_subjects = picked where email = e;
     return;
   end if;
-  insert into profiles (email, email2, name, password, school_id) values (e, e2, trim(_name), _password, sid);
+  insert into profiles (email, email2, name, password, school_id, school_subjects) values (e, e2, trim(_name), _password, sid, picked);
   perform _create_login(e, _password);
   if e2 is not null then perform _create_login(e2, _password); end if;
+end $$;
+
+-- School teacher: change which of the licence's subjects a student takes (seat limits are checked per subject).
+create or replace function public.school_set_student_subjects(_email text, _subjects text[]) returns void
+language plpgsql security definer set search_path = public as $$
+declare sid text := my_school(); sc schools; picked text[];
+begin
+  if sid is null then raise exception 'Licence teachers only'; end if;
+  select * into sc from schools where id = sid;
+  if not sc.per_subject then raise exception 'This licence gives every student every subject'; end if;
+  picked := school_student_subjects(sc.products, _subjects);
+  if cardinality(picked) = 0 then raise exception 'Choose at least one subject'; end if;
+  update profiles set school_subjects = picked where email = lower(_email) and school_id = sid;
+  if not found then raise exception 'No such student'; end if;
 end $$;
 
 -- School teacher: take a student off the licence (frees the seat; their login and progress are kept).
@@ -958,7 +1000,7 @@ language plpgsql security definer set search_path = public as $$
 declare sid text := my_school();
 begin
   if sid is null then raise exception 'Licence teachers only'; end if;
-  update profiles set school_id = null where email = lower(_email) and school_id = sid;
+  update profiles set school_id = null, school_subjects = null where email = lower(_email) and school_id = sid;
 end $$;
 
 -- School teacher: recreate a student's login(s) with the listed password.
@@ -979,3 +1021,22 @@ select public._create_login(email, initial_password) from public.admins where in
 
 select a.email, (a.initial_password is not null) as has_password, exists (select 1 from auth.users u where u.email = a.email) as login_exists
 from public.admins a;
+
+-- ===================== Contact form (v9) =====================
+-- Anyone can send a message from /contact/; only admins can read or change them.
+create table if not exists public.contact_messages (
+  id         bigserial primary key,
+  name       text not null check (length(name) between 1 and 120),
+  email      text not null check (email ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$' and length(email) <= 254),
+  role       text check (role in ('student', 'parent', 'teacher', 'school', 'tutor')),
+  org        text check (length(org) <= 160),
+  topic      text check (topic in ('password', 'subjects', 'school', 'billing', 'other')),
+  message    text not null check (length(message) between 1 and 4000),
+  handled    boolean not null default false,
+  created_at timestamptz not null default now()
+);
+alter table public.contact_messages enable row level security;
+drop policy if exists contact_insert on public.contact_messages;
+create policy contact_insert on public.contact_messages for insert to anon, authenticated with check (true);
+drop policy if exists contact_admin on public.contact_messages;
+create policy contact_admin on public.contact_messages for all using (is_admin()) with check (is_admin());

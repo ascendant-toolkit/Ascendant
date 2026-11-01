@@ -90,7 +90,7 @@ def layout(title, body, path, active, crumbs=None, accent=None, auth=False, extr
 {crumb_html}
 {body}
 </main>
-<footer class="site"><p>Independent revision resource for Cambridge IGCSE and A-Level. Not affiliated with or endorsed by Cambridge University Press &amp; Assessment.</p></footer>
+<footer class="site"><p><a href="{root}schools/">For schools</a> · <a href="{root}contact/">Contact</a></p><p>Independent revision resource for Cambridge IGCSE and A-Level. Not affiliated with or endorsed by Cambridge University Press &amp; Assessment.</p></footer>
 <script src="{root}assets/site.js"></script>
 {auth_scripts(root, gate)}{extra}
 </body></html>
@@ -505,7 +505,7 @@ def build_home():
 <div class="lp-who">
 <article class="card" data-accent="teal"><h3 class="t">Students</h3><p class="sub">Learn from home or school, take marked assessments with instant feedback, and see exactly what is left to cover.</p><a class="go" href="pricing/">Student plans →</a></article>
 <article class="card" data-accent="indigo"><h3 class="t">Teachers</h3><p class="sub">Ready-made lessons for the whole syllabus, class progress at a glance, and a delivery mode for the classroom. Less time building resources.</p><a class="go" href="pricing/">Teacher plan →</a></article>
-<article class="card" data-accent="plum"><h3 class="t">Schools and tutors</h3><p class="sub">One licence for your students, free teacher accounts, and dashboards to see who is keeping up. Invoiced annually.</p><a class="go" href="pricing/">School licences →</a></article></div></section>
+<article class="card" data-accent="plum"><h3 class="t">Schools and tutors</h3><p class="sub">One licence for your students, free teacher accounts, and dashboards to see who is keeping up. Invoiced annually.</p><a class="go" href="schools/">School licences →</a></article></div></section>
 
 <section class="sec" aria-labelledby="how"><h2 id="how">How it works</h2><ol class="steps">{steps_html}</ol></section>
 
@@ -515,6 +515,69 @@ def build_home():
 
 <section class="sec" aria-labelledby="fq"><h2 id="fq">Questions</h2><div class="faq">{faq}</div></section>"""
     write("index.html", layout(SITE_TITLE, body, "", "home", extra='<script src="assets/home.js"></script>'))
+
+
+def build_contact():
+    """Contact form at /contact/. Messages land in the contact_messages table (admins read them in Supabase)."""
+    topics = [("password", "Password or sign-in help"), ("subjects", "Change subjects, class or seats"),
+              ("school", "Licence for a school or tutor"), ("billing", "Billing or refunds"), ("other", "Something else")]
+    roles = [("student", "Student"), ("parent", "Parent"), ("teacher", "Teacher"), ("school", "School administrator"), ("tutor", "Tutor")]
+    opt = lambda items: "".join(f'<option value="{k}">{v}</option>' for k, v in items)
+    body = (head("Contact", "Questions about your account, a licence or anything else. We reply by email.", "Get in touch")
+            + '<section class="sec" style="margin-top:8px"><div class="free-card"><form id="contactform" class="joinform" novalidate>'
+            '<p class="hint">Students in a school: your teacher can reset your password and change your subjects first. Teachers: ask your school administrator. '
+            'Tutors and schools can message us here, and so can students without a school or tutor.</p>'
+            '<label>Name<input name="name" autocomplete="name" maxlength="120" required></label>'
+            '<label>Email<input name="email" type="email" autocomplete="email" maxlength="254" required></label>'
+            f'<label>I am a<select name="role">{opt(roles)}</select></label>'
+            '<label>School or organisation (if any)<input name="org" maxlength="160"></label>'
+            f'<label>Topic<select name="topic">{opt(topics)}</select></label>'
+            '<label>Message<textarea name="message" rows="6" maxlength="4000" required></textarea></label>'
+            '<input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0">'
+            '<button class="btn" type="submit">Send message</button><p class="msg" id="contactmsg" hidden></p></form></div></section>')
+    write("contact/index.html", layout("Contact", body, "contact/", "contact", [("Home", ""), ("Contact", None)],
+                                       extra='<script src="../assets/contact.js"></script>'))
+
+
+def build_schools():
+    """For-schools page at /schools/, written for heads of department and finance."""
+    r = "../"
+    contact = f"{r}contact/?topic=school&amp;role=school"
+    tiles = [("Free teacher accounts", "Every teacher on your licence gets full access to the subjects you buy, plus class progress dashboards. No per-teacher charge."),
+             ("Pay per subject", "Departments buy only the subjects they teach. Add a subject, or more students, at any renewal."),
+             ("One clear invoice", "A single annual invoice per school. No student payments, no card forms for families, no surprises mid-year."),
+             ("You control the roster", "Your teachers add and remove students, reset logins and move students between subjects without contacting us.")]
+    tiles_html = "".join(f'<div class="lp-col"><b class="lp-pt">{t}</b><p>{d}</p></div>' for t, d in tiles)
+    steps = [("Tell us your subjects and numbers", "Send a short message with the subjects and roughly how many students take each."),
+             ("Start a 30-day evaluation", "Your teachers try the full platform with their classes before you commit."),
+             ("Receive one annual invoice", "Pay once for the year. Your teachers add their students and begin straight away.")]
+    steps_html = "".join(f'<li><span class="n">{i}</span><div><b>{t}</b><p>{d}</p></div></li>' for i, (t, d) in enumerate(steps, 1))
+    faq = [("What does a seat cover?", "One student in one subject for a year, with every lesson, interactive activity, marked assessment and progress report for that subject."),
+           ("Is there a minimum order?", "Licences start at 25 students per subject."),
+           ("Can different departments buy separately?", "Yes. Each subject can be bought and invoiced on its own, so a department can decide for itself."),
+           ("What if a student changes subject?", "Your teachers can move a student between the subjects on your licence from their dashboard, within the seats you have bought for each."),
+           ("What happens at renewal or if we stop?", "Licences are annual commitments with no mid-term refunds. If a licence ends, students keep their progress and lose access to the lessons."),
+           ("Do you offer a refund?", "Schools get a 30-day evaluation instead. After that the licence runs for the agreed term.")]
+    faq_html = "".join(f"<details><summary>{q}</summary><p>{a}</p></details>" for q, a in faq)
+    calc = ("""<div class="free-card" id="calc"><h2>Estimate your cost</h2>
+<div class="joinform"><label>Students in each subject<input id="calc-n" type="number" min="25" value="30" step="1"></label>
+<label>Number of subjects<select id="calc-s"><option>1</option><option>2</option><option>3</option><option>4</option></select></label></div>
+<p class="lp-big" id="calc-out" style="margin:16px 0 4px"></p><p class="hint" id="calc-sub"></p></div>
+<script>(function(){var n=document.getElementById('calc-n'),s=document.getElementById('calc-s'),o=document.getElementById('calc-out'),u=document.getElementById('calc-sub');
+function f(){var a=Math.max(25,parseInt(n.value,10)||25),b=parseInt(s.value,10),t=a*b*50;
+o.textContent='$'+t.toLocaleString('en-US')+' a year';u.textContent=a+' students x '+b+' subject'+(b>1?'s':'')+' x $50. Teachers are free. Prices in USD.';}
+n.addEventListener('input',f);s.addEventListener('change',f);f();})();</script>""")
+    body = (head("Ascendant for schools", "A complete Cambridge Economics and Computer Science resource for your department: ready-made lessons, marked assessments and progress you can see.", "Schools")
+            + '<p class="cta" style="margin-top:0"><a class="btn" href="' + contact + '">Talk to us</a><a class="btn ghost" href="' + r + 'pricing/">See all plans</a></p>'
+            + '<section class="sec"><h2>$50 per student, per subject, per year</h2>'
+            '<p class="lede">Simple to budget and easy to split between departments. A department with 30 students on one subject pays $1,500 for the year.</p>'
+            f'<div class="lp-compare">{tiles_html}</div></section>'
+            f'<section class="sec">{calc}</section>'
+            f'<section class="sec"><h2>How it works</h2><ol class="steps">{steps_html}</ol></section>'
+            f'<section class="sec"><h2>Questions</h2><div class="faq">{faq_html}</div></section>'
+            '<section class="sec lp-final"><div class="free-card"><h2>Talk to us</h2><p class="lede">Tell us your subjects and student numbers and we will send a quote and start your evaluation.</p>'
+            f'<p class="cta"><a class="btn" href="{contact}">Contact us</a></p></div></section>')
+    write("schools/index.html", layout("For schools", body, "schools/", "schools", [("Home", ""), ("For schools", None)]))
 
 
 def build_other_profile():
@@ -585,10 +648,10 @@ def build_pricing():
                    ["Full content for the subjects you teach", "Class progress and homework dashboards",
                     "Assign and track assessments", "Lesson-delivery mode for the classroom"],
                    buy("teacher", "Choose Teacher"))
-    school = plan("School", '<p class="price"><span class="amt">from $12</span><span class="per">/student / year</span></p>',
+    school = plan("School", '<p class="price"><span class="amt">$50</span><span class="per">/student / subject / year</span></p>',
                   "Whole-school access, managed centrally.",
-                  ["Every subject and level for every student", "Free teacher accounts and dashboards",
-                   "From 25 seats, invoiced annually"], f'<a class="btn" href="{join}">Talk to us</a>')
+                  ["Choose the subjects each student takes", "Free teacher accounts and class dashboards",
+                   "Seats per subject, from 25, invoiced annually"], f'<a class="btn" href="{r}contact/?topic=school&amp;role=school">Talk to us</a>')
 
     cycle = ('<div class="cycle" role="group" aria-label="Billing period">'
              '<button type="button" data-cycle="y" class="on">Annual <span class="save">save ~30%</span></button>'
@@ -881,6 +944,8 @@ def main():
         build_landing()
     build_courses()
     build_other_profile()
+    build_contact()
+    build_schools()
     build_dashboard()
     build_pricing()
     build_catalog()
