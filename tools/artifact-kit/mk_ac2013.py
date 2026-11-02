@@ -104,14 +104,18 @@ for A in Zoo:
         return self.__Cards[Position]''') + '''</div>
 
   <h2>7 · The pattern of a Paper 4 OOP question</h2>
+  <p>Paper 4 is done on a computer in Python, Java or VB.NET, and the OOP question usually builds up in the order below. The parts are <b>typical, not guaranteed</b>: the length varies, and a question may ask for only some of them, for example getters or setters for just one or two attributes rather than all of them. Read the wording of each part and write exactly what it asks for.</p>
   <div class="tw"><table class="t">
-    <tr><th>Part</th><th>What it asks</th><th>Marks come from</th></tr>
-    <tr><td>(a)(i) Declare the class</td><td>Class, private attributes with types, constructor with parameters</td><td>class header; attributes (comments in Python); constructor header taking the right number of parameters; every parameter assigned</td></tr>
-    <tr><td>(a)(ii) Getters</td><td>A method for each value to return</td><td>header with no parameter and returns the attribute, for each getter</td></tr>
-    <tr><td>(a)(iii) Setters</td><td>A method for each value to change</td><td>header taking a parameter; assigns it to the attribute</td></tr>
-    <tr><td>(a)(iv) A method</td><td>A calculation with a limit or condition</td><td>one mark per bullet in the question</td></tr>
-    <tr><td>(b) Child class</td><td>Inherits, new attributes, own constructor, overrides a method</td><td>class header with the parent; parent constructor called; new attributes assigned; override uses the same name</td></tr>
+    <tr><th>Part</th><th>What it typically asks</th><th>Marks usually come from</th></tr>
+    <tr><td>(a)(i) Declare the class</td><td>Class, private attributes with types, constructor with parameters</td><td>class header; attributes private (a leading <code>__</code> or <code>_</code> in Python); data types shown in comments, since Python has no declarations; constructor header with the right parameters; each parameter assigned to its attribute</td></tr>
+    <tr><td>(a)(ii) Getters</td><td>A method to return the named value(s)</td><td>header with no parameter; returns the attribute, for each getter asked for</td></tr>
+    <tr><td>(a)(iii) Setters</td><td>A method to change the named value(s)</td><td>header taking a parameter; assigns it to the attribute (some questions add a validity check)</td></tr>
+    <tr><td>(a)(iv) A method</td><td>A calculation with a limit or condition</td><td>about one mark per bullet in the question</td></tr>
+    <tr><td>(b) Child class</td><td>Inherits, new attributes, own constructor, overrides a method</td><td>class header naming the parent; parent constructor called with the right arguments (<code>super().__init__(...)</code>); new attributes assigned; override has the same name and parameters but different behaviour, and some questions expect it to call the parent's version and add to it</td></tr>
+    <tr><td>(c) Create objects and test</td><td>Instantiate objects, set values, call methods and show the output</td><td>object created with the right arguments; methods called; output displayed correctly; and the <b>screenshot evidence</b></td></tr>
   </table></div>
+  <div class="tip"><b class="h">Do not lose the evidence marks</b>Because the paper is done on a computer, the answer document asks you to paste in screenshots of your code and of the program output. Students who write a correct program but forget the screenshot, or paste the wrong one, lose marks that are easy to win. Check what each part says to save before you move on, and run the code so the screenshot shows real output.</div>
+  <p>The marks reward specific points, not a general "working class". Check each point in the table against your code before you move to the next part.</p>
 
   <h2>8 · Common ways to lose marks</h2>
   <ul>
