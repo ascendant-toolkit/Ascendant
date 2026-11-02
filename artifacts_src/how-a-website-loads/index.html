@@ -429,6 +429,21 @@ function order(el, o) {
 function quiz(el, o) {
   el.classList.add("qz");
   let score = 0, answered = 0;
+  /* Spread the correct answer across A-D: each reorderable question gets the least-used position so far
+     (ties broken by a seed from the quiz text, so quizzes differ). Skipped when options or the explanation
+     refer to each other or to letters, since reordering would break the wording. */
+  const dep = /\b(all|none|neither|both) of (the|these|those)\b|\bthe above\b|^both\b|\b(option|answer|statement)s? [A-D]\b|\b[A-D] (and|or|&) [A-D]\b|^[A-D]\b[.)]?\s/i;
+  let h = 0; for (const ch of o.qs.map((q) => q.q).join("")) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const fixed = (q) => q.opts.length < 3 || q.opts.some((t) => dep.test(t)) || dep.test(q.why || "");
+  const used = [0, 0, 0, 0, 0, 0]; o.qs.forEach((q) => { if (fixed(q)) used[q.a]++; });
+  o = { ...o, qs: o.qs.map((q, i) => {
+    if (fixed(q)) return q;
+    const n = q.opts.length; let to = q.a;
+    for (let k = 0; k < n; k++) { const p = (h + i + k) % n; if (used[p] < used[to]) to = p; }
+    used[to]++; if (to === q.a) return q;
+    const opts = q.opts.slice(); [opts[q.a], opts[to]] = [opts[to], opts[q.a]];
+    return { ...q, opts, a: to };
+  }) };
   el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
   const sc = $(".score", el);
   $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
