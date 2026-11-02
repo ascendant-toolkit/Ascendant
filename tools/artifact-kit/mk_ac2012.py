@@ -91,6 +91,14 @@ MyBird ← NEW Parrot("Chewie", 1, 30)''') + '''</div>
   </ul>
 '''
 
+
+def pair(title, pseudo, py, note=""):
+    """Pseudocode and Python versions of the same method, side by side."""
+    return ('<h3 style="margin:18px 0 6px">' + title + '</h3>' + (('<p>' + note + '</p>') if note else '')
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px">'
+      + '<div style="min-width:0"><small><b>Pseudocode</b></small><div class="code">' + pc(pseudo) + '</div></div>'
+      + '<div style="min-width:0"><small><b>Python</b></small><div class="code">' + pc(py) + '</div></div></div>')
+
 watch = '''
   <h2>1 · One class, many objects</h2>
   <p>Press Play, or click the steps. The class is the template; each object has its own values.</p>
@@ -100,8 +108,82 @@ watch = '''
   <h2>3 · Inheritance: the yarn shop</h2>
   <p>From the May/June 2022 question: three types of yarn share most of their data.</p>
   <div id="stC"></div>
+''' + pair("YarnInfo() in the parent, Yarn",
+'''PUBLIC PROCEDURE YarnInfo()
+   OUTPUT Name, Colour, BatchCode
+   OUTPUT Weight, NumberBalls, Type
+ENDPROCEDURE''',
+'''def yarn_info(self):
+    print(self.__name, self.__colour, self.__batch_code)
+    print(self.__weight, self.__number_balls, self.__type)''',
+"The parent method shows the data every yarn has. It is written once.") + pair("YarnInfo() in Acrylic, Wool and Mix",
+'''// Acrylic
+PUBLIC PROCEDURE YarnInfo()
+   SUPER.YarnInfo()
+   OUTPUT "Soft: ", Soft
+ENDPROCEDURE
+
+// Wool
+PUBLIC PROCEDURE YarnInfo()
+   SUPER.YarnInfo()
+   OUTPUT "Wool type: ", WoolType
+ENDPROCEDURE
+
+// Mix
+PUBLIC PROCEDURE YarnInfo()
+   SUPER.YarnInfo()
+   OUTPUT "Acrylic: ", Percentage, "%"
+ENDPROCEDURE''',
+'''# Acrylic
+def yarn_info(self):
+    super().yarn_info()
+    print("Soft:", self.__soft)
+
+# Wool
+def yarn_info(self):
+    super().yarn_info()
+    print("Wool type:", self.__wool_type)
+
+# Mix
+def yarn_info(self):
+    super().yarn_info()
+    print("Acrylic:", self.__percentage, "%")''',
+"Each child calls the parent's YarnInfo() first, so the shared data is never rewritten, then adds one line for the data only that child has. The name is the same in every class, so the child version <b>overrides</b> the parent version.") + '''
   <h2>4 · Polymorphism: same call, different behaviour</h2>
   <div id="stD"></div>
+''' + pair("Speak() in Dog, Cat and Cow",
+'''// Dog
+PUBLIC PROCEDURE Speak()
+   OUTPUT "Woof"
+ENDPROCEDURE
+
+// Cat
+PUBLIC PROCEDURE Speak()
+   OUTPUT "Meow"
+ENDPROCEDURE
+
+// Cow
+PUBLIC PROCEDURE Speak()
+   OUTPUT "Moo"
+ENDPROCEDURE''',
+'''# Dog
+def speak(self):
+    print("Woof")
+
+# Cat
+def speak(self):
+    print("Meow")
+
+# Cow
+def speak(self):
+    print("Moo")''',
+"The method name and parameters are identical. Only the body changes.") + pair("The loop that calls it",
+'''FOR EACH a IN Animals
+   OUTPUT a.Speak()
+NEXT a''',
+'''for a in animals:
+    a.speak()''',
+"The loop contains no Dog, Cat or Cow code. Each object runs its own version of Speak(), so the output is Woof, Meow, Moo.") + '''
   <h2>5 · Containment: a hand has cards</h2>
   <div id="stE"></div>
 '''
