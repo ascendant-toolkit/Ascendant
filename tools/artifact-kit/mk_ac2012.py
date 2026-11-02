@@ -159,7 +159,6 @@ def yarn_info(self):
   </ol>
   <p>The child therefore extends the parent's behaviour instead of rewriting it. Leave SUPER out and you override completely; keep it and you override and reuse.</p></div>
   <div class="tip"><b class="h">Inheritance or polymorphism?</b>Overriding <code>YarnInfo()</code> is where the two meet. Inheritance gives the child the parent's method; polymorphism is the child redefining it under the same name. SUPER is only needed when the child still wants the parent's behaviour as well. In the Speak() example each animal replaces the method outright, so there is no SUPER call.</div>
-'''
   <h2>4 · Polymorphism: same call, different behaviour</h2>
   <div id="stD"></div>
 ''' + pair("Speak() in Dog, Cat and Cow",
