@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Writing a Binary Tree with Classes</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
+
+table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
+.synd{margin:8px 0;overflow-x:auto}
+.gantt{display:flex;margin:6px 0 0;font-family:var(--mono)}.gantt .gb{border:1.5px solid var(--ink);margin-left:-1.5px;text-align:center;padding:6px 0;font-weight:700;font-size:.85rem;background:var(--surface);min-width:0}
+.gantt .gb.c0{background:var(--accent-soft)}.gantt .gb.c1{background:var(--bad-soft)}.gantt .gb.c2{background:var(--good-soft)}.gantt .gb.c3{background:var(--warn-soft)}.gantt .gb.c4{background:var(--soft)}
+.gticks{display:flex;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:2px 0 10px}.gticks span{text-align:right;min-width:0}
+
+details.eq>summary .qb{flex-basis:100%;display:block}
+details.eq>summary .qp,details.eq>summary .qi{display:block;margin-top:6px}
+details.eq>summary .qp.sub{margin-left:1.6em}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 20.1.2 and 19.1</div>
+  <h1>Writing a Binary Tree with Classes</h1>
+  <p class="cbook">Coursebook: Chapter 20 · Further programming, section 20.1 Programming paradigms</p>
+  <p class="lead">A Node class and a Tree class: constructors, private pointers with getters and setters, containment, a CountTree child class and polymorphism; insert, search and in-order traversal with animations, a tree-building lab and review questions.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A <b>binary tree</b> is a structure where each item, a <b>node</b>, can point to at most two others: a <b>left</b> child and a <b>right</b> child. In a <b>binary search tree</b> every value in the left part is smaller than the node and every value in the right part is larger or equal, so searching can ignore half the tree at each step. In an object-oriented program it is written as two classes: a <b>Node</b> that holds one value and two pointers, and a <b>Tree</b> that holds the root node. Writing it uses every idea from the earlier pages: a <b>constructor</b>, <b>private</b> data, <b>getters and setters</b>, <b>containment</b>, and, for a variation, <b>inheritance</b>.</p></div>
+
+  <h2>1 · Words to know</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Term</th><th>Meaning</th></tr>
+    <tr><td>Node</td><td>One item in the tree: a value and two pointers</td></tr>
+    <tr><td>Root</td><td>The top node; the only one nothing points to</td></tr>
+    <tr><td>Left / right pointer</td><td>Where the left and right child are, or <code>None</code> (<code>NULL</code> in pseudocode) if there is none</td></tr>
+    <tr><td>Leaf</td><td>A node with no children: both pointers are empty</td></tr>
+    <tr><td>Subtree</td><td>A node and everything below it</td></tr>
+  </table></div>
+  <p class="note">The rule used on this page: a new value smaller than the node goes left; a value equal or larger goes right.</p>
+
+  <h2>2 · Which concept does what</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Concept</th><th>Where it appears in the tree</th></tr>
+    <tr><td>Constructor</td><td><code>Node(NewData)</code> sets the value and starts both pointers empty. <code>Tree()</code> starts with no root</td></tr>
+    <tr><td>Encapsulation</td><td>Data and pointers are private. Other code uses the methods</td></tr>
+    <tr><td>Getters and setters</td><td><code>GetData</code>, <code>GetLeft</code>, <code>GetRight</code>, <code>SetLeft</code>, <code>SetRight</code></td></tr>
+    <tr><td>Containment</td><td>The Tree <b>has</b> a root Node, and each Node <b>has</b> a left and right Node</td></tr>
+    <tr><td>Inheritance</td><td>A <code>CountTree</code> <b>is a</b> Tree that also counts its insertions</td></tr>
+    <tr><td>Polymorphism</td><td><code>Insert()</code> is called the same way on a Tree or a CountTree, and each does its own version</td></tr>
+  </table></div>
+
+  <h2>3 · The Node class</h2>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">class Node:</span><span class="ln">    # Data : INTEGER</span><span class="ln">    # LeftPointer : Node</span><span class="ln">    # RightPointer : Node</span><span class="ln">    def __init__(self, NewData):</span><span class="ln">        self.__Data = NewData</span><span class="ln">        self.__LeftPointer = None</span><span class="ln">        self.__RightPointer = None</span><span class="ln"> </span><span class="ln">    def GetData(self):</span><span class="ln">        return self.__Data</span><span class="ln">    def GetLeft(self):</span><span class="ln">        return self.__LeftPointer</span><span class="ln">    def GetRight(self):</span><span class="ln">        return self.__RightPointer</span><span class="ln">    def SetLeft(self, NewLeft):</span><span class="ln">        self.__LeftPointer = NewLeft</span><span class="ln">    def SetRight(self, NewRight):</span><span class="ln">        self.__RightPointer = NewRight</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">CLASS Node</span><span class="ln">  PRIVATE Data : INTEGER</span><span class="ln">  PRIVATE LeftPointer : Node</span><span class="ln">  PRIVATE RightPointer : Node</span><span class="ln">  PUBLIC PROCEDURE NEW(NewData : INTEGER)</span><span class="ln">    Data &lt;- NewData</span><span class="ln">    LeftPointer &lt;- NULL</span><span class="ln">    RightPointer &lt;- NULL</span><span class="ln">  ENDPROCEDURE</span><span class="ln">  PUBLIC FUNCTION GetData() RETURNS INTEGER</span><span class="ln">    RETURN Data</span><span class="ln">  ENDFUNCTION</span><span class="ln">  PUBLIC FUNCTION GetLeft() RETURNS Node</span><span class="ln">    RETURN LeftPointer</span><span class="ln">  ENDFUNCTION</span><span class="ln">  PUBLIC FUNCTION GetRight() RETURNS Node</span><span class="ln">    RETURN RightPointer</span><span class="ln">  ENDFUNCTION</span><span class="ln">  PUBLIC PROCEDURE SetLeft(NewLeft : Node)</span><span class="ln">    LeftPointer &lt;- NewLeft</span><span class="ln">  ENDPROCEDURE</span><span class="ln">  PUBLIC PROCEDURE SetRight(NewRight : Node)</span><span class="ln">    RightPointer &lt;- NewRight</span><span class="ln">  ENDPROCEDURE</span><span class="ln">ENDCLASS</span></pre></div></div></div>
+  <p>The constructor takes only the value. The two pointers are <b>fixed starting values</b>: a new node has no children yet. The setters exist so the Tree can attach children later, because the Node's pointers are private.</p>
+
+  <h2>4 · The Tree class: constructor and Insert</h2>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">class Tree:</span><span class="ln">    # Root : Node</span><span class="ln">    def __init__(self):</span><span class="ln">        self.__Root = None</span><span class="ln"> </span><span class="ln">    def Insert(self, NewData):</span><span class="ln">        NewNode = Node(NewData)</span><span class="ln">        if self.__Root is None:</span><span class="ln">            self.__Root = NewNode</span><span class="ln">        else:</span><span class="ln">            Current = self.__Root</span><span class="ln">            Placed = False</span><span class="ln">            while not Placed:</span><span class="ln">                if NewData &lt; Current.GetData():</span><span class="ln">                    if Current.GetLeft() is None:</span><span class="ln">                        Current.SetLeft(NewNode)</span><span class="ln">                        Placed = True</span><span class="ln">                    else:</span><span class="ln">                        Current = Current.GetLeft()</span><span class="ln">                else:</span><span class="ln">                    if Current.GetRight() is None:</span><span class="ln">                        Current.SetRight(NewNode)</span><span class="ln">                        Placed = True</span><span class="ln">                    else:</span><span class="ln">                        Current = Current.GetRight()</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">CLASS Tree</span><span class="ln">  PRIVATE Root : Node</span><span class="ln">  PUBLIC PROCEDURE NEW()</span><span class="ln">    Root &lt;- NULL</span><span class="ln">  ENDPROCEDURE</span><span class="ln">  PUBLIC PROCEDURE Insert(NewData : INTEGER)</span><span class="ln">    NewNode &lt;- NEW Node(NewData)</span><span class="ln">    IF Root = NULL</span><span class="ln">      THEN</span><span class="ln">        Root &lt;- NewNode</span><span class="ln">      ELSE</span><span class="ln">        Current &lt;- Root</span><span class="ln">        Placed &lt;- FALSE</span><span class="ln">        WHILE Placed = FALSE</span><span class="ln">          IF NewData &lt; Current.GetData()</span><span class="ln">            THEN</span><span class="ln">              IF Current.GetLeft() = NULL</span><span class="ln">                THEN</span><span class="ln">                  Current.SetLeft(NewNode)</span><span class="ln">                  Placed &lt;- TRUE</span><span class="ln">                ELSE</span><span class="ln">                  Current &lt;- Current.GetLeft()</span><span class="ln">              ENDIF</span><span class="ln">            ELSE</span><span class="ln">              IF Current.GetRight() = NULL</span><span class="ln">                THEN</span><span class="ln">                  Current.SetRight(NewNode)</span><span class="ln">                  Placed &lt;- TRUE</span><span class="ln">                ELSE</span><span class="ln">                  Current &lt;- Current.GetRight()</span><span class="ln">              ENDIF</span><span class="ln">          ENDIF</span><span class="ln">        ENDWHILE</span><span class="ln">    ENDIF</span><span class="ln">  ENDPROCEDURE</span><span class="ln">ENDCLASS</span></pre></div></div></div>
+  <p>Notice what the Tree never does: it never touches <code>__Data</code> or a pointer directly. It calls <code>GetData()</code>, <code>GetLeft()</code> and <code>SetLeft()</code>. That is encapsulation at work. The new node is created <b>before</b> it is attached, as in containment.</p>
+
+  <h2>5 · Search and in-order traversal</h2>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">    def Search(self, Target):</span><span class="ln">        Current = self.__Root</span><span class="ln">        while Current is not None:</span><span class="ln">            if Target == Current.GetData():</span><span class="ln">                return True</span><span class="ln">            elif Target &lt; Current.GetData():</span><span class="ln">                Current = Current.GetLeft()</span><span class="ln">            else:</span><span class="ln">                Current = Current.GetRight()</span><span class="ln">        return False</span><span class="ln"> </span><span class="ln">    def InOrder(self):</span><span class="ln">        self.__TraverseFrom(self.__Root)</span><span class="ln"> </span><span class="ln">    def __TraverseFrom(self, ThisNode):</span><span class="ln">        if ThisNode is not None:</span><span class="ln">            self.__TraverseFrom(ThisNode.GetLeft())</span><span class="ln">            print(ThisNode.GetData())</span><span class="ln">            self.__TraverseFrom(ThisNode.GetRight())</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">  PUBLIC FUNCTION Search(Target : INTEGER) RETURNS BOOLEAN</span><span class="ln">    Current &lt;- Root</span><span class="ln">    WHILE Current &lt;&gt; NULL</span><span class="ln">      IF Target = Current.GetData()</span><span class="ln">        THEN</span><span class="ln">          RETURN TRUE</span><span class="ln">        ELSE</span><span class="ln">          IF Target &lt; Current.GetData()</span><span class="ln">            THEN</span><span class="ln">              Current &lt;- Current.GetLeft()</span><span class="ln">            ELSE</span><span class="ln">              Current &lt;- Current.GetRight()</span><span class="ln">          ENDIF</span><span class="ln">      ENDIF</span><span class="ln">    ENDWHILE</span><span class="ln">    RETURN FALSE</span><span class="ln">  ENDFUNCTION</span><span class="ln"> </span><span class="ln">  PUBLIC PROCEDURE InOrder()</span><span class="ln">    CALL TraverseFrom(Root)</span><span class="ln">  ENDPROCEDURE</span><span class="ln"> </span><span class="ln">  PRIVATE PROCEDURE TraverseFrom(ThisNode : Node)</span><span class="ln">    IF ThisNode &lt;&gt; NULL</span><span class="ln">      THEN</span><span class="ln">        CALL TraverseFrom(ThisNode.GetLeft())</span><span class="ln">        OUTPUT ThisNode.GetData()</span><span class="ln">        CALL TraverseFrom(ThisNode.GetRight())</span><span class="ln">    ENDIF</span><span class="ln">  ENDPROCEDURE</span></pre></div></div></div>
+  <p>These two methods belong inside <code>Tree</code>. In-order visits the left subtree, then the node, then the right subtree, so a search tree prints in sorted order. The helper is private: outside code calls <code>InOrder()</code>, and the recursion inside is hidden.</p>
+
+  <h2>6 · Using the tree</h2>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">MyTree = Tree()</span><span class="ln">for Value in [50, 30, 70, 20, 40, 60]:</span><span class="ln">    MyTree.Insert(Value)</span><span class="ln">print(MyTree.Search(60))   # True</span><span class="ln">print(MyTree.Search(45))   # False</span><span class="ln">MyTree.InOrder()           # 20 30 40 50 60 70, one per line</span></pre></div>
+
+  <h2>7 · A child class: CountTree</h2>
+  <p>A tree that also counts how many values have been inserted. It inherits everything and <b>overrides</b> <code>Insert</code>, calling the parent's version first.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">class CountTree(Tree):</span><span class="ln">    # Count : INTEGER</span><span class="ln">    def __init__(self):</span><span class="ln">        super().__init__()</span><span class="ln">        self.__Count = 0</span><span class="ln"> </span><span class="ln">    def Insert(self, NewData):</span><span class="ln">        super().Insert(NewData)</span><span class="ln">        self.__Count = self.__Count + 1</span><span class="ln"> </span><span class="ln">    def GetCount(self):</span><span class="ln">        return self.__Count</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">CLASS CountTree INHERITS Tree</span><span class="ln">  PRIVATE Count : INTEGER</span><span class="ln">  PUBLIC PROCEDURE NEW()</span><span class="ln">    SUPER.NEW()</span><span class="ln">    Count &lt;- 0</span><span class="ln">  ENDPROCEDURE</span><span class="ln">  PUBLIC PROCEDURE Insert(NewData : INTEGER)</span><span class="ln">    SUPER.Insert(NewData)</span><span class="ln">    Count &lt;- Count + 1</span><span class="ln">  ENDPROCEDURE</span><span class="ln">  PUBLIC FUNCTION GetCount() RETURNS INTEGER</span><span class="ln">    RETURN Count</span><span class="ln">  ENDFUNCTION</span><span class="ln">ENDCLASS</span></pre></div></div></div>
+  <p>The child's constructor calls the parent's first (so the root is set up), then sets its own attribute. Because both classes have <code>Insert</code>, code that holds a list of trees can call <code>Insert</code> on each without checking which kind it is: polymorphism.</p>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Inserting six values</h2><p>Press Play, or click the steps.</p><div id="stA"></div>
+  <h2>2 · Searching for 60, and for 45</h2><div id="stB"></div>
+  <h2>3 · In-order traversal</h2><div id="stC"></div>
+  <h2>4 · The objects behind the picture</h2><div id="stD"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Build your own tree</h2>
+  <p>Insert values and watch where each one lands. Then search for a value or print the tree in order.</p>
+  <div class="card"><div class="btnrow"><label>Value <input id="tV" type="number" value="25" style="width:5rem"></label><button class="b pri" id="tI">Insert</button><button class="b" id="tS">Search</button><button class="b" id="tO">InOrder()</button><button class="b" id="tX">New tree</button></div>
+    <div id="tD"></div><div class="verdict" id="tL"></div></div>
+
+  <h2>Lab 2 · Spot the mistake</h2>
+  <div class="card"><div id="eB" class="btnrow"></div><div id="eO"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Sort the statements</h2><div id="cl1" class="card"></div>
+  <h2>2 · Put the steps in order</h2><div id="o1" class="card"></div>
+  <h2>3 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>4 · Work it out</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A sorted contact list</h3><p>A phone stores names in a tree so searching does not have to check every contact. Each step of a search throws away about half of the remaining names.</p><div class="use"><b>Exam use:</b> search follows one path down the tree.</div></div>
+  <div class="rw"><h3>A database index</h3><p>A database keeps an index so it can find a record without reading the whole table. Many indexes use tree structures like this one.</p><div class="use"><b>Exam use:</b> trees keep data in order for fast searching.</div></div>
+  <div class="rw"><h3>A game's decision tree</h3><p>A computer opponent asks a yes or no question at each node, then follows the left or right branch to the next question.</p><div class="use"><b>Exam use:</b> left and right pointers as two choices.</div></div>
+  <div class="rw"><h3>A file system</h3><p>Folders contain folders and files, so a folder object holds other objects. A binary tree is the same idea with at most two children.</p><div class="use"><b>Exam use:</b> containment: objects inside objects.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Where this is examined</h2>
+  <p class="note">Binary trees are tested in the data structures part of the syllabus (19.1). Writing one as classes combines that with the class skills in 20.1.2 and 20.1.3, which is how Paper 4 sets programming tasks. No single past paper question is quoted on this page; for real questions see the 19.1 binary tree page and the 20.1.3 page.</p>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">5 marks</span> A binary tree node stores an integer <code>Data</code> and two pointers, <code>LeftPointer</code> and <code>RightPointer</code>, all private. Write the class <code>Node</code> with a constructor that takes the data and sets both pointers to empty.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Header, three attribute comments, constructor with self, data assigned, both pointers set to None.</div>
+    <div class="ans"><pre class="cp" style="counter-reset:l 0"><span class="ln">class Node:</span><span class="ln">    # Data : INTEGER</span><span class="ln">    # LeftPointer : Node</span><span class="ln">    # RightPointer : Node</span><span class="ln">    def __init__(self, NewData):</span><span class="ln">        self.__Data = NewData</span><span class="ln">        self.__LeftPointer = None</span><span class="ln">        self.__RightPointer = None</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Making the pointers parameters. A new node has no children, so they start as None.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">4 marks</span> Add getters for <code>Data</code> and <code>LeftPointer</code> and a setter for <code>LeftPointer</code> to the class.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Getters return; the setter assigns.</div>
+    <div class="ans"><pre class="cp" style="counter-reset:l 0"><span class="ln">    def GetData(self):</span><span class="ln">        return self.__Data</span><span class="ln"> </span><span class="ln">    def GetLeft(self):</span><span class="ln">        return self.__LeftPointer</span><span class="ln"> </span><span class="ln">    def SetLeft(self, NewLeft):</span><span class="ln">        self.__LeftPointer = NewLeft</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Printing in a getter.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Explain why the Tree class uses <code>Current.SetLeft(NewNode)</code> rather than changing the left pointer directly.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Link to encapsulation.</div>
+    <div class="ans"><span class="mk k" data-t="1">The pointer is a private attribute of Node, so only Node's methods can change it</span> <span class="mk k" data-t="2">this keeps the data hidden / lets Node control how it is changed</span></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">6 marks</span> Write the method <code>Search(self, Target)</code> in the class <code>Tree</code>. It returns True if the value is in the tree and False if it is not.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Start at the root, loop while the current node exists, compare, move left or right, return False at the end.</div>
+    <div class="ans"><pre class="cp" style="counter-reset:l 0"><span class="ln">def Search(self, Target):</span><span class="ln">    Current = self.__Root</span><span class="ln">    while Current is not None:</span><span class="ln">        if Target == Current.GetData():</span><span class="ln">            return True</span><span class="ln">        elif Target &lt; Current.GetData():</span><span class="ln">            Current = Current.GetLeft()</span><span class="ln">        else:</span><span class="ln">            Current = Current.GetRight()</span><span class="ln">    return False</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using <code>Current.__Data</code>, which is private to Node.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> Which two classes show containment in this program, and what does each contain?</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Name both relationships.</div>
+    <div class="ans"><span class="mk k" data-t="1">Tree contains the root Node</span> <span class="mk k" data-t="2">each Node contains (points to) a left and a right Node</span></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">4 marks</span> Write the class <code>CountTree</code> that inherits from <code>Tree</code>, has a private integer <code>Count</code> starting at 0, and overrides <code>Insert</code> to add 1 to Count after inserting.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Parent in brackets, constructor calls the parent, Insert calls the parent version then adds 1.</div>
+    <div class="ans"><pre class="cp" style="counter-reset:l 0"><span class="ln">class CountTree(Tree):</span><span class="ln">    # Count : INTEGER</span><span class="ln">    def __init__(self):</span><span class="ln">        super().__init__()</span><span class="ln">        self.__Count = 0</span><span class="ln"> </span><span class="ln">    def Insert(self, NewData):</span><span class="ln">        super().Insert(NewData)</span><span class="ln">        self.__Count = self.__Count + 1</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting super().Insert(NewData), so nothing is ever inserted.</div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Create the node first.</b> Make the Node from the value, then find where to attach it.</li>
+    <li><b>Never touch the pointers directly.</b> From Tree, always use GetLeft, GetRight, SetLeft and SetRight.</li>
+    <li><b>Check for empty first.</b> An empty tree has Root = None. Handle it before looping.</li>
+    <li><b>Smaller left, larger or equal right.</b> State the rule you are using in a comment.</li>
+    <li><b>Pointers start empty.</b> A new Node's two pointers are None, not parameters.</li>
+    <li><b>Child tree: parent first.</b> super().__init__() then your own attributes.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Describe the Node</td><td>"Each node stores a value and a left and right pointer, which are private and accessed through getters and setters."</td></tr>
+    <tr><td>Describe the Tree</td><td>"The Tree has a root attribute that is a Node, and each Node can contain further Nodes."</td></tr>
+    <tr><td>Describe a search</td><td>"Compare the target with the current node, move left if smaller and right if larger, until it is found or the pointer is empty."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Define / State</td><td>Give the meaning in one precise sentence.</td></tr>
+    <tr><td>Write program code</td><td>Produce working Python in the form the question describes.</td></tr>
+    <tr><td>Complete the class diagram</td><td>Fill in properties and methods; the question tells you which are missing.</td></tr>
+    <tr><td>Explain</td><td>A reason as well as the fact.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { sel = null; pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  /* Spread the correct answer across A-D: each reorderable question gets the least-used position so far
+     (ties broken by a seed from the quiz text, so quizzes differ). Skipped when options or the explanation
+     refer to each other or to letters, since reordering would break the wording. */
+  const dep = /\b(all|none|neither|both) of (the|these|those)\b|\bthe above\b|^both\b|\b(option|answer|statement)s? [A-D]\b|\b[A-D] (and|or|&) [A-D]\b|^[A-D]\b[.)]?\s/i;
+  let h = 0; for (const ch of o.qs.map((q) => q.q).join("")) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const fixed = (q) => q.opts.length < 3 || q.opts.some((t) => dep.test(t)) || dep.test(q.why || "");
+  const used = [0, 0, 0, 0, 0, 0]; o.qs.forEach((q) => { if (fixed(q)) used[q.a]++; });
+  o = { ...o, qs: o.qs.map((q, i) => {
+    if (fixed(q)) return q;
+    const n = q.opts.length; let to = q.a;
+    for (let k = 0; k < n; k++) { const p = (h + i + k) % n; if (used[p] < used[to]) to = p; }
+    used[to]++; if (to === q.a) return q;
+    const opts = q.opts.slice(); [opts[q.a], opts[to]] = [opts[to], opts[q.a]];
+    return { ...q, opts, a: to };
+  }) };
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+function classBox(x, y, w, title, rows, v = 1, cls = "f1", lh = 20) {
+  const h = 30 + rows.length * lh + 8;
+  let o = SV.rect(x, y, w, h, "cell", { rx: 6, ...op(v) }) + SV.rect(x, y, w, 28, cls, { rx: 6, ...op(v * 0.6) }) + SV.text(x + w / 2, y + 19, title, "lbl bd", { "text-anchor": "middle", style: "font-size:15px", ...op(v) });
+  rows.forEach((r, i) => { o += SV.text(x + 8, y + 46 + i * lh, r, "sm", { style: "font-family:var(--mono);font-size:11.5px", ...op(v) }); });
+  return o;
+}
+function sceneItem(o) {
+  if (o.k === "code") return codeList(o.x, o.y, o.lines, o.hl, 1, o.lh, o.w);
+  if (o.k === "cls") return classBox(o.x, o.y, o.w, o.title, o.rows, 1, o.cls, o.lh);
+  if (o.k === "txt") return SV.text(o.x, o.y, o.s, o.c, o.m ? { style: "font-family:var(--mono);font-size:14px" } : {});
+  if (o.k === "arr") return arrow(o.a[0], o.a[1], o.a[2], o.a[3], o.d, "c1", 1);
+  return "";
+}
+const codeHTML = (L) => '<div class="code"><pre class="cp">' + L.map((l) => `<span class="ln">${esc(l) || " "}</span>`).join("") + "</pre></div>";
+
+const _scene0 = sceneItem;
+sceneItem = (o) => {
+  if (o.k === "edge") return SV.line(o.a[0], o.a[1], o.a[2], o.a[3], "ax");
+  if (o.k === "node") return SV.circle(o.x, o.y, 22, "cell") + SV.circle(o.x, o.y, 22, o.c, { opacity: 0.6 }) + SV.circle(o.x, o.y, 22, "ax", { fill: "none" }) + SV.text(o.x, o.y + 6, String(o.v), "lbl bd", { "text-anchor": "middle" });
+  return _scene0(o);
+};
+(function () { const SC = [[{"k": "node", "x": 380, "y": 40, "v": 50, "c": "f3"}, {"k": "txt", "x": 20, "y": 238, "s": "Insert(50): Root is None, so 50 becomes the Root", "c": "sm", "m": 1}], [{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f2"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f3"}, {"k": "txt", "x": 20, "y": 238, "s": "30 < 50: left. Left of 50 is empty: SetLeft", "c": "sm", "m": 1}], [{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "edge", "a": [380, 40, 530, 105]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f2"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f1"}, {"k": "node", "x": 530, "y": 105, "v": 70, "c": "f3"}, {"k": "txt", "x": 20, "y": 238, "s": "70 >= 50: right. Right of 50 is empty: SetRight", "c": "sm", "m": 1}], [{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "edge", "a": [380, 40, 530, 105]}, {"k": "edge", "a": [230, 105, 150, 170]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f2"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f2"}, {"k": "node", "x": 530, "y": 105, "v": 70, "c": "f1"}, {"k": "node", "x": 150, "y": 170, "v": 20, "c": "f3"}, {"k": "txt", "x": 20, "y": 238, "s": "20 < 50: left. 20 < 30: left. Empty: SetLeft on 30", "c": "sm", "m": 1}], [{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "edge", "a": [380, 40, 530, 105]}, {"k": "edge", "a": [230, 105, 150, 170]}, {"k": "edge", "a": [230, 105, 310, 170]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f2"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f2"}, {"k": "node", "x": 530, "y": 105, "v": 70, "c": "f1"}, {"k": "node", "x": 150, "y": 170, "v": 20, "c": "f1"}, {"k": "node", "x": 310, "y": 170, "v": 40, "c": "f3"}, {"k": "txt", "x": 20, "y": 238, "s": "40 < 50: left. 40 >= 30: right. Empty: SetRight on 30", "c": "sm", "m": 1}], [{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "edge", "a": [380, 40, 530, 105]}, {"k": "edge", "a": [230, 105, 150, 170]}, {"k": "edge", "a": [230, 105, 310, 170]}, {"k": "edge", "a": [530, 105, 450, 170]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f2"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f1"}, {"k": "node", "x": 530, "y": 105, "v": 70, "c": "f2"}, {"k": "node", "x": 150, "y": 170, "v": 20, "c": "f1"}, {"k": "node", "x": 310, "y": 170, "v": 40, "c": "f1"}, {"k": "node", "x": 450, "y": 170, "v": 60, "c": "f3"}, {"k": "txt", "x": 20, "y": 238, "s": "60 >= 50: right. 60 < 70: left. Empty: SetLeft on 70", "c": "sm", "m": 1}], [{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "edge", "a": [380, 40, 530, 105]}, {"k": "edge", "a": [230, 105, 150, 170]}, {"k": "edge", "a": [230, 105, 310, 170]}, {"k": "edge", "a": [530, 105, 450, 170]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f1"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f1"}, {"k": "node", "x": 530, "y": 105, "v": 70, "c": "f1"}, {"k": "node", "x": 150, "y": 170, "v": 20, "c": "f1"}, {"k": "node", "x": 310, "y": 170, "v": 40, "c": "f1"}, {"k": "node", "x": 450, "y": 170, "v": 60, "c": "f1"}, {"k": "txt", "x": 20, "y": 238, "s": "left smaller, right larger or equal, at every node", "c": "sm", "m": 1}]], CAPS = ["The tree is empty: <code>Root</code> is <code>None</code>. <code>Insert(50)</code> makes a Node and, because there is no root, stores it as the Root.", "<code>Insert(30)</code>: 30 is less than 50, so go left. The left pointer is empty, so <code>SetLeft</code> attaches the new node.", "<code>Insert(70)</code>: 70 is not less than 50, so go right. The right pointer is empty: <code>SetRight</code>.", "<code>Insert(20)</code>: less than 50, go left to 30; less than 30, go left. Empty, so attach with <code>SetLeft</code> on the node 30.", "<code>Insert(40)</code>: less than 50, go left to 30; not less than 30, go right. Empty: <code>SetRight</code> on 30.", "<code>Insert(60)</code>: not less than 50, go right to 70; less than 70, go left. Empty: <code>SetLeft</code> on 70.", "Done. Everything to the left of a node is smaller and everything to the right is larger or equal."];
+  Lib.stepper($("#stA"), { w: 760, h: 255, label: "Insert 50, 30, 70, 20, 40, 60", base: { i: 0 }, draw: (s) => SC[Math.round(s.i)].map(sceneItem).join(""), tween: 400, dwell: 3600, steps: CAPS.map((c, i) => ({ cap: c, s: { i } })) }); })();
+(function () { const SC = [[{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "edge", "a": [380, 40, 530, 105]}, {"k": "edge", "a": [230, 105, 150, 170]}, {"k": "edge", "a": [230, 105, 310, 170]}, {"k": "edge", "a": [530, 105, 450, 170]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f3"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f1"}, {"k": "node", "x": 530, "y": 105, "v": 70, "c": "f1"}, {"k": "node", "x": 150, "y": 170, "v": 20, "c": "f1"}, {"k": "node", "x": 310, "y": 170, "v": 40, "c": "f1"}, {"k": "node", "x": 450, "y": 170, "v": 60, "c": "f1"}, {"k": "txt", "x": 20, "y": 238, "s": "Target 60. Current = 50", "c": "sm", "m": 1}], [{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "edge", "a": [380, 40, 530, 105]}, {"k": "edge", "a": [230, 105, 150, 170]}, {"k": "edge", "a": [230, 105, 310, 170]}, {"k": "edge", "a": [530, 105, 450, 170]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f2"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f1"}, {"k": "node", "x": 530, "y": 105, "v": 70, "c": "f3"}, {"k": "node", "x": 150, "y": 170, "v": 20, "c": "f1"}, {"k": "node", "x": 310, "y": 170, "v": 40, "c": "f1"}, {"k": "node", "x": 450, "y": 170, "v": 60, "c": "f1"}, {"k": "txt", "x": 20, "y": 238, "s": "60 > 50: go right. Current = 70", "c": "sm", "m": 1}], [{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "edge", "a": [380, 40, 530, 105]}, {"k": "edge", "a": [230, 105, 150, 170]}, {"k": "edge", "a": [230, 105, 310, 170]}, {"k": "edge", "a": [530, 105, 450, 170]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f2"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f1"}, {"k": "node", "x": 530, "y": 105, "v": 70, "c": "f2"}, {"k": "node", "x": 150, "y": 170, "v": 20, "c": "f1"}, {"k": "node", "x": 310, "y": 170, "v": 40, "c": "f1"}, {"k": "node", "x": 450, "y": 170, "v": 60, "c": "f3"}, {"k": "txt", "x": 20, "y": 238, "s": "60 < 70: go left. Current = 60", "c": "sm", "m": 1}], [{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "edge", "a": [380, 40, 530, 105]}, {"k": "edge", "a": [230, 105, 150, 170]}, {"k": "edge", "a": [230, 105, 310, 170]}, {"k": "edge", "a": [530, 105, 450, 170]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f2"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f1"}, {"k": "node", "x": 530, "y": 105, "v": 70, "c": "f2"}, {"k": "node", "x": 150, "y": 170, "v": 20, "c": "f1"}, {"k": "node", "x": 310, "y": 170, "v": 40, "c": "f1"}, {"k": "node", "x": 450, "y": 170, "v": 60, "c": "f3"}, {"k": "txt", "x": 20, "y": 238, "s": "60 = 60: return True", "c": "sm", "m": 1}], [{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "edge", "a": [380, 40, 530, 105]}, {"k": "edge", "a": [230, 105, 150, 170]}, {"k": "edge", "a": [230, 105, 310, 170]}, {"k": "edge", "a": [530, 105, 450, 170]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f2"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f2"}, {"k": "node", "x": 530, "y": 105, "v": 70, "c": "f1"}, {"k": "node", "x": 150, "y": 170, "v": 20, "c": "f1"}, {"k": "node", "x": 310, "y": 170, "v": 40, "c": "f3"}, {"k": "node", "x": 450, "y": 170, "v": 60, "c": "f1"}, {"k": "txt", "x": 20, "y": 238, "s": "45: 50 left, 30 right, 40 right: pointer is None", "c": "sm", "m": 1}], [{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "edge", "a": [380, 40, 530, 105]}, {"k": "edge", "a": [230, 105, 150, 170]}, {"k": "edge", "a": [230, 105, 310, 170]}, {"k": "edge", "a": [530, 105, 450, 170]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f2"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f2"}, {"k": "node", "x": 530, "y": 105, "v": 70, "c": "f1"}, {"k": "node", "x": 150, "y": 170, "v": 20, "c": "f1"}, {"k": "node", "x": 310, "y": 170, "v": 40, "c": "f2"}, {"k": "node", "x": 450, "y": 170, "v": 60, "c": "f1"}, {"k": "txt", "x": 20, "y": 238, "s": "Current is None: return False", "c": "sm", "m": 1}]], CAPS = ["<code>Search(60)</code> starts at the root. <code>Current</code> is the node 50.", "60 is not equal to 50 and is larger, so <code>Current = Current.GetRight()</code>. Half the tree is ignored.", "60 is less than 70, so <code>Current = Current.GetLeft()</code>.", "60 equals the data in the current node: <b>True</b> after three comparisons.", "<code>Search(45)</code>: 45 < 50 left to 30; 45 >= 30 right to 40; 45 >= 40 right, but the right pointer of 40 is empty.", "<code>Current</code> is now <code>None</code>, so the loop ends and the method returns <b>False</b>."];
+  Lib.stepper($("#stB"), { w: 760, h: 255, label: "Search follows one path", base: { i: 0 }, draw: (s) => SC[Math.round(s.i)].map(sceneItem).join(""), tween: 400, dwell: 3600, steps: CAPS.map((c, i) => ({ cap: c, s: { i } })) }); })();
+(function () { const SC = [[{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "edge", "a": [380, 40, 530, 105]}, {"k": "edge", "a": [230, 105, 150, 170]}, {"k": "edge", "a": [230, 105, 310, 170]}, {"k": "edge", "a": [530, 105, 450, 170]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f3"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f1"}, {"k": "node", "x": 530, "y": 105, "v": 70, "c": "f1"}, {"k": "node", "x": 150, "y": 170, "v": 20, "c": "f1"}, {"k": "node", "x": 310, "y": 170, "v": 40, "c": "f1"}, {"k": "node", "x": 450, "y": 170, "v": 60, "c": "f1"}, {"k": "txt", "x": 20, "y": 238, "s": "output: ", "c": "lbl bd", "m": 1}], [{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "edge", "a": [380, 40, 530, 105]}, {"k": "edge", "a": [230, 105, 150, 170]}, {"k": "edge", "a": [230, 105, 310, 170]}, {"k": "edge", "a": [530, 105, 450, 170]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f2"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f2"}, {"k": "node", "x": 530, "y": 105, "v": 70, "c": "f1"}, {"k": "node", "x": 150, "y": 170, "v": 20, "c": "f3"}, {"k": "node", "x": 310, "y": 170, "v": 40, "c": "f1"}, {"k": "node", "x": 450, "y": 170, "v": 60, "c": "f1"}, {"k": "txt", "x": 20, "y": 238, "s": "output: ", "c": "lbl bd", "m": 1}], [{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "edge", "a": [380, 40, 530, 105]}, {"k": "edge", "a": [230, 105, 150, 170]}, {"k": "edge", "a": [230, 105, 310, 170]}, {"k": "edge", "a": [530, 105, 450, 170]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f2"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f2"}, {"k": "node", "x": 530, "y": 105, "v": 70, "c": "f1"}, {"k": "node", "x": 150, "y": 170, "v": 20, "c": "f3"}, {"k": "node", "x": 310, "y": 170, "v": 40, "c": "f1"}, {"k": "node", "x": 450, "y": 170, "v": 60, "c": "f1"}, {"k": "txt", "x": 20, "y": 238, "s": "output: 20", "c": "lbl bd", "m": 1}], [{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "edge", "a": [380, 40, 530, 105]}, {"k": "edge", "a": [230, 105, 150, 170]}, {"k": "edge", "a": [230, 105, 310, 170]}, {"k": "edge", "a": [530, 105, 450, 170]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f2"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f1"}, {"k": "node", "x": 530, "y": 105, "v": 70, "c": "f1"}, {"k": "node", "x": 150, "y": 170, "v": 20, "c": "f1"}, {"k": "node", "x": 310, "y": 170, "v": 40, "c": "f3"}, {"k": "node", "x": 450, "y": 170, "v": 60, "c": "f1"}, {"k": "txt", "x": 20, "y": 238, "s": "output: 20 30 40", "c": "lbl bd", "m": 1}], [{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "edge", "a": [380, 40, 530, 105]}, {"k": "edge", "a": [230, 105, 150, 170]}, {"k": "edge", "a": [230, 105, 310, 170]}, {"k": "edge", "a": [530, 105, 450, 170]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f3"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f1"}, {"k": "node", "x": 530, "y": 105, "v": 70, "c": "f1"}, {"k": "node", "x": 150, "y": 170, "v": 20, "c": "f1"}, {"k": "node", "x": 310, "y": 170, "v": 40, "c": "f1"}, {"k": "node", "x": 450, "y": 170, "v": 60, "c": "f1"}, {"k": "txt", "x": 20, "y": 238, "s": "output: 20 30 40 50", "c": "lbl bd", "m": 1}], [{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "edge", "a": [380, 40, 530, 105]}, {"k": "edge", "a": [230, 105, 150, 170]}, {"k": "edge", "a": [230, 105, 310, 170]}, {"k": "edge", "a": [530, 105, 450, 170]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f1"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f1"}, {"k": "node", "x": 530, "y": 105, "v": 70, "c": "f2"}, {"k": "node", "x": 150, "y": 170, "v": 20, "c": "f1"}, {"k": "node", "x": 310, "y": 170, "v": 40, "c": "f1"}, {"k": "node", "x": 450, "y": 170, "v": 60, "c": "f3"}, {"k": "txt", "x": 20, "y": 238, "s": "output: 20 30 40 50 60", "c": "lbl bd", "m": 1}], [{"k": "edge", "a": [380, 40, 230, 105]}, {"k": "edge", "a": [380, 40, 530, 105]}, {"k": "edge", "a": [230, 105, 150, 170]}, {"k": "edge", "a": [230, 105, 310, 170]}, {"k": "edge", "a": [530, 105, 450, 170]}, {"k": "node", "x": 380, "y": 40, "v": 50, "c": "f1"}, {"k": "node", "x": 230, "y": 105, "v": 30, "c": "f1"}, {"k": "node", "x": 530, "y": 105, "v": 70, "c": "f3"}, {"k": "node", "x": 150, "y": 170, "v": 20, "c": "f1"}, {"k": "node", "x": 310, "y": 170, "v": 40, "c": "f1"}, {"k": "node", "x": 450, "y": 170, "v": 60, "c": "f1"}, {"k": "txt", "x": 20, "y": 238, "s": "output: 20 30 40 50 60 70", "c": "lbl bd", "m": 1}]], CAPS = ["<code>InOrder()</code> calls the private helper with the root. Rule: left subtree first, then this node, then the right subtree.", "From 50 go left to 30, then left to 20. Node 20 has no left child, so the left call ends at once.", "Now 20 is printed. Its right call also ends at once.", "Back at 30: the left subtree is done, so print 30, then go right to 40 and print it.", "Back at 50: the whole left subtree is done, so print 50.", "Go right to 70, then left to 60. Print 60.", "Back at 70: print 70. The values came out in sorted order."];
+  Lib.stepper($("#stC"), { w: 760, h: 255, label: "In-order traversal", base: { i: 0 }, draw: (s) => SC[Math.round(s.i)].map(sceneItem).join(""), tween: 400, dwell: 3600, steps: CAPS.map((c, i) => ({ cap: c, s: { i } })) }); })();
+(function () { const SC = [[{"k": "cls", "x": 20, "y": 20, "w": 180, "title": "MyTree (Tree)", "rows": ["__Root: Node 50"], "cls": "f1", "lh": 22}, {"k": "cls", "x": 260, "y": 20, "w": 240, "title": "Node 50", "rows": ["__Data: 50", "__LeftPointer: Node 30", "__RightPointer: Node 70"], "cls": "f3", "lh": 22}, {"k": "arr", "a": [202, 52, 256, 52], "d": "r"}], [{"k": "cls", "x": 20, "y": 20, "w": 180, "title": "MyTree (Tree)", "rows": ["__Root: Node 50"], "cls": "f1", "lh": 22}, {"k": "cls", "x": 260, "y": 20, "w": 240, "title": "Node 50", "rows": ["__Data: 50", "__LeftPointer: Node 30", "__RightPointer: Node 70"], "cls": "f2", "lh": 22}, {"k": "arr", "a": [202, 52, 256, 52], "d": "r"}, {"k": "txt", "x": 520, "y": 60, "s": "has-a: three attributes", "c": "sm", "m": 0}], [{"k": "cls", "x": 20, "y": 20, "w": 180, "title": "MyTree (Tree)", "rows": ["__Root: Node 50"], "cls": "f1", "lh": 22}, {"k": "cls", "x": 260, "y": 20, "w": 240, "title": "Node 50", "rows": ["__Data: 50", "__LeftPointer: Node 30", "__RightPointer: Node 70"], "cls": "f1", "lh": 22}, {"k": "arr", "a": [202, 52, 256, 52], "d": "r"}, {"k": "cls", "x": 40, "y": 150, "w": 250, "title": "Node 30", "rows": ["__Data: 30", "__LeftPointer: Node 20", "__RightPointer: Node 40"], "cls": "f1", "lh": 22}, {"k": "cls", "x": 400, "y": 150, "w": 260, "title": "Node 70", "rows": ["__Data: 70", "__LeftPointer: Node 60", "__RightPointer: None"], "cls": "f1", "lh": 22}, {"k": "arr", "a": [300, 130, 220, 148], "d": "d"}, {"k": "arr", "a": [440, 130, 520, 148], "d": "d"}], [{"k": "cls", "x": 20, "y": 20, "w": 180, "title": "MyTree (Tree)", "rows": ["__Root: Node 50"], "cls": "f1", "lh": 22}, {"k": "cls", "x": 260, "y": 20, "w": 240, "title": "Node 50", "rows": ["__Data: 50", "__LeftPointer: Node 30", "__RightPointer: Node 70"], "cls": "f1", "lh": 22}, {"k": "arr", "a": [202, 52, 256, 52], "d": "r"}, {"k": "cls", "x": 40, "y": 150, "w": 250, "title": "Node 30", "rows": ["__Data: 30", "__LeftPointer: Node 20", "__RightPointer: Node 40"], "cls": "f1", "lh": 22}, {"k": "cls", "x": 400, "y": 150, "w": 260, "title": "Node 70", "rows": ["__Data: 70", "__LeftPointer: Node 60", "__RightPointer: None"], "cls": "f1", "lh": 22}, {"k": "arr", "a": [300, 130, 220, 148], "d": "d"}, {"k": "arr", "a": [440, 130, 520, 148], "d": "d"}, {"k": "txt", "x": 400, "y": 275, "s": "None means no child", "c": "lbl bd t3", "m": 0}]], CAPS = ["The Tree object has one attribute, <code>__Root</code>. Its value is another object: a Node.", "That Node has a value and two pointer attributes, which are also Nodes (or <code>None</code>).", "Follow the left pointer to another Node object, and the right pointer to a second one.", "The tree diagram is these objects joined by pointers. Node 70's right pointer is <code>None</code>: no right child."];
+  Lib.stepper($("#stD"), { w: 760, h: 290, label: "Containment: objects holding objects", base: { i: 0 }, draw: (s) => SC[Math.round(s.i)].map(sceneItem).join(""), tween: 400, dwell: 3600, steps: CAPS.map((c, i) => ({ cap: c, s: { i } })) }); })();
+
+(function () {
+  let root, n, hl, msg;
+  const reset = () => { root = null; n = 0; hl = []; msg = "Insert some values. The tree starts empty."; [50, 30, 70].forEach((v) => ins(v)); hl = []; msg = "A starter tree of 50, 30 and 70. Insert more values."; draw(); };
+  const ins = (v) => {
+    const node = { v, l: null, r: null }; n++; hl = [];
+    if (!root) { root = node; hl = [v]; return "Root is empty, so " + v + " becomes the Root."; }
+    let c = root, said = [];
+    for (;;) {
+      hl.push(c.v);
+      if (v < c.v) { said.push(v + " < " + c.v + ": left"); if (!c.l) { c.l = node; hl.push(v); return said.join(", ") + ". Left of " + c.v + " is empty: SetLeft."; } c = c.l; }
+      else { said.push(v + " >= " + c.v + ": right"); if (!c.r) { c.r = node; hl.push(v); return said.join(", ") + ". Right of " + c.v + " is empty: SetRight."; } c = c.r; }
+    }
+  };
+  const draw = () => {
+    let idx = 0, maxd = 0; const all = [];
+    const place = (nd, d) => { if (!nd) return; place(nd.l, d + 1); nd.i = idx++; nd.d = d; maxd = Math.max(maxd, d); all.push(nd); place(nd.r, d + 1); };
+    place(root, 0);
+    const sp = Math.min(60, 700 / Math.max(idx, 1)), X = (nd) => 380 - ((idx - 1) * sp) / 2 + nd.i * sp, Y = (nd) => 32 + nd.d * 58;
+    let s = "";
+    all.forEach((nd) => { if (nd.l) s += SV.line(X(nd), Y(nd), X(nd.l), Y(nd.l), "ax"); if (nd.r) s += SV.line(X(nd), Y(nd), X(nd.r), Y(nd.r), "ax"); });
+    all.forEach((nd) => { s += SV.circle(X(nd), Y(nd), 21, "cell") + SV.circle(X(nd), Y(nd), 21, hl.includes(nd.v) ? "f3" : "f1", { opacity: 0.6 }) + SV.circle(X(nd), Y(nd), 21, "ax", { fill: "none" }) + SV.text(X(nd), Y(nd) + 6, nd.v, "lbl bd", { "text-anchor": "middle" }); });
+    $("#tD").innerHTML = `<svg viewBox="0 0 760 ${60 + maxd * 58 + 20}" style="width:100%;height:auto">${s}</svg>`;
+    $("#tL").textContent = msg;
+  };
+  const val = () => parseInt($("#tV").value, 10);
+  $("#tI").onclick = () => { const v = val(); if (isNaN(v)) { msg = "Type a whole number first."; } else if (n >= 13) { msg = "That is enough nodes for this lab. Press New tree."; } else msg = ins(v); draw(); };
+  $("#tS").onclick = () => {
+    const v = val(); hl = []; if (isNaN(v)) { msg = "Type a whole number first."; draw(); return; }
+    let c = root, said = [];
+    while (c) { hl.push(c.v); if (v === c.v) { msg = "Visited " + hl.join(", ") + ": found " + v + ". Search returns True."; draw(); return; } said.push(c.v); c = v < c.v ? c.l : c.r; }
+    msg = "Visited " + said.join(", ") + ": reached an empty pointer. Search returns False."; draw();
+  };
+  $("#tO").onclick = () => { const out = []; const go = (nd) => { if (nd) { go(nd.l); out.push(nd.v); go(nd.r); } }; go(root); hl = out.slice(); msg = "InOrder() prints: " + out.join(" ") + ". Always sorted."; draw(); };
+  $("#tX").onclick = reset; reset();
+})();
+
+btnTable("eB", "eO", [
+  ["Node constructor without pointers", "def __init__(self, NewData): self.__Data = NewData", "GetLeft() fails: the pointer attributes were never created", "Set __LeftPointer and __RightPointer to None in the constructor"],
+  ["Reaching into the Node", "Current.__LeftPointer = NewNode  # inside Tree", "The pointer is private to Node, so Tree cannot use it directly", "Current.SetLeft(NewNode)"],
+  ["No setters for the pointers", "class Node with GetLeft but no SetLeft", "The Tree has no way to attach a new node", "Add SetLeft and SetRight"],
+  ["Attaching the data, not a node", "Current.SetLeft(NewData)", "The pointer now holds a number, not a Node, so GetLeft().GetData() fails", "Create NewNode = Node(NewData) and attach that"],
+  ["Forgetting the empty tree", "Current = self.__Root; Current.GetData()  # Root is None", "AttributeError on an empty tree", "Test self.__Root is None first"],
+  ["Child with no parent constructor", "class CountTree(Tree): def __init__(self): self.__Count = 0", "The Root attribute is never created, so Insert fails", "super().__init__() first"],
+  ["Using the wrong comparison", "if NewData > Current.GetData(): go left", "The tree is built the wrong way round and search fails", "Smaller goes left, larger or equal goes right"]
+], ["Mistake", "Code", "What goes wrong", "Fix"]);
+Lib.classify($("#cl1"), { prompt: "Which concept does each line show?", buckets: [{"label": "Constructor"}, {"label": "Getter or setter"}, {"label": "Containment"}, {"label": "Inheritance"}, {"label": "Encapsulation (private)"}], items: [{"text": "def __init__(self, NewData):", "b": 0}, {"text": "def GetLeft(self): return self.__LeftPointer", "b": 1}, {"text": "self.__Root = NewNode", "b": 2}, {"text": "class CountTree(Tree):", "b": 3}, {"text": "self.__LeftPointer = None", "b": 4}, {"text": "def SetRight(self, NewRight):", "b": 1}, {"text": "super().__init__()", "b": 3}, {"text": "Tree holds a Root that is a Node object", "b": 2}, {"text": "self.__Count = 0 inside CountTree's constructor", "b": 0}, {"text": "Pointers can only be changed through SetLeft and SetRight", "b": 4}], done: "Constructor sets starting values; getters and setters give controlled access; containment is an attribute that is an object; inheritance is the child taking the parent; private data is encapsulation." });
+Lib.order($("#o1"), { prompt: "Put the steps of Insert in order for a tree that already has a root.", items: ["Create the new Node from the value", "Start Current at the Root", "Compare the value with Current's data", "Move to the left or right child if it is not empty", "Repeat until the chosen child is empty", "Attach the new Node with SetLeft or SetRight"], done: "Create, start at the root, compare, move, repeat, attach." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Root", "The top node of the tree"], ["Leaf", "A node whose two pointers are both empty"], ["Left pointer", "The attribute that refers to the left child Node, or None"], ["In-order traversal", "Left subtree, then the node, then the right subtree"], ["Binary search tree", "Smaller values to the left, larger or equal to the right"], ["Null / None", "A pointer that does not refer to any node"]], done: "Learn these terms." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "Values 50, 30, 70, 20, 40, 60 are inserted in that order. What is the left child of 70?", "a": 60, "unit": "", "tol": 0.01, "hint": "60 >= 50 goes right; 60 < 70 goes left.", "sol": "<b>60</b>."},
+  {"q": "Same tree: how many leaf nodes are there?", "a": 3, "unit": "", "tol": 0.01, "hint": "Nodes with no children: 20, 40, 60.", "sol": "<b>3</b>."},
+  {"q": "Same tree: how many nodes are compared when searching for 60, counting 60 itself?", "a": 3, "unit": "", "tol": 0.01, "hint": "The path is 50, 70, 60.", "sol": "<b>3</b>."},
+  {"q": "Same tree: what is the third value printed by InOrder()?", "a": 40, "unit": "", "tol": 0.01, "hint": "Sorted order is 20, 30, 40, 50, 60, 70.", "sol": "<b>40</b>."},
+  {"q": "Same tree: how many levels does it have, counting the root as level 1?", "a": 3, "unit": "", "tol": 0.01, "hint": "50; then 30 and 70; then 20, 40 and 60.", "sol": "<b>3</b>."},
+  {"q": "A CountTree is created and the values 8, 3, 10 are inserted. What does GetCount() return?", "a": 3, "unit": "", "tol": 0.01, "hint": "One count per Insert call.", "sol": "<b>3</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "Why does Node have SetLeft and SetRight?", opts: ["Python requires setters", "The pointers are private, so the Tree needs a way to attach children", "To print the node", "To delete the tree"], a: 1, why: "Private pointers are changed only through methods." },
+  { q: "A new Node's LeftPointer and RightPointer are set to...", opts: ["The root", "None (NULL)", "0", "The data"], a: 1, why: "A new node has no children yet." },
+  { q: "Which relationship is Tree to Node?", opts: ["Tree is a Node", "Tree has a Node (containment)", "Node inherits from Tree", "No relationship"], a: 1, why: "The Tree's attribute is a Node object." },
+  { q: "Why does CountTree call super().__init__() first?", opts: ["To print a message", "So the inherited Root attribute is created", "To delete the parent", "To count nodes"], a: 1, why: "The parent constructor sets the inherited attributes." },
+  { q: "What does in-order traversal of a binary search tree produce?", opts: ["Random order", "Values in sorted order", "Values in reverse insertion order", "Only the leaves"], a: 1, why: "Left, node, right gives sorted order." },
+  { q: "Insert is defined in both Tree and CountTree. Calling Insert on either without checking its type is an example of...", opts: ["Containment", "Polymorphism", "Encapsulation only", "Recursion"], a: 1, why: "Same call, different behaviour per class." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Node", "A value plus a left and right pointer. Private data, getters and setters."],
+  ["Tree", "Holds the Root node. Has Insert, Search and InOrder."],
+  ["Root", "The top node; the Tree's only direct link."],
+  ["Leaf", "A node with no children."],
+  ["Insert rule", "Smaller goes left; larger or equal goes right."],
+  ["Search", "Follow one path; stop at the value or at an empty pointer."],
+  ["In-order", "Left, node, right: sorted output."],
+  ["Why classes?", "Constructor, private pointers with getters and setters, containment."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>
