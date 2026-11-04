@@ -1,6 +1,7 @@
 """Rebuilds a kit-made artifact: python3 tools/artifact-kit/assemble.py <name> "<title>" <slug>
 Sources: <name>.body.html (tabs and sections) + <name>.js (content and activities); lib.css / lib.js are the shared components."""
 import sys, pathlib
+sys.path.insert(0, str(pathlib.Path(__file__).parent))
 name, title, slug = sys.argv[1:4]
 d = pathlib.Path(__file__).parent
 css, lib = (d/"lib.css").read_text(), (d/"lib.js").read_text()
@@ -15,6 +16,9 @@ if extra.exists():
     else:
         css += "\n" + ex
 if (d/f"{name}.head.html").exists(): head = (d/f"{name}.head.html").read_text()
+if slug.startswith("ac-"):   # A Level CS: each sub-question (a), (i) on its own line
+    from qparts import split_parts, CSS as QCSS
+    body, css = split_parts(body), css + QCSS
 html = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title}</title>
