@@ -434,7 +434,7 @@
     host.innerHTML = `
       <div class="tabs admintabs" role="tablist">
         <button data-at="approvals">Approvals${alerts ? ` (${alerts})` : ""}</button><button data-at="students">Classes</button>
-        <button data-at="schools">Schools &amp; tutors</button><button data-at="add">Add students</button><button data-at="pw">Passwords</button><button data-at="me">My profile</button></div>
+        <button data-at="schools">Schools &amp; tutors</button><button data-at="customers">Customers</button><button data-at="add">Add students</button><button data-at="pw">Passwords</button><button data-at="me">My profile</button></div>
       <div class="tabpanel" data-panel="approvals"><section class="card block ${retakes.length ? "attn" : ""}"><h3>Retake requests (${retakes.length})</h3>
         ${retakes.length ? `<ul class="plain">${retakes.map(({ a, p }) => `<li class="row" data-id="${a.id}"><span><b>${esc(p.name)}</b> <span class="hint">${esc(catalog.artifacts[a.slug]?.title || a.slug)} · scored ${a.pct}% · asked ${fmt(a.requested_at)}</span></span>
           <span><button class="mini ok" data-rt="yes">Allow retake</button> <button class="mini danger" data-rt="no">Decline</button></span></li>`).join("")}</ul>` : '<p class="hint">Nothing waiting.</p>'}</section>
@@ -461,6 +461,7 @@
       <div class="tabpanel" data-panel="students"><div class="row"><h3>Classes</h3><button class="mini" id="csv">Export CSV</button></div>
         <p class="hint">Open a class to manage its students.</p>${classAccordion(state)}</div>
       <div class="tabpanel" data-panel="schools">${schoolsPanel(state)}</div>
+      <div class="tabpanel" data-panel="customers"><div id="crm-host"><p class="hint">Loading…</p></div></div>
       <div class="tabpanel" data-panel="me">${adminMe}</div>
       <dialog id="dlg"><form method="dialog" id="f-edit"></form></dialog>
       <dialog id="dlg2" class="wide"><form method="dialog" id="f-view"></form></dialog>`;
@@ -468,6 +469,14 @@
       adminTab = t;
       host.querySelectorAll("[data-at]").forEach((b) => b.classList.toggle("on", b.dataset.at === t));
       host.querySelectorAll(".tabpanel").forEach((d) => (d.hidden = d.dataset.panel !== t));
+      if (t === "customers") loadCrm(host);
+    };
+    const loadCrm = (h) => {
+      const go = () => window.AdminCRM.render(h.querySelector("#crm-host"), sb);
+      if (window.AdminCRM) { if (!h.querySelector("#crm-host .tablewrap, #crm-host #crm-list")) go(); return; }
+      const sc = document.createElement("script");
+      sc.src = document.querySelector('script[src*="profile.js"]').src.replace("profile.js", "crm.js");
+      sc.onload = go; document.head.appendChild(sc);
     };
     host.querySelectorAll("[data-at]").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.at)));
     showTab(tab);
