@@ -210,7 +210,7 @@
     const nav = document.querySelector("nav.main");
     if (!nav || !Site.me || !Site.me.is_admin) return;
     const { data } = await sb.rpc("admin_notifications");
-    const n = data ? (data.approvals || 0) + (data.retakes || 0) : 0;
+    const n = data ? (data.approvals || 0) + (data.retakes || 0) + (data.resets || 0) : 0;
     let a = nav.querySelector(".bell");
     if (!a) {
       a = document.createElement("a");
@@ -220,7 +220,7 @@
       nav.appendChild(a);
     }
     a.querySelector("b").textContent = n || "";
-    a.title = n ? `${data.approvals || 0} subject request(s), ${data.retakes || 0} retake request(s)` : "No notifications";
+    a.title = n ? `${data.approvals || 0} subject request(s), ${data.retakes || 0} retake request(s), ${data.resets || 0} password reset(s)` : "No notifications";
     a.classList.toggle("has", n > 0);
   };
   async function startBell() { if (configured) { await Site.whoami(); Site.refreshBell(); } }

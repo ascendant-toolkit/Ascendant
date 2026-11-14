@@ -128,6 +128,12 @@
       const f = e.target, m = $(".msg", f), btn = $("button", f);
       const email = f.email.value.trim().toLowerCase();
       btn.disabled = true;
+      // The server decides routing: school students go to their teacher; everyone else gets an emailed link.
+      const { data } = await sb.rpc("request_password_reset", { _email: email });
+      if (data && data.email_reset === false) {
+        btn.disabled = false;
+        return msg(m, "Your teacher has been notified and will reset your password for you.", true);
+      }
       const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: new URL(S.base + "profile/", location.href).href });
       btn.disabled = false;
       if (error && /rate|limit|too many/i.test(error.message)) return msg(m, "Too many attempts. Wait a few minutes and try again.", false);
@@ -341,7 +347,7 @@
       const mine = subjectsOf(state, p), all = subjectSlugs(mine), d = state.byEmail.get(p.email) || new Map();
       const n = [...all].filter((s) => d.has(s)).length;
       const status = p.signed_up_at ? (p.last_seen ? "Active " + fmt(p.last_seen) : "Signed up") : "Not signed up";
-      return `<tr data-email="${esc(p.email)}"><td><b>${esc(p.name)}</b><br><span class="hint">${esc(p.email)}${p.email2 ? `<br>${esc(p.email2)}` : ""}</span></td>
+      return `<tr data-email="${esc(p.email)}"><td><b>${esc(p.name)}</b>${p.reset_requested_at ? ' <span class="pill soft">Reset requested</span>' : ""}<br><span class="hint">${esc(p.email)}${p.email2 ? `<br>${esc(p.email2)}` : ""}</span></td>
         <td><div class="pills">${pills(mine)}</div></td><td>${esc(status)}</td><td>${pct(n, all.size)}%<br><span class="hint">${n}/${all.size}</span></td>
         <td class="acts"><button class="mini ok" data-act="view">Progress</button><button class="mini" data-act="edit">Edit</button><button class="mini" data-act="reset">Reset login</button><button class="mini danger" data-act="del">Delete</button></td></tr>`;
     }).join("");
@@ -428,14 +434,19 @@
 
     const pending = state.people.flatMap((p) => (p.requested || []).filter((k) => catalog.courses[k]).map((k) => ({ p, k })));
     const retakes = state.attempts.filter((a) => a.requested_at && !a.reset_at).map((a) => ({ a, p: state.people.find((x) => x.email === a.email) })).filter((r) => r.p);
-    const alerts = pending.length + retakes.length;
+    const resets = state.people.filter((p) => p.reset_requested_at).sort((a, b) => b.reset_requested_at.localeCompare(a.reset_requested_at));
+    const alerts = pending.length + retakes.length + resets.length;
+    const schoolName = (p) => (p.school_id && (state.schools.find((s) => s.id === p.school_id) || {}).name) || "";
     const tab = adminTab || (alerts ? "approvals" : "students");
     const toggleClass = (d) => d.addEventListener("toggle", () => { if (d.open) openClass = d.dataset.cls; else if (openClass === d.dataset.cls) openClass = null; });
     host.innerHTML = `
       <div class="tabs admintabs" role="tablist">
         <button data-at="approvals">Approvals${alerts ? ` (${alerts})` : ""}</button><button data-at="students">Classes</button>
         <button data-at="schools">Schools &amp; tutors</button><button data-at="customers">Customers</button><button data-at="add">Add students</button><button data-at="pw">Passwords</button><button data-at="me">My profile</button></div>
-      <div class="tabpanel" data-panel="approvals"><section class="card block ${retakes.length ? "attn" : ""}"><h3>Retake requests (${retakes.length})</h3>
+      <div class="tabpanel" data-panel="approvals"><section class="card block ${resets.length ? "attn" : ""}"><h3>Password resets (${resets.length})</h3>
+        ${resets.length ? `<p class="hint">Students who used "Forgot your password?". Reset login puts their password back to the one on the list; tell them that password.</p><ul class="plain">${resets.map((p) => `<li class="row" data-email="${esc(p.email)}"><span><b>${esc(p.name)}</b> <span class="hint">${esc(p.email)}${schoolName(p) ? " · " + esc(schoolName(p)) : ""} · asked ${fmt(p.reset_requested_at)}</span></span>
+          <span><button class="mini ok" data-rp="${esc(p.email)}">Reset login</button></span></li>`).join("")}</ul>` : '<p class="hint">Nothing waiting.</p>'}</section>
+        <section class="card block ${retakes.length ? "attn" : ""}"><h3>Retake requests (${retakes.length})</h3>
         ${retakes.length ? `<ul class="plain">${retakes.map(({ a, p }) => `<li class="row" data-id="${a.id}"><span><b>${esc(p.name)}</b> <span class="hint">${esc(catalog.artifacts[a.slug]?.title || a.slug)} · scored ${a.pct}% · asked ${fmt(a.requested_at)}</span></span>
           <span><button class="mini ok" data-rt="yes">Allow retake</button> <button class="mini danger" data-rt="no">Decline</button></span></li>`).join("")}</ul>` : '<p class="hint">Nothing waiting.</p>'}</section>
         <section class="card block ${pending.length ? "attn" : ""}"><div class="row"><h3>Pending approvals (${pending.length})</h3>${pending.length > 1 ? '<button class="mini" id="approveall">Approve all</button>' : ""}</div>
@@ -540,6 +551,12 @@
       const id = Number(b.closest("li").dataset.id);
       const { error } = await sb.rpc(b.dataset.rt === "yes" ? "admin_reset_attempt" : "admin_decline_retake", { _id: id });
       if (error) alert(error.message); else { S.refreshBell?.(); renderAdmin(host); }
+    }));
+    host.querySelectorAll("[data-rp]").forEach((b) => b.addEventListener("click", async () => {
+      const p = state.people.find((x) => x.email === b.dataset.rp);
+      const { error } = await sb.rpc("admin_reset_login", { target: b.dataset.rp });
+      alert(error ? "Could not reset: " + error.message : `Done. ${p.name} can sign in with: ${p.password}`);
+      if (!error) { S.refreshBell?.(); renderAdmin(host); }
     }));
     $("#approveall")?.addEventListener("click", async () => { for (const { p, k } of pending) await decide(p, k, true); renderAdmin(host); });
 
@@ -708,10 +725,12 @@
     data.progress.forEach((r) => { if (!byEmail.has(r.email)) byEmail.set(r.email, new Map()); byEmail.get(r.email).set(r.slug, r.done_at); });
     const left = sc.per_subject ? null : Math.max(0, sc.seats - students.length);
     const doneOf = (p) => byEmail.get(p.email) || new Map();
+    // Students who asked for a password reset come first, so the teacher sees them at the top.
+    students.sort((a, b) => (b.reset_requested_at ? 1 : 0) - (a.reset_requested_at ? 1 : 0));
     const rows = students.map((p) => {
       const d = doneOf(p), all = subjectSlugs(schoolSubs(sc, p).filter((k) => catalog.courses[k])), n = [...all].filter((x) => d.has(x)).length;
       const status = p.signed_up_at ? (p.last_seen ? "Active " + fmt(p.last_seen) : "Signed up") : "Not signed up";
-      return `<tr data-email="${esc(p.email)}"><td><b>${esc(p.name)}</b><br><span class="hint">${esc(p.email)}${p.email2 ? `<br>${esc(p.email2)}` : ""}</span></td>
+      return `<tr data-email="${esc(p.email)}"><td><b>${esc(p.name)}</b>${p.reset_requested_at ? ' <span class="pill soft">Password reset requested</span>' : ""}<br><span class="hint">${esc(p.email)}${p.email2 ? `<br>${esc(p.email2)}` : ""}</span></td>
         <td><code>${esc(p.password)}</code></td>${sc.per_subject ? `<td>${schoolSubs(sc, p).map((k) => esc(shortTitle(k))).join(", ") || "None"}</td>` : ""}<td>${esc(status)}</td><td>${pct(n, all.size)}%<br><span class="hint">${n}/${all.size}</span></td>
         <td class="acts"><button class="mini ok" data-act="view">Progress</button>${sc.per_subject ? '<button class="mini" data-act="subs">Subjects</button>' : ""}<button class="mini" data-act="reset">Reset login</button><button class="mini danger" data-act="rm">Remove</button></td></tr>`;
     }).join("");
@@ -789,6 +808,7 @@
         if (!confirm(`Recreate the login for ${p.name} with the listed password? Their progress is kept.`)) return;
         const { error } = await sb.rpc("school_reset_login", { _email: p.email });
         alert(error ? "Could not reset: " + error.message : `Done. ${p.name} can sign in with: ${p.password}`);
+        if (!error) viewSchool(me);
       } else if (confirm(`Remove ${p.name} from ${sc.name}? This frees their seat. They lose access to these lessons; their progress is kept if they're added back.`)) {
         const { error } = await sb.rpc("school_remove_student", { _email: p.email });
         if (error) alert(error.message); else viewSchool(me);

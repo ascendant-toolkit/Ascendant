@@ -72,6 +72,7 @@ alter table public.profiles add column if not exists password text not null defa
 alter table public.profiles add column if not exists classes text[] not null default '{}';    -- ig1-cs, ig2-cs, a-cs, ig2-econ, a-econ
 alter table public.profiles add column if not exists requested text[] not null default '{}';  -- subjects awaiting approval
 alter table public.profiles add column if not exists school_id text references public.schools (id) on delete set null;  -- v8: seat on a school licence
+alter table public.profiles add column if not exists reset_requested_at timestamptz;  -- a school student asked for a password reset; their teacher (or admin) clears it by resetting the login
 alter table public.profiles add column if not exists school_subjects text[];  -- v10: subjects held via the licence; null = all of the licence's subjects
 
 create table if not exists public.progress (
@@ -341,6 +342,7 @@ begin
   delete from auth.users where email = p.email or email = p.email2;
   perform _create_login(p.email, p.password);
   if p.email2 is not null then perform _create_login(p.email2, p.password); end if;
+  update profiles set reset_requested_at = null where email = p.email;
 end $$;
 
 -- Admin: set, change or remove a student's second login email.
@@ -370,6 +372,23 @@ begin
   select email2 into e2 from profiles where email = k;
   update auth.users set encrypted_password = crypt(new_password, gen_salt('bf')), updated_at = now()
    where email = e or email = k or (e2 is not null and email = e2);
+end $$;
+
+-- Anyone, not signed in: route a "forgot password" request. A student on a school licence is flagged for their
+-- teacher to reset (they hold the assigned password); everyone else uses the emailed reset link the client sends.
+-- The reply never reveals which kind an email is, nor whether it exists.
+create or replace function public.request_password_reset(_email text) returns json
+language plpgsql security definer set search_path = public as $$
+declare e text := lower(trim(coalesce(_email, ''))); p profiles;
+begin
+  if e <> '' then
+    select * into p from profiles where email = e or email2 = e;
+    if found and p.school_id is not null then
+      update profiles set reset_requested_at = now() where email = p.email;
+      return json_build_object('email_reset', false);  -- their teacher handles it
+    end if;
+  end if;
+  return json_build_object('email_reset', true);  -- self-service email link
 end $$;
 
 -- Admin: add a co-teacher with their own login (generated password is passed in from the admin panel).
@@ -604,10 +623,11 @@ end $$;
 create or replace function public.admin_notifications() returns json
 language plpgsql security definer set search_path = public as $$
 begin
-  if not is_admin() then return json_build_object('approvals', 0, 'retakes', 0); end if;
+  if not is_admin() then return json_build_object('approvals', 0, 'retakes', 0, 'resets', 0); end if;
   return json_build_object(
     'approvals', (select coalesce(sum(cardinality(requested)), 0) from profiles),
-    'retakes', (select count(*) from assessment_attempts where retake_requested_at is not null and reset_at is null));
+    'retakes', (select count(*) from assessment_attempts where retake_requested_at is not null and reset_at is null),
+    'resets', (select count(*) from profiles where reset_requested_at is not null));
 end $$;
 
 -- Admin: every attempt (history included) with its feedback.
@@ -947,7 +967,7 @@ begin
   if sid is null then raise exception 'Licence teachers only'; end if;
   return json_build_object(
     'students', coalesce((select json_agg(json_build_object('email', email, 'email2', email2, 'name', name, 'password', password,
-                            'signed_up_at', signed_up_at, 'last_seen', last_seen, 'school_subjects', school_subjects) order by name) from profiles where school_id = sid), '[]'::json),
+                            'signed_up_at', signed_up_at, 'last_seen', last_seen, 'school_subjects', school_subjects, 'reset_requested_at', reset_requested_at) order by name) from profiles where school_id = sid), '[]'::json),
     'progress', coalesce((select json_agg(json_build_object('email', g.email, 'slug', g.slug, 'done_at', g.done_at))
                             from progress g join profiles p on p.email = g.email where p.school_id = sid), '[]'::json),
     'attempts', coalesce((select json_agg(json_build_object('email', a.email, 'slug', a.slug, 'pct', a.pct, 'score', a.score, 'max', a.max_score, 'at', a.submitted_at)
@@ -1014,6 +1034,7 @@ begin
   delete from auth.users where email = p.email or email = p.email2;
   perform _create_login(p.email, p.password);
   if p.email2 is not null then perform _create_login(p.email2, p.password); end if;
+  update profiles set reset_requested_at = null where email = p.email;
 end $$;
 
 -- Bootstrap: create the admin logins from admins.initial_password.
