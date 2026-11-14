@@ -14,7 +14,7 @@ import re
 import shutil
 from pathlib import Path
 
-from site_data import A_CS_MOVED, A_ECON_MOVED, ARTIFACTS, CHECKOUT_URLS, COURSES, LANDING_PAGE, SITE_TAGLINE, SITE_TITLE
+from site_data import A_CS_MOVED, A_ECON_MOVED, ARTIFACTS, COURSES, PADDLE, LANDING_PAGE, SITE_TAGLINE, SITE_TITLE
 
 ROOT = Path(__file__).parent
 OUT = ROOT / "docs"
@@ -610,12 +610,24 @@ def build_pricing():
     r = "../"
     join = f"{r}profile/"
 
-    def buy(plan, label):
-        u = CHECKOUT_URLS.get(plan, {})
-        y, m = u.get("y", ""), u.get("m", "")
-        if y or m:
-            return f'<a class="btn cta-buy" data-y="{esc(y)}" data-m="{esc(m)}" href="{esc(y or m)}">{label}</a>'
-        return f'<a class="btn ghost" href="{join}">Available at launch</a>'
+    sub_names = {"ig-econ": "IGCSE Economics", "ig-cs": "IGCSE Computer Science",
+                 "a-econ": "A-Level Economics", "a-cs": "A-Level Computer Science"}
+    pp = PADDLE["prices"]
+    live = bool(PADDLE["token"])
+
+    def has_ids(plan):
+        v = pp.get(plan, {})
+        flat = [v] if "m" in v else list(v.values())
+        return live and any(x.get("m") or x.get("y") for x in flat)
+
+    def buy(plan, label, per_subject=False):
+        if not has_ids(plan):
+            return f'<a class="btn ghost" href="{join}">Available at launch</a>'
+        sel = ""
+        if per_subject:
+            opts = "".join(f'<option value="{k}">{esc(v)}</option>' for k, v in sub_names.items())
+            sel = f'<select class="subj" aria-label="Subject" data-plan="{plan}">{opts}</select>'
+        return f'<div class="buyrow">{sel}<button type="button" class="btn cta-buy" data-plan="{plan}">{label}</button></div>'
 
     def price(y, m):
         return (f'<p class="price" data-y="{y}" data-m="{m}">'
@@ -636,11 +648,11 @@ def build_pricing():
                 f'<a class="btn ghost" href="{join}">Create a free account</a>')
     basic = plan("Basic", price(59, 7), "One subject, the whole syllabus to learn from.",
                  ["Every lesson and interactive tool for one subject", "All chapters and levels in that subject",
-                  "Learn on any device"], buy("basic", "Choose Basic"))
+                  "Learn on any device"], buy("basic", "Choose Basic", True))
     full = plan("Full", price(119, 14), "Everything for one subject, from learning to exam practice.",
                 ["Everything in Basic", "Server-marked assessments with instant feedback",
                  "Progress and homework tracking", "Exam-technique packs and model answers"],
-                buy("full", "Get Full"), cls="featured", accent="teal", badge="Most popular")
+                buy("full", "Get Full", True), cls="featured", accent="teal", badge="Most popular")
     allp = plan("All-Access", price(199, 24), "Both subjects, every level, the lot.",
                 ["Everything in Full", "Every subject and level we offer", "Exam-question packs",
                  "Early access to new content"], buy("all", "Go All-Access"))
@@ -680,6 +692,8 @@ def build_pricing():
         "progress tracking in one place: the explaining, practising and marking, built for "
         "Cambridge Economics and Computer Science.</p></section>"
         f"{cycle}"
+        '<p id="paid" class="paid" hidden role="status"><strong>Payment received.</strong> New here? We have emailed you a link to set your password (check spam if it does not arrive). '
+        'Then <a href="../profile/">sign in</a> and your lessons are unlocked. Already have an account? Just sign in.</p>'
         f'<div class="plans-wrap">{free}{basic}{full}{allp}</div>'
         '<section class="sec" aria-labelledby="ts"><h2 id="ts">For teachers and schools</h2>'
         '<p class="lede">Teach with it in the classroom, or roll it out across a whole school.</p>'
@@ -689,14 +703,30 @@ def build_pricing():
         f'<section class="sec" aria-labelledby="rf"><h2 id="rf">Billing, cancellation and refunds</h2>'
         f'<div class="faq">{faq_html}</div></section>')
 
-    script = ("<script>(function(){"
-              "function set(c){"
+    cfg = json.dumps({"env": PADDLE["env"], "token": PADDLE["token"], "prices": pp}, separators=(",", ":"))
+    paddle_js = '<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>' if live else ""
+    script = (paddle_js + "<script>(function(){"
+              f"var CFG={cfg},cycle='y';"
+              "function pid(plan,subj){var v=CFG.prices[plan]||{};if(subj)v=v[subj]||{};return v[cycle]||'';}"
+              "function sync(){"
+              "document.querySelectorAll('.cta-buy').forEach(function(b){var s=document.querySelector('.subj[data-plan='+b.dataset.plan+']');"
+              "var ok=!!pid(b.dataset.plan,s&&s.value);b.disabled=!ok;b.title=ok?'':'Not available for this choice yet';});}"
+              "function set(c){cycle=c;"
               "document.querySelectorAll('.cycle button').forEach(function(b){b.classList.toggle('on',b.dataset.cycle===c);});"
               "document.querySelectorAll('.price[data-y]').forEach(function(p){"
               "p.querySelector('.amt').textContent='$'+(c==='y'?p.dataset.y:p.dataset.m);"
-              "p.querySelector('.per').textContent=c==='y'?'/year':'/month';});"
-              "document.querySelectorAll('.cta-buy').forEach(function(a){var u=c==='y'?a.dataset.y:a.dataset.m;if(u)a.href=u;});}"
+              "p.querySelector('.per').textContent=c==='y'?'/year':'/month';});sync();}"
               "document.querySelectorAll('.cycle button').forEach(function(b){b.addEventListener('click',function(){set(b.dataset.cycle);});});"
+              "document.querySelectorAll('.subj').forEach(function(s){s.addEventListener('change',sync);});"
+              "if(CFG.token&&window.Paddle){"
+              "if(CFG.env==='sandbox')Paddle.Environment.set('sandbox');"
+              "Paddle.Initialize({token:CFG.token,eventCallback:function(e){if(e.name==='checkout.completed'){"
+              "Paddle.Checkout.close();var n=document.getElementById('paid');if(n){n.hidden=false;n.scrollIntoView({block:'center'});}}}});"
+              "document.querySelectorAll('.cta-buy').forEach(function(b){b.addEventListener('click',async function(){"
+              "var s=document.querySelector('.subj[data-plan='+b.dataset.plan+']'),id=pid(b.dataset.plan,s&&s.value);if(!id)return;"
+              "var o={items:[{priceId:id,quantity:1}]};"
+              "try{var ses=window.Site&&await Site.session();if(ses&&ses.user.email)o.customer={email:ses.user.email};}catch(e){}"
+              "Paddle.Checkout.open(o);});});sync();}"
               "})();</script>")
     write("pricing/index.html", layout("Plans", body, "pricing/", "pricing", [("Home", ""), ("Plans", None)], extra=script))
 
@@ -932,6 +962,27 @@ def build_artifacts():
     seed_file.write_text(text, encoding="utf-8")
 
 
+def write_paddle_seed():
+    """supabase/paddle_prices_seed.sql: what each Paddle price id grants. Price ids are public, so this file is committed."""
+    rows = []
+    for plan, tier in (("basic", "basic"), ("full", "full")):
+        for subj, v in PADDLE["prices"][plan].items():
+            rows += [(v[c], subj, tier, c, "student") for c in "my" if v[c]]
+    v = PADDLE["prices"]["all"]
+    rows += [(v[c], "school-all", "vip", c, "student") for c in "my" if v[c]]
+    v = PADDLE["prices"]["teacher"]
+    rows += [(v[c], None, "full", c, "teacher") for c in "my" if v[c]]
+    lines = ["-- Written by build.py from site_data.PADDLE. Safe to rerun: maps each Paddle price id to what it grants (schema.sql, v11)."]
+    if rows:
+        lines.append("insert into public.paddle_prices (price_id, product, tier, period, kind) values")
+        lines.append(",\n".join("  ('%s', %s, '%s', '%s', '%s')" % (i, "null" if p is None else "'%s'" % p, t, c, k) for i, p, t, c, k in rows))
+        lines.append("on conflict (price_id) do update set product = excluded.product, tier = excluded.tier, period = excluded.period, kind = excluded.kind;")
+        lines.append("delete from public.paddle_prices where price_id not in (%s);" % ",".join("'%s'" % r[0] for r in rows))
+    else:
+        lines.append("-- No Paddle price ids set yet.")
+    (ROOT / "supabase" / "paddle_prices_seed.sql").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def main():
     if OUT.exists():
         shutil.rmtree(OUT)
@@ -948,6 +999,7 @@ def main():
     build_schools()
     build_dashboard()
     build_pricing()
+    write_paddle_seed()
     build_catalog()
     build_assessments()
     build_artifacts()

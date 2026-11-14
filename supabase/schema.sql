@@ -1061,3 +1061,38 @@ drop policy if exists contact_insert on public.contact_messages;
 create policy contact_insert on public.contact_messages for insert to anon, authenticated with check (true);
 drop policy if exists contact_admin on public.contact_messages;
 create policy contact_admin on public.contact_messages for all using (is_admin()) with check (is_admin());
+
+-- ===================== Payments (v11, Paddle) =====================
+-- The paddle-webhook edge function (supabase/functions/paddle-webhook) writes these with the service role.
+-- paddle_prices maps each Paddle price id to what it grants; build.py writes supabase/paddle_prices_seed.sql from site_data.PADDLE.
+alter table public.entitlements drop constraint if exists entitlements_plan_check;
+alter table public.entitlements add constraint entitlements_plan_check check (plan in ('free', 'annual', 'monthly', 'seasonal', 'school'));
+
+create table if not exists public.paddle_prices (
+  price_id text primary key,
+  product  text references public.products (id),   -- null for the Teacher plan (fulfilled by hand)
+  tier     text not null check (tier in ('basic', 'full', 'vip')),
+  period   text not null check (period in ('m', 'y')),
+  kind     text not null default 'student' check (kind in ('student', 'teacher'))
+);
+alter table public.paddle_prices enable row level security;
+drop policy if exists paddle_prices_admin on public.paddle_prices;
+create policy paddle_prices_admin on public.paddle_prices for all using (is_admin()) with check (is_admin());
+
+-- Every sale and refund, one row per Paddle transaction. needs_setup = paid but not auto-fulfilled (Teacher, unknown price).
+create table if not exists public.payments (
+  txn_id      text primary key,
+  email       text not null,
+  customer_id text,
+  price_id    text,
+  product     text,
+  tier        text,
+  amount      text,
+  currency    text,
+  status      text not null default 'granted' check (status in ('granted', 'needs_setup', 'refunded')),
+  note        text,
+  created_at  timestamptz not null default now()
+);
+alter table public.payments enable row level security;
+drop policy if exists payments_admin on public.payments;
+create policy payments_admin on public.payments for all using (is_admin()) with check (is_admin());

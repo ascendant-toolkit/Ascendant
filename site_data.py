@@ -5,14 +5,20 @@ SITE_TITLE = "Ascendant"
 LANDING_PAGE = False
 SITE_TAGLINE = "Interactive lessons, walkthroughs and revision activities for GCSE and A-Level Economics and Computer Science."
 
-# Lemon Squeezy checkout links. Fill each in once the product/variant exists; an empty string makes that
-# plan show "Available at launch" (links to the join form) instead of a live buy button. USD prices are set
-# in build.py (build_pricing); Lemon Squeezy shows the buyer their local currency and handles VAT.
-CHECKOUT_URLS = {
-    "basic":   {"m": "", "y": ""},
-    "full":    {"m": "", "y": ""},
-    "all":     {"m": "", "y": ""},
-    "teacher": {"m": "", "y": ""},
+# Paddle checkout. Fill in the client-side token and each price id (pri_...) once the products exist in Paddle.
+# env is "sandbox" until you go live. Empty token or id = that plan shows "Available at launch". Basic and Full are
+# per subject; build.py also writes supabase/paddle_prices_seed.sql from these ids so the webhook knows what each grants.
+_SUBJECTS = ("ig-econ", "ig-cs", "a-econ", "a-cs")
+_P = lambda: {"m": "", "y": ""}
+PADDLE = {
+    "env": "sandbox",
+    "token": "",
+    "prices": {
+        "basic":   {s: _P() for s in _SUBJECTS},
+        "full":    {s: _P() for s in _SUBJECTS},
+        "all":     _P(),
+        "teacher": _P(),
+    },
 }
 
 # Each course: key -> metadata. 'levels' is used by A-Level courses (AS / A Level split).

@@ -1,0 +1,2 @@
+-- Written by build.py from site_data.PADDLE. Safe to rerun: maps each Paddle price id to what it grants (schema.sql, v11).
+-- No Paddle price ids set yet.
