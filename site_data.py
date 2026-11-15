@@ -9,17 +9,31 @@ SITE_TAGLINE = "Interactive lessons, walkthroughs and revision activities for GC
 # env is "sandbox" until you go live. Empty token or id = that plan shows "Available at launch". Basic and Full are
 # per subject; build.py also writes supabase/paddle_prices_seed.sql from these ids so the webhook knows what each grants.
 _SUBJECTS = ("ig-econ", "ig-cs", "a-econ", "a-cs")
-_P = lambda: {"m": "", "y": ""}
+PRICE_IDS = {
+    "basic/ig-econ": ("pri_01m7excpcpt20vcx6ck15z0t0n", "pri_01m7excpmz3e15qptgxsm033nx"),
+    "full/ig-econ": ("pri_01m7excqwg12pxrdxy41hka4q0", "pri_01m7excr5198cx8y63v34qzwtj"),
+    "basic/ig-cs": ("pri_01m7excrnts2bc3b0cbwm2qzqv", "pri_01m7excrxdjysc7kaywcr36v1s"),
+    "full/ig-cs": ("pri_01m7excsdp52p2e3cp5ypceh52", "pri_01m7exctb583xtyvcheafrc6a6"),
+    "basic/a-econ": ("pri_01m7exctwhrv16n2wfrn8dy04t", "pri_01m7excv48n43qm7d70nhkhaks"),
+    "full/a-econ": ("pri_01m7excvnd5f12dp0rwta2ajqd", "pri_01m7excvz4td7egsd78vs9kw28"),
+    "basic/a-cs": ("pri_01m7excwfzvqycq52d7w4zvyyd", "pri_01m7excwr6yq9rkffcjdc29tq9"),
+    "full/a-cs": ("pri_01m7excxanaah3t0npacavm84b", "pri_01m7excxk410tzh1kv1pfs4khs"),
+    "all": ("pri_01m7excy50p6h7hkxmbn0jmqqn", "pri_01m7excycz8kw9ayvea6svcb5s"),
+    "teacher": ("pri_01m7exczkbyt8wbdt4sa969bm0", "pri_01m7exczvbzf84xms3e743fs4j"),
+}
+_P = lambda k: dict(zip("my", PRICE_IDS.get(k, ("", ""))))
 PADDLE = {
     "env": "sandbox",
-    "token": "",
+    "token": "test_75e161e381e83e227864273a386",
     "prices": {
-        "basic":   {s: _P() for s in _SUBJECTS},
-        "full":    {s: _P() for s in _SUBJECTS},
-        "all":     _P(),
-        "teacher": _P(),
+        "basic":   {s: _P(f"basic/{s}") for s in _SUBJECTS},
+        "full":    {s: _P(f"full/{s}") for s in _SUBJECTS},
+        "all":     _P("all"),
+        "teacher": _P("teacher"),
     },
 }
+
+
 
 # Each course: key -> metadata. 'levels' is used by A-Level courses (AS / A Level split).
 # Chapters are dicts: id (url slug), label (shown on card), title, group (optional heading in grid).
