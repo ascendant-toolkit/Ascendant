@@ -55,7 +55,9 @@ async function fulfil(txn: any) {
   const items: any[] = txn.items ?? [];
   const ids = items.map((i) => i.price?.id ?? i.price_id).filter(Boolean);
   const { data: prices } = await db.from("paddle_prices").select("*").in("price_id", ids);
+  console.log("lookup customer", txn.customer_id);
   const cust = await paddleCustomer(txn.customer_id);
+  console.log("customer ok");
   const amount = txn.details?.totals?.total, currency = txn.currency_code;
   const base = { txn_id: txn.id, customer_id: txn.customer_id, amount, currency };
 
@@ -72,6 +74,7 @@ async function fulfil(txn: any) {
   if (prior?.status === "refunded") return; // a late retry must not undo a refund
 
   const email = await ensureAccount(cust.email, cust.name);
+  console.log("account ok");
   const ends = txn.billing_period?.ends_at ? new Date(txn.billing_period.ends_at).getTime() : Date.now() + 31 * 24 * 3600 * 1000;
   const expires = new Date(ends + GRACE_MS).toISOString();
 
@@ -106,10 +109,13 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
   const raw = await req.text();
   if (!(await verify(raw, req.headers.get("paddle-signature")))) return new Response("Bad signature", { status: 401 });
+  const t0 = Date.now();
   try {
     const ev = JSON.parse(raw);
+    console.log("webhook", ev.event_type, ev.data?.id);
     if (ev.event_type === "transaction.completed") await fulfil(ev.data);
     else if (ev.event_type === "adjustment.updated") await refund(ev.data);
+    console.log("done", ev.event_type, `${Date.now() - t0}ms`);
     return new Response("ok");
   } catch (e) {
     console.error(e);
