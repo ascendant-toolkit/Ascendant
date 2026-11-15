@@ -90,7 +90,7 @@ def layout(title, body, path, active, crumbs=None, accent=None, auth=False, extr
 {crumb_html}
 {body}
 </main>
-<footer class="site"><p><a href="{root}schools/">For schools</a> · <a href="{root}contact/">Contact</a></p><p>Independent revision resource for Cambridge IGCSE and A-Level. Not affiliated with or endorsed by Cambridge University Press &amp; Assessment.</p></footer>
+<footer class="site"><p><a href="{root}schools/">For schools</a> · <a href="{root}contact/">Contact</a> · <a href="{root}terms/">Terms</a> · <a href="{root}privacy/">Privacy</a> · <a href="{root}refunds/">Refunds</a></p><p>Independent revision resource for Cambridge IGCSE and A-Level. Not affiliated with or endorsed by Cambridge University Press &amp; Assessment.</p></footer>
 <script src="{root}assets/site.js"></script>
 {auth_scripts(root, gate)}{extra}
 </body></html>
@@ -537,6 +537,48 @@ def build_contact():
             '<button class="btn" type="submit">Send message</button><p class="msg" id="contactmsg" hidden></p></form></div></section>')
     write("contact/index.html", layout("Contact", body, "contact/", "contact", [("Home", ""), ("Contact", None)],
                                        extra='<script src="../assets/contact.js"></script>'))
+
+
+LEGAL_UPDATED = "15 November 2026"
+
+LEGAL = {
+    "terms": ("Terms of service", "The rules for using Ascendant, in plain English.", [
+        ("Who we are", "Ascendant is an independent revision resource for Cambridge IGCSE and A-Level Economics and Computer Science. It is not affiliated with or endorsed by Cambridge University Press &amp; Assessment. You can reach us through the <a href=\"../contact/\">contact form</a>."),
+        ("Your account", "You need an account to track progress and to use paid lessons. Keep your password private. Accounts are for one person: please do not share logins or the lesson content. If you are under 16, ask a parent or guardian to set up the account and any purchase."),
+        ("What you are buying", "A paid plan gives you access to the lessons, assessments and practice for the subjects and tier you chose, for as long as your plan is active. Plans renew automatically each month or year until you cancel. Content is updated and improved over time, and we may add, change or retire individual items."),
+        ("Prices, payment and tax", "Prices are shown in US dollars. At checkout you are charged in your local currency with any VAT or sales tax added. Payments are handled by Paddle, who act as the merchant of record and sell the plan to you. Paddle's own terms apply to the payment itself."),
+        ("Cancelling", "Cancel at any time from your Paddle receipt email or by contacting us. You keep access until the end of the period you have paid for, then the plan stops and you are not charged again. Refunds are covered in the <a href=\"../refunds/\">refund policy</a>."),
+        ("Acceptable use", "Use the site for your own revision or teaching. Do not copy, resell, scrape or redistribute the lessons, assessments or answer material, and do not try to break or bypass the site's access controls."),
+        ("Our content and your results", "The lessons are our own work, built around the published Cambridge syllabi. We take care to be accurate, but we cannot guarantee any exam result or that the material is free of errors. Always check the official syllabus and mark schemes for your exam series."),
+        ("Schools and tutors", "Licences for schools and tutors run for the agreed term and are covered by the licence terms agreed when you sign up, alongside these terms."),
+        ("Changes and ending access", "We may update these terms; the date at the top shows the latest version. We may suspend an account that breaks these terms. Nothing in these terms limits any legal rights you have as a consumer."),
+    ]),
+    "privacy": ("Privacy notice", "What we collect, why, and who handles it.", [
+        ("What we collect", "Your name, email address, the subjects you study, your progress and assessment attempts, and any message you send through the contact form. If you buy a plan, Paddle collects your payment details and billing address; we receive your email, the plan and the payment status, but never your card number."),
+        ("Why we use it", "To run your account, unlock the lessons you have paid for, show your progress, reply to your messages and send account emails such as password resets. We do not sell your data and we do not use it for advertising."),
+        ("Who handles it", "Supabase hosts our database and logins. Paddle processes payments as merchant of record. Resend delivers our account emails. GitHub hosts the website. Each handles data only to provide its service."),
+        ("Cookies and storage", "We use your browser's local storage to keep you signed in and remember your progress. We do not use advertising or cross-site tracking cookies."),
+        ("How long we keep it", "While your account exists. Payment records are kept as long as tax and accounting rules require. Ask us to delete your account and we will remove your data, except records we are legally required to keep."),
+        ("Your rights", "You can ask to see, correct or delete the personal data we hold about you, or to object to how we use it. Use the <a href=\"../contact/\">contact form</a> and choose the topic that fits. Students in a school may also be able to ask their teacher to correct details."),
+        ("Children", "Many of our students are under 18. Younger students should use the site with a parent or guardian's agreement, and any purchase should be made by an adult."),
+    ]),
+    "refunds": ("Refund policy", "How refunds and cancellations work.", [
+        ("14-day money-back guarantee", "There is a 14-day money-back guarantee on your first purchase. If it is not for you, get in touch within two weeks of buying and we will refund it in full, no questions asked."),
+        ("Monthly plans", "Cancel at any time and you are not charged again. You keep access until the end of the month you have paid for. After the first 14 days, monthly payments are not refunded."),
+        ("Annual plans", "After the first 14 days an annual plan is non-refundable and you keep full access until it ends. If you have a genuine reason, get in touch: any goodwill refund is worked out at the standard monthly price for the months you have used, not the discounted annual rate."),
+        ("Schools and tutors", "Licences are annual commitments with no mid-term refunds. Schools get a 30-day evaluation instead. After that the licence runs for the agreed term."),
+        ("How to ask", "Use the <a href=\"../contact/\">contact form</a> and choose Billing or refunds, or reply to your Paddle receipt. Approved refunds go back to your original payment method and your access ends when the refund is made."),
+        ("Your legal rights", "This policy does not affect any rights you have under consumer law."),
+    ]),
+}
+
+
+def build_legal():
+    """Terms, privacy and refund pages at /terms/, /privacy/, /refunds/. Paddle requires all three on the site to approve the domain."""
+    for slug, (title, lead, sections) in LEGAL.items():
+        parts = "".join(f'<h2>{esc(h)}</h2><p>{t}</p>' for h, t in sections)
+        body = (head(title, lead, "Legal") + f'<section class="sec" style="max-width:720px"><p class="hint">Last updated {LEGAL_UPDATED}</p>{parts}</section>')
+        write(f"{slug}/index.html", layout(title, body, f"{slug}/", slug, [("Home", ""), (title, None)]))
 
 
 def build_schools():
@@ -996,6 +1038,7 @@ def main():
     build_courses()
     build_other_profile()
     build_contact()
+    build_legal()
     build_schools()
     build_dashboard()
     build_pricing()
