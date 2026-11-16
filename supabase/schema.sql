@@ -1431,3 +1431,73 @@ begin
     delete from class_taught where teacher_email = e and class_key = _class and slug = any (_slugs);
   end if;
 end $$;
+
+-- ========== Reminders: a teacher nudges students to take an assessment or topic test ==========
+-- Shown on the student's dashboard until they take the item or dismiss it. One reminder per teacher, student and item per day.
+create table if not exists public.reminders (
+  id            bigint generated always as identity primary key,
+  student_email text not null references public.profiles (email) on delete cascade on update cascade,
+  teacher_email text not null,
+  teacher_name  text not null,
+  kind          text not null check (kind in ('assessment', 'test')),
+  item          text not null,                 -- artifact slug (assessment) or topic test id
+  created_at    timestamptz not null default now(),
+  dismissed_at  timestamptz
+);
+create index if not exists reminders_student on public.reminders (student_email) where dismissed_at is null;
+alter table public.reminders enable row level security;   -- reads and writes only through the functions below
+drop policy if exists reminders_admin on public.reminders;
+create policy reminders_admin on public.reminders for all using (is_admin()) with check (is_admin());
+
+create or replace function public._reminder_done(_email text, _kind text, _item text) returns boolean
+language sql stable security definer set search_path = public as $$
+  select case _kind
+    when 'assessment' then exists (select 1 from assessment_attempts where email = _email and slug = _item and reset_at is null)
+    else exists (select 1 from test_attempts where email = _email and test_id = _item and finalized_at is not null) end
+$$;
+
+-- Teacher or admin: remind students who have not taken the item yet. Returns how many reminders were sent.
+create or replace function public.send_reminders(_emails text[], _kind text, _item text) returns int
+language plpgsql security definer set search_path = public as $$
+declare e text := lower(auth.jwt() ->> 'email'); sid text := my_school(); tname text; n int := 0; s text;
+begin
+  if not (is_admin() or sid is not null) then raise exception 'Teachers only'; end if;
+  if _kind not in ('assessment', 'test') then raise exception 'Unknown kind'; end if;
+  tname := coalesce((select name from admins where email = e), (select name from school_teachers where email = e), 'Your teacher');
+  foreach s in array coalesce(_emails, '{}'::text[]) loop
+    s := lower(s);
+    continue when not exists (select 1 from profiles where email = s and (sid is null or school_id = sid));
+    continue when _reminder_done(s, _kind, _item);
+    continue when exists (select 1 from reminders where student_email = s and teacher_email = e and kind = _kind and item = _item and created_at > now() - interval '1 day');
+    insert into reminders (student_email, teacher_email, teacher_name, kind, item) values (s, e, tname, _kind, _item);
+    n := n + 1;
+  end loop;
+  return n;
+end $$;
+
+-- Teacher: reminders they sent in the last 30 days (latest per student and item), so the screen can say "reminded 2 days ago".
+create or replace function public.my_sent_reminders() returns json
+language plpgsql security definer set search_path = public as $$
+begin
+  if not _is_staff() then raise exception 'Teachers only'; end if;
+  return coalesce((select json_agg(json_build_object('email', x.student_email, 'kind', x.kind, 'item', x.item, 'at', x.created_at))
+    from (select distinct on (student_email, kind, item) student_email, kind, item, created_at from reminders
+           where teacher_email = lower(auth.jwt() ->> 'email') and created_at > now() - interval '30 days'
+           order by student_email, kind, item, created_at desc) x), '[]'::json);
+end $$;
+
+-- Student: open reminders for things they have not taken yet, newest first.
+create or replace function public.my_reminders() returns json
+language sql stable security definer set search_path = public as $$
+  select coalesce(json_agg(json_build_object('id', x.id, 'kind', x.kind, 'item', x.item, 'teacher', x.teacher_name, 'at', x.created_at) order by x.created_at desc), '[]'::json)
+  from (select distinct on (kind, item) id, kind, item, teacher_name, created_at from reminders
+         where student_email = my_key() and dismissed_at is null and not _reminder_done(student_email, kind, item)
+         order by kind, item, created_at desc) x
+$$;
+
+create or replace function public.dismiss_reminder(_id bigint) returns void
+language sql security definer set search_path = public as $$
+  update reminders r set dismissed_at = now()
+   from reminders o where o.id = _id and o.student_email = my_key()
+    and r.student_email = o.student_email and r.kind = o.kind and r.item = o.item and r.dismissed_at is null
+$$;

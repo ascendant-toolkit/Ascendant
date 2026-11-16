@@ -8,7 +8,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const fmt = (d) => (d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "");
   const pct = (done, total) => (total ? Math.round((100 * done) / total) : 0);
-  let catalog;
+  let catalog, $reminders;
 
   if (!S || !S.configured) {
     root.innerHTML = `<div class="placeholder"><h2>Accounts are not switched on yet</h2></div>`;
@@ -38,7 +38,19 @@
       }).join("")}</div></div>`).join("");
   }
 
-  function render(me, done, attempts, tests) {
+  // Reminders from teachers: things they asked the student to take. The server drops each one once it is taken.
+  function reminderCard(reminders) {
+    if (!reminders.length) return "";
+    const info = (r) => r.kind === "assessment"
+      ? { t: catalog.artifacts[r.item]?.title, u: `${S.base}assess/?a=${encodeURIComponent(r.item)}`, w: "assessment" }
+      : { t: catalog.tests?.[r.item]?.title.replace(/: topic test$/, ""), u: `${S.base}tests/?t=${encodeURIComponent(r.item)}`, w: "topic test" };
+    const rows = reminders.map((r) => ({ r, i: info(r) })).filter((x) => x.i.t).map(({ r, i }) => `<li class="row" data-id="${r.id}">
+      <span><b>${esc(r.teacher)}</b> asked you to take the ${i.w} <a class="lnk" href="${i.u}">${esc(i.t)}</a> <span class="hint">${fmt(r.at)}</span></span>
+      <span><a class="btn" href="${i.u}">Take it</a> <button class="mini" data-dismiss="${r.id}">Dismiss</button></span></li>`).join("");
+    return rows ? `<section class="card block attn" id="reminders"><h3>Reminders from your teacher</h3><ul class="plain">${rows}</ul></section>` : "";
+  }
+
+  function render(me, done, attempts, tests, reminders = []) {
     const mine = me.subjects.filter((k) => catalog.courses[k]);
     const all = subjectSlugs(mine), total = all.size;
     const doneN = [...all].filter((s) => done.has(s)).length;
@@ -112,11 +124,21 @@
     root.innerHTML = `
       <section class="dash-head"><p class="kicker">Dashboard</p><h1>${greet}, ${esc(first)}</h1>
         <p class="hint">${me.school ? esc(me.school) + " · " : ""}${mine.length ? mine.map((k) => esc(catalog.courses[k].title)).join(" · ") : "No subjects yet"}</p></section>
+      ${reminderCard(reminders)}
       ${resume}
       <div class="stat-tiles">${tiles}</div>
       ${mine.length ? `<h2 class="dash-h2">Your subjects</h2><div class="grid two">${subjectCards}</div>` : ""}
       <div class="grid two dash">${testsCard}${scoresCard}</div>
       <div class="grid two dash">${recentCard}</div>`;
+    $reminders = root.querySelector("#reminders");
+    $reminders?.addEventListener("click", async (e) => {
+      const b = e.target.closest("[data-dismiss]");
+      if (!b) return;
+      b.disabled = true;
+      await S.sb.rpc("dismiss_reminder", { _id: Number(b.dataset.dismiss) });
+      b.closest("li").remove();
+      if (!$reminders.querySelector("li")) $reminders.remove();
+    });
   }
 
   async function boot() {
@@ -138,7 +160,8 @@
     const done = await S.loadProgress();
     const attempts = (await S.sb.rpc("my_attempts")).data || [];
     const tests = (await S.sb.rpc("my_test_attempts")).data || [];
-    render(me, done, attempts, tests);
+    const reminders = (await S.sb.rpc("my_reminders")).data || [];
+    render(me, done, attempts, tests, reminders);
   }
   boot();
 })();

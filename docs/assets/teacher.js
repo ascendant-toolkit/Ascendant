@@ -19,7 +19,7 @@
     const $ = (sel, el = root) => el.querySelector(sel);
     const hasData = school || admin;           // co-teachers get tests and mark schemes only
     const courseKeys = me.subjects.filter((k) => catalog.courses[k]);
-    let st = { students: [], classes: [], progress: new Map(), assess: [], tests: [], taught: new Map(), schemaMissing: false };
+    let st = { students: [], classes: [], progress: new Map(), assess: [], tests: [], taught: new Map(), sent: [], schemaMissing: false };
     let q = "";                                // student filter text
     let cf = "";                               // class or subject filter: "c:<class id>" or "s:<subject>"
 
@@ -55,6 +55,7 @@
 
     async function loadTaught() {
       st.taught = new Map();
+      if (hasData) { const r = await sb.rpc("my_sent_reminders"); st.sent = r.error ? [] : r.data || []; }
       if (!st.classes.length) return;
       const { data } = await sb.rpc("my_taught");
       (data || []).forEach((r) => { if (!st.taught.has(r.class)) st.taught.set(r.class, new Map()); st.taught.get(r.class).set(r.slug, r.at); });
@@ -168,6 +169,57 @@
       };
     }
 
+    // ---------- reminders ----------
+    // Pick an assessment or topic test; students in `emails` who have not taken it are listed with a Remind button.
+    // A reminder shows on the student's own dashboard until they take it. The server allows one per student and item a day.
+    const dayAgo = () => Date.now() - DAY;
+    function remindCard(emails, subjects) {
+      const groups = subjects.filter((k) => catalog.courses[k]).map((k) => {
+        const course = catalog.courses[k];
+        const as = Object.keys(catalog.assessed || {}).filter((x) => course.slugs.includes(x) && catalog.artifacts[x]);
+        const ts = Object.keys(catalog.tests || {}).filter((id) => id.split("/")[0] === k).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+        return `${as.length ? `<optgroup label="${esc(course.title)}: assessments">${as.map((x) => `<option value="a:${esc(x)}">${esc(catalog.artifacts[x].title)}</option>`).join("")}</optgroup>` : ""}
+          ${ts.length ? `<optgroup label="${esc(course.title)}: topic tests">${ts.map((id) => `<option value="t:${esc(id)}">${esc(catalog.tests[id].title.replace(/: topic test$/, ""))}</option>`).join("")}</optgroup>` : ""}`;
+      }).join("");
+      return `<section class="card block remind" data-emails="${esc(emails.join(","))}"><h3>Send a reminder</h3>
+        <p class="hint">Choose an assessment or topic test. Anyone who has not taken it is listed. A reminder appears on their dashboard until they take it.</p>
+        <label class="hint">Assessment or test<select class="rem-item"><option value="">Choose one…</option>${groups}</select></label><div class="rem-list"></div></section>`;
+    }
+
+    function wireRemind() {
+      const card = $(".remind");
+      if (!card) return;
+      const emails = card.dataset.emails.split(",").filter(Boolean), sel = $(".rem-item", card), list = $(".rem-list", card);
+      const draw = () => {
+        if (!sel.value) { list.innerHTML = ""; return; }
+        const kind = sel.value[0] === "a" ? "assessment" : "test", item = sel.value.slice(2);
+        const taken = (e) => (kind === "assessment" ? st.assess.some((a) => a.email === e && a.slug === item) : st.tests.some((t) => t.email === e && t.test === item));
+        const pending = emails.filter((e) => byEmail(e) && !taken(e));
+        const last = (e) => st.sent.find((r) => r.email === e && r.kind === kind && r.item === item);
+        const fresh = (e) => { const r = last(e); return r && new Date(r.at).getTime() > dayAgo(); };
+        const todo = pending.filter((e) => !fresh(e));
+        list.innerHTML = !pending.length ? `<p class="hint">Everyone has taken this. Nothing to send.</p>`
+          : `<div class="row" style="margin-top:12px"><span class="hint">${pending.length} of ${emails.length} not taken yet</span>${todo.length > 1 ? `<button class="mini ok" data-all="1">Remind all (${todo.length})</button>` : ""}</div>
+            <div class="tablewrap"><table class="tbl"><tbody>${pending.map((e) => {
+              const r = last(e), p = byEmail(e);
+              return `<tr data-e="${esc(e)}"><td><b>${esc(p.name)}</b></td><td class="hint">${r ? "Reminded " + fmt(r.at) : "Not reminded yet"}</td>
+                <td class="acts">${fresh(e) ? '<span class="hint">Reminded today</span>' : '<button class="mini ok" data-one="1">Remind</button>'}</td></tr>`;
+            }).join("")}</tbody></table></div><p class="msg" hidden></p>`;
+        const send = async (who) => {
+          const m = $(".msg", list), { data, error } = await sb.rpc("send_reminders", { _emails: who, _kind: kind, _item: item });
+          if (error) { if (m) msg(m, error.message, false); return; }
+          const now = new Date().toISOString();
+          who.forEach((e) => { st.sent = st.sent.filter((r) => !(r.email === e && r.kind === kind && r.item === item)); st.sent.push({ email: e, kind, item, at: now }); });
+          draw();
+          const m2 = $(".msg", list);
+          if (m2) msg(m2, data ? `Reminder sent to ${plural(data, "student")}.` : "No new reminders were needed.", true);
+        };
+        list.querySelector("[data-all]")?.addEventListener("click", (ev) => { ev.target.disabled = true; send(todo); });
+        list.querySelectorAll("[data-one]").forEach((b) => b.addEventListener("click", () => { b.disabled = true; send([b.closest("tr").dataset.e]); }));
+      };
+      sel.addEventListener("change", draw);
+    }
+
     function coverageCard(c) {
       const cv = coverage(c);
       if (!cv) return `<section class="card block"><h3>What you have taught</h3><p class="hint">${school ? `Set a subject on this ${classWord} (Edit ${classWord}) to track what you have taught it.` : "No subject for this class."}</p></section>`;
@@ -206,6 +258,7 @@
           ${tile("green", show(avg(tl.map((t) => t.pct))), "Test average", plural(tl.length, "attempt") + " in all")}
           ${tile("amber", show(tl.length ? Math.max(...tl.map((t) => t.pct)) : null), "Best score", "highest attempt")}</div>
         ${coverageCard(c)}
+        ${remindCard(c.members, c.subject ? [c.subject] : courseKeys)}
         <section class="card block"><h3>Test scores over time</h3><p class="hint">One point per week per subject: the average of every attempt that week. Hover a dot for the detail.</p>
           ${tl.length ? K.chart(K.weekly(tl), catalog, "Class topic test average by week") : '<p class="hint">No topic test attempts from this ' + classWord + " yet.</p>"}</section>
         <section class="card block"><h3>Students</h3>${members.length ? `<div class="tablewrap"><table class="tbl"><thead><tr><th>Student</th><th>Lessons</th><th>Topics tested</th><th>Latest test</th><th>Test average</th><th>Last active</th></tr></thead><tbody>${rows}</tbody></table></div>
@@ -213,6 +266,7 @@
         ${topicRows ? `<section class="card block"><h3>Topic by topic</h3><p class="hint">Where the ${classWord} is strong and where it is not. Each student counts once, at their best score on the topic.</p>
           <div class="tablewrap"><table class="tbl"><thead><tr><th>Topic</th><th>Taken by</th><th>Average best</th><th>Lowest best</th><th>Attempts</th></tr></thead><tbody>${topicRows}</tbody></table></div></section>` : ""}
         <dialog id="dlg" class="wide"><form method="dialog" id="f-dlg"></form></dialog>`;
+      wireRemind();
       $("#editclass")?.addEventListener("click", () => classEditor(c));
       $("#delclass")?.addEventListener("click", async () => {
         if (!confirm(`Delete the ${classWord} "${c.name}"? The students and their progress are not affected.`)) return;
@@ -252,7 +306,9 @@
           ${[...mine].reverse().map((r) => `<tr><td>${esc(r.title)}</td><td><b>${r.pct}%</b> <span class="hint">${r.score}/${r.max}</span></td><td>${r.mcq ?? "–"}${r.mcq_max ? "/" + r.mcq_max : ""}</td><td>${r.written ?? "–"}${r.written_max ? "/" + r.written_max : ""}</td><td class="hint">${fmt(r.at)}</td></tr>`).join("")}</tbody></table></div></section>` : ""}
         ${asses.length ? `<section class="card block"><h3>Lesson assessments</h3><div class="tablewrap"><table class="tbl"><thead><tr><th>Lesson</th><th>Score</th><th>When</th></tr></thead><tbody>
           ${asses.map((a) => `<tr><td>${esc(catalog.artifacts[a.slug].title)}</td><td><b class="${a.pct >= (catalog.assessed[a.slug]?.pass ?? 80) ? "ok-txt" : "no-txt"}">${a.pct}%</b></td><td class="hint">${fmt(a.at)}</td></tr>`).join("")}</tbody></table></div></section>` : ""}
+        ${remindCard([p.email], p.subs)}
         <h2 class="dash-h2" style="margin-top:28px">Lesson progress</h2>${subjectBlocks || '<p class="hint">No subjects on this student yet.</p>'}`;
+      wireRemind();
     }
 
     // ---------- students ----------
