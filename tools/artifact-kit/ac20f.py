@@ -7,10 +7,10 @@ from ac20r import both, practise, _PT, _PE
 SUB = CBK("Chapter 20 · Further programming, section 20.2 File processing and exception handling")
 
 
-def old_questions():
+def old_questions(fn="mk_ac2021.py"):
     """Real Paper 3 and 4 file questions already written for the main 20.2.1 page, keyed by their source chip."""
     ns = {}
-    src = open(__file__.replace("ac20f.py", "mk_ac2021.py")).read().replace('build("ac2021"', '_nob("ac2021"')
+    src = open(__file__.replace("ac20f.py", fn)).read().replace('\nbuild(', '\n_nob(')
     exec(compile("def _nob(*a, **k): pass\n" + src, "mk_ac2021", "exec"), ns)
     out = {}
     for c in _re.split(r'(?=  <details class="eq">)', ns["past"]):
