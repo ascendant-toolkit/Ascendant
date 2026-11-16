@@ -1383,3 +1383,11 @@ language sql stable security definer set search_path = public as $$
   from payments p
   where p.email = lower(auth.jwt() ->> 'email') or p.email = my_key()
 $$;
+
+-- Teachers can mark an assessed lesson taught (students still complete those by passing the assessment).
+drop policy if exists progress_insert on public.progress;
+create policy progress_insert on public.progress
+  for insert with check (email = my_key() and is_member() and (_is_staff() or not has_assessment(slug)));
+drop policy if exists progress_delete on public.progress;
+create policy progress_delete on public.progress
+  for delete using (email = my_key() and (_is_staff() or not has_assessment(slug)));

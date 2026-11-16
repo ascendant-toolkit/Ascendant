@@ -90,13 +90,14 @@
   Site.attempts = new Map();
   const assessUrl = (slug) => base + "assess/?a=" + encodeURIComponent(slug);
 
+  const staffMe = () => !!(Site.me && (Site.me.is_admin || Site.me.is_teacher));
   function paint(btn) {
-    const slug = btn.dataset.doneSlug, a = Site.assessed[slug], staff = Site.me && (Site.me.is_admin || Site.me.is_teacher);
-    if (a) {
+    const slug = btn.dataset.doneSlug, a = Site.assessed[slug], staff = staffMe();
+    if (a && !staff) {
       const t = Site.attempts.get(slug);
       btn.title = `Complete by scoring ${a.pass}% or more`;
       btn.classList.toggle("is-done", Site.done.has(slug));
-      btn.textContent = !Site.me ? "Sign in to take assessment" : staff ? "Preview assessment"
+      btn.textContent = !Site.me ? "Sign in to take assessment"
         : Site.done.has(slug) ? `✓ Passed${t ? " (" + t.pct + "%)" : ""}` : t ? `Assessment ${t.pct}%` : "Take assessment";
       return;
     }
@@ -134,14 +135,20 @@
       b.dataset.bound = "1";
       b.hidden = !isRev(b.dataset.doneSlug);
       paint(b);
+      // Teachers mark assessed lessons taught like any other, so the assessment preview gets its own link beside the button.
+      if (staffMe() && Site.assessed[b.dataset.doneSlug] && isRev(b.dataset.doneSlug)) {
+        const l = document.createElement("a");
+        l.className = "mini"; l.textContent = "Preview assessment"; l.href = assessUrl(b.dataset.doneSlug);
+        b.after(l);
+      }
       b.addEventListener("click", async (e) => {
         e.preventDefault();
         if (!Site.me) { location.href = Site.profileUrl; return; }
-        if (Site.assessed[b.dataset.doneSlug]) { location.href = assessUrl(b.dataset.doneSlug); return; }
+        if (Site.assessed[b.dataset.doneSlug] && !staffMe()) { location.href = assessUrl(b.dataset.doneSlug); return; }
         b.disabled = true;
         const ok = await Site.toggle(b.dataset.doneSlug);
         b.disabled = false;
-        if (!ok) { alert("That could not be saved. If this lesson has an assessment, pass it to complete the lesson."); location.reload(); return; }
+        if (!ok) { alert(staffMe() ? "That could not be saved. Has the latest supabase/schema.sql been run?" : "That could not be saved. If this lesson has an assessment, pass it to complete the lesson."); location.reload(); return; }
         document.querySelectorAll(`[data-done-slug="${b.dataset.doneSlug}"]`).forEach(paint);
       });
     });
