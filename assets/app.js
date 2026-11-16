@@ -91,9 +91,9 @@
   const assessUrl = (slug) => base + "assess/?a=" + encodeURIComponent(slug);
 
   function paint(btn) {
-    const slug = btn.dataset.doneSlug, a = Site.assessed[slug];
+    const slug = btn.dataset.doneSlug, a = Site.assessed[slug], staff = Site.me && (Site.me.is_admin || Site.me.is_teacher);
     if (a) {
-      const t = Site.attempts.get(slug), staff = Site.me && (Site.me.is_admin || Site.me.is_teacher);
+      const t = Site.attempts.get(slug);
       btn.title = `Complete by scoring ${a.pass}% or more`;
       btn.classList.toggle("is-done", Site.done.has(slug));
       btn.textContent = !Site.me ? "Sign in to take assessment" : staff ? "Preview assessment"
@@ -105,11 +105,11 @@
       btn.classList.remove("is-done");
       btn.title = "Sign in on the Profile page to record your progress";
     } else if (Site.done.has(slug)) {
-      btn.textContent = "✓ Done";
+      btn.textContent = staff ? "✓ Taught" : "✓ Done";
       btn.classList.add("is-done");
       btn.title = "Click to undo";
     } else {
-      btn.textContent = "Mark done";
+      btn.textContent = staff ? "Mark taught" : "Mark done";
       btn.classList.remove("is-done");
       btn.title = "";
     }
