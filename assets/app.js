@@ -117,15 +117,40 @@
   const courseOf = (slug) => { const c = Site.cat && Object.entries(Site.cat.courses).find(([, v]) => v.slugs.includes(slug)); return c ? c[0] : null; };
   const classesFor = (slug) => { const k = courseOf(slug); return Site.classes.filter((c) => !c.subject || !k || c.subject === k); };
 
+  // Lesson pages are standalone artifacts without the site stylesheet, so the dialog carries its own styles (site palette, light and dark).
+  const DLG_CSS = `.site-dlg{--bg:#fff;--ink:#16202a;--muted:#5a6772;--line:#ddd8cc;--accent:#2b5d7c;--soft:#e3edf3;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);padding:24px 24px 20px;width:min(92vw,380px);box-shadow:0 12px 40px rgba(0,0,0,.28);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif}
+.site-dlg::backdrop{background:rgba(10,16,22,.55)}
+@media (prefers-color-scheme:dark){.site-dlg{--bg:#1b232b;--ink:#e8edf0;--muted:#9aa8b2;--line:#2c3842;--accent:#7fb6d6;--soft:#1f3140}}
+.site-dlg h3{margin:0 0 4px;font:700 1.25rem/1.25 "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif}
+.site-dlg .sd-hint{margin:0 0 14px;color:var(--muted);font-size:.88rem}
+.site-dlg .sd-list{display:grid;gap:8px;margin:0 0 18px;max-height:46vh;overflow:auto}
+.site-dlg .sd-list label{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;font-weight:600}
+.site-dlg .sd-list label:hover{background:var(--soft)}
+.site-dlg .sd-list label:has(input:checked){border-color:var(--accent);background:var(--soft)}
+.site-dlg input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);margin:0}
+.site-dlg .sd-actions{display:flex;gap:10px;justify-content:flex-end}
+.site-dlg button{font:600 .95rem -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;padding:9px 18px;border-radius:10px;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--ink)}
+.site-dlg button:hover{background:var(--soft)}
+.site-dlg button.sd-save{background:var(--accent);border-color:var(--accent);color:#fff}
+@media (prefers-color-scheme:dark){.site-dlg button.sd-save{color:#12171c}}
+.site-dlg button.sd-save:hover{filter:brightness(1.1);background:var(--accent)}
+.site-dlg button:disabled{opacity:.5;cursor:not-allowed}`;
+
   // Teacher clicked "Mark taught" on a lesson: choose which classes it was taught to.
   function chooseClasses(slug) {
     return new Promise((resolve) => {
       const list = classesFor(slug), have = Site.taught.get(slug) || new Set();
+      if (!document.getElementById("site-dlg-css")) {
+        const st = document.createElement("style");
+        st.id = "site-dlg-css"; st.textContent = DLG_CSS;
+        document.head.appendChild(st);
+      }
       const dlg = document.createElement("dialog");
-      dlg.innerHTML = `<form method="dialog"><h3>Taught to which classes?</h3>
-        ${list.length ? `<div class="chks" style="flex-direction:column;gap:8px">${list.map((c) => `<label class="chk"><input type="checkbox" value="${c.id}" ${have.has(c.id) ? "checked" : ""}> ${c.name.replace(/</g, "&lt;")}</label>`).join("")}</div>`
-          : '<p class="hint">None of your classes take this subject. Set a subject on a class from your dashboard.</p>'}
-        <div class="row"><button class="btn" value="save" ${list.length ? "" : "disabled"}>Save</button><button class="btn ghost" value="cancel" formnovalidate>Cancel</button></div></form>`;
+      dlg.className = "site-dlg";
+      dlg.innerHTML = `<form method="dialog"><h3>Taught to which classes?</h3><p class="sd-hint">Tick every class you have taught this lesson to.</p>
+        ${list.length ? `<div class="sd-list">${list.map((c) => `<label><input type="checkbox" value="${c.id}" ${have.has(c.id) ? "checked" : ""}> ${c.name.replace(/</g, "&lt;")}</label>`).join("")}</div>`
+          : '<p class="sd-hint">None of your classes take this subject. Set a subject on a class from your dashboard.</p>'}
+        <div class="sd-actions"><button value="cancel" formnovalidate>Cancel</button><button class="sd-save" value="save" ${list.length ? "" : "disabled"}>Save</button></div></form>`;
       document.body.appendChild(dlg);
       dlg.addEventListener("close", () => {
         const ok = dlg.returnValue === "save", picked = [...dlg.querySelectorAll("input:checked")].map((i) => i.value);
