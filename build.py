@@ -470,10 +470,10 @@ def build_home():
              ("Learn, practise, track", "Work through each chapter, take the assessments, and watch your progress build on your dashboard.")]
     steps_html = "".join(f'<li><span class="n">{i}</span><div><b>{t}</b><p>{d}</p></div></li>' for i, (t, d) in enumerate(steps, 1))
     body = f"""<section class="lp-hero"><div class="lp-copy"><p class="kicker">Cambridge IGCSE and A-Level</p>
-<h1>A teaching and learning toolkit: for everyone</h1>
+<h1 id="lp-title">A teaching and learning toolkit: for everyone</h1>
 <p class="lp-sub">Students &middot; Tutors &middot; Teachers &middot; Schools</p>
 <p class="lead">Your syllabus, fully resourced, chapter by chapter: with animated explainers, hands-on activities, exam questions with model answers, marked assessments and progress tracking, all in one place.</p>
-<p class="cta"><a class="btn" href="pricing/">See plans</a><a class="btn ghost" id="sample" href="artifacts/{sample["slug"]}/#learn">Try a free lesson</a><a class="btn ghost" href="profile/">Sign in</a></p>
+<p class="cta"><a class="btn" href="pricing/">See plans</a><a class="btn ghost" id="sample" href="artifacts/{sample["slug"]}/#learn">Try a free lesson</a><a class="btn ghost" id="signin" href="profile/">Sign in</a></p>
 <ul class="lp-stats"><li><b>{total}</b><span>interactive activities</span></li><li><b>{chapters}</b><span>chapters</span></li><li><b>{len(SYLLABI)}</b><span>Cambridge syllabuses</span></li></ul></div>
 <div class="lp-visual" aria-hidden="false"><div class="lp-pane lp-pane-a"><span class="lp-tag">Economics &middot; Explore</span>{HERO_CHART}<p>Shift the curves and watch the market move.</p></div>
 <div class="lp-pane lp-pane-b"><span class="lp-tag">Computer Science &middot; Watch</span>{HERO_CODE}<p>Step through code and see every value change.</p></div></div></section>
@@ -509,7 +509,7 @@ def build_home():
 
 <section class="sec" aria-labelledby="how"><h2 id="how">How it works</h2><ol class="steps">{steps_html}</ol></section>
 
-<section class="sec lp-final"><div class="free-card"><h2>Judge it for yourself</h2>
+<section class="sec lp-final" id="lp-final"><div class="free-card"><h2>Judge it for yourself</h2>
 <p class="lede">Open a complete sample lesson, no card needed.</p>
 <p class="cta"><a class="btn" href="artifacts/{sample["slug"]}/#learn">Try a free lesson</a><a class="btn ghost" href="pricing/">See plans</a></p></div></section>
 
