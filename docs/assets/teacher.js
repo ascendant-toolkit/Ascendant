@@ -12,12 +12,6 @@
   const msg = (el, text, ok) => { el.textContent = text; el.className = "msg " + (ok ? "ok" : "err"); el.hidden = !text; };
   const DAY = 864e5;
 
-  // The admin's own class groups (same ids as profiles.classes and the admin console).
-  const ADMIN_GROUPS = [
-    { id: "ig1-cs", name: "IG1 CS", subject: "ig-cs" }, { id: "ig2-cs", name: "IG2 CS", subject: "ig-cs" },
-    { id: "ig2-econ", name: "IG2 Econ", subject: "ig-econ" }, { id: "a-cs", name: "AL CS", subject: "a-cs" }, { id: "a-econ", name: "AL Econ", subject: "a-econ" },
-  ];
-
   async function run(root, me, S, catalog) {
     const sb = S.sb, sc = me.school, school = !!me.is_school_teacher, admin = !!me.is_admin;
     const tutor = school && sc.kind === "tutor";
@@ -25,7 +19,7 @@
     const $ = (sel, el = root) => el.querySelector(sel);
     const hasData = school || admin;           // co-teachers get tests and mark schemes only
     const courseKeys = me.subjects.filter((k) => catalog.courses[k]);
-    let st = { students: [], classes: [], progress: new Map(), assess: [], tests: [], schemaMissing: false };
+    let st = { students: [], classes: [], progress: new Map(), assess: [], tests: [], taught: new Map(), schemaMissing: false };
     let q = "";                                // student filter text
     let cf = "";                               // class or subject filter: "c:<class id>" or "s:<subject>"
 
@@ -55,9 +49,17 @@
         (prog.data || []).forEach((r) => { if (!st.progress.has(r.email)) st.progress.set(r.email, new Map()); st.progress.get(r.email).set(r.slug, r.done_at); });
         st.assess = (att.data || []).filter((a) => !a.reset_at);
         st.tests = [...(tests.data || [])].reverse().map((r) => ({ ...r, course: r.test.split("/")[0] }));
-        st.classes = ADMIN_GROUPS.map((g) => ({ ...g, members: st.students.filter((x) => (x.classes || []).includes(g.id)).map((x) => x.email) })).filter((g) => g.members.length);
+        st.classes = S.adminGroups.map((g) => ({ ...g, members: st.students.filter((x) => (x.classes || []).includes(g.id)).map((x) => x.email) })).filter((g) => g.members.length);
       }
     }
+
+    async function loadTaught() {
+      st.taught = new Map();
+      if (!st.classes.length) return;
+      const { data } = await sb.rpc("my_taught");
+      (data || []).forEach((r) => { if (!st.taught.has(r.class)) st.taught.set(r.class, new Map()); st.taught.get(r.class).set(r.slug, r.at); });
+    }
+    const taughtOf = (c) => st.taught.get(String(c.id)) || new Map();
 
     // ---------- small calculators ----------
     const byEmail = (email) => st.students.find((s) => s.email === email);
@@ -111,13 +113,23 @@
     }
 
     // ---------- classes ----------
+    // What a class has been taught: ticks from the lesson pages, against the lessons in the class's subject.
+    function coverage(c) {
+      if (!c.subject || !catalog.courses[c.subject]) return null;
+      const course = catalog.courses[c.subject], t = taughtOf(c), n = course.slugs.filter((s) => t.has(s)).length;
+      const next = catalog.order.find((s) => course.slugs.includes(s) && !t.has(s));
+      const recent = [...t.entries()].filter(([s]) => catalog.artifacts[s]).sort((a, b) => (b[1] || "").localeCompare(a[1] || "")).slice(0, 5);
+      return { course, t, n, total: course.slugs.length, pct: pct(n, course.slugs.length), next, recent };
+    }
+
     function classCard(c) {
       const members = c.members.map(byEmail).filter(Boolean);
       const lp = avg(members.map((p) => lessonPct(p, c.subject))), tavg = avg(testsOf(c.members).map((t) => t.pct));
+      const cov = coverage(c);
       const acc = c.subject ? catalog.courses[c.subject]?.accent : "teal";
       return `<article class="card" data-accent="${acc}"><span class="tag">${c.subject ? esc(R.shortTitle(catalog, c.subject)) : "Mixed"}</span>
         <a class="t" href="#class=${c.id}">${esc(c.name)}</a>
-        <span class="sub">${plural(members.length, "student")} · lessons ${show(lp)} · test average ${show(tavg)}</span>
+        <span class="sub">${plural(members.length, "student")} · taught ${cov ? cov.pct + "%" : "–"} · student lessons ${show(lp)} · test average ${show(tavg)}</span>
         <span class="foot"><a class="go" href="#class=${c.id}">Open tracker →</a></span></article>`;
     }
 
@@ -156,6 +168,17 @@
       };
     }
 
+    function coverageCard(c) {
+      const cv = coverage(c);
+      if (!cv) return `<section class="card block"><h3>What you have taught</h3><p class="hint">${school ? `Set a subject on this ${classWord} (Edit ${classWord}) to track what you have taught it.` : "No subject for this class."}</p></section>`;
+      const nx = cv.next && catalog.artifacts[cv.next];
+      return `<section class="card block" data-accent="${cv.course.accent}"><div class="row"><h3>What you have taught</h3><span class="big">${cv.pct}%</span></div>
+        <div class="bar2"><i style="width:${cv.pct}%"></i></div><p class="hint">${cv.n} of ${cv.total} lessons in ${esc(cv.course.title)}. Tick "Mark taught" on a lesson page and choose this ${classWord}.</p>
+        ${K.chapterMap(cv.course, cv.t, S.base)}
+        ${nx ? `<p style="margin-top:14px"><b>Next lesson:</b> <a class="lnk" href="${S.base}${nx.url}">${esc(nx.title)}</a> <span class="hint">${esc(nx.chapterTitle)}</span></p>` : '<p class="hint" style="margin-top:14px">Every lesson in this subject is marked taught.</p>'}
+        ${cv.recent.length ? `<p class="hint" style="margin-top:10px">Recently taught: ${cv.recent.map(([s, d]) => `<a class="lnk" href="${S.base}${catalog.artifacts[s].url}">${esc(catalog.artifacts[s].title)}</a> <span class="hint">${fmt(d)}</span>`).join(" · ")}</p>` : ""}</section>`;
+    }
+
     function viewClass(id) {
       const c = st.classes.find((x) => String(x.id) === String(id));
       if (!c) { location.hash = "classes"; return; }
@@ -182,6 +205,7 @@
           ${tile("indigo", `${taken}/${members.length}`, "Taken a topic test", "students with at least one")}
           ${tile("green", show(avg(tl.map((t) => t.pct))), "Test average", plural(tl.length, "attempt") + " in all")}
           ${tile("amber", show(tl.length ? Math.max(...tl.map((t) => t.pct)) : null), "Best score", "highest attempt")}</div>
+        ${coverageCard(c)}
         <section class="card block"><h3>Test scores over time</h3><p class="hint">One point per week per subject: the average of every attempt that week. Hover a dot for the detail.</p>
           ${tl.length ? K.chart(K.weekly(tl), catalog, "Class topic test average by week") : '<p class="hint">No topic test attempts from this ' + classWord + " yet.</p>"}</section>
         <section class="card block"><h3>Students</h3>${members.length ? `<div class="tablewrap"><table class="tbl"><thead><tr><th>Student</th><th>Lessons</th><th>Topics tested</th><th>Latest test</th><th>Test average</th><th>Last active</th></tr></thead><tbody>${rows}</tbody></table></div>
@@ -359,10 +383,10 @@
       else viewClasses();
       window.scrollTo(0, 0);
     }
-    async function refresh(redraw = true) { await load(); if (redraw) view(); }
+    async function refresh(redraw = true) { await load(); await loadTaught(); if (redraw) view(); }
 
     root.innerHTML = '<p class="hint">Loading your dashboard…</p>';
-    try { if (hasData) await load(); }
+    try { if (hasData) { await load(); await loadTaught(); } }
     catch (e) { root.innerHTML = `<p class="msg err">Could not load your dashboard: ${esc(e.message || String(e))}</p>`; return; }
     // Delegated, so the tabs keep working after a view redraws itself (filters, search).
     root.addEventListener("click", (e) => {

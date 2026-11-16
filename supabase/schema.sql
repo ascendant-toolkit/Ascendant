@@ -1337,6 +1337,8 @@ create or replace function public.teacher_delete_class(_id bigint) returns void
 language plpgsql security definer set search_path = public as $$
 begin
   if my_school() is null then raise exception 'Licence teachers only'; end if;
+  delete from class_taught where teacher_email = lower(auth.jwt() ->> 'email') and class_key = _id::text
+    and exists (select 1 from teacher_classes where id = _id and school_id = my_school() and teacher_email = lower(auth.jwt() ->> 'email'));
   delete from teacher_classes where id = _id and school_id = my_school() and teacher_email = lower(auth.jwt() ->> 'email');
 end $$;
 
@@ -1391,3 +1393,41 @@ create policy progress_insert on public.progress
 drop policy if exists progress_delete on public.progress;
 create policy progress_delete on public.progress
   for delete using (email = my_key() and (_is_staff() or not has_assessment(slug)));
+
+-- Per-class "taught" ticks. class_key is a teacher_classes id (school and tutor teachers) or one of the admin's class groups
+-- (ig1-cs, ig2-cs, ig2-econ, a-cs, a-econ). A teacher's own progress row stays as "taught to at least one class".
+create table if not exists public.class_taught (
+  teacher_email text not null check (teacher_email = lower(teacher_email)),
+  class_key     text not null,
+  slug          text not null,
+  taught_at     timestamptz not null default now(),
+  primary key (teacher_email, class_key, slug)
+);
+alter table public.class_taught enable row level security;   -- reads and writes only through the functions below
+drop policy if exists class_taught_admin on public.class_taught;
+create policy class_taught_admin on public.class_taught for all using (is_admin()) with check (is_admin());
+
+create or replace function public.my_taught() returns json
+language plpgsql security definer set search_path = public as $$
+begin
+  if not _is_staff() then raise exception 'Teachers only'; end if;
+  return coalesce((select json_agg(json_build_object('class', class_key, 'slug', slug, 'at', taught_at))
+                   from class_taught where teacher_email = lower(auth.jwt() ->> 'email')), '[]'::json);
+end $$;
+
+create or replace function public.set_taught(_class text, _slugs text[], _taught boolean) returns void
+language plpgsql security definer set search_path = public as $$
+declare e text := lower(auth.jwt() ->> 'email');
+begin
+  if not _is_staff() then raise exception 'Teachers only'; end if;
+  if is_admin() then
+    if _class not in ('ig1-cs', 'ig2-cs', 'ig2-econ', 'a-cs', 'a-econ') then raise exception 'Unknown class'; end if;
+  elsif not exists (select 1 from teacher_classes where id::text = _class and school_id = my_school() and teacher_email = e) then
+    raise exception 'Class not found';
+  end if;
+  if _taught then
+    insert into class_taught (teacher_email, class_key, slug) select e, _class, x from unnest(_slugs) x on conflict do nothing;
+  else
+    delete from class_taught where teacher_email = e and class_key = _class and slug = any (_slugs);
+  end if;
+end $$;
