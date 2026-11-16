@@ -357,7 +357,6 @@
       else if (tab === "add" && school) viewAdd();
       else if (tab === "tests" || !hasData) viewTests();
       else viewClasses();
-      root.querySelectorAll(".dtabs [data-tab]").forEach((b) => (b.onclick = () => { if (location.hash.slice(1) === b.dataset.tab) view(); else location.hash = b.dataset.tab; }));
       window.scrollTo(0, 0);
     }
     async function refresh(redraw = true) { await load(); if (redraw) view(); }
@@ -365,6 +364,11 @@
     root.innerHTML = '<p class="hint">Loading your dashboard…</p>';
     try { if (hasData) await load(); }
     catch (e) { root.innerHTML = `<p class="msg err">Could not load your dashboard: ${esc(e.message || String(e))}</p>`; return; }
+    // Delegated, so the tabs keep working after a view redraws itself (filters, search).
+    root.addEventListener("click", (e) => {
+      const b = e.target.closest(".dtabs [data-tab]");
+      if (b) { if (location.hash.slice(1) === b.dataset.tab) view(); else location.hash = b.dataset.tab; }
+    });
     window.addEventListener("hashchange", view);
     view();
   }
