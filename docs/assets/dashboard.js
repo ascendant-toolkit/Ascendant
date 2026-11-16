@@ -38,7 +38,7 @@
       }).join("")}</div></div>`).join("");
   }
 
-  function render(me, done, attempts) {
+  function render(me, done, attempts, tests) {
     const mine = me.subjects.filter((k) => catalog.courses[k]);
     const all = subjectSlugs(mine), total = all.size;
     const doneN = [...all].filter((s) => done.has(s)).length;
@@ -96,6 +96,14 @@
           <td><b class="${t.pct >= (catalog.assessed[t.slug]?.pass ?? 80) ? "ok-txt" : "no-txt"}">${t.pct}%</b></td><td class="hint">${fmt(t.at)}</td></tr>`).join("")}</tbody></table></div>`
         : `<p class="hint">Lessons with an assessment show your score and feedback here once you’ve taken one.</p>`}</section>`;
 
+    const latestTests = [...tests].reverse().slice(0, 3);
+    const testsCard = `<section class="card block"><div class="row"><h3>Topic tests</h3>${tests.length ? `<span class="big">${Math.round(tests.reduce((t, r) => t + r.pct, 0) / tests.length)}%</span>` : ""}</div>
+      ${latestTests.length ? `<p class="hint">Your latest ${latestTests.length === 1 ? "score" : latestTests.length + " scores"}. Every attempt is kept.</p>
+        <div class="tablewrap"><table class="tbl"><thead><tr><th>Topic</th><th>Score</th><th>When</th></tr></thead><tbody>
+        ${latestTests.map((t) => `<tr><td><a class="lnk" href="${S.base}${t.test}/">${esc(t.title)}</a></td><td><b>${t.pct}%</b></td><td class="hint">${fmt(t.at)}</td></tr>`).join("")}</tbody></table></div>
+        <p class="hint" style="margin-top:12px"><a class="lnk" href="${S.base}progress/">See your full test tracker and charts →</a></p>`
+        : `<p class="hint">Take a topic test from the end of any chapter and your scores and progress chart appear here.</p>`}</section>`;
+
     const recentCard = `<section class="card block"><h3>Recently completed</h3>
       ${recent.length ? `<ul class="plain">${recent.map(([s, d]) => `<li><a class="lnk" href="${S.base}${catalog.artifacts[s].url}">${esc(catalog.artifacts[s].title)}</a> <span class="hint">${fmt(d)}</span></li>`).join("")}</ul>`
         : `<p class="hint">Finish a lesson and it shows up here.</p>`}
@@ -107,7 +115,8 @@
       ${resume}
       <div class="stat-tiles">${tiles}</div>
       ${mine.length ? `<h2 class="dash-h2">Your subjects</h2><div class="grid two">${subjectCards}</div>` : ""}
-      <div class="grid two dash">${scoresCard}${recentCard}</div>`;
+      <div class="grid two dash">${testsCard}${scoresCard}</div>
+      <div class="grid two dash">${recentCard}</div>`;
   }
 
   async function boot() {
@@ -128,7 +137,8 @@
     catch (e) { root.innerHTML = `<div class="placeholder"><h2>Could not load</h2><p>Check your connection and refresh.</p></div>`; return; }
     const done = await S.loadProgress();
     const attempts = (await S.sb.rpc("my_attempts")).data || [];
-    render(me, done, attempts);
+    const tests = (await S.sb.rpc("my_test_attempts")).data || [];
+    render(me, done, attempts, tests);
   }
   boot();
 })();

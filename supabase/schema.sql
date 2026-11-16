@@ -1096,3 +1096,182 @@ create table if not exists public.payments (
 alter table public.payments enable row level security;
 drop policy if exists payments_admin on public.payments;
 create policy payments_admin on public.payments for all using (is_admin()) with check (is_admin());
+
+-- ========== Topic tests ==========
+-- Short end-of-chapter checks: 10 MCQ (server-marked) plus written questions the student self-marks against the
+-- mark points. Unlimited attempts; every finalised attempt is kept for the progress tracker.
+-- Test ids are the chapter path, e.g. 'a-econ/as/s2-2'; the first segment is the course used for the tier check.
+create table if not exists public.topic_tests (
+  id         text primary key,
+  title      text not null,
+  questions  jsonb not null,          -- full questions incl. answer keys, mark points, model answers
+  updated_at timestamptz not null default now()
+);
+alter table public.topic_tests enable row level security;   -- no policies: unreadable from the website
+
+create table if not exists public.test_attempts (
+  id            bigint generated always as identity primary key,
+  email         text not null,
+  test_id       text not null,
+  answers       jsonb not null,
+  mcq_score     int not null,
+  mcq_max       int not null,
+  written_score int,                  -- null until the student has self-marked
+  written_max   int not null,
+  score         int,
+  max_score     int not null,
+  pct           int,
+  result        jsonb,
+  submitted_at  timestamptz not null default now(),
+  finalized_at  timestamptz           -- set when self-marking is saved; unfinished rows are not charted
+);
+create index if not exists test_attempts_email on public.test_attempts (email, test_id);
+alter table public.test_attempts enable row level security;   -- reads only through the functions below
+
+create or replace function public._is_staff() returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from admins where email = lower(auth.jwt() ->> 'email'))
+      or exists (select 1 from teachers where email = lower(auth.jwt() ->> 'email'))
+      or exists (select 1 from school_teachers where email = lower(auth.jwt() ->> 'email'))
+$$;
+
+create or replace function public._test_max(_qs jsonb, _type text) returns int
+language sql immutable as $$
+  select coalesce(sum(coalesce((q ->> 'marks')::int, 1)), 0)::int from jsonb_array_elements(_qs) q
+   where (_type = 'mcq') = (q ->> 'type' = 'mcq')
+$$;
+
+-- Questions without keys, plus the student's attempt history for this test and any attempt waiting to be self-marked.
+create or replace function public.get_topic_test(_id text) returns json
+language plpgsql security definer set search_path = public as $$
+declare t topic_tests; e text := my_key(); open_att test_attempts;
+begin
+  if not is_member() then raise exception 'Sign in first'; end if;
+  select * into t from topic_tests where id = _id;
+  if not found then return null; end if;
+  if not _is_staff() and not tier_at_least(e, array[split_part(_id, '/', 1)], 'full') then
+    return json_build_object('id', t.id, 'title', t.title, 'locked', 'full');
+  end if;
+  select * into open_att from test_attempts where email = e and test_id = _id and finalized_at is null order by id desc limit 1;
+  return json_build_object(
+    'id', t.id, 'title', t.title,
+    'questions', (select json_agg(jsonb_build_object('id', q ->> 'id', 'type', q ->> 'type', 'q', q ->> 'q', 'context', q ->> 'context',
+                    'opts', q -> 'opts', 'code', q ->> 'code', 'marks', coalesce((q ->> 'marks')::int, 1), 'topic', q ->> 'topic', 'hint', q ->> 'hint'))
+                  from jsonb_array_elements(t.questions) q),
+    'tries', (select count(*) from test_attempts where email = e and test_id = _id and finalized_at is not null),
+    'best', (select max(pct) from test_attempts where email = e and test_id = _id and finalized_at is not null),
+    'pending', case when open_att.id is null then null else open_att.id end);
+end $$;
+
+-- What the student sees after submitting: MCQ results, plus each written question with its mark points and model answer.
+create or replace function public._test_review(_attempt bigint) returns json
+language plpgsql security definer set search_path = public as $$
+declare a test_attempts; t topic_tests; q jsonb; typed text; got int; items jsonb := '[]'::jsonb; wr jsonb := '[]'::jsonb;
+begin
+  select * into a from test_attempts where id = _attempt;
+  select * into t from topic_tests where id = a.test_id;
+  for q in select * from jsonb_array_elements(t.questions) loop
+    typed := a.answers ->> (q ->> 'id');
+    if q ->> 'type' = 'mcq' then
+      got := _mark(q, typed);
+      items := items || jsonb_build_array(jsonb_build_object('id', q ->> 'id', 'got', got, 'max', 1, 'q', q ->> 'q', 'code', q ->> 'code',
+        'typed', case when typed ~ '^[0-9]+$' then q -> 'opts' ->> typed::int else null end,
+        'model', q -> 'opts' ->> (q ->> 'ans')::int,
+        'feedback', case when got >= 1 then q ->> 'ok' else q ->> 'fb' end, 'topic', q ->> 'topic'));
+    else
+      wr := wr || jsonb_build_array(jsonb_build_object('id', q ->> 'id', 'q', q ->> 'q', 'context', q ->> 'context', 'marks', (q ->> 'marks')::int,
+        'typed', coalesce(typed, ''), 'points', q -> 'points', 'model', q ->> 'model', 'tips', q ->> 'tips', 'topic', q ->> 'topic'));
+    end if;
+  end loop;
+  return json_build_object('attempt', a.id, 'test', a.test_id, 'title', t.title, 'mcq_score', a.mcq_score, 'mcq_max', a.mcq_max,
+                           'written_max', a.written_max, 'mcq', items, 'written', wr);
+end $$;
+
+create or replace function public.submit_topic_test(_id text, _answers jsonb) returns json
+language plpgsql security definer set search_path = public as $$
+declare t topic_tests; e text := my_key(); q jsonb; ms int := 0; aid bigint;
+begin
+  if not is_member() then raise exception 'Sign in first'; end if;
+  if _is_staff() then raise exception 'Teacher accounts preview the test but do not submit it'; end if;
+  select * into t from topic_tests where id = _id;
+  if not found then raise exception 'No test for this chapter'; end if;
+  if not tier_at_least(e, array[split_part(_id, '/', 1)], 'full') then
+    raise exception 'Topic tests are part of the Full plan. Upgrade your access to submit.';
+  end if;
+  for q in select * from jsonb_array_elements(t.questions) loop
+    if q ->> 'type' = 'mcq' then ms := ms + _mark(q, _answers ->> (q ->> 'id')); end if;
+  end loop;
+  insert into test_attempts (email, test_id, answers, mcq_score, mcq_max, written_max, max_score)
+    values (e, _id, _answers, ms, _test_max(t.questions, 'mcq'), _test_max(t.questions, 'written'),
+            _test_max(t.questions, 'mcq') + _test_max(t.questions, 'written')) returning id into aid;
+  return _test_review(aid);
+end $$;
+
+-- Pick up an attempt that was submitted but not yet self-marked.
+create or replace function public.resume_topic_test(_attempt bigint) returns json
+language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (select 1 from test_attempts where id = _attempt and email = my_key() and finalized_at is null) then
+    raise exception 'Attempt not found';
+  end if;
+  return _test_review(_attempt);
+end $$;
+
+-- Student: a finished attempt in full, for looking back at.
+create or replace function public.my_test_attempt(_attempt bigint) returns json
+language plpgsql security definer set search_path = public as $$
+declare a test_attempts; r json;
+begin
+  select * into a from test_attempts where id = _attempt and email = my_key() and finalized_at is not null;
+  if not found then raise exception 'Attempt not found'; end if;
+  r := _test_review(_attempt);
+  return json_build_object('review', r, 'score', a.score, 'max', a.max_score, 'pct', a.pct, 'written', a.written_score, 'written_max', a.written_max,
+                           'mcq', a.mcq_score, 'mcq_max', a.mcq_max, 'at', a.finalized_at, 'ticks', a.result -> 'written');
+end $$;
+
+-- The student ticks the mark points they earned; the server adds them up (capped at each question's marks).
+create or replace function public.finalize_topic_test(_attempt bigint, _ticks jsonb) returns json
+language plpgsql security definer set search_path = public as $$
+declare a test_attempts; t topic_tests; q jsonb; p jsonb; i int; got int; ws int := 0; items jsonb := '[]'::jsonb; tot int; pc int;
+begin
+  select * into a from test_attempts where id = _attempt and email = my_key();
+  if not found then raise exception 'Attempt not found'; end if;
+  if a.finalized_at is not null then raise exception 'This attempt is already marked'; end if;
+  select * into t from topic_tests where id = a.test_id;
+  for q in select * from jsonb_array_elements(t.questions) loop
+    if q ->> 'type' = 'mcq' then continue; end if;
+    got := 0; i := 0;
+    for p in select * from jsonb_array_elements(q -> 'points') loop
+      if coalesce(_ticks -> (q ->> 'id'), '[]'::jsonb) @> to_jsonb(i) then got := got + coalesce((p ->> 'm')::int, 1); end if;
+      i := i + 1;
+    end loop;
+    got := least(got, (q ->> 'marks')::int);
+    ws := ws + got;
+    items := items || jsonb_build_array(jsonb_build_object('id', q ->> 'id', 'got', got, 'max', (q ->> 'marks')::int,
+      'topic', q ->> 'topic', 'ticks', coalesce(_ticks -> (q ->> 'id'), '[]'::jsonb)));
+  end loop;
+  tot := a.mcq_score + ws;
+  pc := case when a.max_score = 0 then 0 else round(100.0 * tot / a.max_score) end;
+  update test_attempts set written_score = ws, score = tot, pct = pc, result = jsonb_build_object('written', items), finalized_at = now() where id = _attempt;
+  return json_build_object('score', tot, 'max', a.max_score, 'pct', pc, 'mcq', a.mcq_score, 'mcq_max', a.mcq_max, 'written', ws, 'written_max', a.written_max);
+end $$;
+
+-- Student: every finished attempt, oldest first, for the tracker and charts.
+create or replace function public.my_test_attempts() returns json
+language sql stable security definer set search_path = public as $$
+  select coalesce(json_agg(json_build_object('id', a.id, 'test', a.test_id, 'title', t.title, 'course', split_part(a.test_id, '/', 1),
+           'pct', a.pct, 'score', a.score, 'max', a.max_score, 'mcq', a.mcq_score, 'mcq_max', a.mcq_max,
+           'written', a.written_score, 'written_max', a.written_max, 'at', a.finalized_at) order by a.finalized_at), '[]'::json)
+  from test_attempts a join topic_tests t on t.id = a.test_id
+  where a.email = my_key() and a.finalized_at is not null
+$$;
+
+-- Admin: everyone's finished attempts.
+create or replace function public.admin_test_attempts() returns json
+language plpgsql security definer set search_path = public as $$
+begin
+  if not is_admin() then raise exception 'Admins only'; end if;
+  return (select coalesce(json_agg(json_build_object('email', a.email, 'test', a.test_id, 'title', t.title, 'pct', a.pct, 'score', a.score,
+            'max', a.max_score, 'at', a.finalized_at) order by a.finalized_at desc), '[]'::json)
+          from test_attempts a join topic_tests t on t.id = a.test_id where a.finalized_at is not null);
+end $$;

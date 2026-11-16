@@ -59,3 +59,17 @@
     refresh();
   })();
 })();
+
+// Topic test block: show the signed-in student's best score and attempt count.
+(async function () {
+  const box = document.querySelector(".ttest .ttscore");
+  if (!box || !window.Site || !Site.configured) return;
+  try {
+    const me = await Site.whoami();
+    if (!me || me.is_admin || me.is_teacher || me.is_school_teacher) return;
+    const id = box.closest(".ttest").dataset.test;
+    const { data } = await Site.sb.rpc("my_test_attempts");
+    const mine = (data || []).filter((r) => r.test === id);
+    if (mine.length) box.textContent = `Best ${Math.max(...mine.map((r) => r.pct))}% · ${mine.length} attempt${mine.length === 1 ? "" : "s"}`;
+  } catch (e) {}
+})();
