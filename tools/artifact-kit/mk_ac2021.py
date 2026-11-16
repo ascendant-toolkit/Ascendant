@@ -475,7 +475,25 @@ PUTRECORD "Stock.dat", "Sold"
 CLOSEFILE "Stock.dat"'''), "Using WRITEFILE. WRITEFILE is for text files; PUTRECORD is for random files.") + req("2 marks", "State", "A text file holds names in alphabetical order. State the file organisation, and one drawback of inserting a new name in the right place.", "Ordered by a key.",
   "<p>" + mks(["Sequential", "The new record cannot just be added to the end: the file must be rewritten (copied) with the record inserted in the correct position."]) + "</p>", None)
 
-exam = exam20("Part 1 is real 9618 questions on file processing: Paper 3 pseudocode for text and random files, and Paper 4 Python for text files. Part 2 is a set of review questions for practice; they are not in exam format.", where, past, review)
+# Questions now on the four topic pages (storing, adding to sequential/random, finding in random); the full set stays in `past` for those pages to reuse.
+import re as _re
+MOVED = ["O/N 2023 · 9618/31, 33 · Q8(a)", "O/N 2023 · 9618/32 · Q12(b)", "M/J 2025 · 9618/31 · Q12", "M/J 2023 · 9618/32 · Q6(b)", "M/J 2025 · 9618/33 · Q11", "M/J 2026 · 9618/32 · Q10(b)", "O/N 2025 · 9618/42 · Q3(d)"]
+_MV = {("O/N 2023", "31, 33", "8(a)"), ("O/N 2023", "32", "12(b)"), ("M/J 2025", "31", "12"), ("M/J 2023", "32", "6(b)"), ("M/J 2025", "33", "11"), ("M/J 2026", "32", "10(b)"), ("O/N 2025", "42", "3(d)")}
+where_main = [w for w in where if tuple(w[:3]) not in _MV]
+_chunks = _re.split(r'(?=  <details class="eq">)', past)
+past_main = "".join(c for c in _chunks if not any(f'<span class="src">{m}</span>' in c for m in MOVED))
+past_main = _re.sub(r"\s*<h3>Paper 3: random files</h3>\s*", "\n", past_main)
+past_main = past_main.replace("</p>\n\n  <h3>Paper 3: text files</h3>", """ The questions on random files and on storing, adding and finding records now sit on the four topic pages below.</p>
+  <ul>
+    <li><a href="../ac-20-2-1-storing-records-serial-sequential/">Storing Records in a Serial or Sequential File</a></li>
+    <li><a href="../ac-20-2-1-adding-to-sequential-file/">Adding a Record to a Sequential File</a></li>
+    <li><a href="../ac-20-2-1-adding-to-random-file/">Adding a Record to a Random File</a></li>
+    <li><a href="../ac-20-2-1-finding-in-random-file/">Finding a Record in a Random File</a></li>
+  </ul>
+
+  <h3>Paper 3: text files</h3>""", 1)
+
+exam = exam20("Part 1 is real 9618 questions on file processing: Paper 3 pseudocode for text and random files, and Paper 4 Python for text files. Part 2 is a set of review questions for practice; they are not in exam format.", where_main, past_main, review)
 
 tips = tips_html([
   ("Match the file to the command.", "Text files: READFILE and WRITEFILE. Random files: SEEK with GETRECORD and PUTRECORD."),
