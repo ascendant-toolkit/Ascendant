@@ -27,6 +27,7 @@
     const courseKeys = me.subjects.filter((k) => catalog.courses[k]);
     let st = { students: [], classes: [], progress: new Map(), assess: [], tests: [], schemaMissing: false };
     let q = "";                                // student filter text
+    let cf = "";                               // class or subject filter: "c:<class id>" or "s:<subject>"
 
     // ---------- data ----------
     async function load() {
@@ -233,7 +234,13 @@
     // ---------- students ----------
     function viewStudents() {
       const needle = q.trim().toLowerCase();
-      const list = st.students.filter((p) => !needle || p.name.toLowerCase().includes(needle) || p.email.includes(needle));
+      // Filter options fill themselves from the data: every class that has students, and each subject more than one student takes.
+      const subjCount = {};
+      st.students.forEach((p) => p.subs.forEach((k) => { subjCount[k] = (subjCount[k] || 0) + 1; }));
+      const subjOpts = Object.keys(subjCount).filter((k) => catalog.courses[k]);
+      if (cf && !(cf.startsWith("c:") ? st.classes.some((c) => "c:" + c.id === cf) : subjOpts.includes(cf.slice(2)))) cf = "";
+      const inFilter = (p) => !cf || (cf.startsWith("c:") ? st.classes.find((c) => "c:" + c.id === cf).members.includes(p.email) : p.subs.includes(cf.slice(2)));
+      const list = st.students.filter((p) => inFilter(p) && (!needle || p.name.toLowerCase().includes(needle) || p.email.includes(needle)));
       list.sort((a, b) => (b.reset_requested_at ? 1 : 0) - (a.reset_requested_at ? 1 : 0));
       const rows = list.map((p) => {
         const lt = lastTest(p.email), cls = st.classes.filter((c) => c.members.includes(p.email));
@@ -243,15 +250,19 @@
           <td>${esc(activeLabel(p))}</td><td>${lessonPct(p)}%</td><td>${lt ? `<b>${lt.pct}%</b>` : "–"}</td>
           <td class="acts"><a class="mini ok" href="#student=${encodeURIComponent(p.email)}">Tracker</a>${school ? `${sc.per_subject ? '<button class="mini" data-act="subs">Subjects</button>' : ""}<button class="mini" data-act="reset">Reset login</button><button class="mini danger" data-act="rm">Remove</button>` : ""}</td></tr>`;
       }).join("");
-      root.innerHTML = header("students") + `<section class="card block"><div class="row"><h3>Students (${st.students.length})</h3>
+      root.innerHTML = header("students") + `<section class="card block"><div class="row"><h3>Students (${list.length === st.students.length ? list.length : list.length + " of " + st.students.length})</h3>
           <span>${school && st.students.length ? '<button class="mini" id="copypw">Copy logins as table</button>' : ""}</span></div>
-        ${st.students.length ? `<label class="hint">Find a student<input type="search" id="find" value="${esc(q)}" placeholder="Name or email"></label>
+        ${st.students.length ? `<div class="filters"><label class="hint">Find a student<input type="search" id="find" value="${esc(q)}" placeholder="Name or email"></label>
+          ${st.classes.length || subjOpts.length > 1 ? `<label class="hint">${classesWord} or subject<select id="cfilter"><option value="">All students</option>
+            ${st.classes.length ? `<optgroup label="${classesWord}">${st.classes.map((c) => `<option value="c:${c.id}" ${cf === "c:" + c.id ? "selected" : ""}>${esc(c.name)} (${c.members.length})</option>`).join("")}</optgroup>` : ""}
+            ${subjOpts.length > 1 ? `<optgroup label="Subject">${subjOpts.map((k) => `<option value="s:${k}" ${cf === "s:" + k ? "selected" : ""}>${esc(catalog.courses[k].title)} (${subjCount[k]})</option>`).join("")}</optgroup>` : ""}</select></label>` : ""}</div>
           <div class="tablewrap"><table class="tbl"><thead><tr><th>Student</th>${school ? "<th>Password</th>" : ""}${school && sc.per_subject ? "<th>Subjects</th>" : ""}<th>Status</th><th>Lessons</th><th>Latest test</th><th></th></tr></thead><tbody id="sstu">${rows}</tbody></table></div>
           ${school ? '<p class="hint">If a student changes their own password, the one listed here is out of date. Reset login puts it back to the listed one.</p>' : ""}`
           : `<p class="hint">No students yet.${school ? " Use the Add students tab." : ""}</p>`}</section>
         <dialog id="dlg" class="wide"><form method="dialog" id="f-dlg"></form></dialog>`;
       const find = $("#find");
       find?.addEventListener("input", () => { q = find.value; const pos = find.selectionStart; viewStudents(); const f2 = $("#find"); f2.focus(); f2.setSelectionRange(pos, pos); });
+      $("#cfilter")?.addEventListener("change", (e) => { cf = e.target.value; viewStudents(); });
       $("#copypw")?.addEventListener("click", async () => {
         await navigator.clipboard.writeText(["Name\tEmail\tEmail 2\tPassword", ...st.students.map((p) => [p.name, p.email, p.email2 || "", p.password].join("\t"))].join("\n"));
         $("#copypw").textContent = "Copied";
