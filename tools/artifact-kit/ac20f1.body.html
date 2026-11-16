@@ -1,0 +1,180 @@
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 20.2.1</div>
+  <h1>Storing Records in a Serial or Sequential File</h1>
+  <p class="cbook">Coursebook: Chapter 20 · Further programming, section 20.2 File processing and exception handling</p>
+  <p class="lead">Turning a record into a line, appending to a serial file, sorting before writing a sequential file, and reading the records back; pseudocode and Python side by side, with step-by-step animations.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A <b>record</b> is a group of related <b>fields</b> (a student's ID, name and mark), and a <b>file</b> keeps many records after the program has ended. In a text file each record is stored as <b>one line</b>, made by joining the fields into a string with a separator such as a comma. A <b>serial file</b> stores the records in the order they arrive, so a new record is <b>appended to the end</b> with <code>FOR APPEND</code>. A <b>sequential file</b> stores them in order of a <b>key field</b>, so the records must be sorted by the key before they are written. Either file is read back from the start, one record after another, until <code>EOF</code>.</p></div>
+
+  <h2>1 · A record in a program</h2>
+  <p>Before a record can be stored it has to exist in the program. A record type groups the fields; one variable of that type holds one record.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">class TStudent:</span><span class="ln">    def __init__(self, StudentID, Name, Mark):</span><span class="ln">        self.StudentID = StudentID</span><span class="ln">        self.Name = Name</span><span class="ln">        self.Mark = Mark</span><span class="ln"> </span><span class="ln">S = TStudent(104, &quot;Aria&quot;, 72)</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">TYPE TStudent</span><span class="ln">   DECLARE StudentID : INTEGER</span><span class="ln">   DECLARE Name : STRING</span><span class="ln">   DECLARE Mark : INTEGER</span><span class="ln">ENDTYPE</span><span class="ln"> </span><span class="ln">DECLARE S : TStudent</span><span class="ln">S.StudentID &lt;- 104</span><span class="ln">S.Name &lt;- &quot;Aria&quot;</span><span class="ln">S.Mark &lt;- 72</span></pre></div></div></div>
+
+  <h2>2 · Turning a record into one line of text</h2>
+  <p>A text file can only hold strings. Convert each number to a string (<code>str()</code> in Python, <code>NUM_TO_STR()</code> in pseudocode) and join the fields with a comma. The comma is the <b>separator</b>: it is what lets the fields be cut apart again when the line is read back.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">Line = str(S.StudentID) + &quot;,&quot; + S.Name + &quot;,&quot; + str(S.Mark)</span><span class="ln"># Line is now &quot;104,Aria,72&quot;</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">Line &lt;- NUM_TO_STR(S.StudentID) &amp; &quot;,&quot; &amp; S.Name &amp; &quot;,&quot; &amp; NUM_TO_STR(S.Mark)</span><span class="ln">// Line is now &quot;104,Aria,72&quot;</span></pre></div></div></div>
+  <div class="tip"><b class="h">Keep the format fixed</b>Every record must use the same fields, in the same order, with the same separator. If a name could contain a comma, choose a different separator, otherwise the line cannot be cut apart correctly.</div>
+
+  <h2>3 · Storing a record in a serial file</h2>
+  <p>Open the file for <b>append</b>, write the line, close the file. Append keeps every record already in the file and adds the new one after the last. If the file does not exist yet, append creates it.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">File = open(&quot;Students.txt&quot;, &quot;a&quot;)</span><span class="ln">File.write(Line + &quot;\n&quot;)</span><span class="ln">File.close()</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;Students.txt&quot; FOR APPEND</span><span class="ln">WRITEFILE &quot;Students.txt&quot;, Line</span><span class="ln">CLOSEFILE &quot;Students.txt&quot;</span></pre></div></div></div>
+  <p><code>write()</code> does not add a new line by itself, so the <code>"\n"</code> ends the record. Without it the next record would run on to the same line.</p>
+
+  <h2>4 · Storing records in a sequential file</h2>
+  <p>The line format is exactly the same. What changes is the <b>order</b>: the records are sorted on the key field (<code>StudentID</code>) first, then written from the start of a new file, so each key is larger than the one before. Opening with <code>FOR WRITE</code> is right here because the whole file is being created.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">Students.sort(key=lambda Student: Student.StudentID)</span><span class="ln">File = open(&quot;Students.txt&quot;, &quot;w&quot;)</span><span class="ln">for Student in Students:</span><span class="ln">    File.write(str(Student.StudentID) + &quot;,&quot; + Student.Name + &quot;,&quot; + str(Student.Mark) + &quot;\n&quot;)</span><span class="ln">File.close()</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">// sort Students[1:Count] into StudentID order (for example a bubble sort)</span><span class="ln">OPENFILE &quot;Students.txt&quot; FOR WRITE</span><span class="ln">FOR Index &lt;- 1 TO Count</span><span class="ln">   Line &lt;- NUM_TO_STR(Students[Index].StudentID) &amp; &quot;,&quot; &amp; Students[Index].Name &amp; &quot;,&quot; &amp; NUM_TO_STR(Students[Index].Mark)</span><span class="ln">   WRITEFILE &quot;Students.txt&quot;, Line</span><span class="ln">NEXT Index</span><span class="ln">CLOSEFILE &quot;Students.txt&quot;</span></pre></div></div></div>
+  <p>Adding one record to a file that is already in key order is a different job, because the new record has to go in the right place. That is on the next page, <b>Adding a Record to a Sequential File</b>.</p>
+
+  <h2>5 · Serial against sequential</h2>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Serial</th><th>Sequential</th></tr>
+    <tr><td>Order of records</td><td>The order they were added (chronological)</td><td>Order of a key field</td></tr>
+    <tr><td>Storing a record</td><td>Append to the end</td><td>Sort on the key, then write in order (or insert in the right place)</td></tr>
+    <tr><td>Open mode used</td><td><code>APPEND</code></td><td><code>WRITE</code> for a new file</td></tr>
+    <tr><td>Reading</td><td>From the start, record by record, until <code>EOF</code></td><td>Same, and the search can stop once a key larger than the one wanted is reached</td></tr>
+    <tr><td>Typical use</td><td>Transaction logs, data logging, temporary files</td><td>Payroll, bills, batch processing</td></tr>
+  </table></div>
+
+  <h2>6 · Reading the stored records back</h2>
+  <p>Both kinds are read the same way: open for read, repeat until the end of the file, close. Each line is cut into fields and converted back to the right data types.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">File = open(&quot;Students.txt&quot;, &quot;r&quot;)</span><span class="ln">for Line in File:</span><span class="ln">    Parts = Line.strip().split(&quot;,&quot;)</span><span class="ln">    S = TStudent(int(Parts[0]), Parts[1], int(Parts[2]))</span><span class="ln">File.close()</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;Students.txt&quot; FOR READ</span><span class="ln">WHILE NOT EOF(&quot;Students.txt&quot;)</span><span class="ln">   READFILE &quot;Students.txt&quot;, Line</span><span class="ln">   S.StudentID &lt;- STR_TO_NUM(LEFT(Line, 3))   // IDs are always 3 digits</span><span class="ln">   // Name and Mark are cut out of Line with MID in the same way</span><span class="ln">ENDWHILE</span><span class="ln">CLOSEFILE &quot;Students.txt&quot;</span></pre></div></div></div>
+  <p><code>strip()</code> removes the new line at the end of each line, and <code>int()</code> turns the text back into a number.</p>
+
+  <h2>7 · Common ways to lose marks</h2>
+  <ul>
+    <li>Using <code>FOR WRITE</code> to add one record. It deletes every record already in the file. Use <code>FOR APPEND</code>.</li>
+    <li>Forgetting <code>NUM_TO_STR</code> or <code>str()</code> when joining a number to a string.</li>
+    <li>Forgetting the separator or the new line, so the fields run together.</li>
+    <li>Describing a serial file as "in order". Serial means the order added, not sorted.</li>
+    <li>Not closing the file.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Appending a record to a serial file</h2><p>Press Play, or click the steps. Both versions of the code are highlighted together.</p><div id="stA"></div>
+  <h2>2 · Serial order against sequential order</h2><div id="stB"></div>
+  <h2>3 · Reading the records back</h2><div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Turn a record into a line</h2>
+  <p>Change the fields. The statements and the line stored in the file update as you type.</p>
+  <div class="card"><div class="btnrow"><label>StudentID <input id="lI" size="5" value="104"></label> <label>Name <input id="lN" size="10" value="Aria"></label> <label>Mark <input id="lM" size="4" value="72"></label></div><div id="lO"></div><div class="verdict" id="lV"></div></div>
+
+  <h2>Lab 2 · Serial or sequential?</h2>
+  <p>Add records one at a time and see where each one is stored. Try a key that is smaller than the ones already there.</p>
+  <div class="card"><div class="btnrow"><label>New StudentID <input id="aK" size="5" value="140"></label> <button class="b pri" id="aB">Add record</button> <button class="b" id="aR">Reset</button></div><div class="grid2"><div id="aS"></div><div id="aQ"></div></div><div class="verdict" id="aV"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Sort the statements</h2><div id="cl1" class="card"></div>
+  <h2>2 · Put the steps in order</h2><div id="o1" class="card"></div>
+  <h2>3 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>4 · Work it out</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A shop's till log</h3><p>Every sale is added as a new line at the end of the day's file as it happens. Nothing is sorted, so recording is quick and no earlier sale is touched.</p><div class="use"><b>Exam use:</b> serial file: records in the order they happened, added with APPEND.</div></div>
+  <div class="rw"><h3>A payroll file</h3><p>Staff records are held in order of employee number. A program reads the file from the top once a month and produces payslips in that order.</p><div class="use"><b>Exam use:</b> sequential file: sorted on the key field, processed from start to end.</div></div>
+  <div class="rw"><h3>Data logging from a sensor</h3><p>A weather station writes a temperature line every minute. The file simply grows, and an analysis program reads it from the start later.</p><div class="use"><b>Exam use:</b> serial file used for data logging.</div></div>
+  <div class="rw"><h3>A temporary transaction file</h3><p>During the day orders are collected in a file in the order they arrive. Overnight they are sorted and merged into the main file, which is kept in order of customer number.</p><div class="use"><b>Exam use:</b> serial for collecting, sequential for the master file.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Real Paper 3 and Paper 4 questions, then review questions for practice. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>O/N 2024</td><td>32</td><td>2(a), (b)</td><td>2 + 1</td><td>Describe serial file organisation; state a use</td></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>4(b)</td><td>2</td><td>Outline sequential access for serial and sequential files</td></tr>
+    <tr><td>O/N 2025</td><td>42</td><td>3(d)</td><td>5</td><td>Write the contents of an array to a new text file, one comma-separated line per record (Python)</td></tr>
+  </table></div>
+  <p class="note">These questions are reworded from the papers; check the original paper and mark scheme for the exact wording. Serial and sequential files are asked as written descriptions in Paper 3. Paper 4 asks you to write records to a text file as Python, as in the last question.</p>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/32 · Q2(a), (b)</span> <span class="cmd">Describe / State</span> <span class="mark">2 + 1 marks</span> (a) Describe serial file organisation as a method of storing data records in a file. (b) State one example of a use for serial file organisation.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Order, then where new records go. A use must be a real use, not another description.</div>
+    <div class="ans"><p>(a) <span class="mk k" data-t="1">Records are stored one after the other as they are collected (chronological order)</span> <span class="mk k" data-t="2">New records are appended to the end of the file</span></p><p>(b) One of: <span class="mk a" data-t="1">creating unsorted or temporary transaction files</span> <span class="mk a" data-t="2">creating data logging files</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing that the records are 'in order'. Serial is the order they arrived, not an order on a key.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31, 33 · Q4(b)</span> <span class="cmd">Outline</span> <span class="mark">2 marks</span> Outline the process of sequential access for serial and sequential files.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Start, check one after another, stop.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Start at the beginning of the file</span> <span class="mk k" data-t="2">check the records one after another (linearly)</span> <span class="mk k" data-t="3">until the record is found, or the end of the file is reached (or the records have been processed)</span> (maximum 2)</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Describing a jump straight to a record. That is direct access, which random files use.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/42 · Q3(d)</span> <span class="cmd">Write</span> <span class="mark">5 marks</span> The procedure WriteAllToFile() stores the content of TreeArray in a new text file with the filename Tree.txt. The file is not provided. Each node in TreeArray is stored on one line with a comma separating each value. For example, if the rows of the 50-row array are (−1, 20, 1), (−1, 30, −1) and so on, the file will contain the lines <code>−1,20,1</code> and <code>−1,30,−1</code> and so on. Write program code for WriteAllToFile(). Include exception handling when writing to the file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A loop over the 50 rows, build one string with commas and a new line, and write it. Try and except round it.</div>
+    <div class="ans"><p>One mark each: <span class="mk k" data-t="1">procedure header with exception handling for writing (try / except with a message)</span> <span class="mk k" data-t="2">opening Tree.txt to write and closing it in an appropriate place</span> <span class="mk k" data-t="3">looping through each element of the array</span> <span class="mk k" data-t="4">creating the correct string</span> <span class="mk k" data-t="5">writing each string to the file</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">def WriteAllToFile():</span><span class="ln">    try:</span><span class="ln">        File = open(&quot;Tree.txt&quot;, &quot;w&quot;)</span><span class="ln">        for x in range(0, 50):</span><span class="ln">            Line = str(TreeArray[x][0]) + &quot;,&quot; + str(TreeArray[x][1]) + &quot;,&quot; + str(TreeArray[x][2]) + &quot;\n&quot;</span><span class="ln">            File.write(Line)</span><span class="ln">        File.close()</span><span class="ln">    except:</span><span class="ln">        print(&quot;Cannot write to file&quot;)</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting <code>str()</code> on the numbers, or leaving out the commas, which are part of the file format.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">2 marks</span> Describe how records are stored in a serial file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two points: the order, and where a new record goes.</div>
+    <div class="ans"><span class="mk k" data-t="1">Records are stored one after the other in the order they were added</span> <span class="mk k" data-t="2">A new record is appended to the end of the file</span></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Why is a record stored as a single line with commas between the fields?</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A text file holds strings; link to reading it back.</div>
+    <div class="ans"><span class="mk k" data-t="1">A text file can only hold text, so the fields are joined into one string</span> <span class="mk k" data-t="2">the commas let the line be split back into separate fields when it is read</span></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">4 marks</span> Write pseudocode to store the record <code>S</code> (type <code>TStudent</code>) at the end of the serial file <code>Students.txt</code>.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Build the line, then open, write, close.</div>
+    <div class="ans"><pre class="cp" style="counter-reset:l 0"><span class="ln">Line &lt;- NUM_TO_STR(S.StudentID) &amp; &quot;,&quot; &amp; S.Name &amp; &quot;,&quot; &amp; NUM_TO_STR(S.Mark)</span><span class="ln">OPENFILE &quot;Students.txt&quot; FOR APPEND</span><span class="ln">WRITEFILE &quot;Students.txt&quot;, Line</span><span class="ln">CLOSEFILE &quot;Students.txt&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Opening FOR WRITE, which erases the earlier records.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">5 marks</span> Write Python to store all the records in the list <code>Students</code> in a sequential file, in order of <code>StudentID</code>.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Sort first. FOR WRITE is right because the file is being created.</div>
+    <div class="ans"><pre class="cp" style="counter-reset:l 0"><span class="ln">Students.sort(key=lambda Student: Student.StudentID)</span><span class="ln">File = open(&quot;Students.txt&quot;, &quot;w&quot;)</span><span class="ln">for Student in Students:</span><span class="ln">    File.write(str(Student.StudentID) + &quot;,&quot; + Student.Name + &quot;,&quot; + str(Student.Mark) + &quot;\n&quot;)</span><span class="ln">File.close()</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing the records without sorting them, which gives a serial file.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> A school stores exam entries in a serial file and also in a sequential file. Explain one difference between adding a new entry to each.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Where the record goes.</div>
+    <div class="ans"><span class="mk k" data-t="1">Serial: the new entry is appended to the end of the file</span> <span class="mk k" data-t="2">Sequential: the entry must go in the position given by its key field</span> <span class="mk k" data-t="3">so records after it have to be moved (the file rewritten)</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying the sequential file is 'sorted' without saying what that means for adding.</div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Name the order.</b> Serial: the order added. Sequential: the order of a key field. Never swap them.</li>
+    <li><b>Say where a new record goes.</b> Serial: the end of the file. Sequential: in its key position.</li>
+    <li><b>APPEND adds, WRITE replaces.</b> Using WRITE to add a record loses the rest of the file.</li>
+    <li><b>One record, one line.</b> Join the fields with a separator and end with a new line.</li>
+    <li><b>Convert numbers.</b> str() or NUM_TO_STR() before joining; int() or STR_TO_NUM() after reading.</li>
+    <li><b>Always close.</b> CLOSEFILE once the writing or reading is finished.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Describe a serial file</td><td>"Records are stored in the order they were added, and new records are appended to the end of the file."</td></tr>
+    <tr><td>Describe a sequential file</td><td>"Records are stored in order of a key field, so a new record must be placed in its key position."</td></tr>
+    <tr><td>Describe reading either</td><td>"Start at the beginning and check each record in turn until the record is found or the end of the file is reached."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Describe</td><td>Give the main features in connected points.</td></tr>
+    <tr><td>State</td><td>Give a short fact or example.</td></tr>
+    <tr><td>Write</td><td>Produce pseudocode or Python that opens, writes and closes.</td></tr>
+    <tr><td>Explain</td><td>Give a reason as well as the fact.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>

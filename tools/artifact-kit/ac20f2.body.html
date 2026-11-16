@@ -1,0 +1,180 @@
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 20.2.1</div>
+  <h1>Adding a Record to a Sequential File</h1>
+  <p class="cbook">Coursebook: Chapter 20 · Further programming, section 20.2 File processing and exception handling</p>
+  <p class="lead">Why a sequential file is rebuilt rather than appended to, and the copy-and-insert algorithm with its three cases; pseudocode and Python side by side, with a line-by-line animation.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A <b>sequential file</b> keeps its records in order of a <b>key field</b>, so a new record cannot simply be added to the end: it has to go in its <b>key position</b>. A text file cannot have a line pushed in the middle, so the program makes a <b>new version</b> of the file. It reads the old file one record at a time and copies each to a <b>new file</b>, and when it reaches the first record whose key is <b>larger</b> than the new key it writes the new record first. If no record is larger, the new record is written <b>after the loop</b>, at the end. Finally the old file is deleted and the new file renamed to take its place.</p></div>
+
+  <h2>1 · Why not just append?</h2>
+  <p>Appending 130 to a file that holds 101, 115, 142, 160 gives 101, 115, 142, 160, 130. The file is no longer in key order, so it is no longer sequential: a search that stops when it passes the key would now give wrong answers. The record has to be placed <b>between 115 and 142</b>.</p>
+
+  <h2>2 · The record format used on this page</h2>
+  <p>Each record is one line, as on the previous page. The key is the <b>first three characters</b>: every StudentID has exactly 3 digits, so the key can be cut out with <code>LEFT(Line, 3)</code> in pseudocode, or <code>Line.split(",")[0]</code> in Python.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">101,Ana,58</span><span class="ln">115,Bo,66</span><span class="ln">142,Cy,71</span><span class="ln">160,Di,49</span></pre></div>
+
+  <h2>3 · The algorithm</h2>
+  <p>The new record is <code>NewLine</code> and its key is <code>NewKey</code>. <code>Placed</code> remembers whether the new record has been written yet, so it is written only once.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">import os</span><span class="ln">NewKey = 130</span><span class="ln">NewLine = &quot;130,Dev,64\n&quot;</span><span class="ln">Placed = False</span><span class="ln"> </span><span class="ln">Old = open(&quot;Students.txt&quot;, &quot;r&quot;)</span><span class="ln">New = open(&quot;NewStudents.txt&quot;, &quot;w&quot;)</span><span class="ln">for Line in Old:</span><span class="ln">    Key = int(Line.split(&quot;,&quot;)[0])</span><span class="ln">    if not Placed and Key &gt; NewKey:</span><span class="ln">        New.write(NewLine)</span><span class="ln">        Placed = True</span><span class="ln">    New.write(Line)</span><span class="ln">if not Placed:</span><span class="ln">    New.write(NewLine)</span><span class="ln">Old.close()</span><span class="ln">New.close()</span><span class="ln">os.replace(&quot;NewStudents.txt&quot;, &quot;Students.txt&quot;)</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">NewKey &lt;- 130</span><span class="ln">NewLine &lt;- &quot;130,Dev,64&quot;</span><span class="ln">Placed &lt;- FALSE</span><span class="ln"> </span><span class="ln">OPENFILE &quot;Students.txt&quot; FOR READ</span><span class="ln">OPENFILE &quot;NewStudents.txt&quot; FOR WRITE</span><span class="ln">WHILE NOT EOF(&quot;Students.txt&quot;)</span><span class="ln">   READFILE &quot;Students.txt&quot;, Line</span><span class="ln">   Key &lt;- STR_TO_NUM(LEFT(Line, 3))</span><span class="ln">   IF NOT Placed AND Key &gt; NewKey THEN</span><span class="ln">      WRITEFILE &quot;NewStudents.txt&quot;, NewLine</span><span class="ln">      Placed &lt;- TRUE</span><span class="ln">   ENDIF</span><span class="ln">   WRITEFILE &quot;NewStudents.txt&quot;, Line</span><span class="ln">ENDWHILE</span><span class="ln">IF NOT Placed THEN</span><span class="ln">   WRITEFILE &quot;NewStudents.txt&quot;, NewLine</span><span class="ln">ENDIF</span><span class="ln">CLOSEFILE &quot;Students.txt&quot;</span><span class="ln">CLOSEFILE &quot;NewStudents.txt&quot;</span><span class="ln">// delete Students.txt, then rename NewStudents.txt to Students.txt</span></pre></div></div></div>
+  <div class="tip"><b class="h">Two files are open at once</b>The old file is opened <code>FOR READ</code> and the new file <code>FOR WRITE</code>. Both must be closed before the old one is replaced. Python's <code>os.replace()</code> does the delete and rename in one step.</div>
+
+  <h2>4 · What each part does</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Part</th><th>Job</th></tr>
+    <tr><td><code>Key &gt; NewKey</code></td><td>True at the first record that should come <b>after</b> the new one. Records with a smaller key are copied untouched</td></tr>
+    <tr><td><code>Placed</code></td><td>Stops the new record being written again at every later record</td></tr>
+    <tr><td><code>New.write(Line)</code></td><td>Copies the record just read. It runs every time round the loop, after any insertion</td></tr>
+    <tr><td><code>IF NOT Placed</code> after the loop</td><td>Catches the case where the new key is larger than every key in the file</td></tr>
+    <tr><td>Replace the file</td><td>The new version becomes the file the program uses from now on</td></tr>
+  </table></div>
+
+  <h2>5 · The three cases</h2>
+  <div class="tw"><table class="t">
+    <tr><th>New key</th><th>Where it is written</th><th>Which line does it</th></tr>
+    <tr><td>Smaller than the first key (100)</td><td>Before the first record</td><td>The <code>IF</code> inside the loop, on the very first record</td></tr>
+    <tr><td>Between two keys (130)</td><td>Between them</td><td>The <code>IF</code> inside the loop, at the first larger key</td></tr>
+    <tr><td>Larger than every key (200)</td><td>After the last record</td><td>The <code>IF NOT Placed</code> after the loop</td></tr>
+  </table></div>
+
+  <h2>6 · The same pattern changes and deletes records</h2>
+  <p>Copy every record to a new file, but <b>leave out</b> the record to delete, or <b>write a changed version</b> of it instead. For a small file, an alternative is to read the records into an array, insert the new record in the right position, and write the whole array back with <code>FOR WRITE</code>.</p>
+
+  <h2>7 · Common ways to lose marks</h2>
+  <ul>
+    <li>Appending the record. That breaks the key order.</li>
+    <li>Opening the same file for reading and writing at once. The update is done through a second file.</li>
+    <li>Writing the new record every time the key is larger. <code>Placed</code> must stop it after the first.</li>
+    <li>Forgetting the check after the loop, so a record with the largest key is lost.</li>
+    <li>Leaving out the copy of the record just read, so existing records disappear.</li>
+    <li>Forgetting to close both files before replacing the old one.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Why appending breaks the order</h2><p>Press Play, or click the steps.</p><div id="stA"></div>
+  <h2>2 · Inserting 130 into the file, line by line</h2><p>Both versions of the code are highlighted together. Watch the pointer in the old file and the new file filling up.</p><div id="stB"></div>
+  <h2>3 · A key smaller than every record (100)</h2><div id="stC"></div>
+  <h2>4 · A key larger than every record (200)</h2><div id="stD"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Insert a record</h2>
+  <p>The file starts with keys 101, 115, 142 and 160. Enter a 3-digit key and press Insert. The table shows what the loop does with each record. The file keeps your changes until you reset it.</p>
+  <div class="card"><div class="btnrow"><label>New key <input id="iK" size="5" value="130"></label> <button class="b pri" id="iB">Insert</button> <button class="b" id="iR">Reset file</button></div><div id="iT"></div><div id="iN"></div><div class="verdict" id="iV"></div></div>
+
+  <h2>Lab 2 · Searching: serial against sequential</h2>
+  <p>Both files hold the keys 101, 115, 142 and 160. The serial file is in arrival order; the sequential file is in key order. Enter a key to find. Count the records read.</p>
+  <div class="card"><div class="btnrow"><label>Key to find <input id="sK" size="5" value="120"></label> <button class="b pri" id="sB">Search</button></div><div class="grid2"><div id="sS"></div><div id="sQ"></div></div><div class="verdict" id="sV"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Sort the statements</h2><div id="cl1" class="card"></div>
+  <h2>2 · Put the steps in order</h2><div id="o1" class="card"></div>
+  <h2>3 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>4 · Work it out</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A payroll master file</h3><p>Employees are kept in employee number order. When someone joins, the program copies the old file to a new one and writes the new employee at the right place, so the file is still in order for the next payroll run.</p><div class="use"><b>Exam use:</b> sequential update by copying to a new file.</div></div>
+  <div class="rw"><h3>Overnight batch processing</h3><p>The day's changes are collected in a transaction file, sorted by key, and merged with the master file in a single pass from top to bottom to produce a new master file.</p><div class="use"><b>Exam use:</b> sequential files suit batch processing: one pass, old file in, new file out.</div></div>
+  <div class="rw"><h3>A bank statement run</h3><p>At the end of the month every account is read in account order and a line is written for each to a new file. The old file is kept as a backup until the new one is checked.</p><div class="use"><b>Exam use:</b> the old and new version both exist during the update.</div></div>
+  <div class="rw"><h3>Why a search can stop early</h3><p>A library file is in order of book number. A search for number 5120 can stop as soon as it reads 5121, because 5120 would have come before it.</p><div class="use"><b>Exam use:</b> a sequential search stops when the key has been passed.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Real Paper 3 and Paper 4 questions, then review questions for practice. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>4(a)</td><td>4</td><td>Describe sequential and random file organisation (a new version of the file is needed to update a sequential file)</td></tr>
+    <tr><td>M/J 2023</td><td>32</td><td>2(a)</td><td>3</td><td>Describe how records are organised and accessed in a sequential file</td></tr>
+    <tr><td>M/J 2026</td><td>32</td><td>4(a), (b), (c)</td><td>1 + 2 + 3</td><td>A use of a sequential file; how records are organised; how a record is found</td></tr>
+  </table></div>
+  <p class="note">These questions are reworded from the papers; check the original paper and mark scheme for the exact wording. Sequential files are asked as written descriptions in Paper 3. Writing the update as code is not asked in the papers so far, so the algorithm on this page is the extension of the idea in the mark scheme (a new version of the file is created).</p>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31, 33 · Q4(a)</span> <span class="cmd">Describe</span> <span class="mark">4 marks</span> Describe sequential and random methods of file organisation. (2 marks for each.)</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Four points in total. For sequential: order, the key, and what updating means.</div>
+    <div class="ans"><p>Sequential (max 2): <span class="mk k" data-t="1">Records in the file are ordered</span> <span class="mk k" data-t="2">based on the key field</span> <span class="mk k" data-t="3">A new version of the file has to be created to update the file</span></p><p>Random (max 2): <span class="mk a" data-t="1">Records are stored in no particular order</span> <span class="mk a" data-t="2">There is a relationship between the key and the record's location (a hashing algorithm is used)</span> <span class="mk a" data-t="3">Updates can be carried out directly</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying a random file is 'not sorted' and stopping. The mark is for how the location is found.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/32 · Q2(a)</span> <span class="cmd">Describe</span> <span class="mark">3 marks</span> Describe how records are organised and accessed in a sequential file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Organised (order, key) and accessed (one after another, until found).</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Records are stored in a particular order</span> <span class="mk k" data-t="2">the order is determined by the value in a key field</span> <span class="mk k" data-t="3">records are accessed one after the other (from the beginning, record by record)</span> <span class="mk k" data-t="4">until the required record is found or the key field value is exceeded</span> (maximum 3)</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Describing the records as stored 'in the order they were added'. That is a serial file.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/32 · Q4(a), (b), (c)</span> <span class="cmd">State / Describe / Outline</span> <span class="mark">1 + 2 + 3 marks</span> (a) State one example of where sequential file organisation could be used. (b) Describe how records are organised in sequential files. (c) Outline the process of sequential file access to find a record in a sequential file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(b) is about order and the key. (c) is a search from the start of the file that can stop early.</div>
+    <div class="ans"><p>(a) One of: <span class="mk a" data-t="1">batch processing tasks</span> <span class="mk a" data-t="2">generating bills or payroll</span> <span class="mk a" data-t="3">recording log files</span> <span class="mk a" data-t="4">backup</span></p><p>(b) <span class="mk k" data-t="1">Records are stored one after the other (linearly)</span> <span class="mk k" data-t="2">in a given order</span> <span class="mk k" data-t="3">usually based on a key field / unique identifier</span> (maximum 2)</p><p>(c) <span class="mk k" data-t="1">Each record is searched one after the other from the physical start of the file</span> <span class="mk k" data-t="2">using the record key</span> <span class="mk k" data-t="3">until the record is found</span> <span class="mk k" data-t="4">or until the key being searched for has been exceeded, or the end of the file is reached</span> (maximum 3)</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Answering (b) with 'chronological order', which is serial. Describing an index in (c); an index belongs to indexed sequential files.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain why a new record cannot be appended to a sequential file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Link the order to the key field.</div>
+    <div class="ans"><span class="mk k" data-t="1">A sequential file is stored in order of a key field</span> <span class="mk k" data-t="2">appending would put the record at the end, out of key order</span> <span class="mk k" data-t="3">so the record has to be placed in its key position (a new version of the file is made)</span></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">2 marks</span> Describe how a program updates a sequential text file when a new record is added.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two files, copy, replace.</div>
+    <div class="ans"><span class="mk k" data-t="1">The old file is read record by record and each record is copied to a new file, with the new record written in its key position</span> <span class="mk k" data-t="2">the old file is then replaced by the new file</span></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">6 marks</span> Write Python to insert the line <code>NewLine</code> with key <code>NewKey</code> into <code>Students.txt</code>, which is in key order.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open both, copy with a Placed flag, write after the loop if needed, close, replace.</div>
+    <div class="ans"><pre class="cp" style="counter-reset:l 0"><span class="ln">import os</span><span class="ln">Placed = False</span><span class="ln">Old = open(&quot;Students.txt&quot;, &quot;r&quot;)</span><span class="ln">New = open(&quot;NewStudents.txt&quot;, &quot;w&quot;)</span><span class="ln">for Line in Old:</span><span class="ln">    if not Placed and int(Line.split(&quot;,&quot;)[0]) &gt; NewKey:</span><span class="ln">        New.write(NewLine)</span><span class="ln">        Placed = True</span><span class="ln">    New.write(Line)</span><span class="ln">if not Placed:</span><span class="ln">    New.write(NewLine)</span><span class="ln">Old.close()</span><span class="ln">New.close()</span><span class="ln">os.replace(&quot;NewStudents.txt&quot;, &quot;Students.txt&quot;)</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing NewLine inside the loop every time Key > NewKey. Without the Placed flag it is written again for every later record.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">3 marks</span> A new record has a key larger than every key already in the file. State where in the algorithm it is written and why.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>It never meets the IF inside the loop.</div>
+    <div class="ans"><span class="mk k" data-t="1">After the loop has finished</span> <span class="mk k" data-t="2">because no record read had a larger key, so Placed is still FALSE</span> <span class="mk k" data-t="3">so it is written at the end of the new file</span></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Complete</span> <span class="mark">4 marks</span> In the pseudocode below, a record is <b>deleted</b> instead of added. Describe the one change to the loop.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The loop copies every record except one.</div>
+    <div class="ans"><span class="mk k" data-t="1">Compare the key of the record read with the key to delete</span> <span class="mk k" data-t="2">if they are equal, do not write the record to the new file</span> <span class="mk k" data-t="3">otherwise write it as normal</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Trying to remove the line from the old file directly.</div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Never append.</b> A new record goes in its key position, so the file is rebuilt.</li>
+    <li><b>Two files.</b> READ the old, WRITE the new, then replace the old with the new.</li>
+    <li><b>Use a flag.</b> Placed stops the new record being written more than once.</li>
+    <li><b>Cover the end case.</b> IF NOT Placed after the loop handles the largest key.</li>
+    <li><b>Copy what you read.</b> Every old record is written, after any insertion.</li>
+    <li><b>Say 'a new version of the file'.</b> This phrase earns the mark in descriptions.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Explain why it is rebuilt</td><td>"A sequential file is in key order, so the new record has to go in its key position, which means creating a new version of the file."</td></tr>
+    <tr><td>Describe the update</td><td>"The old file is read record by record and copied to a new file, and the new record is written at the first record with a larger key."</td></tr>
+    <tr><td>Describe a search</td><td>"Records are checked one after another from the start until the key is found or the key has been exceeded."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Describe</td><td>Give the main features in connected points.</td></tr>
+    <tr><td>Explain</td><td>Give a reason as well as the fact.</td></tr>
+    <tr><td>Write</td><td>Produce Python or pseudocode that follows the steps.</td></tr>
+    <tr><td>State</td><td>A short fact or example.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>

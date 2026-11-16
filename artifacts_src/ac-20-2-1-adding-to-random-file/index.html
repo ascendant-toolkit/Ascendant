@@ -1,0 +1,872 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Adding a Record to a Random File</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
+
+table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
+.synd{margin:8px 0;overflow-x:auto}
+.gantt{display:flex;margin:6px 0 0;font-family:var(--mono)}.gantt .gb{border:1.5px solid var(--ink);margin-left:-1.5px;text-align:center;padding:6px 0;font-weight:700;font-size:.85rem;background:var(--surface);min-width:0}
+.gantt .gb.c0{background:var(--accent-soft)}.gantt .gb.c1{background:var(--bad-soft)}.gantt .gb.c2{background:var(--good-soft)}.gantt .gb.c3{background:var(--warn-soft)}.gantt .gb.c4{background:var(--soft)}
+.gticks{display:flex;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:2px 0 10px}.gticks span{text-align:right;min-width:0}
+
+details.eq>summary .qb{flex-basis:100%;display:block}
+details.eq>summary .qp,details.eq>summary .qi{display:block;margin-top:6px}
+details.eq>summary .qp.sub{margin-left:1.6em}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 20.2.1</div>
+  <h1>Adding a Record to a Random File</h1>
+  <p class="cbook">Coursebook: Chapter 20 · Further programming, section 20.2 File processing and exception handling</p>
+  <p class="lead">Hashing a key to a location, SEEK and PUTRECORD, handling a collision with the next free location, and detecting a full file; pseudocode and Python side by side, with a line-by-line animation.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A <b>random file</b> is a file of equal-sized records, each at a numbered <b>location</b>, and the program can jump straight to any location with <code>SEEK</code>. To add a record, a <b>hash function</b> turns its key into a location (here <code>Key MOD 7</code>), the program uses <code>SEEK</code> to move there, and <code>PUTRECORD</code> writes the record. If another record is already at that location, that is a <b>collision</b>, so the program checks the <b>next location</b> (wrapping round at the end) until it finds an empty one. If it comes back to where it started, the file is <b>full</b>. An empty location holds a record whose key is <code>0</code>, which is how the program recognises it.</p></div>
+
+  <h2>1 · The file and its locations</h2>
+  <p>This page uses a file <code>Accounts.dat</code> with 7 locations, numbered 0 to 6. Each record is a <code>TAccount</code>. The file is created with every location holding a blank record, so there is something at every location to read. (<code>PutRecord</code> is defined in the next section.)</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">import struct</span><span class="ln"> </span><span class="ln">class TAccount:</span><span class="ln">    def __init__(self, AccountNumber=0, Name=&quot;&quot;):</span><span class="ln">        self.AccountNumber = AccountNumber</span><span class="ln">        self.Name = Name</span><span class="ln"> </span><span class="ln">File = open(&quot;Accounts.dat&quot;, &quot;wb&quot;)</span><span class="ln">for Location in range(7):</span><span class="ln">    PutRecord(File, TAccount())      # blank record</span><span class="ln">File.close()</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">TYPE TAccount</span><span class="ln">   DECLARE AccountNumber : INTEGER</span><span class="ln">   DECLARE Name : STRING</span><span class="ln">ENDTYPE</span><span class="ln"> </span><span class="ln">DECLARE Blank : TAccount</span><span class="ln">Blank.AccountNumber &lt;- 0</span><span class="ln">Blank.Name &lt;- &quot;&quot;</span><span class="ln">OPENFILE &quot;Accounts.dat&quot; FOR RANDOM</span><span class="ln">FOR Location &lt;- 0 TO 6</span><span class="ln">   SEEK &quot;Accounts.dat&quot;, Location</span><span class="ln">   PUTRECORD &quot;Accounts.dat&quot;, Blank</span><span class="ln">NEXT Location</span><span class="ln">CLOSEFILE &quot;Accounts.dat&quot;</span></pre></div></div></div>
+
+  <h2>2 · SEEK, GETRECORD and PUTRECORD in Python</h2>
+  <p>Python has no commands with these names, so this page builds them from <code>seek()</code>, <code>read()</code> and <code>write()</code>. Every record is stored as exactly the same number of bytes, so location <i>n</i> starts at byte <code>n × RecSize</code>.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">import struct</span><span class="ln">Layout = &quot;&lt;i20s&quot;                      # a 4-byte integer then 20 bytes of text</span><span class="ln">RecSize = struct.calcsize(Layout)     # 24 bytes per record</span><span class="ln"> </span><span class="ln">def PutRecord(File, Rec):</span><span class="ln">    File.write(struct.pack(Layout, Rec.AccountNumber, Rec.Name.encode()))</span><span class="ln"> </span><span class="ln">def GetRecord(File):</span><span class="ln">    Num, Name = struct.unpack(Layout, File.read(RecSize))</span><span class="ln">    return TAccount(Num, Name.decode().rstrip(&quot;\x00&quot;))</span><span class="ln"> </span><span class="ln">def Hash(Key):</span><span class="ln">    return Key % 7</span></pre></div>
+  <div class="tw"><table class="t">
+    <tr><th>Pseudocode</th><th>Python</th></tr>
+    <tr><td><code>OPENFILE "Accounts.dat" FOR RANDOM</code></td><td><code>File = open("Accounts.dat", "r+b")</code></td></tr>
+    <tr><td><code>SEEK "Accounts.dat", Location</code></td><td><code>File.seek(Location * RecSize)</code></td></tr>
+    <tr><td><code>GETRECORD "Accounts.dat", Current</code></td><td><code>Current = GetRecord(File)</code></td></tr>
+    <tr><td><code>PUTRECORD "Accounts.dat", NewAccount</code></td><td><code>PutRecord(File, NewAccount)</code></td></tr>
+    <tr><td><code>CLOSEFILE "Accounts.dat"</code></td><td><code>File.close()</code></td></tr>
+  </table></div>
+  <p class="note">Random files have been examined as pseudocode in Paper 3. They have not been asked as Python code in Paper 4, so this Python is here to show the same logic running, not because the exam will ask for it.</p>
+
+  <h2>3 · The hash function</h2>
+  <p>It must give the same location every time for the same key, and a valid location (0 to 6). <code>MOD</code> does both: the remainder after dividing by 7 is always 0 to 6.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">def Hash(Key):</span><span class="ln">    return Key % 7</span><span class="ln"> </span><span class="ln">Hash(24)    # 3</span><span class="ln">Hash(16)    # 2</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">FUNCTION Hash(Key : INTEGER) RETURNS INTEGER</span><span class="ln">   RETURN Key MOD 7</span><span class="ln">ENDFUNCTION</span><span class="ln"> </span><span class="ln">Hash(24)    // 3</span><span class="ln">Hash(16)    // 2</span></pre></div></div></div>
+
+  <h2>4 · Storing a record at its hashed location</h2>
+  <p>When the question does not mention collisions, this is the whole answer: calculate the location, SEEK, PUTRECORD.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">File = open(&quot;Accounts.dat&quot;, &quot;r+b&quot;)</span><span class="ln">Location = Hash(NewAccount.AccountNumber)</span><span class="ln">File.seek(Location * RecSize)</span><span class="ln">PutRecord(File, NewAccount)</span><span class="ln">File.close()</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;Accounts.dat&quot; FOR RANDOM</span><span class="ln">Location &lt;- Hash(NewAccount.AccountNumber)</span><span class="ln">SEEK &quot;Accounts.dat&quot;, Location</span><span class="ln">PUTRECORD &quot;Accounts.dat&quot;, NewAccount</span><span class="ln">CLOSEFILE &quot;Accounts.dat&quot;</span></pre></div></div></div>
+  <div class="tip"><b class="h">The danger</b>PUTRECORD writes over whatever is at that location. If another account is already there, it is lost. That is why a safe version reads the location first.</div>
+
+  <h2>5 · Collisions: the next free location</h2>
+  <p>Two keys can hash to the same location: 24 and 10 both give 3. Read the location first. If it is empty (<code>AccountNumber = 0</code>) store the record. If not, move to the next location, wrapping from 6 back to 0 with <code>MOD 7</code>. This method is called <b>linear probing</b>. <code>Start</code> remembers where the search began, so if the program gets all the way round the file is full.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">File = open(&quot;Accounts.dat&quot;, &quot;r+b&quot;)</span><span class="ln">Stored = False</span><span class="ln">Location = Hash(NewAccount.AccountNumber)</span><span class="ln">Start = Location</span><span class="ln">while True:</span><span class="ln">    File.seek(Location * RecSize)</span><span class="ln">    Current = GetRecord(File)</span><span class="ln">    if Current.AccountNumber == 0:</span><span class="ln">        File.seek(Location * RecSize)</span><span class="ln">        PutRecord(File, NewAccount)</span><span class="ln">        Stored = True</span><span class="ln">    else:</span><span class="ln">        Location = (Location + 1) % 7</span><span class="ln">    if Stored or Location == Start:</span><span class="ln">        break</span><span class="ln">File.close()</span><span class="ln">if not Stored:</span><span class="ln">    print(&quot;File full&quot;)</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;Accounts.dat&quot; FOR RANDOM</span><span class="ln">Stored &lt;- FALSE</span><span class="ln">Location &lt;- Hash(NewAccount.AccountNumber)</span><span class="ln">Start &lt;- Location</span><span class="ln">REPEAT</span><span class="ln">   SEEK &quot;Accounts.dat&quot;, Location</span><span class="ln">   GETRECORD &quot;Accounts.dat&quot;, Current</span><span class="ln">   IF Current.AccountNumber = 0 THEN</span><span class="ln">      PUTRECORD &quot;Accounts.dat&quot;, NewAccount</span><span class="ln">      Stored &lt;- TRUE</span><span class="ln">   ELSE</span><span class="ln">      Location &lt;- (Location + 1) MOD 7</span><span class="ln">   ENDIF</span><span class="ln">UNTIL Stored OR Location = Start</span><span class="ln">IF NOT Stored THEN</span><span class="ln">   OUTPUT &quot;File full&quot;</span><span class="ln">ENDIF</span><span class="ln">CLOSEFILE &quot;Accounts.dat&quot;</span></pre></div></div></div>
+  <div class="tip"><b class="h">Why the second seek in Python?</b>In Python, reading a record moves the file position on to the next location, so the program seeks back before it writes. The exam mark scheme (M/J 2025, Paper 33, Question 11) writes with PUTRECORD straight after GETRECORD with no second SEEK, so in exam pseudocode the pointer stays at the location that was sought.</div>
+
+  <h2>6 · Common ways to lose marks</h2>
+  <ul>
+    <li>Leaving out <code>SEEK</code>. <code>PUTRECORD</code> writes wherever the pointer already is.</li>
+    <li>Using <code>READFILE</code> or <code>WRITEFILE</code> on a random file. Random files use <code>GETRECORD</code> and <code>PUTRECORD</code>.</li>
+    <li>Opening <code>FOR APPEND</code> or <code>FOR WRITE</code> instead of <code>FOR RANDOM</code>.</li>
+    <li>Storing straight at the hashed location without checking whether it is already used.</li>
+    <li>Adding 1 to the location without <code>MOD</code>, so it runs off the end of the file.</li>
+    <li>Not stopping when the file is full, so the loop never ends.</li>
+    <li>Not closing the file.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Storing a record at its hashed location</h2><p>Press Play, or click the steps.</p><div id="stA"></div>
+  <h2>2 · A collision, line by line</h2><p>Account 24 hashes to location 3, which is already taken. Watch the pointer move on until it finds an empty location.</p><div id="stB"></div>
+  <h2>3 · When the file is full</h2><div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Add a record</h2>
+  <p>The file has 7 locations and the hash is Key MOD 7. Enter an account number and press Add. The table shows every location the program looks at. Fill the file until it is full.</p>
+  <div class="card"><div class="btnrow"><label>Account number <input id="aK" size="5" value="24"></label> <button class="b pri" id="aB">Add</button> <button class="b" id="aR">Reset file</button></div><div id="aT"></div><div id="aF"></div><div class="verdict" id="aV"></div></div>
+
+  <h2>Lab 2 · Hash calculator</h2>
+  <p>Choose the number of locations and edit the keys. Keys that land on the same location are marked as collisions. The three keys in the box are the ones from the M/J 2023 exam question.</p>
+  <div class="card"><div class="btnrow" id="hM"></div><div class="btnrow"><label>Keys <input id="hK" size="34" value="3003, 1029, 7630, 14, 22, 29"></label></div><div id="hO"></div><div class="verdict" id="hV"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Sort the statements</h2><div id="cl1" class="card"></div>
+  <h2>2 · Put the steps in order</h2><div id="o1" class="card"></div>
+  <h2>3 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>4 · Work it out</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>School lockers</h3><p>A locker is assigned as student ID MOD number of lockers. If that locker is already taken, the student is given the next free one, wrapping round to the start after the last. That is the same method as linear probing.</p><div class="use"><b>Exam use:</b> hash for the first choice, next location on a collision.</div></div>
+  <div class="rw"><h3>A bank's account file</h3><p>Millions of records are stored at locations worked out from the account number. A new account is written straight to its location without reading any other record, which is why a random file is fast to add to.</p><div class="use"><b>Exam use:</b> direct access: SEEK to the calculated location, then PUTRECORD.</div></div>
+  <div class="rw"><h3>A hotel booking system</h3><p>Each booking reference is turned into a location in the booking file. When two references give the same location the system looks at the following locations until it finds an empty one.</p><div class="use"><b>Exam use:</b> collisions are handled by checking the next location.</div></div>
+  <div class="rw"><h3>A full file</h3><p>A small random file used as a cache has 500 slots. When all are taken the program has to report that it is full or throw an old record away; it must never overwrite a record by accident.</p><div class="use"><b>Exam use:</b> the Start check stops the loop and the program reports the file is full.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Real Paper 3 and Paper 4 questions, then review questions for practice. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2025</td><td>33</td><td>11</td><td>5</td><td>Complete the insertion of a new stock item into the next empty location of a random file</td></tr>
+    <tr><td>M/J 2023</td><td>32</td><td>2(b)</td><td>2</td><td>Hash values using modulus 5</td></tr>
+    <tr><td>M/J 2024</td><td>32</td><td>7(a), (b)(ii)</td><td>2 + 2</td><td>Direct access, and how a record is located in a random file</td></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>4(a)</td><td>4</td><td>Describe sequential and random file organisation (random part: hashing, direct update)</td></tr>
+  </table></div>
+  <p class="note">These questions are reworded from the papers; check the original paper and mark scheme for the exact wording. Random files are asked in Paper 3 as completed pseudocode and as written descriptions. Handling collisions by checking the next location is accepted in the mark scheme as an example of a method for finding a record that is not at its expected location.</p>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/33 · Q11</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> The pseudocode allows a user to input a new stock item. The random file is searched for the next empty location and the new item is inserted there. A suitable message is displayed if the file is full. Complete this pseudocode.<pre class="plain">Max ← 100000
+Stored ← FALSE
+Location ← 1
+...
+OUTPUT &quot;Enter the new item you wish to store: &quot;
+INPUT NewStock
+WHILE NOT Stored AND Location &lt;= Max
+   ...
+   GETRECORD &quot;StockList.dat&quot;, ...
+   IF CurrentStock = &quot;&quot; THEN
+      ... &quot;StockList.dat&quot;, NewStock
+      Stored ← TRUE
+   ELSE
+      Location ← Location + 1
+   ENDIF
+ENDWHILE
+IF ... THEN
+   OUTPUT &quot;The new item has not been stored as the file was full.&quot;
+ENDIF
+...</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the first empty location by reading each one in turn; the empty one is where PUTRECORD stores the item.</div>
+    <div class="ans"><p>One mark for each correctly completed line: <span class="mk k" data-t="1">OPENFILE "StockList.dat" FOR RANDOM</span> <span class="mk k" data-t="2">SEEK "StockList.dat", Location</span> <span class="mk k" data-t="3">GETRECORD ..., CurrentStock</span> <span class="mk k" data-t="4">PUTRECORD "StockList.dat", NewStock</span> <span class="mk k" data-t="5">IF Stored = FALSE THEN ... CLOSEFILE "StockList.dat"</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;StockList.dat&quot; FOR RANDOM</span><span class="ln">...</span><span class="ln">WHILE NOT Stored AND Location &lt;= Max</span><span class="ln">   SEEK &quot;StockList.dat&quot;, Location</span><span class="ln">   GETRECORD &quot;StockList.dat&quot;, CurrentStock</span><span class="ln">   IF CurrentStock = &quot;&quot; THEN</span><span class="ln">      PUTRECORD &quot;StockList.dat&quot;, NewStock</span><span class="ln">      Stored ← TRUE</span><span class="ln">   ELSE</span><span class="ln">      Location ← Location + 1</span><span class="ln">   ENDIF</span><span class="ln">ENDWHILE</span><span class="ln">IF Stored = FALSE THEN</span><span class="ln">   OUTPUT &quot;The new item has not been stored as the file was full.&quot;</span><span class="ln">ENDIF</span><span class="ln">CLOSEFILE &quot;StockList.dat&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Putting the record with PUTRECORD without having done SEEK to the empty location in this pass of the loop.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/32 · Q2(b)</span> <span class="cmd">Complete</span> <span class="mark">2 marks</span> A hashing algorithm is used to calculate storage locations for records in a random access file. The algorithm calculates hash values using the function modulus 5, which gives the remainder after integer division. For example, 3003 modulus 5 = 3, so the record key 3003 gives a hash value of 3. Complete the table to show the remaining hash values.<table class="t"><tr><th>Record key</th><th>Hash value</th></tr><tr><td>3003</td><td>3</td></tr><tr><td>1029</td><td></td></tr><tr><td>7630</td><td></td></tr></table></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Divide by 5 and keep the remainder. A number ending in 0 or 5 divides exactly.</div>
+    <div class="ans"><p>One mark for each correct value (maximum 2): 1029 gives <span class="mk k" data-t="1">4</span> and 7630 gives <span class="mk k" data-t="1">0</span>.</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving the result of the division (205 or 1526) instead of the remainder.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/32 · Q7(a), (b)(ii)</span> <span class="cmd">Outline / Explain</span> <span class="mark">2 + 2 marks</span><span class="qb"><span class="qp">(a) Outline what is meant by direct access as a method of file access. (b)(ii) Explain how direct access is used to locate a specific record in random files.</span></span></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) is about not reading other records. (b)(ii) is the hash, the calculated address and what happens if the record is not there.</div>
+    <div class="ans"><p>(a) <span class="mk k" data-t="1">A record can be found in a file without other records being read</span> <span class="mk k" data-t="2">using the key field of the target record (the location is found with a hashing algorithm)</span></p><p>(b)(ii) <span class="mk a" data-t="1">A hashing algorithm is used on the key field of the record</span> <span class="mk a" data-t="2">to calculate the address of the location where the target record is expected to be stored</span> <span class="mk a" data-t="3">Another method is used if it is not at the expected location, for example linear probing or an overflow area</span> (maximum 2)</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing only that the record is 'found quickly'. The marks are for the key, the hash and the calculated address.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> What is meant by a collision when a record is stored in a random file?</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two keys, one location.</div>
+    <div class="ans"><span class="mk k" data-t="1">Two different records (keys) produce the same hash value</span> <span class="mk k" data-t="2">so the location they should go in is already used</span></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Calculate</span> <span class="mark">3 marks</span> The hash function is <code>Key MOD 7</code>. State the location for the keys 52, 31 and 15, and say which two collide.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Divide by 7 and keep the remainder.</div>
+    <div class="ans"><span class="mk k" data-t="1">52 gives 3</span> <span class="mk k" data-t="2">31 gives 3 and 15 gives 1</span> <span class="mk k" data-t="3">52 and 31 collide at location 3</span><p>52 = 7 × 7 + 3, 31 = 7 × 4 + 3, 15 = 7 × 2 + 1.</p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Complete</span> <span class="mark">5 marks</span> Write pseudocode that stores <code>NewAccount</code> in <code>Accounts.dat</code> at the location given by <code>Hash()</code>. Assume there is no collision.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open for random, hash, SEEK, PUTRECORD, close.</div>
+    <div class="ans"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;Accounts.dat&quot; FOR RANDOM</span><span class="ln">Location &lt;- Hash(NewAccount.AccountNumber)</span><span class="ln">SEEK &quot;Accounts.dat&quot;, Location</span><span class="ln">PUTRECORD &quot;Accounts.dat&quot;, NewAccount</span><span class="ln">CLOSEFILE &quot;Accounts.dat&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Leaving out SEEK, or opening FOR WRITE.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">6 marks</span> Write Python that stores <code>NewAccount</code> in the next empty location from its hashed location, wrapping round and stopping if the file is full. Use <code>GetRecord</code> and <code>PutRecord</code>.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Read each location in turn; an empty one has AccountNumber 0.</div>
+    <div class="ans"><pre class="cp" style="counter-reset:l 0"><span class="ln">File = open(&quot;Accounts.dat&quot;, &quot;r+b&quot;)</span><span class="ln">Stored = False</span><span class="ln">Location = Hash(NewAccount.AccountNumber)</span><span class="ln">Start = Location</span><span class="ln">while True:</span><span class="ln">    File.seek(Location * RecSize)</span><span class="ln">    Current = GetRecord(File)</span><span class="ln">    if Current.AccountNumber == 0:</span><span class="ln">        File.seek(Location * RecSize)</span><span class="ln">        PutRecord(File, NewAccount)</span><span class="ln">        Stored = True</span><span class="ln">    else:</span><span class="ln">        Location = (Location + 1) % 7</span><span class="ln">    if Stored or Location == Start:</span><span class="ln">        break</span><span class="ln">File.close()</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting the second seek, so the record is written at the next location instead of the empty one.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Why is the new location calculated with <code>(Location + 1) MOD 7</code> rather than <code>Location + 1</code>?</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>What would happen at location 6.</div>
+    <div class="ans"><span class="mk k" data-t="1">Location 6 is the last location, and 6 + 1 = 7 is outside the file</span> <span class="mk k" data-t="2">MOD 7 wraps the location back to 0 so the search continues from the start of the file</span></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Always SEEK first.</b> SEEK to the location before every GETRECORD or PUTRECORD.</li>
+    <li><b>Open FOR RANDOM.</b> APPEND and WRITE are for text files.</li>
+    <li><b>Hash first.</b> Location comes from the key, not from a loop, unless there is a collision.</li>
+    <li><b>Check before you write.</b> PUTRECORD overwrites. Read the location and test that it is empty.</li>
+    <li><b>Wrap round with MOD.</b> (Location + 1) MOD 7 never leaves the file.</li>
+    <li><b>Say what empty means.</b> A blank record, such as AccountNumber 0 or an empty string.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Describe direct access</td><td>"A record is found without reading the other records, because its location is calculated from the key field."</td></tr>
+    <tr><td>Describe a hash function</td><td>"It takes the key field and calculates the address at which the record is stored."</td></tr>
+    <tr><td>Describe a collision</td><td>"Two different keys give the same location, so another method is used to place the second record."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Complete</td><td>Fill in the missing lines of the given pseudocode.</td></tr>
+    <tr><td>Describe</td><td>Give the main features in connected points.</td></tr>
+    <tr><td>Explain</td><td>A reason as well as the fact.</td></tr>
+    <tr><td>State</td><td>A short fact.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { sel = null; pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  /* Spread the correct answer across A-D: each reorderable question gets the least-used position so far
+     (ties broken by a seed from the quiz text, so quizzes differ). Skipped when options or the explanation
+     refer to each other or to letters, since reordering would break the wording. */
+  const dep = /\b(all|none|neither|both) of (the|these|those)\b|\bthe above\b|^both\b|\b(option|answer|statement)s? [A-D]\b|\b[A-D] (and|or|&) [A-D]\b|^[A-D]\b[.)]?\s/i;
+  let h = 0; for (const ch of o.qs.map((q) => q.q).join("")) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const fixed = (q) => q.opts.length < 3 || q.opts.some((t) => dep.test(t)) || dep.test(q.why || "");
+  const used = [0, 0, 0, 0, 0, 0]; o.qs.forEach((q) => { if (fixed(q)) used[q.a]++; });
+  o = { ...o, qs: o.qs.map((q, i) => {
+    if (fixed(q)) return q;
+    const n = q.opts.length; let to = q.a;
+    for (let k = 0; k < n; k++) { const p = (h + i + k) % n; if (used[p] < used[to]) to = p; }
+    used[to]++; if (to === q.a) return q;
+    const opts = q.opts.slice(); [opts[q.a], opts[to]] = [opts[to], opts[q.a]];
+    return { ...q, opts, a: to };
+  }) };
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+const MONO = "font-family:var(--mono);font-size:13px";
+function codeLines(x, y, lines, hl, w, lh) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 3, i === hl ? "cell-warn" : "cell", { rx: 4 }) + SV.text(x + 8, y + i * lh + lh / 2 + 3, l, "lbl", { style: "font-family:var(--mono);font-size:11px;white-space:pre" })).join("");
+}
+function vbox(x, y, name, val, cls, w) {
+  return SV.text(x, y - 7, name, "sm") + SV.rect(x, y, w, 34, cls || "f2", { rx: 6, ...op(0.6) }) + SV.rect(x, y, w, 34, "ax", { rx: 6, fill: "none" }) + SV.text(x + w / 2, y + 22, String(val), "lbl bd", { "text-anchor": "middle", style: MONO });
+}
+/* a column of file rows. o: x,y,t,r + optional w, lh, hl (warn row), ok[], no[], nw (new row), ptr (pointer row), ptrLabel, addr (show row numbers), eof */
+function fcol(o) {
+  const w = o.w || 210, lh = o.lh || 28, rows = o.r || [];
+  let s = SV.text(o.x, o.y - 8, o.t, "sm");
+  if (!rows.length) s += SV.rect(o.x, o.y, w, lh - 4, "cell", { rx: 5, ...op(0.5) }) + SV.text(o.x + 10, o.y + lh / 2 + 3, "(empty)", "sm");
+  rows.forEach((r, i) => {
+    let c = "cell";
+    if (o.ok && o.ok.includes(i)) c = "cell-ok";
+    if (o.no && o.no.includes(i)) c = "cell-no";
+    if (o.nw === i) c = "f3";
+    if (o.hl === i) c = "cell-warn";
+    s += SV.rect(o.x, o.y + i * lh, w, lh - 4, c, { rx: 5 });
+    if (o.addr) s += SV.text(o.x + 10, o.y + i * lh + lh / 2 + 3, String(i), "sm", { style: MONO }) + SV.text(o.x + 36, o.y + i * lh + lh / 2 + 3, r, "lbl", { style: MONO });
+    else s += SV.text(o.x + 10, o.y + i * lh + lh / 2 + 3, r, "lbl", { style: MONO });
+  });
+  if (o.ptr !== undefined && o.ptr !== null && o.ptr >= 0) s += SV.text(o.x + w + 8, o.y + o.ptr * lh + lh / 2 + 3, "◀ " + (o.ptrLabel || "pointer"), "sm");
+  if (o.eof) s += SV.text(o.x, o.y + rows.length * lh + 12, "end of file", "sm");
+  return s;
+}
+function stepDraw(C, t) {
+  let o = "", y = 8;
+  if (C.ps) {
+    o += SV.text(8, 14, "Pseudocode", "sm");
+    const wa = Math.max(...C.ps.map((l) => l.length)) * 6.6 + 18, wb = Math.max(...C.py.map((l) => l.length)) * 6.6 + 18, ex = Math.max(0, (744 - wa - wb - 14) / 2), xb = 8 + wa + ex + 14;
+    o += SV.text(xb, 14, "Python", "sm") + codeLines(8, 22, C.ps, t.p, wa + ex, C.lh) + codeLines(xb, 22, C.py, t.y, wb + ex, C.lh);
+    y = 22 + Math.max(C.ps.length, C.py.length) * C.lh + 14;
+  }
+  if (t.v && t.v.length) { t.v.forEach((v, j) => { o += vbox(8 + j * C.vw, y + 16, v[0], v[1], v[2], C.vw - 12); }); y += 82; }
+  (t.f || []).forEach((f) => { o += fcol({ ...f, y: y + f.y }); });
+  (t.t || []).forEach((q) => { o += SV.text(q[0], y + q[1], q[2], q[3] || "sm"); });
+  return o;
+}
+const lineHTML = (L) => '<div class="code"><pre class="cp">' + L.map((l) => `<span class="ln">${esc(l) || " "}</span>`).join("") + "</pre></div>";
+(function () { const C = {"ps": null, "py": null, "lh": 22, "vw": 150}, ST = [{"c": "A new account arrives: number 16, name Fay. The file has 7 locations, two of them empty.", "f": [{"x": 20, "y": 20, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "(empty)"], "addr": true, "lh": 26}], "t": [[330, 50, "NewAccount = 16 Fay", "lbl bd"]]}, {"c": "The hash function turns the key into a location: 16 MOD 7 = <b>2</b>.", "f": [{"x": 20, "y": 20, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "(empty)"], "addr": true, "lh": 26, "hl": 2}], "t": [[330, 50, "NewAccount = 16 Fay", "lbl bd"], [330, 80, "Location = 16 MOD 7 = 2", "lbl bd t3"]]}, {"c": "<code>SEEK \"Accounts.dat\", 2</code> moves the file pointer to location 2.", "f": [{"x": 20, "y": 20, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "(empty)"], "addr": true, "lh": 26, "hl": 2, "ptr": 2, "ptrLabel": "pointer"}], "t": [[330, 50, "NewAccount = 16 Fay", "lbl bd"], [330, 80, "Location = 16 MOD 7 = 2", "lbl bd t3"]]}, {"c": "<code>GETRECORD</code> reads location 2 into <code>Current</code>. Its account number is 0, so the location is empty and safe to use.", "f": [{"x": 20, "y": 20, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "(empty)"], "addr": true, "lh": 26, "hl": 2, "ptr": 2, "ptrLabel": "pointer"}], "t": [[330, 50, "Current.AccountNumber = 0", "lbl bd t3"], [330, 80, "empty: store here", "sm"]]}, {"c": "<code>PUTRECORD</code> writes the new record at the pointer. No other location was touched.", "f": [{"x": 20, "y": 20, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "16 Fay", "10 Ray", "18 Cho", "5 Dev", "(empty)"], "addr": true, "lh": 26, "nw": 2}], "t": [[330, 50, "Stored", "lbl bd t3"]]}];
+  Lib.stepper($("#stA"), { w: 760, h: 243, label: "Storing 16 at its hashed location", base: { i: 0 }, draw: (s) => stepDraw(C, ST[Math.round(s.i)]), tween: 300, dwell: 3400, steps: ST.map((t, i) => ({ cap: t.c, s: { i } })) }); })();
+(function () { const C = {"ps": ["OPENFILE \"Accounts.dat\" FOR RANDOM", "Stored <- FALSE", "Location <- Hash(NewAccount.AccountNumber)", "Start <- Location", "REPEAT", "   SEEK \"Accounts.dat\", Location", "   GETRECORD \"Accounts.dat\", Current", "   IF Current.AccountNumber = 0 THEN", "      PUTRECORD \"Accounts.dat\", NewAccount", "      Stored <- TRUE", "   ELSE", "      Location <- (Location + 1) MOD 7", "   ENDIF", "UNTIL Stored OR Location = Start", "CLOSEFILE \"Accounts.dat\""], "py": ["File = open(\"Accounts.dat\", \"r+b\")", "Stored = False", "Location = Hash(NewAccount.AccountNumber)", "Start = Location", "while True:", "    File.seek(Location * RecSize)", "    Current = GetRecord(File)", "    if Current.AccountNumber == 0:", "        File.seek(Location * RecSize)", "        PutRecord(File, NewAccount)", "        Stored = True", "    else:", "        Location = (Location + 1) % 7", "    if Stored or Location == Start:", "        break", "File.close()"], "lh": 20, "vw": 170}, ST = [{"c": "The file is opened for random access. Empty locations hold account number 0.", "p": 0, "y": 0, "v": [["Location", ""], ["Start", ""], ["Current.AccountNumber", ""], ["Stored", "FALSE"]], "f": [{"x": 20, "y": 0, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "(empty)"], "addr": true, "lh": 26}], "t": [[330, 20, "NewAccount = 24 Eli", "lbl bd"]]}, {"c": "<code>Stored</code> starts FALSE: the record has not been written yet.", "p": 1, "y": 1, "v": [["Location", ""], ["Start", ""], ["Current.AccountNumber", ""], ["Stored", "FALSE"]], "f": [{"x": 20, "y": 0, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "(empty)"], "addr": true, "lh": 26}], "t": [[330, 20, "NewAccount = 24 Eli", "lbl bd"]]}, {"c": "The hash function gives the first location to try: 24 MOD 7 = <b>3</b>.", "p": 2, "y": 2, "v": [["Location", "3"], ["Start", ""], ["Current.AccountNumber", ""], ["Stored", "FALSE"]], "f": [{"x": 20, "y": 0, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "(empty)"], "addr": true, "lh": 26, "hl": 3}], "t": [[330, 20, "NewAccount = 24 Eli", "lbl bd"]]}, {"c": "<code>Start</code> remembers 3. If the loop ever comes back to it, every location has been tried.", "p": 3, "y": 3, "v": [["Location", "3"], ["Start", "3"], ["Current.AccountNumber", ""], ["Stored", "FALSE"]], "f": [{"x": 20, "y": 0, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "(empty)"], "addr": true, "lh": 26, "hl": 3}], "t": [[330, 20, "NewAccount = 24 Eli", "lbl bd"]]}, {"c": "<code>SEEK</code> moves to location 3 and <code>GETRECORD</code> reads it. Account <b>10</b> (Ray) is stored here.", "p": 6, "y": 6, "v": [["Location", "3"], ["Start", "3"], ["Current.AccountNumber", "10"], ["Stored", "FALSE"]], "f": [{"x": 20, "y": 0, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "(empty)"], "addr": true, "lh": 26, "hl": 3, "ptr": 3, "ptrLabel": "pointer"}], "t": [[330, 20, "NewAccount = 24 Eli", "lbl bd"]]}, {"c": "10 is not 0, so the location is taken. <b>Collision.</b> <code>Location</code> becomes (3 + 1) MOD 7 = 4. <code>UNTIL</code> is false, so the loop repeats.", "p": 11, "y": 12, "v": [["Location", "4"], ["Start", "3"], ["Current.AccountNumber", "10"], ["Stored", "FALSE"]], "f": [{"x": 20, "y": 0, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "(empty)"], "addr": true, "lh": 26, "no": [3]}], "t": [[330, 20, "NewAccount = 24 Eli", "lbl bd"]]}, {"c": "<code>SEEK</code> moves to location 4 and <code>GETRECORD</code> reads it. Account <b>18</b> (Cho) is stored here.", "p": 6, "y": 6, "v": [["Location", "4"], ["Start", "3"], ["Current.AccountNumber", "18"], ["Stored", "FALSE"]], "f": [{"x": 20, "y": 0, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "(empty)"], "addr": true, "lh": 26, "hl": 4, "ptr": 4, "ptrLabel": "pointer"}], "t": [[330, 20, "NewAccount = 24 Eli", "lbl bd"]]}, {"c": "18 is not 0, so the location is taken. <b>Collision.</b> <code>Location</code> becomes (4 + 1) MOD 7 = 5. <code>UNTIL</code> is false, so the loop repeats.", "p": 11, "y": 12, "v": [["Location", "5"], ["Start", "3"], ["Current.AccountNumber", "18"], ["Stored", "FALSE"]], "f": [{"x": 20, "y": 0, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "(empty)"], "addr": true, "lh": 26, "no": [4]}], "t": [[330, 20, "NewAccount = 24 Eli", "lbl bd"]]}, {"c": "<code>SEEK</code> moves to location 5 and <code>GETRECORD</code> reads it. Account <b>5</b> (Dev) is stored here.", "p": 6, "y": 6, "v": [["Location", "5"], ["Start", "3"], ["Current.AccountNumber", "5"], ["Stored", "FALSE"]], "f": [{"x": 20, "y": 0, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "(empty)"], "addr": true, "lh": 26, "hl": 5, "ptr": 5, "ptrLabel": "pointer"}], "t": [[330, 20, "NewAccount = 24 Eli", "lbl bd"]]}, {"c": "5 is not 0, so the location is taken. <b>Collision.</b> <code>Location</code> becomes (5 + 1) MOD 7 = 6. <code>UNTIL</code> is false, so the loop repeats.", "p": 11, "y": 12, "v": [["Location", "6"], ["Start", "3"], ["Current.AccountNumber", "5"], ["Stored", "FALSE"]], "f": [{"x": 20, "y": 0, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "(empty)"], "addr": true, "lh": 26, "no": [5]}], "t": [[330, 20, "NewAccount = 24 Eli", "lbl bd"]]}, {"c": "<code>SEEK</code> moves to location 6 and <code>GETRECORD</code> reads it. It is empty (account number 0).", "p": 6, "y": 6, "v": [["Location", "6"], ["Start", "3"], ["Current.AccountNumber", "0"], ["Stored", "FALSE"]], "f": [{"x": 20, "y": 0, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "(empty)"], "addr": true, "lh": 26, "hl": 6, "ptr": 6, "ptrLabel": "pointer"}], "t": [[330, 20, "NewAccount = 24 Eli", "lbl bd"]]}, {"c": "The location is empty, so <code>PUTRECORD</code> writes the new record here.", "p": 8, "y": 9, "v": [["Location", "6"], ["Start", "3"], ["Current.AccountNumber", "0"], ["Stored", "FALSE"]], "f": [{"x": 20, "y": 0, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "24 Eli"], "addr": true, "lh": 26, "nw": 6}], "t": [[330, 20, "NewAccount = 24 Eli", "lbl bd"]]}, {"c": "<code>Stored</code> becomes TRUE.", "p": 9, "y": 10, "v": [["Location", "6"], ["Start", "3"], ["Current.AccountNumber", "0"], ["Stored", "TRUE"]], "f": [{"x": 20, "y": 0, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "24 Eli"], "addr": true, "lh": 26, "nw": 6}], "t": [[330, 20, "NewAccount = 24 Eli", "lbl bd"]]}, {"c": "<code>UNTIL Stored OR Location = Start</code> is true, so the loop ends.", "p": 13, "y": 13, "v": [["Location", "6"], ["Start", "3"], ["Current.AccountNumber", "0"], ["Stored", "TRUE"]], "f": [{"x": 20, "y": 0, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "24 Eli"], "addr": true, "lh": 26, "ok": [6]}], "t": [[330, 20, "NewAccount = 24 Eli", "lbl bd"]]}, {"c": "The file is closed. Account 24 ended up at location 6, not at its hashed location 3, because of the collisions on the way.", "p": 14, "y": 15, "v": [["Location", "6"], ["Start", "3"], ["Current.AccountNumber", "0"], ["Stored", "TRUE"]], "f": [{"x": 20, "y": 0, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "(empty)", "10 Ray", "18 Cho", "5 Dev", "24 Eli"], "addr": true, "lh": 26, "ok": [6]}], "t": [[330, 20, "NewAccount = 24 Eli", "lbl bd"]]}];
+  Lib.stepper($("#stB"), { w: 760, h: 653, label: "Adding 24 with collisions", base: { i: 0 }, draw: (s) => stepDraw(C, ST[Math.round(s.i)]), tween: 300, dwell: 3000, steps: ST.map((t, i) => ({ cap: t.c, s: { i } })) }); })();
+(function () { const C = {"ps": null, "py": null, "lh": 22, "vw": 150}, ST = [{"c": "Every location now holds a record. A new account arrives: 8 Gus. 8 MOD 7 = 1, so <code>Start</code> is 1.", "f": [{"x": 20, "y": 20, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "16 Fay", "10 Ray", "18 Cho", "5 Dev", "24 Eli"], "addr": true, "lh": 26, "hl": 1}], "t": [[330, 30, "NewAccount = 8 Gus", "lbl bd"], [330, 60, "Location = Start = 1", "sm"]]}, {"c": "Location 1 is taken, so the program moves to 2. Then 3, 4, 5 and 6, which are all taken too.", "f": [{"x": 20, "y": 20, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "16 Fay", "10 Ray", "18 Cho", "5 Dev", "24 Eli"], "addr": true, "lh": 26, "no": [1, 2, 3, 4, 5, 6]}], "t": [[330, 30, "NewAccount = 8 Gus", "lbl bd"], [330, 60, "Location goes 1, 2, 3, 4, 5, 6", "sm"]]}, {"c": "From 6, <code>(Location + 1) MOD 7</code> wraps round to <b>0</b>. The program has not run off the end of the file. Location 0 is taken as well.", "f": [{"x": 20, "y": 20, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "16 Fay", "10 Ray", "18 Cho", "5 Dev", "24 Eli"], "addr": true, "lh": 26, "no": [0, 1, 2, 3, 4, 5, 6]}], "t": [[330, 30, "NewAccount = 8 Gus", "lbl bd"], [330, 60, "(6 + 1) MOD 7 = 0", "sm"]]}, {"c": "<code>Location</code> becomes 1 again, which equals <code>Start</code>. <code>UNTIL Stored OR Location = Start</code> is true while <code>Stored</code> is FALSE.", "f": [{"x": 20, "y": 20, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "16 Fay", "10 Ray", "18 Cho", "5 Dev", "24 Eli"], "addr": true, "lh": 26, "hl": 1}], "t": [[330, 30, "Location = 1 = Start", "lbl bd t2"], [330, 60, "Stored = FALSE", "lbl bd t2"]]}, {"c": "<code>IF NOT Stored</code> is true, so the program outputs <b>File full</b>. The new record is not stored and no existing record was overwritten.", "f": [{"x": 20, "y": 20, "t": "Accounts.dat", "r": ["14 Hall", "22 Ito", "16 Fay", "10 Ray", "18 Cho", "5 Dev", "24 Eli"], "addr": true, "lh": 26}], "t": [[330, 30, "OUTPUT \"File full\"", "lbl bd t2"]]}];
+  Lib.stepper($("#stC"), { w: 760, h: 243, label: "A full file", base: { i: 0 }, draw: (s) => stepDraw(C, ST[Math.round(s.i)]), tween: 300, dwell: 3600, steps: ST.map((t, i) => ({ cap: t.c, s: { i } })) }); })();
+
+(function () {
+  const START = [[14, "Hall"], [22, "Ito"], null, [10, "Ray"], [18, "Cho"], [5, "Dev"], null];
+  let sl = START.slice();
+  const show = (trail, loc, msg) => {
+    $("#aF").innerHTML = '<div class="tw"><table class="t mono"><tr><th>Location</th><th>Record</th></tr>' + sl.map((s, i) => `<tr${i === loc ? ' style="background:var(--ok-soft);font-weight:700"' : ""}><td>${i}</td><td>${s ? s[0] + " " + s[1] : "(empty)"}</td></tr>`).join("") + "</table></div>";
+    $("#aT").innerHTML = trail ? '<div class="tw"><table class="t mono"><tr><th>Look at location</th><th>GETRECORD finds</th><th>Action</th></tr>' + trail.map((r) => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("") + "</table></div>" : "";
+    $("#aV").textContent = msg;
+  };
+  $("#aB").onclick = () => {
+    const k = parseInt($("#aK").value, 10);
+    if (isNaN(k) || k < 1) { show(null, -1, "Enter a whole number above 0."); return; }
+    if (sl.some((s) => s && s[0] === k)) { show(null, -1, "Account " + k + " is already stored."); return; }
+    const start = k % 7; let loc = start, trail = [], done = false, steps = 0;
+    while (!done) {
+      steps++;
+      if (!sl[loc]) { sl[loc] = [k, "New"]; trail.push([loc, "0 (empty)", "PUTRECORD: stored"]); done = true; break; }
+      const nxt = (loc + 1) % 7;
+      trail.push([loc, sl[loc][0] + " " + sl[loc][1], "taken: try " + nxt]); loc = nxt;
+      if (loc === start) break;
+    }
+    if (done) show(trail, loc, `Hash(${k}) = ${k} MOD 7 = ${start}. ` + (steps === 1 ? "No collision: stored at its own location with one GETRECORD." : `${steps - 1} collision${steps > 2 ? "s" : ""}, so the record went to location ${loc} after ${steps} GETRECORDs.`));
+    else show(trail, -1, `Hash(${k}) = ${start}. Every location was checked and none was empty: the file is full, so the program outputs "File full".`);
+  };
+  $("#aR").onclick = () => { sl = START.slice(); show(null, -1, "File reset."); };
+  show(null, -1, "Press Add.");
+})();
+
+(function () {
+  let m = 5; const M = [5, 7, 11];
+  const paint = () => {
+    $$("#hM button").forEach((b, i) => b.classList.toggle("pri", M[i] === m));
+    const keys = $("#hK").value.split(",").map((s) => parseInt(s.trim(), 10)).filter((x) => !isNaN(x));
+    const by = {}; keys.forEach((k) => { const h = k % m; (by[h] = by[h] || []).push(k); });
+    $("#hO").innerHTML = '<div class="tw"><table class="t mono"><tr><th>Key</th><th>Key MOD ' + m + '</th><th></th></tr>' + keys.map((k) => { const h = k % m, c = by[h].length > 1; return `<tr${c ? ' style="background:var(--warn-soft)"' : ""}><td>${k}</td><td>${h}</td><td>${c ? "collision with " + by[h].filter((x) => x !== k).join(", ") : ""}</td></tr>`; }).join("") + "</table></div>";
+    const n = Object.values(by).filter((a) => a.length > 1).length;
+    $("#hV").textContent = n ? `${n} location${n > 1 ? "s are" : " is"} shared by more than one key. The second key to arrive at each would have to use the next free location.` : "Every key has its own location, so there are no collisions with this set of keys.";
+  };
+  $("#hM").innerHTML = M.map((x) => `<button class="b" data-m="${x}">MOD ${x}</button>`).join("");
+  $$("#hM button").forEach((b) => (b.onclick = () => { m = +b.dataset.m; paint(); }));
+  $("#hK").oninput = paint; paint();
+})();
+Lib.classify($("#cl1"), { prompt: "Which part of adding a record to a random file is this?", buckets: [{"label": "Hash function"}, {"label": "Collision handling"}, {"label": "File commands"}], items: [{"text": "Location <- Key MOD 7", "b": 0}, {"text": "Turns the key into a location", "b": 0}, {"text": "Two keys give the same location", "b": 1}, {"text": "Move to the next location, wrapping round", "b": 1}, {"text": "Stop when the location is back at Start", "b": 1}, {"text": "SEEK", "b": 2}, {"text": "GETRECORD", "b": 2}, {"text": "PUTRECORD", "b": 2}], done: "Hash finds the first location. Collision handling finds a free one. SEEK, GETRECORD and PUTRECORD do the file work." });
+Lib.order($("#o1"), { prompt: "Put the steps for adding a record to a random file in order.", items: ["Open the file FOR RANDOM", "Calculate the location with the hash function", "SEEK to the location", "GETRECORD to see what is there", "If it is empty, PUTRECORD the new record", "If it is taken, move to the next location and repeat", "CLOSEFILE"], done: "Open, hash, seek, read, store if empty or try the next, close." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Hash function", "Turns a key into a location"], ["Collision", "Two keys giving the same location"], ["Linear probing", "Trying the next location until a free one is found"], ["Empty location", "A record with AccountNumber 0"], ["MOD", "Wraps the location back to 0 after the last one"], ["SEEK", "Moves the pointer to a location before GETRECORD or PUTRECORD"]], done: "Learn these terms." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "Hash(Key) = Key MOD 7. At which location is account 24 first tried?", "a": 3, "unit": "", "tol": 0.01, "hint": "7 × 3 = 21, so 24 − 21.", "sol": "<b>3</b>."},
+  {"q": "Locations 3, 4 and 5 are taken and 6 is empty. Account 24 hashes to 3. How many GETRECORD statements run before it is stored?", "a": 4, "unit": "", "tol": 0.01, "hint": "One for each location looked at, including the empty one.", "sol": "<b>4</b> (locations 3, 4, 5, 6)."},
+  {"q": "Hash is Key MOD 5. What is the hash value of 1029?", "a": 4, "unit": "", "tol": 0.01, "hint": "1029 = 5 × 205 + 4.", "sol": "<b>4</b>."},
+  {"q": "Hash is Key MOD 5. What is the hash value of 7630?", "a": 0, "unit": "", "tol": 0.01, "hint": "7630 divides exactly by 5.", "sol": "<b>0</b>."},
+  {"q": "A file has 7 locations and all are taken. How many locations are looked at before the program decides the file is full?", "a": 7, "unit": "", "tol": 0.01, "hint": "It goes all the way round, back to Start.", "sol": "<b>7</b>."},
+  {"q": "In the Python version each record is 24 bytes. At which byte does File.seek go for location 5?", "a": 120, "unit": "", "tol": 0.01, "hint": "5 × 24.", "sol": "<b>120</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "Which file mode is used to store records at calculated locations?", opts: ["FOR APPEND", "FOR WRITE", "FOR RANDOM", "FOR READ"], a: 2, why: "Random access needs FOR RANDOM." },
+  { q: "What must come before PUTRECORD so the record goes in the right place?", opts: ["READFILE", "EOF", "SEEK", "CLOSEFILE"], a: 2, why: "SEEK moves the pointer to the location." },
+  { q: "What is a collision?", opts: ["The file is full", "Two keys hash to the same location", "A record is deleted", "The file is closed"], a: 1, why: "The location is already used by a different record." },
+  { q: "Why is MOD used when moving to the next location?", opts: ["To make it faster", "To wrap round to 0 after the last location", "To sort the records", "To empty the location"], a: 1, why: "(Location + 1) MOD 7 never reaches 7." },
+  { q: "How does the program know a location is empty?", opts: ["EOF is true", "The record's key is 0", "The pointer is at 0", "GETRECORD returns an error"], a: 1, why: "Blank records have AccountNumber 0." },
+  { q: "What does the loop compare Location with, to detect a full file?", opts: ["MaxSize", "Start", "0", "The key"], a: 1, why: "Back at Start means every location has been tried." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Random file", "Equal-sized records at numbered locations. Jump with SEEK."],
+  ["Hash function", "Key MOD 7 gives a location from 0 to 6."],
+  ["Collision", "Two keys with the same hashed location."],
+  ["Linear probing", "Try the next location, wrapping with MOD."],
+  ["Empty location", "A blank record: AccountNumber 0."],
+  ["Start", "Where the search began. Back at Start means the file is full."],
+  ["SEEK then PUTRECORD", "Move first, then write at the pointer."],
+  ["FOR RANDOM", "The open mode for random access."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

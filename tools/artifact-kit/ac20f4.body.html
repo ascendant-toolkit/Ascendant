@@ -1,0 +1,269 @@
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 20.2.1</div>
+  <h1>Finding a Record in a Random File</h1>
+  <p class="cbook">Coursebook: Chapter 20 · Further programming, section 20.2 File processing and exception handling</p>
+  <p class="lead">Direct access with a hash, following a collision chain, knowing when a record is not in the file, and searching by a field that is not the key; pseudocode and Python side by side, with a line-by-line animation.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A random file lets a program <b>go straight to a record</b> instead of reading the ones before it. To find a record by its <b>key</b>, the program calculates the location with the same hash function that stored it, uses <code>SEEK</code> to move there, and <code>GETRECORD</code> to read it. It then <b>compares the key</b> of the record it read with the key it wants: if they match, the record is found. If the location holds a different record the wanted one may have been moved on by a collision, so the program checks the <b>next locations</b>, and gives up at an <b>empty location</b> or after every location has been tried. To find a record by a field that is <b>not the key</b>, such as a name, the hash cannot help, so every location is read in turn until the value is found.</p></div>
+
+  <h2>1 · The file used on this page</h2>
+  <p>The same file as the previous page: 7 locations, <code>Hash(Key) = Key MOD 7</code>, collisions handled by trying the next location, an empty location holding account number 0. Account 24 hashes to 3, but 3, 4 and 5 were taken when it was added, so it was stored at location 6.</p>
+  <div class="tw"><table class="t mono">
+    <tr><th>Location</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr>
+    <tr><th>Record</th><td>14 Hall</td><td>22 Ito</td><td>(empty)</td><td>10 Ray</td><td>18 Cho</td><td>5 Dev</td><td>24 Eli</td></tr>
+  </table></div>
+  <p>The Python on this page uses these helpers, built on the previous page:</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">import struct</span><span class="ln">class TAccount:</span><span class="ln">    def __init__(self, AccountNumber=0, Name=&quot;&quot;):</span><span class="ln">        self.AccountNumber = AccountNumber</span><span class="ln">        self.Name = Name</span><span class="ln"> </span><span class="ln">Layout = &quot;&lt;i20s&quot;</span><span class="ln">RecSize = struct.calcsize(Layout)     # 24 bytes per record</span><span class="ln"> </span><span class="ln">def GetRecord(File):</span><span class="ln">    Num, Name = struct.unpack(Layout, File.read(RecSize))</span><span class="ln">    return TAccount(Num, Name.decode().rstrip(&quot;\x00&quot;))</span><span class="ln"> </span><span class="ln">def Hash(Key):</span><span class="ln">    return Key % 7</span></pre></div>
+
+  <h2>2 · Direct access: one SEEK, one GETRECORD</h2>
+  <p>When the question does not mention collisions, finding a record is four steps: calculate the location, SEEK, GETRECORD, use the record. This is how the exam questions on random files are written.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">File = open(&quot;Accounts.dat&quot;, &quot;rb&quot;)</span><span class="ln">Location = Hash(SearchKey)</span><span class="ln">File.seek(Location * RecSize)</span><span class="ln">Current = GetRecord(File)</span><span class="ln">if Current.AccountNumber == SearchKey:</span><span class="ln">    print(Current.AccountNumber, Current.Name)</span><span class="ln">else:</span><span class="ln">    print(&quot;Not found&quot;)</span><span class="ln">File.close()</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;Accounts.dat&quot; FOR RANDOM</span><span class="ln">Location &lt;- Hash(SearchKey)</span><span class="ln">SEEK &quot;Accounts.dat&quot;, Location</span><span class="ln">GETRECORD &quot;Accounts.dat&quot;, Current</span><span class="ln">IF Current.AccountNumber = SearchKey THEN</span><span class="ln">   OUTPUT Current.AccountNumber, Current.Name</span><span class="ln">ELSE</span><span class="ln">   OUTPUT &quot;Not found&quot;</span><span class="ln">ENDIF</span><span class="ln">CLOSEFILE &quot;Accounts.dat&quot;</span></pre></div></div></div>
+  <p>The comparison matters. Searching for 17 gives location 3, but location 3 holds account 10. Without the <code>IF</code> the program would output the wrong customer.</p>
+
+  <h2>3 · The record may have been moved: follow the chain</h2>
+  <p>Searching for 24 starts at location 3 and finds account 10, so it is not there. It looks at 4, then 5, then 6 and finds 24. The search follows the same steps the insert took. It stops when the key is found, when it reaches an <b>empty location</b> (a record with this key would have been stored there, so it is not in the file), or when it has looked at every location.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">File = open(&quot;Accounts.dat&quot;, &quot;rb&quot;)</span><span class="ln">Location = Hash(SearchKey)</span><span class="ln">Count = 0</span><span class="ln">Found = False</span><span class="ln">while True:</span><span class="ln">    File.seek(Location * RecSize)</span><span class="ln">    Rec = GetRecord(File)</span><span class="ln">    if Rec.AccountNumber == SearchKey:</span><span class="ln">        Found = True</span><span class="ln">    else:</span><span class="ln">        Location = (Location + 1) % 7</span><span class="ln">        Count = Count + 1</span><span class="ln">    if Found or Rec.AccountNumber == 0 or Count == 7:</span><span class="ln">        break</span><span class="ln">File.close()</span><span class="ln">if Found:</span><span class="ln">    print(Rec.AccountNumber, Rec.Name)</span><span class="ln">else:</span><span class="ln">    print(&quot;Not found&quot;)</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;Accounts.dat&quot; FOR RANDOM</span><span class="ln">Location &lt;- Hash(SearchKey)</span><span class="ln">Count &lt;- 0</span><span class="ln">Found &lt;- FALSE</span><span class="ln">REPEAT</span><span class="ln">   SEEK &quot;Accounts.dat&quot;, Location</span><span class="ln">   GETRECORD &quot;Accounts.dat&quot;, Rec</span><span class="ln">   IF Rec.AccountNumber = SearchKey THEN</span><span class="ln">      Found &lt;- TRUE</span><span class="ln">   ELSE</span><span class="ln">      Location &lt;- (Location + 1) MOD 7</span><span class="ln">      Count &lt;- Count + 1</span><span class="ln">   ENDIF</span><span class="ln">UNTIL Found OR Rec.AccountNumber = 0 OR Count = 7</span><span class="ln">CLOSEFILE &quot;Accounts.dat&quot;</span><span class="ln">IF Found THEN</span><span class="ln">   OUTPUT Rec.AccountNumber, Rec.Name</span><span class="ln">ELSE</span><span class="ln">   OUTPUT &quot;Not found&quot;</span><span class="ln">ENDIF</span></pre></div></div></div>
+  <div class="tw"><table class="t">
+    <tr><th>The loop ends because</th><th>Meaning</th><th>Example</th></tr>
+    <tr><td><code>Found</code> is TRUE</td><td>The key matches the record read</td><td>24: found at location 6 after 4 reads</td></tr>
+    <tr><td>The record read is empty</td><td>The key would have been stored here if it were in the file</td><td>9: location 2 is empty, 1 read</td></tr>
+    <tr><td><code>Count = 7</code></td><td>Every location has been read and none matched</td><td>A key that is not stored, in a file with no empty location</td></tr>
+  </table></div>
+
+  <h2>4 · Finding a record by a field that is not the key</h2>
+  <p>The hash function turns an <b>account number</b> into a location. It cannot turn a <b>name</b> into one, because the records were not placed by name. So the program starts at location 0 and reads every location until the name matches or the file ends. A flag stops the loop as soon as the record is found.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">File = open(&quot;Accounts.dat&quot;, &quot;rb&quot;)</span><span class="ln">Location = 0</span><span class="ln">Found = False</span><span class="ln">while not Found and Location &lt; 7:</span><span class="ln">    File.seek(Location * RecSize)</span><span class="ln">    Rec = GetRecord(File)</span><span class="ln">    if Rec.Name == SearchName:</span><span class="ln">        Found = True</span><span class="ln">    else:</span><span class="ln">        Location = Location + 1</span><span class="ln">File.close()</span><span class="ln">if Found:</span><span class="ln">    print(Rec.AccountNumber, Rec.Name)</span><span class="ln">else:</span><span class="ln">    print(&quot;Customer does not exist.&quot;)</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;Accounts.dat&quot; FOR RANDOM</span><span class="ln">Location &lt;- 0</span><span class="ln">Found &lt;- FALSE</span><span class="ln">WHILE NOT Found AND Location &lt;= 6</span><span class="ln">   SEEK &quot;Accounts.dat&quot;, Location</span><span class="ln">   GETRECORD &quot;Accounts.dat&quot;, Rec</span><span class="ln">   IF Rec.Name = SearchName THEN</span><span class="ln">      Found &lt;- TRUE</span><span class="ln">   ELSE</span><span class="ln">      Location &lt;- Location + 1</span><span class="ln">   ENDIF</span><span class="ln">ENDWHILE</span><span class="ln">CLOSEFILE &quot;Accounts.dat&quot;</span><span class="ln">IF Found THEN</span><span class="ln">   OUTPUT Rec.AccountNumber, Rec.Name</span><span class="ln">ELSE</span><span class="ln">   OUTPUT &quot;Customer does not exist.&quot;</span><span class="ln">ENDIF</span></pre></div></div></div>
+
+  <h2>5 · How many records are read?</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Method</th><th>Records read to find one record</th></tr>
+    <tr><td>Random file, search by key, no collision</td><td><b>1</b></td></tr>
+    <tr><td>Random file, search by key, collisions</td><td>1 plus the number of locations moved on (4 for account 24)</td></tr>
+    <tr><td>Random file, search by another field</td><td>Up to every location in the file</td></tr>
+    <tr><td>Serial or sequential file</td><td>From the start of the file, record by record, until found (a sequential file can stop once the key has been passed)</td></tr>
+  </table></div>
+
+  <h2>6 · Common ways to lose marks</h2>
+  <ul>
+    <li>Leaving out <code>SEEK</code>, so GETRECORD reads wherever the pointer was.</li>
+    <li>Not comparing the key of the record read with the key wanted.</li>
+    <li>Using <code>READFILE</code> on a random file. Random files use <code>GETRECORD</code>.</li>
+    <li>Using the hash to search for a name. The hash is for the key field only.</li>
+    <li>A loop that never ends because it does not stop at an empty location, at the end of the file or when the record is found.</li>
+    <li>Forgetting the message when the record is not found.</li>
+    <li>Not closing the file.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Direct access to a record</h2><p>Press Play, or click the steps.</p><div id="stA"></div>
+  <h2>2 · A record moved by a collision, line by line</h2><p>Account 24 hashes to location 3 but was stored at 6. Watch the search follow the chain.</p><div id="stB"></div>
+  <h2>3 · A record that is not in the file</h2><div id="stC"></div>
+  <h2>4 · Searching by name: every location is read</h2><div id="stD"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Find an account by key</h2>
+  <p>The file holds the records in the table. Enter an account number, or use the quick buttons, and read the trail of locations the program looks at.</p>
+  <div class="card"><div class="btnrow"><label>Account number <input id="fK" size="5" value="24"></label> <button class="b pri" id="fB">Find</button> <button class="b" data-k="18">Try 18</button> <button class="b" data-k="24">Try 24</button> <button class="b" data-k="9">Try 9</button> <button class="b" data-k="17">Try 17</button></div><div id="fF"></div><div id="fT"></div><div class="verdict" id="fV"></div></div>
+
+  <h2>Lab 2 · By key or by name?</h2>
+  <p>Pick a customer to find by name. The program reads from location 0 until the name matches. Compare the reads with a search by key.</p>
+  <div class="card"><div class="btnrow" id="nB"></div><div id="nT"></div><div class="verdict" id="nV"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Sort the statements</h2><div id="cl1" class="card"></div>
+  <h2>2 · Put the steps in order</h2><div id="o1" class="card"></div>
+  <h2>3 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>4 · Work it out</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>An ATM looking up an account</h3><p>When a card is inserted the account number is turned into a location and the record is fetched directly. The customer is not left waiting while millions of other records are read.</p><div class="use"><b>Exam use:</b> direct access: hash the key, SEEK, GETRECORD.</div></div>
+  <div class="rw"><h3>A school office searching by surname</h3><p>The student file is organised by student ID, so searching by surname means the system has to read record after record until the name is found, which is slower than searching by ID.</p><div class="use"><b>Exam use:</b> the hash cannot be used on a field that is not the key.</div></div>
+  <div class="rw"><h3>A stock check</h3><p>A warehouse program asks for a location and reads that one record. An empty record means the shelf is empty, and the program shows a message instead of an item.</p><div class="use"><b>Exam use:</b> SEEK, GETRECORD, then test the record for empty.</div></div>
+  <div class="rw"><h3>A missing record</h3><p>A customer quotes an account number that was never opened. The program reaches an empty location and reports that the account does not exist, without reading the whole file.</p><div class="use"><b>Exam use:</b> an empty location ends the search: the record is not stored.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Real Paper 3 and Paper 4 questions, then review questions for practice. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>8(a)</td><td>5</td><td>Complete the random file lookup of a customer using a hash function</td></tr>
+    <tr><td>O/N 2023</td><td>32</td><td>12(b)</td><td>7</td><td>Complete a search of a random file for a customer by name</td></tr>
+    <tr><td>M/J 2025</td><td>31</td><td>12</td><td>5</td><td>Complete a check of a location in StockList.dat</td></tr>
+    <tr><td>M/J 2023</td><td>32</td><td>6(b)</td><td>5</td><td>Complete the pseudocode that reads every record of a random file</td></tr>
+    <tr><td>M/J 2026</td><td>32</td><td>10(b)</td><td>6</td><td>Complete TempCheck() using SEEK and GETRECORD</td></tr>
+  </table></div>
+  <p class="note">These questions are reworded from the papers; check the original paper and mark scheme for the exact wording. Finding a record in a random file is a regular Paper 3 completion question. Paper 4 has not asked for random files as Python so far, so the Python on this page shows the same logic rather than a past question.</p>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31, 33 · Q8(a)</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> A pseudocode algorithm finds a customer account record in a random file and outputs it. The records are stored using the user-defined data type TAccount (AccountNumber : INTEGER, LastName, FirstName, Address, ContactNumber : STRING). The function Hash() takes the customer account number as a parameter, calculates and returns the hash value. Complete the file-handling pseudocode.<pre class="plain">DECLARE Customer : TAccount
+DECLARE Location : INTEGER
+DECLARE AccountFile : STRING
+...      &quot;AccountRecords.dat&quot;
+... AccountFile ...
+OUTPUT &quot;Please enter an account number&quot;
+INPUT Customer.AccountNumber
+Location ← Hash( ...)
+SEEK ... , Location
+... AccountFile, ...
+OUTPUT Customer                // output customer record
+CLOSEFILE AccountFile</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Assign the filename, open for random access, hash the account number, SEEK, then read the record into Customer.</div>
+    <div class="ans"><p>One mark for each correctly completed line (maximum 5): <span class="mk k" data-t="1">AccountFile ← "AccountRecords.dat"</span> <span class="mk k" data-t="2">OPENFILE AccountFile FOR RANDOM</span> <span class="mk k" data-t="3">Hash(Customer.AccountNumber)</span> <span class="mk k" data-t="4">SEEK AccountFile, Location</span> <span class="mk k" data-t="5">GETRECORD AccountFile, Customer</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">AccountFile ← &quot;AccountRecords.dat&quot;</span><span class="ln">OPENFILE AccountFile FOR RANDOM</span><span class="ln">OUTPUT &quot;Please enter an account number&quot;</span><span class="ln">INPUT Customer.AccountNumber</span><span class="ln">Location ← Hash(Customer.AccountNumber)</span><span class="ln">SEEK AccountFile, Location</span><span class="ln">GETRECORD AccountFile, Customer</span><span class="ln">OUTPUT Customer</span><span class="ln">CLOSEFILE AccountFile</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Missing the SEEK. Without it GETRECORD reads from wherever the pointer already is.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/32 · Q12(b)</span> <span class="cmd">Complete</span> <span class="mark">7 marks</span> A pseudocode algorithm searches for a customer record in the random file AccountRecord.dat. A user inputs the name of the customer. The records use the type TAccount (AccountNumber : INTEGER, Name, Address, Telephone : STRING). If the record is found it is output, otherwise an error message is displayed. Complete the file-handling pseudocode.<pre class="plain">MaxSize ← 1000
+OPENFILE ...
+Location ← 1
+...  ← FALSE
+OUTPUT &quot;Enter the customer&#x27;s name&quot;
+...
+... AND Location &lt;= MaxSize
+   ... &quot;AccountRecord.dat&quot;, ...
+   GETRECORD &quot;AccountRecord.dat&quot;, Customer
+   IF SearchCustomer = Customer.Name THEN
+      OUTPUT &quot;Customer found: &quot;
+      OUTPUT Customer
+      FoundFlag ← TRUE
+   ENDIF
+   Location ← Location + 1
+ENDWHILE
+IF NOT FoundFlag THEN
+   OUTPUT &quot;...&quot;
+ENDIF</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A search loop with a flag: stop when found or when the end of the file is reached.</div>
+    <div class="ans"><p>One mark for each correctly completed blank (maximum 7): <span class="mk k" data-t="1">OPENFILE "AccountRecord.dat" FOR RANDOM</span> <span class="mk k" data-t="2">FoundFlag</span> <span class="mk k" data-t="3">INPUT SearchCustomer</span> <span class="mk k" data-t="4">WHILE NOT FoundFlag</span> <span class="mk k" data-t="5">SEEK</span> <span class="mk k" data-t="6">Location</span> <span class="mk k" data-t="7">OUTPUT "Customer does not exist."</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;AccountRecord.dat&quot; FOR RANDOM</span><span class="ln">Location ← 1</span><span class="ln">FoundFlag ← FALSE</span><span class="ln">OUTPUT &quot;Enter the customer&#x27;s name&quot;</span><span class="ln">INPUT SearchCustomer</span><span class="ln">WHILE NOT FoundFlag AND Location &lt;= MaxSize</span><span class="ln">   SEEK &quot;AccountRecord.dat&quot;, Location</span><span class="ln">   GETRECORD &quot;AccountRecord.dat&quot;, Customer</span><span class="ln">   IF SearchCustomer = Customer.Name THEN</span><span class="ln">      OUTPUT &quot;Customer found: &quot;</span><span class="ln">      OUTPUT Customer</span><span class="ln">      FoundFlag ← TRUE</span><span class="ln">   ENDIF</span><span class="ln">   Location ← Location + 1</span><span class="ln">ENDWHILE</span><span class="ln">IF NOT FoundFlag THEN</span><span class="ln">   OUTPUT &quot;Customer does not exist.&quot;</span><span class="ln">ENDIF</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Not closing the file, or leaving the flag unset so the loop never uses it.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/31 · Q12</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> The pseudocode algorithm checks whether a location in a stock file StockList.dat is empty or not. The location is given by the user. If the location is empty, a suitable message is displayed, otherwise the item stored at that location is displayed. Complete this file-handling pseudocode algorithm.<pre class="plain">DECLARE Location : INTEGER
+DECLARE Item : STRING
+DECLARE Continue : BOOLEAN
+DECLARE Answer : CHAR
+Continue ← TRUE
+OPENFILE ...
+WHILE Continue
+   OUTPUT &quot;Enter a location between 1 and 500: &quot;
+   INPUT Location
+   ...
+   GETRECORD ...
+   IF Item = &quot;&quot; THEN
+      OUTPUT &quot;This record is missing.&quot;
+   ELSE
+      OUTPUT &quot;The item in stock is &quot;, ...
+   ENDIF
+   OUTPUT &quot;Another location (Y or N)?&quot;
+   INPUT Answer
+   IF Answer &lt;&gt; &#x27;Y&#x27; THEN
+      Continue ← FALSE
+   ENDIF
+ENDWHILE
+...
+OUTPUT &quot;End of program&quot;</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open once before the loop, SEEK and GETRECORD inside it, close after it.</div>
+    <div class="ans"><p>One mark for each correctly completed line (maximum 5): <span class="mk k" data-t="1">OPENFILE "StockList.dat" FOR RANDOM</span> <span class="mk k" data-t="2">SEEK "StockList.dat", Location</span> <span class="mk k" data-t="3">GETRECORD "StockList.dat", Item</span> <span class="mk k" data-t="4">OUTPUT "The item in stock is ", Item</span> <span class="mk k" data-t="5">CLOSEFILE "StockList.dat"</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;StockList.dat&quot; FOR RANDOM</span><span class="ln">WHILE Continue</span><span class="ln">   OUTPUT &quot;Enter a location between 1 and 500: &quot;</span><span class="ln">   INPUT Location</span><span class="ln">   SEEK &quot;StockList.dat&quot;, Location</span><span class="ln">   GETRECORD &quot;StockList.dat&quot;, Item</span><span class="ln">   ...</span><span class="ln">ENDWHILE</span><span class="ln">CLOSEFILE &quot;StockList.dat&quot;</span><span class="ln">OUTPUT &quot;End of program&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Placing CLOSEFILE inside the loop, so the file is closed after the first location checked.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/32 · Q6(b)</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> The pseudocode reads dental records stored in a random file using the user-defined data type TAppointments and prints the contents of the file, one record at a time. Complete this file-handling pseudocode.<pre class="plain">DECLARE DentalRecord : ARRAY[1:250] OF TAppointments
+DECLARE DentalFile : STRING
+DECLARE Count : INTEGER
+DentalFile ← &quot;DentalFile.dat&quot;
+OUTPUT &quot;The file &quot;, DentalFile, &quot; contains these records:&quot;
+OPENFILE ...
+...  ← 1
+REPEAT
+   SEEK DentalFile, Count
+   ...
+   OUTPUT DentalRecord[Count]
+   Count ← Count + 1
+UNTIL ...
+...</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A random file needs OPENFILE FOR RANDOM, a SEEK before each read, GETRECORD into the array element, and a stop at the end of the file.</div>
+    <div class="ans"><p>One mark for each correctly completed line (maximum 5): <span class="mk k" data-t="1">OPENFILE DentalFile FOR RANDOM</span> <span class="mk k" data-t="2">Count ← 1</span> <span class="mk k" data-t="3">GETRECORD DentalFile, DentalRecord[Count]</span> <span class="mk k" data-t="4">UNTIL EOF(DentalFile)</span> <span class="mk k" data-t="5">CLOSEFILE DentalFile</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE DentalFile FOR RANDOM</span><span class="ln">Count ← 1</span><span class="ln">REPEAT</span><span class="ln">   SEEK DentalFile, Count</span><span class="ln">   GETRECORD DentalFile, DentalRecord[Count]</span><span class="ln">   OUTPUT DentalRecord[Count]</span><span class="ln">   Count ← Count + 1</span><span class="ln">UNTIL EOF(DentalFile)</span><span class="ln">CLOSEFILE DentalFile</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using READFILE on a random file. Random files are read with SEEK and GETRECORD.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/32 · Q10(b)</span> <span class="cmd">Complete</span> <span class="mark">6 marks</span> A temperature in degrees Celsius is recorded every minute for one day in a random file, Temperatures.dat. The position of each temperature corresponds to the number of minutes after midnight (10:00 am is at position 600). Complete the algorithm to check a temperature, by passing its position in the file as a parameter and using file-handling commands to find the data item. If it is above freezing return "Not freezing", otherwise "Freezing". Some blank lines may not be used.<pre class="plain">FUNCTION TempCheck( ...
+   DECLARE Temperature : REAL
+   DECLARE Response : STRING
+   OPENFILE ...
+   ...
+   ...
+   ...
+ENDFUNCTION</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Header with the parameter and return type, open, SEEK, GETRECORD, IF, CLOSE, RETURN. The close must come before the RETURN.</div>
+    <div class="ans"><p>Up to six marks: <span class="mk k" data-t="1">correct FUNCTION header</span> <span class="mk k" data-t="2">OPENFILE statement</span> <span class="mk k" data-t="3">SEEK with the position</span> <span class="mk k" data-t="4">GETRECORD into Temperature</span> <span class="mk k" data-t="5">a complete IF ... ELSE ... ENDIF that gives the right messages</span> <span class="mk k" data-t="6">CLOSEFILE before the RETURN (and a correct RETURN)</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">FUNCTION TempCheck(Position : INTEGER) RETURNS STRING</span><span class="ln">   DECLARE Temperature : REAL</span><span class="ln">   DECLARE Response : STRING</span><span class="ln">   OPENFILE &quot;Temperatures.dat&quot; FOR RANDOM</span><span class="ln">   SEEK &quot;Temperatures.dat&quot;, Position</span><span class="ln">   GETRECORD &quot;Temperatures.dat&quot;, Temperature</span><span class="ln">   IF Temperature &gt; 0 THEN</span><span class="ln">      Response ← &quot;Not freezing&quot;</span><span class="ln">   ELSE</span><span class="ln">      Response ← &quot;Freezing&quot;</span><span class="ln">   ENDIF</span><span class="ln">   CLOSEFILE &quot;Temperatures.dat&quot;</span><span class="ln">   RETURN Response</span><span class="ln">ENDFUNCTION</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing RETURN before CLOSEFILE. The function ends at the RETURN, so the file is never closed.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> Explain how a record is found in a random file when its key is known.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Hash, direct access, the record read.</div>
+    <div class="ans"><span class="mk k" data-t="1">A hash function is applied to the key to calculate the location of the record</span> <span class="mk k" data-t="2">the file pointer is moved directly to that location (SEEK)</span> <span class="mk k" data-t="3">the record is read from there (GETRECORD) without reading other records</span></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Complete</span> <span class="mark">5 marks</span> Write pseudocode that outputs the record for <code>SearchKey</code> from <code>Accounts.dat</code>, or the message <code>Not found</code>. Assume there are no collisions.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open, hash, SEEK, GETRECORD, compare, output, close.</div>
+    <div class="ans"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;Accounts.dat&quot; FOR RANDOM</span><span class="ln">Location &lt;- Hash(SearchKey)</span><span class="ln">SEEK &quot;Accounts.dat&quot;, Location</span><span class="ln">GETRECORD &quot;Accounts.dat&quot;, Rec</span><span class="ln">IF Rec.AccountNumber = SearchKey THEN</span><span class="ln">   OUTPUT Rec</span><span class="ln">ELSE</span><span class="ln">   OUTPUT &quot;Not found&quot;</span><span class="ln">ENDIF</span><span class="ln">CLOSEFILE &quot;Accounts.dat&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Outputting the record without checking that its key is the one asked for.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> A search by account number reads the record at the hashed location but the account number is different. Explain what the program should do next.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>The record may have been moved by a collision.</div>
+    <div class="ans"><span class="mk k" data-t="1">The wanted record may have been stored in a later location because of a collision</span> <span class="mk k" data-t="2">so the program checks the next location (wrapping round at the end)</span> <span class="mk k" data-t="3">until the key is found, an empty location is reached, or every location has been checked</span></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">6 marks</span> Write Python that searches <code>Accounts.dat</code> for the customer called <code>SearchName</code> and prints the account number, or <code>Customer does not exist.</code></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A name cannot be hashed. Read every location until it is found.</div>
+    <div class="ans"><pre class="cp" style="counter-reset:l 0"><span class="ln">File = open(&quot;Accounts.dat&quot;, &quot;rb&quot;)</span><span class="ln">Location = 0</span><span class="ln">Found = False</span><span class="ln">while not Found and Location &lt; 7:</span><span class="ln">    File.seek(Location * RecSize)</span><span class="ln">    Rec = GetRecord(File)</span><span class="ln">    if Rec.Name == SearchName:</span><span class="ln">        Found = True</span><span class="ln">    else:</span><span class="ln">        Location = Location + 1</span><span class="ln">File.close()</span><span class="ln">if Found:</span><span class="ln">    print(Rec.AccountNumber)</span><span class="ln">else:</span><span class="ln">    print(&quot;Customer does not exist.&quot;)</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using Hash(SearchName). The hash is calculated from the key field, not from a name.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Why is searching a random file by key usually faster than searching a serial file?</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Compare the number of records read.</div>
+    <div class="ans"><span class="mk k" data-t="1">The location is calculated from the key, so the program goes directly to it</span> <span class="mk k" data-t="2">a serial file has to be read from the start, record by record, until the record is found</span></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>SEEK before GETRECORD.</b> Every time, for every location you read.</li>
+    <li><b>Open FOR RANDOM.</b> Not READ or APPEND.</li>
+    <li><b>Compare the key.</b> The record at the hashed location may belong to a different key.</li>
+    <li><b>Know when to stop.</b> Record found, empty location, or every location tried. A flag or Count makes the loop end.</li>
+    <li><b>Hash is for the key only.</b> To find a name, read every location from the start.</li>
+    <li><b>Say what happens if it is missing.</b> Output a message such as "Not found".</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Describe direct access</td><td>"A record is found without reading the other records, by calculating its location from the key field."</td></tr>
+    <tr><td>Describe finding with a hash</td><td>"A hash function calculates the address from the key, SEEK moves to it and GETRECORD reads the record there."</td></tr>
+    <tr><td>Describe a missing record</td><td>"If the location is empty, or the key does not match after the other locations are checked, the record is not in the file."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Complete</td><td>Fill in the missing lines of the given pseudocode.</td></tr>
+    <tr><td>Describe</td><td>Give the main features in connected points.</td></tr>
+    <tr><td>Explain</td><td>A reason as well as the fact.</td></tr>
+    <tr><td>Write</td><td>Produce pseudocode or Python that searches the file and reports the result.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>

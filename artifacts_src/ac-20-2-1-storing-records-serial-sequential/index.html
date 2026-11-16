@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Storing Records in a Serial or Sequential File</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
+
+table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
+.synd{margin:8px 0;overflow-x:auto}
+.gantt{display:flex;margin:6px 0 0;font-family:var(--mono)}.gantt .gb{border:1.5px solid var(--ink);margin-left:-1.5px;text-align:center;padding:6px 0;font-weight:700;font-size:.85rem;background:var(--surface);min-width:0}
+.gantt .gb.c0{background:var(--accent-soft)}.gantt .gb.c1{background:var(--bad-soft)}.gantt .gb.c2{background:var(--good-soft)}.gantt .gb.c3{background:var(--warn-soft)}.gantt .gb.c4{background:var(--soft)}
+.gticks{display:flex;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:2px 0 10px}.gticks span{text-align:right;min-width:0}
+
+details.eq>summary .qb{flex-basis:100%;display:block}
+details.eq>summary .qp,details.eq>summary .qi{display:block;margin-top:6px}
+details.eq>summary .qp.sub{margin-left:1.6em}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 20.2.1</div>
+  <h1>Storing Records in a Serial or Sequential File</h1>
+  <p class="cbook">Coursebook: Chapter 20 · Further programming, section 20.2 File processing and exception handling</p>
+  <p class="lead">Turning a record into a line, appending to a serial file, sorting before writing a sequential file, and reading the records back; pseudocode and Python side by side, with step-by-step animations.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A <b>record</b> is a group of related <b>fields</b> (a student's ID, name and mark), and a <b>file</b> keeps many records after the program has ended. In a text file each record is stored as <b>one line</b>, made by joining the fields into a string with a separator such as a comma. A <b>serial file</b> stores the records in the order they arrive, so a new record is <b>appended to the end</b> with <code>FOR APPEND</code>. A <b>sequential file</b> stores them in order of a <b>key field</b>, so the records must be sorted by the key before they are written. Either file is read back from the start, one record after another, until <code>EOF</code>.</p></div>
+
+  <h2>1 · A record in a program</h2>
+  <p>Before a record can be stored it has to exist in the program. A record type groups the fields; one variable of that type holds one record.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">class TStudent:</span><span class="ln">    def __init__(self, StudentID, Name, Mark):</span><span class="ln">        self.StudentID = StudentID</span><span class="ln">        self.Name = Name</span><span class="ln">        self.Mark = Mark</span><span class="ln"> </span><span class="ln">S = TStudent(104, &quot;Aria&quot;, 72)</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">TYPE TStudent</span><span class="ln">   DECLARE StudentID : INTEGER</span><span class="ln">   DECLARE Name : STRING</span><span class="ln">   DECLARE Mark : INTEGER</span><span class="ln">ENDTYPE</span><span class="ln"> </span><span class="ln">DECLARE S : TStudent</span><span class="ln">S.StudentID &lt;- 104</span><span class="ln">S.Name &lt;- &quot;Aria&quot;</span><span class="ln">S.Mark &lt;- 72</span></pre></div></div></div>
+
+  <h2>2 · Turning a record into one line of text</h2>
+  <p>A text file can only hold strings. Convert each number to a string (<code>str()</code> in Python, <code>NUM_TO_STR()</code> in pseudocode) and join the fields with a comma. The comma is the <b>separator</b>: it is what lets the fields be cut apart again when the line is read back.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">Line = str(S.StudentID) + &quot;,&quot; + S.Name + &quot;,&quot; + str(S.Mark)</span><span class="ln"># Line is now &quot;104,Aria,72&quot;</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">Line &lt;- NUM_TO_STR(S.StudentID) &amp; &quot;,&quot; &amp; S.Name &amp; &quot;,&quot; &amp; NUM_TO_STR(S.Mark)</span><span class="ln">// Line is now &quot;104,Aria,72&quot;</span></pre></div></div></div>
+  <div class="tip"><b class="h">Keep the format fixed</b>Every record must use the same fields, in the same order, with the same separator. If a name could contain a comma, choose a different separator, otherwise the line cannot be cut apart correctly.</div>
+
+  <h2>3 · Storing a record in a serial file</h2>
+  <p>Open the file for <b>append</b>, write the line, close the file. Append keeps every record already in the file and adds the new one after the last. If the file does not exist yet, append creates it.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">File = open(&quot;Students.txt&quot;, &quot;a&quot;)</span><span class="ln">File.write(Line + &quot;\n&quot;)</span><span class="ln">File.close()</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;Students.txt&quot; FOR APPEND</span><span class="ln">WRITEFILE &quot;Students.txt&quot;, Line</span><span class="ln">CLOSEFILE &quot;Students.txt&quot;</span></pre></div></div></div>
+  <p><code>write()</code> does not add a new line by itself, so the <code>"\n"</code> ends the record. Without it the next record would run on to the same line.</p>
+
+  <h2>4 · Storing records in a sequential file</h2>
+  <p>The line format is exactly the same. What changes is the <b>order</b>: the records are sorted on the key field (<code>StudentID</code>) first, then written from the start of a new file, so each key is larger than the one before. Opening with <code>FOR WRITE</code> is right here because the whole file is being created.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">Students.sort(key=lambda Student: Student.StudentID)</span><span class="ln">File = open(&quot;Students.txt&quot;, &quot;w&quot;)</span><span class="ln">for Student in Students:</span><span class="ln">    File.write(str(Student.StudentID) + &quot;,&quot; + Student.Name + &quot;,&quot; + str(Student.Mark) + &quot;\n&quot;)</span><span class="ln">File.close()</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">// sort Students[1:Count] into StudentID order (for example a bubble sort)</span><span class="ln">OPENFILE &quot;Students.txt&quot; FOR WRITE</span><span class="ln">FOR Index &lt;- 1 TO Count</span><span class="ln">   Line &lt;- NUM_TO_STR(Students[Index].StudentID) &amp; &quot;,&quot; &amp; Students[Index].Name &amp; &quot;,&quot; &amp; NUM_TO_STR(Students[Index].Mark)</span><span class="ln">   WRITEFILE &quot;Students.txt&quot;, Line</span><span class="ln">NEXT Index</span><span class="ln">CLOSEFILE &quot;Students.txt&quot;</span></pre></div></div></div>
+  <p>Adding one record to a file that is already in key order is a different job, because the new record has to go in the right place. That is on the next page, <b>Adding a Record to a Sequential File</b>.</p>
+
+  <h2>5 · Serial against sequential</h2>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Serial</th><th>Sequential</th></tr>
+    <tr><td>Order of records</td><td>The order they were added (chronological)</td><td>Order of a key field</td></tr>
+    <tr><td>Storing a record</td><td>Append to the end</td><td>Sort on the key, then write in order (or insert in the right place)</td></tr>
+    <tr><td>Open mode used</td><td><code>APPEND</code></td><td><code>WRITE</code> for a new file</td></tr>
+    <tr><td>Reading</td><td>From the start, record by record, until <code>EOF</code></td><td>Same, and the search can stop once a key larger than the one wanted is reached</td></tr>
+    <tr><td>Typical use</td><td>Transaction logs, data logging, temporary files</td><td>Payroll, bills, batch processing</td></tr>
+  </table></div>
+
+  <h2>6 · Reading the stored records back</h2>
+  <p>Both kinds are read the same way: open for read, repeat until the end of the file, close. Each line is cut into fields and converted back to the right data types.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">File = open(&quot;Students.txt&quot;, &quot;r&quot;)</span><span class="ln">for Line in File:</span><span class="ln">    Parts = Line.strip().split(&quot;,&quot;)</span><span class="ln">    S = TStudent(int(Parts[0]), Parts[1], int(Parts[2]))</span><span class="ln">File.close()</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;Students.txt&quot; FOR READ</span><span class="ln">WHILE NOT EOF(&quot;Students.txt&quot;)</span><span class="ln">   READFILE &quot;Students.txt&quot;, Line</span><span class="ln">   S.StudentID &lt;- STR_TO_NUM(LEFT(Line, 3))   // IDs are always 3 digits</span><span class="ln">   // Name and Mark are cut out of Line with MID in the same way</span><span class="ln">ENDWHILE</span><span class="ln">CLOSEFILE &quot;Students.txt&quot;</span></pre></div></div></div>
+  <p><code>strip()</code> removes the new line at the end of each line, and <code>int()</code> turns the text back into a number.</p>
+
+  <h2>7 · Common ways to lose marks</h2>
+  <ul>
+    <li>Using <code>FOR WRITE</code> to add one record. It deletes every record already in the file. Use <code>FOR APPEND</code>.</li>
+    <li>Forgetting <code>NUM_TO_STR</code> or <code>str()</code> when joining a number to a string.</li>
+    <li>Forgetting the separator or the new line, so the fields run together.</li>
+    <li>Describing a serial file as "in order". Serial means the order added, not sorted.</li>
+    <li>Not closing the file.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Appending a record to a serial file</h2><p>Press Play, or click the steps. Both versions of the code are highlighted together.</p><div id="stA"></div>
+  <h2>2 · Serial order against sequential order</h2><div id="stB"></div>
+  <h2>3 · Reading the records back</h2><div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Turn a record into a line</h2>
+  <p>Change the fields. The statements and the line stored in the file update as you type.</p>
+  <div class="card"><div class="btnrow"><label>StudentID <input id="lI" size="5" value="104"></label> <label>Name <input id="lN" size="10" value="Aria"></label> <label>Mark <input id="lM" size="4" value="72"></label></div><div id="lO"></div><div class="verdict" id="lV"></div></div>
+
+  <h2>Lab 2 · Serial or sequential?</h2>
+  <p>Add records one at a time and see where each one is stored. Try a key that is smaller than the ones already there.</p>
+  <div class="card"><div class="btnrow"><label>New StudentID <input id="aK" size="5" value="140"></label> <button class="b pri" id="aB">Add record</button> <button class="b" id="aR">Reset</button></div><div class="grid2"><div id="aS"></div><div id="aQ"></div></div><div class="verdict" id="aV"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Sort the statements</h2><div id="cl1" class="card"></div>
+  <h2>2 · Put the steps in order</h2><div id="o1" class="card"></div>
+  <h2>3 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>4 · Work it out</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>A shop's till log</h3><p>Every sale is added as a new line at the end of the day's file as it happens. Nothing is sorted, so recording is quick and no earlier sale is touched.</p><div class="use"><b>Exam use:</b> serial file: records in the order they happened, added with APPEND.</div></div>
+  <div class="rw"><h3>A payroll file</h3><p>Staff records are held in order of employee number. A program reads the file from the top once a month and produces payslips in that order.</p><div class="use"><b>Exam use:</b> sequential file: sorted on the key field, processed from start to end.</div></div>
+  <div class="rw"><h3>Data logging from a sensor</h3><p>A weather station writes a temperature line every minute. The file simply grows, and an analysis program reads it from the start later.</p><div class="use"><b>Exam use:</b> serial file used for data logging.</div></div>
+  <div class="rw"><h3>A temporary transaction file</h3><p>During the day orders are collected in a file in the order they arrive. Overnight they are sorted and merged into the main file, which is kept in order of customer number.</p><div class="use"><b>Exam use:</b> serial for collecting, sequential for the master file.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Real Paper 3 and Paper 4 questions, then review questions for practice. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>O/N 2024</td><td>32</td><td>2(a), (b)</td><td>2 + 1</td><td>Describe serial file organisation; state a use</td></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>4(b)</td><td>2</td><td>Outline sequential access for serial and sequential files</td></tr>
+    <tr><td>O/N 2025</td><td>42</td><td>3(d)</td><td>5</td><td>Write the contents of an array to a new text file, one comma-separated line per record (Python)</td></tr>
+  </table></div>
+  <p class="note">These questions are reworded from the papers; check the original paper and mark scheme for the exact wording. Serial and sequential files are asked as written descriptions in Paper 3. Paper 4 asks you to write records to a text file as Python, as in the last question.</p>
+  <details class="eq"><summary><span class="src">O/N 2024 · 9618/32 · Q2(a), (b)</span> <span class="cmd">Describe / State</span> <span class="mark">2 + 1 marks</span><span class="qb"><span class="qp">(a) Describe serial file organisation as a method of storing data records in a file.</span><span class="qp">(b) State one example of a use for serial file organisation.</span></span></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Order, then where new records go. A use must be a real use, not another description.</div>
+    <div class="ans"><p>(a) <span class="mk k" data-t="1">Records are stored one after the other as they are collected (chronological order)</span> <span class="mk k" data-t="2">New records are appended to the end of the file</span></p><p>(b) One of: <span class="mk a" data-t="1">creating unsorted or temporary transaction files</span> <span class="mk a" data-t="2">creating data logging files</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing that the records are 'in order'. Serial is the order they arrived, not an order on a key.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31, 33 · Q4(b)</span> <span class="cmd">Outline</span> <span class="mark">2 marks</span> Outline the process of sequential access for serial and sequential files.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Start, check one after another, stop.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Start at the beginning of the file</span> <span class="mk k" data-t="2">check the records one after another (linearly)</span> <span class="mk k" data-t="3">until the record is found, or the end of the file is reached (or the records have been processed)</span> (maximum 2)</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Describing a jump straight to a record. That is direct access, which random files use.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2025 · 9618/42 · Q3(d)</span> <span class="cmd">Write</span> <span class="mark">5 marks</span> The procedure WriteAllToFile() stores the content of TreeArray in a new text file with the filename Tree.txt. The file is not provided. Each node in TreeArray is stored on one line with a comma separating each value. For example, if the rows of the 50-row array are (−1, 20, 1), (−1, 30, −1) and so on, the file will contain the lines <code>−1,20,1</code> and <code>−1,30,−1</code> and so on. Write program code for WriteAllToFile(). Include exception handling when writing to the file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A loop over the 50 rows, build one string with commas and a new line, and write it. Try and except round it.</div>
+    <div class="ans"><p>One mark each: <span class="mk k" data-t="1">procedure header with exception handling for writing (try / except with a message)</span> <span class="mk k" data-t="2">opening Tree.txt to write and closing it in an appropriate place</span> <span class="mk k" data-t="3">looping through each element of the array</span> <span class="mk k" data-t="4">creating the correct string</span> <span class="mk k" data-t="5">writing each string to the file</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">def WriteAllToFile():</span><span class="ln">    try:</span><span class="ln">        File = open(&quot;Tree.txt&quot;, &quot;w&quot;)</span><span class="ln">        for x in range(0, 50):</span><span class="ln">            Line = str(TreeArray[x][0]) + &quot;,&quot; + str(TreeArray[x][1]) + &quot;,&quot; + str(TreeArray[x][2]) + &quot;\n&quot;</span><span class="ln">            File.write(Line)</span><span class="ln">        File.close()</span><span class="ln">    except:</span><span class="ln">        print(&quot;Cannot write to file&quot;)</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting <code>str()</code> on the numbers, or leaving out the commas, which are part of the file format.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">2 marks</span> Describe how records are stored in a serial file.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two points: the order, and where a new record goes.</div>
+    <div class="ans"><span class="mk k" data-t="1">Records are stored one after the other in the order they were added</span> <span class="mk k" data-t="2">A new record is appended to the end of the file</span></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Why is a record stored as a single line with commas between the fields?</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>A text file holds strings; link to reading it back.</div>
+    <div class="ans"><span class="mk k" data-t="1">A text file can only hold text, so the fields are joined into one string</span> <span class="mk k" data-t="2">the commas let the line be split back into separate fields when it is read</span></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">4 marks</span> Write pseudocode to store the record <code>S</code> (type <code>TStudent</code>) at the end of the serial file <code>Students.txt</code>.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Build the line, then open, write, close.</div>
+    <div class="ans"><pre class="cp" style="counter-reset:l 0"><span class="ln">Line &lt;- NUM_TO_STR(S.StudentID) &amp; &quot;,&quot; &amp; S.Name &amp; &quot;,&quot; &amp; NUM_TO_STR(S.Mark)</span><span class="ln">OPENFILE &quot;Students.txt&quot; FOR APPEND</span><span class="ln">WRITEFILE &quot;Students.txt&quot;, Line</span><span class="ln">CLOSEFILE &quot;Students.txt&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Opening FOR WRITE, which erases the earlier records.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">5 marks</span> Write Python to store all the records in the list <code>Students</code> in a sequential file, in order of <code>StudentID</code>.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Sort first. FOR WRITE is right because the file is being created.</div>
+    <div class="ans"><pre class="cp" style="counter-reset:l 0"><span class="ln">Students.sort(key=lambda Student: Student.StudentID)</span><span class="ln">File = open(&quot;Students.txt&quot;, &quot;w&quot;)</span><span class="ln">for Student in Students:</span><span class="ln">    File.write(str(Student.StudentID) + &quot;,&quot; + Student.Name + &quot;,&quot; + str(Student.Mark) + &quot;\n&quot;)</span><span class="ln">File.close()</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing the records without sorting them, which gives a serial file.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">3 marks</span> A school stores exam entries in a serial file and also in a sequential file. Explain one difference between adding a new entry to each.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Where the record goes.</div>
+    <div class="ans"><span class="mk k" data-t="1">Serial: the new entry is appended to the end of the file</span> <span class="mk k" data-t="2">Sequential: the entry must go in the position given by its key field</span> <span class="mk k" data-t="3">so records after it have to be moved (the file rewritten)</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying the sequential file is 'sorted' without saying what that means for adding.</div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Name the order.</b> Serial: the order added. Sequential: the order of a key field. Never swap them.</li>
+    <li><b>Say where a new record goes.</b> Serial: the end of the file. Sequential: in its key position.</li>
+    <li><b>APPEND adds, WRITE replaces.</b> Using WRITE to add a record loses the rest of the file.</li>
+    <li><b>One record, one line.</b> Join the fields with a separator and end with a new line.</li>
+    <li><b>Convert numbers.</b> str() or NUM_TO_STR() before joining; int() or STR_TO_NUM() after reading.</li>
+    <li><b>Always close.</b> CLOSEFILE once the writing or reading is finished.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Describe a serial file</td><td>"Records are stored in the order they were added, and new records are appended to the end of the file."</td></tr>
+    <tr><td>Describe a sequential file</td><td>"Records are stored in order of a key field, so a new record must be placed in its key position."</td></tr>
+    <tr><td>Describe reading either</td><td>"Start at the beginning and check each record in turn until the record is found or the end of the file is reached."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Describe</td><td>Give the main features in connected points.</td></tr>
+    <tr><td>State</td><td>Give a short fact or example.</td></tr>
+    <tr><td>Write</td><td>Produce pseudocode or Python that opens, writes and closes.</td></tr>
+    <tr><td>Explain</td><td>Give a reason as well as the fact.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { sel = null; pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  /* Spread the correct answer across A-D: each reorderable question gets the least-used position so far
+     (ties broken by a seed from the quiz text, so quizzes differ). Skipped when options or the explanation
+     refer to each other or to letters, since reordering would break the wording. */
+  const dep = /\b(all|none|neither|both) of (the|these|those)\b|\bthe above\b|^both\b|\b(option|answer|statement)s? [A-D]\b|\b[A-D] (and|or|&) [A-D]\b|^[A-D]\b[.)]?\s/i;
+  let h = 0; for (const ch of o.qs.map((q) => q.q).join("")) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const fixed = (q) => q.opts.length < 3 || q.opts.some((t) => dep.test(t)) || dep.test(q.why || "");
+  const used = [0, 0, 0, 0, 0, 0]; o.qs.forEach((q) => { if (fixed(q)) used[q.a]++; });
+  o = { ...o, qs: o.qs.map((q, i) => {
+    if (fixed(q)) return q;
+    const n = q.opts.length; let to = q.a;
+    for (let k = 0; k < n; k++) { const p = (h + i + k) % n; if (used[p] < used[to]) to = p; }
+    used[to]++; if (to === q.a) return q;
+    const opts = q.opts.slice(); [opts[q.a], opts[to]] = [opts[to], opts[q.a]];
+    return { ...q, opts, a: to };
+  }) };
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+const MONO = "font-family:var(--mono);font-size:13px";
+function codeLines(x, y, lines, hl, w, lh) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 3, i === hl ? "cell-warn" : "cell", { rx: 4 }) + SV.text(x + 8, y + i * lh + lh / 2 + 3, l, "lbl", { style: "font-family:var(--mono);font-size:11px;white-space:pre" })).join("");
+}
+function vbox(x, y, name, val, cls, w) {
+  return SV.text(x, y - 7, name, "sm") + SV.rect(x, y, w, 34, cls || "f2", { rx: 6, ...op(0.6) }) + SV.rect(x, y, w, 34, "ax", { rx: 6, fill: "none" }) + SV.text(x + w / 2, y + 22, String(val), "lbl bd", { "text-anchor": "middle", style: MONO });
+}
+/* a column of file rows. o: x,y,t,r + optional w, lh, hl (warn row), ok[], no[], nw (new row), ptr (pointer row), ptrLabel, addr (show row numbers), eof */
+function fcol(o) {
+  const w = o.w || 210, lh = o.lh || 28, rows = o.r || [];
+  let s = SV.text(o.x, o.y - 8, o.t, "sm");
+  if (!rows.length) s += SV.rect(o.x, o.y, w, lh - 4, "cell", { rx: 5, ...op(0.5) }) + SV.text(o.x + 10, o.y + lh / 2 + 3, "(empty)", "sm");
+  rows.forEach((r, i) => {
+    let c = "cell";
+    if (o.ok && o.ok.includes(i)) c = "cell-ok";
+    if (o.no && o.no.includes(i)) c = "cell-no";
+    if (o.nw === i) c = "f3";
+    if (o.hl === i) c = "cell-warn";
+    s += SV.rect(o.x, o.y + i * lh, w, lh - 4, c, { rx: 5 });
+    if (o.addr) s += SV.text(o.x + 10, o.y + i * lh + lh / 2 + 3, String(i), "sm", { style: MONO }) + SV.text(o.x + 36, o.y + i * lh + lh / 2 + 3, r, "lbl", { style: MONO });
+    else s += SV.text(o.x + 10, o.y + i * lh + lh / 2 + 3, r, "lbl", { style: MONO });
+  });
+  if (o.ptr !== undefined && o.ptr !== null && o.ptr >= 0) s += SV.text(o.x + w + 8, o.y + o.ptr * lh + lh / 2 + 3, "◀ " + (o.ptrLabel || "pointer"), "sm");
+  if (o.eof) s += SV.text(o.x, o.y + rows.length * lh + 12, "end of file", "sm");
+  return s;
+}
+function stepDraw(C, t) {
+  let o = "", y = 8;
+  if (C.ps) {
+    o += SV.text(8, 14, "Pseudocode", "sm");
+    const wa = Math.max(...C.ps.map((l) => l.length)) * 6.6 + 18, wb = Math.max(...C.py.map((l) => l.length)) * 6.6 + 18, ex = Math.max(0, (744 - wa - wb - 14) / 2), xb = 8 + wa + ex + 14;
+    o += SV.text(xb, 14, "Python", "sm") + codeLines(8, 22, C.ps, t.p, wa + ex, C.lh) + codeLines(xb, 22, C.py, t.y, wb + ex, C.lh);
+    y = 22 + Math.max(C.ps.length, C.py.length) * C.lh + 14;
+  }
+  if (t.v && t.v.length) { t.v.forEach((v, j) => { o += vbox(8 + j * C.vw, y + 16, v[0], v[1], v[2], C.vw - 12); }); y += 82; }
+  (t.f || []).forEach((f) => { o += fcol({ ...f, y: y + f.y }); });
+  (t.t || []).forEach((q) => { o += SV.text(q[0], y + q[1], q[2], q[3] || "sm"); });
+  return o;
+}
+const lineHTML = (L) => '<div class="code"><pre class="cp">' + L.map((l) => `<span class="ln">${esc(l) || " "}</span>`).join("") + "</pre></div>";
+(function () { const C = {"ps": ["Line <- NUM_TO_STR(S.StudentID) & \",\"", "Line <- Line & S.Name & \",\"", "Line <- Line & NUM_TO_STR(S.Mark)", "OPENFILE \"Students.txt\" FOR APPEND", "WRITEFILE \"Students.txt\", Line", "CLOSEFILE \"Students.txt\""], "py": ["Line = str(S.StudentID) + \",\"", "Line = Line + S.Name + \",\"", "Line = Line + str(S.Mark)", "File = open(\"Students.txt\", \"a\")", "File.write(Line + \"\\n\")", "File.close()"], "lh": 22, "vw": 150}, ST = [{"c": "The record <code>S</code> holds 104, Aria and 72. <code>Students.txt</code> already holds two records, in the order they were added.", "p": -1, "y": -1, "v": [["S.StudentID", "104"], ["S.Name", "Aria"], ["S.Mark", "72"], ["Line", ""]], "f": [{"x": 20, "y": 0, "t": "Students.txt", "r": ["118,Ben,55", "102,Cho,81"]}]}, {"c": "The first field is converted to a string and the separator added.", "p": 0, "y": 0, "v": [["S.StudentID", "104"], ["S.Name", "Aria"], ["S.Mark", "72"], ["Line", "104,"]], "f": [{"x": 20, "y": 0, "t": "Students.txt", "r": ["118,Ben,55", "102,Cho,81"]}]}, {"c": "The name and a second separator are joined on.", "p": 1, "y": 1, "v": [["S.StudentID", "104"], ["S.Name", "Aria"], ["S.Mark", "72"], ["Line", "104,Aria,"]], "f": [{"x": 20, "y": 0, "t": "Students.txt", "r": ["118,Ben,55", "102,Cho,81"]}]}, {"c": "The mark is converted and joined on. <code>Line</code> now holds the whole record as text.", "p": 2, "y": 2, "v": [["S.StudentID", "104"], ["S.Name", "Aria"], ["S.Mark", "72"], ["Line", "104,Aria,72"]], "f": [{"x": 20, "y": 0, "t": "Students.txt", "r": ["118,Ben,55", "102,Cho,81"]}]}, {"c": "<code>FOR APPEND</code> opens the file and puts the pointer at the <b>end</b>. The old records are kept.", "p": 3, "y": 3, "v": [["S.StudentID", "104"], ["S.Name", "Aria"], ["S.Mark", "72"], ["Line", "104,Aria,72"]], "f": [{"x": 20, "y": 0, "t": "Students.txt", "r": ["118,Ben,55", "102,Cho,81"], "ptr": 2, "ptrLabel": "next write goes here"}]}, {"c": "The line is written at the pointer, as a new last line.", "p": 4, "y": 4, "v": [["S.StudentID", "104"], ["S.Name", "Aria"], ["S.Mark", "72"], ["Line", "104,Aria,72"]], "f": [{"x": 20, "y": 0, "t": "Students.txt", "r": ["118,Ben,55", "102,Cho,81", "104,Aria,72"], "nw": 2}]}, {"c": "The file is closed so the data is saved. The records are in the order they arrived (118, 102, 104). That is a serial file: no sorting was done.", "p": 5, "y": 5, "v": [["S.StudentID", "104"], ["S.Name", "Aria"], ["S.Mark", "72"], ["Line", "104,Aria,72"]], "f": [{"x": 20, "y": 0, "t": "Students.txt", "r": ["118,Ben,55", "102,Cho,81", "104,Aria,72"], "ok": [2]}]}];
+  Lib.stepper($("#stA"), { w: 760, h: 355, label: "Appending to a serial file", base: { i: 0 }, draw: (s) => stepDraw(C, ST[Math.round(s.i)]), tween: 300, dwell: 3200, steps: ST.map((t, i) => ({ cap: t.c, s: { i } })) }); })();
+(function () { const C = {"ps": null, "py": null, "lh": 22, "vw": 150}, ST = [{"c": "Four records arrive, in this order: 130, 104, 160, 118.", "f": [{"x": 20, "y": 20, "t": "Order of arrival", "r": ["130,Dev,64", "104,Aria,72", "160,Eli,90", "118,Ben,55"]}], "t": [[260, 40, "Both files are built from these four records.", "sm"]]}, {"c": "<b>Serial:</b> each record is appended as it arrives. The file holds them in arrival order.", "f": [{"x": 20, "y": 20, "t": "Order of arrival", "r": ["130,Dev,64", "104,Aria,72", "160,Eli,90", "118,Ben,55"]}, {"x": 260, "y": 20, "t": "Serial file", "r": ["130,Dev,64", "104,Aria,72", "160,Eli,90", "118,Ben,55"], "nw": 3}]}, {"c": "<b>Sequential:</b> the records are first sorted on the key field, <code>StudentID</code>, in memory.", "f": [{"x": 20, "y": 20, "t": "Order of arrival", "r": ["130,Dev,64", "104,Aria,72", "160,Eli,90", "118,Ben,55"]}, {"x": 260, "y": 20, "t": "Serial file", "r": ["130,Dev,64", "104,Aria,72", "160,Eli,90", "118,Ben,55"]}, {"x": 500, "y": 20, "t": "Sorted on StudentID", "r": ["104,Aria,72", "118,Ben,55", "130,Dev,64", "160,Eli,90"], "hl": 0}]}, {"c": "The sorted records are written from the start of a new file. Each key is larger than the one before.", "f": [{"x": 20, "y": 20, "t": "Order of arrival", "r": ["130,Dev,64", "104,Aria,72", "160,Eli,90", "118,Ben,55"]}, {"x": 260, "y": 20, "t": "Serial file", "r": ["130,Dev,64", "104,Aria,72", "160,Eli,90", "118,Ben,55"]}, {"x": 500, "y": 20, "t": "Sequential file", "r": ["104,Aria,72", "118,Ben,55", "130,Dev,64", "160,Eli,90"], "ok": [0, 1, 2, 3]}]}, {"c": "Reading from the top: the serial file gives 130 first. The sequential file gives 104 first and the keys then rise: 104, 118, 130, 160.", "f": [{"x": 260, "y": 20, "t": "Serial file", "r": ["130,Dev,64", "104,Aria,72", "160,Eli,90", "118,Ben,55"], "hl": 0}, {"x": 500, "y": 20, "t": "Sequential file", "r": ["104,Aria,72", "118,Ben,55", "130,Dev,64", "160,Eli,90"], "hl": 0}]}];
+  Lib.stepper($("#stB"), { w: 760, h: 158, label: "Serial and sequential order", base: { i: 0 }, draw: (s) => stepDraw(C, ST[Math.round(s.i)]), tween: 300, dwell: 3600, steps: ST.map((t, i) => ({ cap: t.c, s: { i } })) }); })();
+(function () { const C = {"ps": ["OPENFILE \"Students.txt\" FOR READ", "WHILE NOT EOF(\"Students.txt\")", "   READFILE \"Students.txt\", Line", "   Key <- STR_TO_NUM(LEFT(Line, 3))", "   OUTPUT Key", "ENDWHILE", "CLOSEFILE \"Students.txt\""], "py": ["File = open(\"Students.txt\", \"r\")", "for Line in File:", "    Key = int(Line.split(\",\")[0])", "    print(Key)", "File.close()"], "lh": 22, "vw": 150}, ST = [{"c": "The file is opened for reading. The pointer is at the first line.", "p": 0, "y": 0, "v": [["Line", ""], ["Key", ""]], "f": [{"x": 20, "y": 0, "t": "Students.txt", "r": ["118,Ben,55", "102,Cho,81", "104,Aria,72"], "ptr": 0, "ptrLabel": "next read"}]}, {"c": "Not at the end of the file, so the loop runs. <code>READFILE</code> reads line 1 into <code>Line</code> and moves the pointer on.", "p": 2, "y": 1, "v": [["Line", "118,Ben,55"], ["Key", ""]], "f": [{"x": 20, "y": 0, "t": "Students.txt", "r": ["118,Ben,55", "102,Cho,81", "104,Aria,72"], "hl": 0, "ptr": 1, "ptrLabel": "next read"}], "t": [[380, 14, "Output so far: none", "sm"]]}, {"c": "The first three characters are converted to a number and output: <b>118</b>.", "p": 4, "y": 3, "v": [["Line", "118,Ben,55"], ["Key", "118"]], "f": [{"x": 20, "y": 0, "t": "Students.txt", "r": ["118,Ben,55", "102,Cho,81", "104,Aria,72"], "hl": 0, "ptr": 1, "ptrLabel": "next read"}], "t": [[380, 14, "Output so far: 118", "sm"]]}, {"c": "Not at the end of the file, so the loop runs. <code>READFILE</code> reads line 2 into <code>Line</code> and moves the pointer on.", "p": 2, "y": 1, "v": [["Line", "102,Cho,81"], ["Key", ""]], "f": [{"x": 20, "y": 0, "t": "Students.txt", "r": ["118,Ben,55", "102,Cho,81", "104,Aria,72"], "hl": 1, "ptr": 2, "ptrLabel": "next read"}], "t": [[380, 14, "Output so far: 118", "sm"]]}, {"c": "The first three characters are converted to a number and output: <b>102</b>.", "p": 4, "y": 3, "v": [["Line", "102,Cho,81"], ["Key", "102"]], "f": [{"x": 20, "y": 0, "t": "Students.txt", "r": ["118,Ben,55", "102,Cho,81", "104,Aria,72"], "hl": 1, "ptr": 2, "ptrLabel": "next read"}], "t": [[380, 14, "Output so far: 118, 102", "sm"]]}, {"c": "Not at the end of the file, so the loop runs. <code>READFILE</code> reads line 3 into <code>Line</code> and moves the pointer on.", "p": 2, "y": 1, "v": [["Line", "104,Aria,72"], ["Key", ""]], "f": [{"x": 20, "y": 0, "t": "Students.txt", "r": ["118,Ben,55", "102,Cho,81", "104,Aria,72"], "hl": 2, "ptr": 3, "ptrLabel": "next read"}], "t": [[380, 14, "Output so far: 118, 102", "sm"]]}, {"c": "The first three characters are converted to a number and output: <b>104</b>.", "p": 4, "y": 3, "v": [["Line", "104,Aria,72"], ["Key", "104"]], "f": [{"x": 20, "y": 0, "t": "Students.txt", "r": ["118,Ben,55", "102,Cho,81", "104,Aria,72"], "hl": 2, "ptr": 3, "ptrLabel": "next read"}], "t": [[380, 14, "Output so far: 118, 102, 104", "sm"]]}, {"c": "<code>EOF</code> is now true, so the loop ends. Records come back in the order they are stored.", "p": 1, "y": 1, "v": [["Line", ""], ["Key", ""]], "f": [{"x": 20, "y": 0, "t": "Students.txt", "r": ["118,Ben,55", "102,Cho,81", "104,Aria,72"], "eof": true}], "t": [[380, 14, "Output: 118, 102, 104", "sm"]]}, {"c": "The file is closed.", "p": 6, "y": 4, "v": [["Line", ""], ["Key", ""]], "f": [{"x": 20, "y": 0, "t": "Students.txt", "r": ["118,Ben,55", "102,Cho,81", "104,Aria,72"]}], "t": [[380, 14, "Output: 118, 102, 104", "sm"]]}];
+  Lib.stepper($("#stC"), { w: 760, h: 397, label: "Reading records until the end of the file", base: { i: 0 }, draw: (s) => stepDraw(C, ST[Math.round(s.i)]), tween: 300, dwell: 2800, steps: ST.map((t, i) => ({ cap: t.c, s: { i } })) }); })();
+
+(function () {
+  const g = (id) => $("#" + id).value;
+  const paint = () => {
+    const id = g("lI").trim(), nm = g("lN"), mk = g("lM").trim(), line = id + "," + nm + "," + mk;
+    $("#lO").innerHTML = lineHTML([
+      'Line = str(' + id + ') + "," + "' + nm + '" + "," + str(' + mk + ')', 'Line <- NUM_TO_STR(' + id + ') & "," & "' + nm + '" & "," & NUM_TO_STR(' + mk + ')', "", "Written to the file:  " + line, line.length + " characters, plus the new line"]);
+    const w = [];
+    if (nm.includes(",")) w.push("The name contains a comma, so the line now has " + line.split(",").length + " parts instead of 3. Reading it back would cut it in the wrong place.");
+    if (!/^\d{3}$/.test(id)) w.push("StudentID is not 3 digits, so LEFT(Line, 3) would not pick out the key correctly.");
+    if (!/^-?\d+$/.test(mk)) w.push("Mark is not a whole number, so int() would fail when the line is read back.");
+    $("#lV").textContent = w.length ? w.join(" ") : "Three fields, two commas: this line can be cut back into its fields.";
+  };
+  ["lI", "lN", "lM"].forEach((i) => ($("#" + i).oninput = paint)); paint();
+})();
+
+(function () {
+  const start = [118, 102];
+  let ser, seq;
+  const reset = () => { ser = start.slice(); seq = start.slice().sort((a, b) => a - b); paint("Starting files: 118 and 102."); };
+  const tbl = (t, rows, mark) => '<div class="tw"><table class="t mono"><tr><th>' + t + "</th></tr>" + rows.map((r, i) => `<tr><td${i === mark ? ' style="background:var(--ok-soft);font-weight:700"' : ""}>${r}</td></tr>`).join("") + "</table></div>";
+  const paint = (msg, ms, mq) => { $("#aS").innerHTML = tbl("Serial file (order added)", ser, ms); $("#aQ").innerHTML = tbl("Sequential file (key order)", seq, mq); $("#aV").textContent = msg; };
+  $("#aB").onclick = () => {
+    const k = parseInt($("#aK").value, 10); if (isNaN(k)) { $("#aV").textContent = "Enter a whole number."; return; }
+    ser.push(k); let p = 0; while (p < seq.length && seq[p] < k) p++; seq.splice(p, 0, k);
+    const after = seq.length - 1 - p;
+    paint("Serial: " + k + " was appended to the end, nothing else moved. Sequential: " + k + " belongs at position " + (p + 1) + ", so " + (after ? after + " record" + (after > 1 ? "s" : "") + " after it must move down (the file is rewritten)." : "it goes at the end, so nothing needs to move."), ser.length - 1, p);
+  };
+  $("#aR").onclick = reset; reset();
+})();
+Lib.classify($("#cl1"), { prompt: "Which kind of file does each statement describe?", buckets: [{"label": "Serial"}, {"label": "Sequential"}, {"label": "Both"}], items: [{"text": "Records are in the order they were added", "b": 0}, {"text": "Records are in order of a key field", "b": 1}, {"text": "A new record is written with FOR APPEND", "b": 0}, {"text": "Records are sorted on the key before they are written", "b": 1}, {"text": "Each record is stored as one line of text", "b": 2}, {"text": "It is read from the start until EOF", "b": 2}, {"text": "Suits a log of transactions", "b": 0}, {"text": "Suits a payroll run that processes staff in key order", "b": 1}], done: "Serial is chronological, sequential is by key. Both are text files read from the start." });
+Lib.order($("#o1"), { prompt: "Put the steps for storing one record in a serial file in order.", items: ["Put the values into a record variable", "Convert each number to a string", "Join the fields into one line with commas", "Open the file FOR APPEND", "WRITEFILE the line", "CLOSEFILE"], done: "Build the record, build the line, open for append, write, close." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Record", "A group of related fields, such as ID, name and mark"], ["Field", "One item of data inside a record"], ["Key field", "The field that identifies a record and decides the order in a sequential file"], ["Separator", "The character, such as a comma, that divides the fields in a line"], ["Serial file", "Records stored in the order they were added"], ["Sequential file", "Records stored in key field order"]], done: "Learn these terms." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "A record is stored as the line 104,Aria,72. How many characters are in the line, not counting the new line?", "a": 11, "unit": "", "tol": 0.01, "hint": "3 + 1 + 4 + 1 + 2.", "sol": "<b>11</b>."},
+  {"q": "A serial file holds 40 records. One more is added with FOR APPEND. How many records does it hold?", "a": 41, "unit": "", "tol": 0.01, "hint": "Append keeps the old ones.", "sol": "<b>41</b>."},
+  {"q": "The same file (40 records) is opened FOR WRITE by mistake and one record is written. How many records does it hold afterwards?", "a": 1, "unit": "", "tol": 0.01, "hint": "WRITE replaces the old contents.", "sol": "<b>1</b>."},
+  {"q": "Records with keys 130, 104, 160 and 118 are sorted and written to a sequential file. What is the key of the third record in the file?", "a": 130, "unit": "", "tol": 0.01, "hint": "Sorted order: 104, 118, 130, 160.", "sol": "<b>130</b>."},
+  {"q": "A file holds 250 records, one per line. A loop reads until EOF. How many times does READFILE run?", "a": 250, "unit": "", "tol": 0.01, "hint": "One read for each line.", "sol": "<b>250</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "Which open mode adds a record to a serial file without losing the existing ones?", opts: ["READ", "WRITE", "APPEND", "RANDOM"], a: 2, why: "APPEND adds at the end and keeps the old records." },
+  { q: "In a serial file the records are stored...", opts: ["In key order", "In the order they were added", "At a calculated address", "In random order of size"], a: 1, why: "Serial means chronological." },
+  { q: "Why is a separator needed when a record is stored as a line?", opts: ["To make the file smaller", "So the fields can be cut apart when read back", "To sort the record", "To close the file"], a: 1, why: "Without it the fields run together." },
+  { q: "What must be done to a number before it is joined to a string in a line?", opts: ["Rounded", "Converted to a string", "Sorted", "Deleted"], a: 1, why: "str() in Python, NUM_TO_STR() in pseudocode." },
+  { q: "Which is needed to build a sequential file from unsorted records?", opts: ["Sort them on the key first", "Open the file FOR RANDOM", "Use SEEK", "Append them in any order"], a: 0, why: "Sequential files are in key order." },
+  { q: "What does write() NOT do for you in Python?", opts: ["Write text", "Add the new line at the end of the record", "Use the open file", "Send text to the file"], a: 1, why: "Add \"\\n\" yourself." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Record", "A group of related fields."],
+  ["Field", "One item inside a record."],
+  ["Serial file", "Records in the order added. Append new ones."],
+  ["Sequential file", "Records in key order. Sort before writing."],
+  ["FOR APPEND", "Open and add to the end."],
+  ["FOR WRITE", "Open and replace everything."],
+  ["Separator", "A comma between fields in the line."],
+  ["EOF", "True when nothing more can be read."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

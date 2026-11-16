@@ -1,0 +1,198 @@
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 20.2.1</div>
+  <h1>Adding a Record to a Random File</h1>
+  <p class="cbook">Coursebook: Chapter 20 · Further programming, section 20.2 File processing and exception handling</p>
+  <p class="lead">Hashing a key to a location, SEEK and PUTRECORD, handling a collision with the next free location, and detecting a full file; pseudocode and Python side by side, with a line-by-line animation.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>A <b>random file</b> is a file of equal-sized records, each at a numbered <b>location</b>, and the program can jump straight to any location with <code>SEEK</code>. To add a record, a <b>hash function</b> turns its key into a location (here <code>Key MOD 7</code>), the program uses <code>SEEK</code> to move there, and <code>PUTRECORD</code> writes the record. If another record is already at that location, that is a <b>collision</b>, so the program checks the <b>next location</b> (wrapping round at the end) until it finds an empty one. If it comes back to where it started, the file is <b>full</b>. An empty location holds a record whose key is <code>0</code>, which is how the program recognises it.</p></div>
+
+  <h2>1 · The file and its locations</h2>
+  <p>This page uses a file <code>Accounts.dat</code> with 7 locations, numbered 0 to 6. Each record is a <code>TAccount</code>. The file is created with every location holding a blank record, so there is something at every location to read. (<code>PutRecord</code> is defined in the next section.)</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">import struct</span><span class="ln"> </span><span class="ln">class TAccount:</span><span class="ln">    def __init__(self, AccountNumber=0, Name=&quot;&quot;):</span><span class="ln">        self.AccountNumber = AccountNumber</span><span class="ln">        self.Name = Name</span><span class="ln"> </span><span class="ln">File = open(&quot;Accounts.dat&quot;, &quot;wb&quot;)</span><span class="ln">for Location in range(7):</span><span class="ln">    PutRecord(File, TAccount())      # blank record</span><span class="ln">File.close()</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">TYPE TAccount</span><span class="ln">   DECLARE AccountNumber : INTEGER</span><span class="ln">   DECLARE Name : STRING</span><span class="ln">ENDTYPE</span><span class="ln"> </span><span class="ln">DECLARE Blank : TAccount</span><span class="ln">Blank.AccountNumber &lt;- 0</span><span class="ln">Blank.Name &lt;- &quot;&quot;</span><span class="ln">OPENFILE &quot;Accounts.dat&quot; FOR RANDOM</span><span class="ln">FOR Location &lt;- 0 TO 6</span><span class="ln">   SEEK &quot;Accounts.dat&quot;, Location</span><span class="ln">   PUTRECORD &quot;Accounts.dat&quot;, Blank</span><span class="ln">NEXT Location</span><span class="ln">CLOSEFILE &quot;Accounts.dat&quot;</span></pre></div></div></div>
+
+  <h2>2 · SEEK, GETRECORD and PUTRECORD in Python</h2>
+  <p>Python has no commands with these names, so this page builds them from <code>seek()</code>, <code>read()</code> and <code>write()</code>. Every record is stored as exactly the same number of bytes, so location <i>n</i> starts at byte <code>n × RecSize</code>.</p>
+  <div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">import struct</span><span class="ln">Layout = &quot;&lt;i20s&quot;                      # a 4-byte integer then 20 bytes of text</span><span class="ln">RecSize = struct.calcsize(Layout)     # 24 bytes per record</span><span class="ln"> </span><span class="ln">def PutRecord(File, Rec):</span><span class="ln">    File.write(struct.pack(Layout, Rec.AccountNumber, Rec.Name.encode()))</span><span class="ln"> </span><span class="ln">def GetRecord(File):</span><span class="ln">    Num, Name = struct.unpack(Layout, File.read(RecSize))</span><span class="ln">    return TAccount(Num, Name.decode().rstrip(&quot;\x00&quot;))</span><span class="ln"> </span><span class="ln">def Hash(Key):</span><span class="ln">    return Key % 7</span></pre></div>
+  <div class="tw"><table class="t">
+    <tr><th>Pseudocode</th><th>Python</th></tr>
+    <tr><td><code>OPENFILE "Accounts.dat" FOR RANDOM</code></td><td><code>File = open("Accounts.dat", "r+b")</code></td></tr>
+    <tr><td><code>SEEK "Accounts.dat", Location</code></td><td><code>File.seek(Location * RecSize)</code></td></tr>
+    <tr><td><code>GETRECORD "Accounts.dat", Current</code></td><td><code>Current = GetRecord(File)</code></td></tr>
+    <tr><td><code>PUTRECORD "Accounts.dat", NewAccount</code></td><td><code>PutRecord(File, NewAccount)</code></td></tr>
+    <tr><td><code>CLOSEFILE "Accounts.dat"</code></td><td><code>File.close()</code></td></tr>
+  </table></div>
+  <p class="note">Random files have been examined as pseudocode in Paper 3. They have not been asked as Python code in Paper 4, so this Python is here to show the same logic running, not because the exam will ask for it.</p>
+
+  <h2>3 · The hash function</h2>
+  <p>It must give the same location every time for the same key, and a valid location (0 to 6). <code>MOD</code> does both: the remainder after dividing by 7 is always 0 to 6.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">def Hash(Key):</span><span class="ln">    return Key % 7</span><span class="ln"> </span><span class="ln">Hash(24)    # 3</span><span class="ln">Hash(16)    # 2</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">FUNCTION Hash(Key : INTEGER) RETURNS INTEGER</span><span class="ln">   RETURN Key MOD 7</span><span class="ln">ENDFUNCTION</span><span class="ln"> </span><span class="ln">Hash(24)    // 3</span><span class="ln">Hash(16)    // 2</span></pre></div></div></div>
+
+  <h2>4 · Storing a record at its hashed location</h2>
+  <p>When the question does not mention collisions, this is the whole answer: calculate the location, SEEK, PUTRECORD.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">File = open(&quot;Accounts.dat&quot;, &quot;r+b&quot;)</span><span class="ln">Location = Hash(NewAccount.AccountNumber)</span><span class="ln">File.seek(Location * RecSize)</span><span class="ln">PutRecord(File, NewAccount)</span><span class="ln">File.close()</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;Accounts.dat&quot; FOR RANDOM</span><span class="ln">Location &lt;- Hash(NewAccount.AccountNumber)</span><span class="ln">SEEK &quot;Accounts.dat&quot;, Location</span><span class="ln">PUTRECORD &quot;Accounts.dat&quot;, NewAccount</span><span class="ln">CLOSEFILE &quot;Accounts.dat&quot;</span></pre></div></div></div>
+  <div class="tip"><b class="h">The danger</b>PUTRECORD writes over whatever is at that location. If another account is already there, it is lost. That is why a safe version reads the location first.</div>
+
+  <h2>5 · Collisions: the next free location</h2>
+  <p>Two keys can hash to the same location: 24 and 10 both give 3. Read the location first. If it is empty (<code>AccountNumber = 0</code>) store the record. If not, move to the next location, wrapping from 6 back to 0 with <code>MOD 7</code>. This method is called <b>linear probing</b>. <code>Start</code> remembers where the search began, so if the program gets all the way round the file is full.</p>
+  <div class="grid2"><div><h4>Python</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">File = open(&quot;Accounts.dat&quot;, &quot;r+b&quot;)</span><span class="ln">Stored = False</span><span class="ln">Location = Hash(NewAccount.AccountNumber)</span><span class="ln">Start = Location</span><span class="ln">while True:</span><span class="ln">    File.seek(Location * RecSize)</span><span class="ln">    Current = GetRecord(File)</span><span class="ln">    if Current.AccountNumber == 0:</span><span class="ln">        File.seek(Location * RecSize)</span><span class="ln">        PutRecord(File, NewAccount)</span><span class="ln">        Stored = True</span><span class="ln">    else:</span><span class="ln">        Location = (Location + 1) % 7</span><span class="ln">    if Stored or Location == Start:</span><span class="ln">        break</span><span class="ln">File.close()</span><span class="ln">if not Stored:</span><span class="ln">    print(&quot;File full&quot;)</span></pre></div></div><div><h4>Pseudocode (exam style)</h4><div class="code"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;Accounts.dat&quot; FOR RANDOM</span><span class="ln">Stored &lt;- FALSE</span><span class="ln">Location &lt;- Hash(NewAccount.AccountNumber)</span><span class="ln">Start &lt;- Location</span><span class="ln">REPEAT</span><span class="ln">   SEEK &quot;Accounts.dat&quot;, Location</span><span class="ln">   GETRECORD &quot;Accounts.dat&quot;, Current</span><span class="ln">   IF Current.AccountNumber = 0 THEN</span><span class="ln">      PUTRECORD &quot;Accounts.dat&quot;, NewAccount</span><span class="ln">      Stored &lt;- TRUE</span><span class="ln">   ELSE</span><span class="ln">      Location &lt;- (Location + 1) MOD 7</span><span class="ln">   ENDIF</span><span class="ln">UNTIL Stored OR Location = Start</span><span class="ln">IF NOT Stored THEN</span><span class="ln">   OUTPUT &quot;File full&quot;</span><span class="ln">ENDIF</span><span class="ln">CLOSEFILE &quot;Accounts.dat&quot;</span></pre></div></div></div>
+  <div class="tip"><b class="h">Why the second seek in Python?</b>In Python, reading a record moves the file position on to the next location, so the program seeks back before it writes. The exam mark scheme (M/J 2025, Paper 33, Question 11) writes with PUTRECORD straight after GETRECORD with no second SEEK, so in exam pseudocode the pointer stays at the location that was sought.</div>
+
+  <h2>6 · Common ways to lose marks</h2>
+  <ul>
+    <li>Leaving out <code>SEEK</code>. <code>PUTRECORD</code> writes wherever the pointer already is.</li>
+    <li>Using <code>READFILE</code> or <code>WRITEFILE</code> on a random file. Random files use <code>GETRECORD</code> and <code>PUTRECORD</code>.</li>
+    <li>Opening <code>FOR APPEND</code> or <code>FOR WRITE</code> instead of <code>FOR RANDOM</code>.</li>
+    <li>Storing straight at the hashed location without checking whether it is already used.</li>
+    <li>Adding 1 to the location without <code>MOD</code>, so it runs off the end of the file.</li>
+    <li>Not stopping when the file is full, so the loop never ends.</li>
+    <li>Not closing the file.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · Storing a record at its hashed location</h2><p>Press Play, or click the steps.</p><div id="stA"></div>
+  <h2>2 · A collision, line by line</h2><p>Account 24 hashes to location 3, which is already taken. Watch the pointer move on until it finds an empty location.</p><div id="stB"></div>
+  <h2>3 · When the file is full</h2><div id="stC"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Add a record</h2>
+  <p>The file has 7 locations and the hash is Key MOD 7. Enter an account number and press Add. The table shows every location the program looks at. Fill the file until it is full.</p>
+  <div class="card"><div class="btnrow"><label>Account number <input id="aK" size="5" value="24"></label> <button class="b pri" id="aB">Add</button> <button class="b" id="aR">Reset file</button></div><div id="aT"></div><div id="aF"></div><div class="verdict" id="aV"></div></div>
+
+  <h2>Lab 2 · Hash calculator</h2>
+  <p>Choose the number of locations and edit the keys. Keys that land on the same location are marked as collisions. The three keys in the box are the ones from the M/J 2023 exam question.</p>
+  <div class="card"><div class="btnrow" id="hM"></div><div class="btnrow"><label>Keys <input id="hK" size="34" value="3003, 1029, 7630, 14, 22, 29"></label></div><div id="hO"></div><div class="verdict" id="hV"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Sort the statements</h2><div id="cl1" class="card"></div>
+  <h2>2 · Put the steps in order</h2><div id="o1" class="card"></div>
+  <h2>3 · Match the term to its meaning</h2><div id="m1" class="card"></div>
+  <h2>4 · Work it out</h2><div id="c1"></div>
+  <h2>5 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>School lockers</h3><p>A locker is assigned as student ID MOD number of lockers. If that locker is already taken, the student is given the next free one, wrapping round to the start after the last. That is the same method as linear probing.</p><div class="use"><b>Exam use:</b> hash for the first choice, next location on a collision.</div></div>
+  <div class="rw"><h3>A bank's account file</h3><p>Millions of records are stored at locations worked out from the account number. A new account is written straight to its location without reading any other record, which is why a random file is fast to add to.</p><div class="use"><b>Exam use:</b> direct access: SEEK to the calculated location, then PUTRECORD.</div></div>
+  <div class="rw"><h3>A hotel booking system</h3><p>Each booking reference is turned into a location in the booking file. When two references give the same location the system looks at the following locations until it finds an empty one.</p><div class="use"><b>Exam use:</b> collisions are handled by checking the next location.</div></div>
+  <div class="rw"><h3>A full file</h3><p>A small random file used as a cache has 500 slots. When all are taken the program has to report that it is full or throw an old record away; it must never overwrite a record by accident.</p><div class="use"><b>Exam use:</b> the Start check stops the loop and the program reports the file is full.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Real Paper 3 and Paper 4 questions, then review questions for practice. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>M/J 2025</td><td>33</td><td>11</td><td>5</td><td>Complete the insertion of a new stock item into the next empty location of a random file</td></tr>
+    <tr><td>M/J 2023</td><td>32</td><td>2(b)</td><td>2</td><td>Hash values using modulus 5</td></tr>
+    <tr><td>M/J 2024</td><td>32</td><td>7(a), (b)(ii)</td><td>2 + 2</td><td>Direct access, and how a record is located in a random file</td></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>4(a)</td><td>4</td><td>Describe sequential and random file organisation (random part: hashing, direct update)</td></tr>
+  </table></div>
+  <p class="note">These questions are reworded from the papers; check the original paper and mark scheme for the exact wording. Random files are asked in Paper 3 as completed pseudocode and as written descriptions. Handling collisions by checking the next location is accepted in the mark scheme as an example of a method for finding a record that is not at its expected location.</p>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/33 · Q11</span> <span class="cmd">Complete</span> <span class="mark">5 marks</span> The pseudocode allows a user to input a new stock item. The random file is searched for the next empty location and the new item is inserted there. A suitable message is displayed if the file is full. Complete this pseudocode.<pre class="plain">Max ← 100000
+Stored ← FALSE
+Location ← 1
+...
+OUTPUT &quot;Enter the new item you wish to store: &quot;
+INPUT NewStock
+WHILE NOT Stored AND Location &lt;= Max
+   ...
+   GETRECORD &quot;StockList.dat&quot;, ...
+   IF CurrentStock = &quot;&quot; THEN
+      ... &quot;StockList.dat&quot;, NewStock
+      Stored ← TRUE
+   ELSE
+      Location ← Location + 1
+   ENDIF
+ENDWHILE
+IF ... THEN
+   OUTPUT &quot;The new item has not been stored as the file was full.&quot;
+ENDIF
+...</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Find the first empty location by reading each one in turn; the empty one is where PUTRECORD stores the item.</div>
+    <div class="ans"><p>One mark for each correctly completed line: <span class="mk k" data-t="1">OPENFILE "StockList.dat" FOR RANDOM</span> <span class="mk k" data-t="2">SEEK "StockList.dat", Location</span> <span class="mk k" data-t="3">GETRECORD ..., CurrentStock</span> <span class="mk k" data-t="4">PUTRECORD "StockList.dat", NewStock</span> <span class="mk k" data-t="5">IF Stored = FALSE THEN ... CLOSEFILE "StockList.dat"</span></p><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;StockList.dat&quot; FOR RANDOM</span><span class="ln">...</span><span class="ln">WHILE NOT Stored AND Location &lt;= Max</span><span class="ln">   SEEK &quot;StockList.dat&quot;, Location</span><span class="ln">   GETRECORD &quot;StockList.dat&quot;, CurrentStock</span><span class="ln">   IF CurrentStock = &quot;&quot; THEN</span><span class="ln">      PUTRECORD &quot;StockList.dat&quot;, NewStock</span><span class="ln">      Stored ← TRUE</span><span class="ln">   ELSE</span><span class="ln">      Location ← Location + 1</span><span class="ln">   ENDIF</span><span class="ln">ENDWHILE</span><span class="ln">IF Stored = FALSE THEN</span><span class="ln">   OUTPUT &quot;The new item has not been stored as the file was full.&quot;</span><span class="ln">ENDIF</span><span class="ln">CLOSEFILE &quot;StockList.dat&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Putting the record with PUTRECORD without having done SEEK to the empty location in this pass of the loop.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2023 · 9618/32 · Q2(b)</span> <span class="cmd">Complete</span> <span class="mark">2 marks</span> A hashing algorithm is used to calculate storage locations for records in a random access file. The algorithm calculates hash values using the function modulus 5, which gives the remainder after integer division. For example, 3003 modulus 5 = 3, so the record key 3003 gives a hash value of 3. Complete the table to show the remaining hash values.<table class="t"><tr><th>Record key</th><th>Hash value</th></tr><tr><td>3003</td><td>3</td></tr><tr><td>1029</td><td></td></tr><tr><td>7630</td><td></td></tr></table></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Divide by 5 and keep the remainder. A number ending in 0 or 5 divides exactly.</div>
+    <div class="ans"><p>One mark for each correct value (maximum 2): 1029 gives <span class="mk k" data-t="1">4</span> and 7630 gives <span class="mk k" data-t="1">0</span>.</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving the result of the division (205 or 1526) instead of the remainder.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/32 · Q7(a), (b)(ii)</span> <span class="cmd">Outline / Explain</span> <span class="mark">2 + 2 marks</span> (a) Outline what is meant by direct access as a method of file access. (b)(ii) Explain how direct access is used to locate a specific record in random files.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) is about not reading other records. (b)(ii) is the hash, the calculated address and what happens if the record is not there.</div>
+    <div class="ans"><p>(a) <span class="mk k" data-t="1">A record can be found in a file without other records being read</span> <span class="mk k" data-t="2">using the key field of the target record (the location is found with a hashing algorithm)</span></p><p>(b)(ii) <span class="mk a" data-t="1">A hashing algorithm is used on the key field of the record</span> <span class="mk a" data-t="2">to calculate the address of the location where the target record is expected to be stored</span> <span class="mk a" data-t="3">Another method is used if it is not at the expected location, for example linear probing or an overflow area</span> (maximum 2)</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing only that the record is 'found quickly'. The marks are for the key, the hash and the calculated address.</div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> What is meant by a collision when a record is stored in a random file?</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Two keys, one location.</div>
+    <div class="ans"><span class="mk k" data-t="1">Two different records (keys) produce the same hash value</span> <span class="mk k" data-t="2">so the location they should go in is already used</span></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Calculate</span> <span class="mark">3 marks</span> The hash function is <code>Key MOD 7</code>. State the location for the keys 52, 31 and 15, and say which two collide.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Divide by 7 and keep the remainder.</div>
+    <div class="ans"><span class="mk k" data-t="1">52 gives 3</span> <span class="mk k" data-t="2">31 gives 3 and 15 gives 1</span> <span class="mk k" data-t="3">52 and 31 collide at location 3</span><p>52 = 7 × 7 + 3, 31 = 7 × 4 + 3, 15 = 7 × 2 + 1.</p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Complete</span> <span class="mark">5 marks</span> Write pseudocode that stores <code>NewAccount</code> in <code>Accounts.dat</code> at the location given by <code>Hash()</code>. Assume there is no collision.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Open for random, hash, SEEK, PUTRECORD, close.</div>
+    <div class="ans"><pre class="cp" style="counter-reset:l 0"><span class="ln">OPENFILE &quot;Accounts.dat&quot; FOR RANDOM</span><span class="ln">Location &lt;- Hash(NewAccount.AccountNumber)</span><span class="ln">SEEK &quot;Accounts.dat&quot;, Location</span><span class="ln">PUTRECORD &quot;Accounts.dat&quot;, NewAccount</span><span class="ln">CLOSEFILE &quot;Accounts.dat&quot;</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Leaving out SEEK, or opening FOR WRITE.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Write</span> <span class="mark">6 marks</span> Write Python that stores <code>NewAccount</code> in the next empty location from its hashed location, wrapping round and stopping if the file is full. Use <code>GetRecord</code> and <code>PutRecord</code>.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Read each location in turn; an empty one has AccountNumber 0.</div>
+    <div class="ans"><pre class="cp" style="counter-reset:l 0"><span class="ln">File = open(&quot;Accounts.dat&quot;, &quot;r+b&quot;)</span><span class="ln">Stored = False</span><span class="ln">Location = Hash(NewAccount.AccountNumber)</span><span class="ln">Start = Location</span><span class="ln">while True:</span><span class="ln">    File.seek(Location * RecSize)</span><span class="ln">    Current = GetRecord(File)</span><span class="ln">    if Current.AccountNumber == 0:</span><span class="ln">        File.seek(Location * RecSize)</span><span class="ln">        PutRecord(File, NewAccount)</span><span class="ln">        Stored = True</span><span class="ln">    else:</span><span class="ln">        Location = (Location + 1) % 7</span><span class="ln">    if Stored or Location == Start:</span><span class="ln">        break</span><span class="ln">File.close()</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Forgetting the second seek, so the record is written at the next location instead of the empty one.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">2 marks</span> Why is the new location calculated with <code>(Location + 1) MOD 7</code> rather than <code>Location + 1</code>?</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>What would happen at location 6.</div>
+    <div class="ans"><span class="mk k" data-t="1">Location 6 is the last location, and 6 + 1 = 7 is outside the file</span> <span class="mk k" data-t="2">MOD 7 wraps the location back to 0 so the search continues from the start of the file</span></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Always SEEK first.</b> SEEK to the location before every GETRECORD or PUTRECORD.</li>
+    <li><b>Open FOR RANDOM.</b> APPEND and WRITE are for text files.</li>
+    <li><b>Hash first.</b> Location comes from the key, not from a loop, unless there is a collision.</li>
+    <li><b>Check before you write.</b> PUTRECORD overwrites. Read the location and test that it is empty.</li>
+    <li><b>Wrap round with MOD.</b> (Location + 1) MOD 7 never leaves the file.</li>
+    <li><b>Say what empty means.</b> A blank record, such as AccountNumber 0 or an empty string.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>Describe direct access</td><td>"A record is found without reading the other records, because its location is calculated from the key field."</td></tr>
+    <tr><td>Describe a hash function</td><td>"It takes the key field and calculates the address at which the record is stored."</td></tr>
+    <tr><td>Describe a collision</td><td>"Two different keys give the same location, so another method is used to place the second record."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>Complete</td><td>Fill in the missing lines of the given pseudocode.</td></tr>
+    <tr><td>Describe</td><td>Give the main features in connected points.</td></tr>
+    <tr><td>Explain</td><td>A reason as well as the fact.</td></tr>
+    <tr><td>State</td><td>A short fact.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
