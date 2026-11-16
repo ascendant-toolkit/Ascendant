@@ -60,14 +60,28 @@
   })();
 })();
 
-// Topic test block: show the signed-in student's best score and attempt count.
+// Topic test block. Students see their best score; teachers get the mark scheme and, on a licence, how their students did.
 (async function () {
-  const box = document.querySelector(".ttest .ttscore");
-  if (!box || !window.Site || !Site.configured) return;
+  const block = document.querySelector(".ttest");
+  if (!block || !window.Site || !Site.configured) return;
   try {
     const me = await Site.whoami();
-    if (!me || me.is_admin || me.is_teacher || me.is_school_teacher) return;
-    const id = box.closest(".ttest").dataset.test;
+    if (!me) return;
+    const box = block.querySelector(".ttscore"), id = block.dataset.test;
+    if (me.is_admin || me.is_teacher || me.is_school_teacher) {
+      const btn = block.querySelector("a.btn");
+      btn.textContent = "View test and mark scheme";
+      block.querySelector("p.hint").textContent = "The full paper with the answer key, mark points and model answers. You can print it as a mark scheme or as a student copy.";
+      if (me.is_school_teacher) {
+        const { data } = await Site.sb.rpc("school_test_attempts");
+        const mine = (data || []).filter((r) => r.test === id);
+        if (mine.length) {
+          const who = new Set(mine.map((r) => r.email)).size, avg = Math.round(mine.reduce((t, r) => t + r.pct, 0) / mine.length);
+          box.textContent = `${who} student${who === 1 ? "" : "s"} taken it · ${mine.length} attempt${mine.length === 1 ? "" : "s"} · average ${avg}%`;
+        } else box.textContent = "No attempts from your students yet.";
+      }
+      return;
+    }
     const { data } = await Site.sb.rpc("my_test_attempts");
     const mine = (data || []).filter((r) => r.test === id);
     if (mine.length) box.textContent = `Best ${Math.max(...mine.map((r) => r.pct))}% · ${mine.length} attempt${mine.length === 1 ? "" : "s"}`;

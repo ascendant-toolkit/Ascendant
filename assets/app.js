@@ -223,7 +223,16 @@
     a.title = n ? `${data.approvals || 0} subject request(s), ${data.retakes || 0} retake request(s), ${data.resets || 0} password reset(s)` : "No notifications";
     a.classList.toggle("has", n > 0);
   };
-  async function startBell() { if (configured) { await Site.whoami(); Site.refreshBell(); } }
+  // The "Plans" link in the navbar follows who pays: signed-in individuals and licence holders get "My plan",
+  // students placed by a school or tutor, and co-teachers, have no plan to manage so the link goes away.
+  Site.adaptNav = () => {
+    const a = document.querySelector('nav.main a[href$="pricing/"]');
+    if (!a || !Site.me || a.classList.contains("on")) return;
+    const m = Site.me, v = m.plan_view || (m.is_admin ? "admin" : m.is_school_teacher ? "licence" : m.is_teacher ? "none" : m.school ? "managed" : "individual");
+    if (v === "managed" || v === "none") a.hidden = true;
+    else if (v !== "admin") { a.textContent = "My plan"; a.href = base + "plan/"; }
+  };
+  async function startBell() { if (configured) { await Site.whoami(); Site.adaptNav(); Site.refreshBell(); } }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", startBell); else startBell();
 
   const start = () => { bindButtons(); bindRoleToggles(); guardHidden(); };

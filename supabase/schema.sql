@@ -252,18 +252,18 @@ begin
   select * into a from admins where email = e;
   if found then
     return json_build_object('email', e, 'name', a.name, 'is_admin', true,
-                             'subjects', array['ig-econ','ig-cs','a-econ','a-cs'], 'requested', array[]::text[]);
+                             'plan_view', 'admin', 'subjects', array['ig-econ','ig-cs','a-econ','a-cs'], 'requested', array[]::text[]);
   end if;
   if exists (select 1 from teachers where email = e) then
     return json_build_object('email', e, 'name', (select name from teachers where email = e), 'is_admin', false, 'is_teacher', true,
-                             'subjects', array['ig-econ','ig-cs','a-econ','a-cs'], 'requested', array[]::text[]);
+                             'plan_view', 'none', 'subjects', array['ig-econ','ig-cs','a-econ','a-cs'], 'requested', array[]::text[]);
   end if;
   -- School teachers count as teachers (they preview assessments, don't submit them) but only for their licence's subjects and tier.
   select * into st from school_teachers where email = e;
   if found then
     select * into sc from schools where id = st.school_id;
     live := sc.expires_at is null or sc.expires_at > now();
-    return json_build_object('email', e, 'name', st.name, 'is_admin', false, 'is_teacher', true, 'is_school_teacher', true,
+    return json_build_object('email', e, 'name', st.name, 'is_admin', false, 'is_teacher', true, 'is_school_teacher', true, 'plan_view', 'licence',
                              'school', json_build_object('id', sc.id, 'name', sc.name, 'kind', sc.kind, 'products', sc.products, 'tier', sc.tier,
                                                          'seats', sc.seats, 'per_subject', sc.per_subject, 'seat_limits', sc.seat_limits, 'expires_at', sc.expires_at, 'active', live),
                              'subjects', case when live then sc.products else '{}'::text[] end, 'requested', array[]::text[],
@@ -274,12 +274,16 @@ begin
   if not found then return null; end if;
   return json_build_object('email', p.email, 'email2', p.email2, 'login', e, 'name', p.name, 'is_admin', false,
                            'subjects', effective_subjects(p.email), 'requested', p.requested, 'paywall', paywall_on(),
+                           -- v12: students placed by a school or tutor who pays for them have no plan page; everyone else does
+                           'plan_view', case when p.school_id is not null
+                                              and not exists (select 1 from entitlements where email = p.email and source = 'payment' and is_active(starts_at, expires_at))
+                                             then 'managed' else 'individual' end,
                            'school', (select name from schools where id = p.school_id),
                            'entitlements', coalesce((select json_agg(x) from (
-                               select json_build_object('product', product, 'plan', plan, 'tier', tier, 'expires_at', expires_at) x
+                               select json_build_object('product', product, 'plan', plan, 'tier', tier, 'expires_at', expires_at, 'source', source) x
                                  from entitlements where email = p.email and is_active(starts_at, expires_at)
                                union all
-                               select json_build_object('product', product, 'plan', 'school', 'tier', tier, 'expires_at', expires_at)
+                               select json_build_object('product', product, 'plan', 'school', 'tier', tier, 'expires_at', expires_at, 'source', 'school')
                                  from school_access(p.email)) q), '[]'::json));
 end $$;
 
@@ -1275,3 +1279,107 @@ begin
             'max', a.max_score, 'at', a.finalized_at) order by a.finalized_at desc), '[]'::json)
           from test_attempts a join topic_tests t on t.id = a.test_id where a.finalized_at is not null);
 end $$;
+
+-- ========== v12: teacher dashboard, classes, mark schemes, plan page ==========
+-- A teacher's own classes. A class belongs to one teacher at one school or tutor licence; its members are that licence's students.
+create table if not exists public.teacher_classes (
+  id            bigint generated always as identity primary key,
+  school_id     text not null references public.schools (id) on delete cascade,
+  teacher_email text not null check (teacher_email = lower(teacher_email)),
+  name          text not null check (length(trim(name)) > 0),
+  subject       text,                          -- optional: one of ig-econ, ig-cs, a-econ, a-cs
+  created_at    timestamptz not null default now()
+);
+create table if not exists public.teacher_class_members (
+  class_id bigint not null references public.teacher_classes (id) on delete cascade,
+  email    text not null references public.profiles (email) on delete cascade on update cascade,
+  primary key (class_id, email)
+);
+alter table public.teacher_classes enable row level security;          -- reads and writes only through the functions below
+alter table public.teacher_class_members enable row level security;
+drop policy if exists teacher_classes_admin on public.teacher_classes;
+create policy teacher_classes_admin on public.teacher_classes for all using (is_admin()) with check (is_admin());
+drop policy if exists teacher_class_members_admin on public.teacher_class_members;
+create policy teacher_class_members_admin on public.teacher_class_members for all using (is_admin()) with check (is_admin());
+
+-- School or tutor teacher: their own classes with member emails.
+create or replace function public.teacher_classes() returns json
+language plpgsql security definer set search_path = public as $$
+declare sid text := my_school(); e text := lower(auth.jwt() ->> 'email');
+begin
+  if sid is null then raise exception 'Licence teachers only'; end if;
+  return coalesce((select json_agg(json_build_object('id', c.id, 'name', c.name, 'subject', c.subject,
+            'members', coalesce((select json_agg(m.email order by m.email) from teacher_class_members m where m.class_id = c.id), '[]'::json)) order by c.name)
+          from teacher_classes c where c.school_id = sid and c.teacher_email = e), '[]'::json);
+end $$;
+
+-- Create (_id null) or update a class and replace its members. Members must be students of the teacher's own licence.
+create or replace function public.teacher_save_class(_id bigint, _name text, _subject text, _members text[]) returns bigint
+language plpgsql security definer set search_path = public as $$
+declare sid text := my_school(); e text := lower(auth.jwt() ->> 'email'); cid bigint := _id;
+begin
+  if sid is null then raise exception 'Licence teachers only'; end if;
+  if length(trim(coalesce(_name, ''))) = 0 then raise exception 'Give the class a name'; end if;
+  if _subject is not null and _subject not in ('ig-econ', 'ig-cs', 'a-econ', 'a-cs') then raise exception 'Unknown subject'; end if;
+  if cid is null then
+    insert into teacher_classes (school_id, teacher_email, name, subject) values (sid, e, trim(_name), _subject) returning id into cid;
+  else
+    update teacher_classes set name = trim(_name), subject = _subject where id = cid and school_id = sid and teacher_email = e;
+    if not found then raise exception 'Class not found'; end if;
+  end if;
+  delete from teacher_class_members where class_id = cid;
+  insert into teacher_class_members (class_id, email)
+    select distinct p.email from profiles p where p.school_id = sid and p.email = any (select lower(x) from unnest(coalesce(_members, '{}'::text[])) x);
+  return cid;
+end $$;
+
+create or replace function public.teacher_delete_class(_id bigint) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if my_school() is null then raise exception 'Licence teachers only'; end if;
+  delete from teacher_classes where id = _id and school_id = my_school() and teacher_email = lower(auth.jwt() ->> 'email');
+end $$;
+
+-- School or tutor teacher: every finished topic test attempt by their students, oldest first.
+create or replace function public.school_test_attempts() returns json
+language plpgsql security definer set search_path = public as $$
+declare sid text := my_school();
+begin
+  if sid is null then raise exception 'Licence teachers only'; end if;
+  return coalesce((select json_agg(json_build_object('email', a.email, 'test', a.test_id, 'title', t.title, 'course', split_part(a.test_id, '/', 1),
+            'pct', a.pct, 'score', a.score, 'max', a.max_score, 'mcq', a.mcq_score, 'mcq_max', a.mcq_max,
+            'written', a.written_score, 'written_max', a.written_max, 'at', a.finalized_at) order by a.finalized_at)
+          from test_attempts a join topic_tests t on t.id = a.test_id join profiles p on p.email = a.email
+          where p.school_id = sid and a.finalized_at is not null), '[]'::json);
+end $$;
+
+-- Teachers: a topic test with its answer key, mark points and model answers. School and tutor teachers need a live licence
+-- that covers the subject at Full tier; co-teachers and admins can open any test.
+create or replace function public.staff_topic_test(_id text) returns json
+language plpgsql security definer set search_path = public as $$
+declare t topic_tests; st school_teachers; sc schools; c text := split_part(_id, '/', 1);
+begin
+  if not _is_staff() then raise exception 'Teachers only'; end if;
+  select * into st from school_teachers where email = lower(auth.jwt() ->> 'email');
+  if found then
+    select * into sc from schools where id = st.school_id;
+    if not (sc.expires_at is null or sc.expires_at > now()) or not (c = any (sc.products)) or tier_rank(sc.tier) < tier_rank('full') then
+      return json_build_object('id', _id, 'locked', 'full');
+    end if;
+  end if;
+  select * into t from topic_tests where id = _id;
+  if not found then return null; end if;
+  return json_build_object('id', t.id, 'title', t.title, 'questions', t.questions);
+end $$;
+
+-- Admin: the same view of attempts as school_test_attempts, for the admin's own classes.
+-- (admin_test_attempts above already returns every student's attempts; no new function needed.)
+
+-- Signed-in user: their own payments, newest first, for the plan page.
+create or replace function public.my_payments() returns json
+language sql stable security definer set search_path = public as $$
+  select coalesce(json_agg(json_build_object('txn', p.txn_id, 'product', p.product, 'tier', p.tier, 'amount', p.amount, 'currency', p.currency,
+           'status', p.status, 'at', p.created_at) order by p.created_at desc), '[]'::json)
+  from payments p
+  where p.email = lower(auth.jwt() ->> 'email') or p.email = my_key()
+$$;

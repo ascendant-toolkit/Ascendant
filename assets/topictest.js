@@ -36,7 +36,6 @@
   }
 
   function viewIntro() {
-    const preview = !!(me.is_admin || me.is_teacher || me.is_school_teacher);
     const total = quiz.questions.reduce((t, q) => t + q.marks, 0);
     const mcq = quiz.questions.filter((q) => q.type === "mcq").length;
     const wr = quiz.questions.filter((q) => q.type === "written").length;
@@ -44,10 +43,9 @@
       <p class="hint">${total} marks: ${mcq} multiple choice question${mcq === 1 ? "" : "s"} and ${wr} written question${wr === 1 ? "" : "s"}. The multiple choice is marked for you. For the written questions you see the model answer and mark points, then tick the marks your answer earned. Be honest: the tracker only helps if the marks are accurate.</p>
       ${keepNote}
       ${quiz.tries ? `<p class="hint">You have taken this ${quiz.tries} time${quiz.tries === 1 ? "" : "s"}. Best score so far: <b>${quiz.best}%</b>.</p>` : ""}
-      ${preview ? '<p class="msg err">You are signed in as a teacher, so you can read the questions but not submit.</p>' : ""}
       ${quiz.pending ? `<p class="msg err">You submitted an attempt but did not finish self-marking it.</p><p><button class="btn" id="resume">Finish marking that attempt</button></p>` : ""}
       <p><button class="btn" id="start">${quiz.pending ? "Start a new attempt instead" : "Start the test"}</button> <a class="btn ghost" href="${chapterUrl()}">Back to the chapter</a></p></section>`;
-    $("#start").onclick = () => viewForm(preview);
+    $("#start").onclick = () => viewForm();
     $("#resume")?.addEventListener("click", async () => {
       const { data, error } = await S.sb.rpc("resume_topic_test", { _attempt: quiz.pending });
       if (error) return alert(error.message);
@@ -56,13 +54,13 @@
     });
   }
 
-  function viewForm(preview) {
+  function viewForm() {
     const draft = loadDraft();
     root.innerHTML = `<section class="card block"><h3>${esc(quiz.title)}</h3>
       <p class="hint">Answer from memory first. Your answers are kept on this device until you submit.</p>${keepNote}</section>
       <form id="qf">${quiz.questions.map((q, i) => `<section class="card block q"><div class="row"><b>Question ${i + 1}</b><span class="hint">${marksWord(q.marks)}</span></div>
         ${ctx(q)}<p class="qtext">${esc(q.q)}</p>${code(q)}${field(q, draft[q.id])}</section>`).join("")}
-        <section class="card block"><p class="hint" id="left"></p><p class="msg err" hidden></p><button class="btn" type="submit" ${preview ? "disabled" : ""}>Submit answers</button></section></form>`;
+        <section class="card block"><p class="hint" id="left"></p><p class="msg err" hidden></p><button class="btn" type="submit">Submit answers</button></section></form>`;
     const f = $("#qf"), left = $("#left");
     const read = () => Object.fromEntries(quiz.questions.map((q) => {
       const el = f.elements[q.id];
@@ -157,6 +155,32 @@
       ${mcqCards(r.mcq)}`;
   }
 
+  // Teacher view: the whole paper with answer key, mark points and model answers. Nothing is submitted or saved.
+  function viewStaff(data) {
+    const qs = data.questions, total = qs.reduce((t, q) => t + (q.marks || 1), 0);
+    const mcq = qs.filter((q) => q.type === "mcq"), wr = qs.filter((q) => q.type === "written");
+    const letters = "ABCD";
+    const mcqCard = (q, i) => `<section class="card block q"><div class="row"><b>Multiple choice ${i + 1}</b><span class="hint">${marksWord(q.marks || 1)}${q.topic ? " · " + esc(q.topic) : ""}</span></div>
+      ${ctx(q)}<p class="qtext">${esc(q.q)}</p>${code(q)}
+      <div class="opts">${q.opts.map((o, k) => `<div class="opt key${k === +q.ans ? " right" : ""}"><b>${letters[k]}</b> <span>${esc(o)}</span>${k === +q.ans ? '<span class="ms-only"> ✓ Correct</span>' : ""}</div>`).join("")}</div>
+      <div class="ms-only">${q.ok ? `<p class="fb">${esc(q.ok)}</p>` : ""}${q.fb && q.fb !== q.ok ? `<p class="hint">If wrong: ${esc(q.fb)}</p>` : ""}</div></section>`;
+    const wrCard = (q, i) => `<section class="card block q"><div class="row"><b>Written question ${i + 1}</b><span class="hint">${marksWord(q.marks)}${q.topic ? " · " + esc(q.topic) : ""}</span></div>
+      ${ctx(q)}<p class="qtext">${esc(q.q)}</p>
+      <div class="ms-only"><p class="hint" style="margin-top:12px">Mark points</p>
+      <ul class="plain mpts">${(q.points || []).map((p) => `<li>${esc(p.t)} <span class="hint">(${marksWord(p.m)})</span></li>`).join("")}</ul>
+      ${q.model ? `<p class="hint" style="margin-top:12px">Model answer</p><div class="yours">${para(q.model)}</div>` : ""}
+      ${q.tips ? `<p class="fb">${esc(q.tips)}</p>` : ""}</div></section>`;
+    root.innerHTML = `<section class="card block"><div class="row"><h3>${esc(data.title)}</h3><span class="pill soft">Teacher view</span></div>
+      <p class="hint">${total} marks: ${mcq.length} multiple choice and ${wr.length} written question${wr.length === 1 ? "" : "s"}. Students take this online; the multiple choice is marked for them and they self-mark the written answers against the mark points shown here.</p>
+      <p class="no-print"><button class="btn" id="pr">Print</button> <button class="btn ghost" id="tg">Hide answers (student copy)</button> <a class="btn ghost" href="${chapterUrl()}">Back to the chapter</a></p></section>
+      <div id="paper">${mcq.map(mcqCard).join("")}${wr.map(wrCard).join("")}</div>`;
+    $("#pr").onclick = () => window.print();
+    $("#tg").onclick = (e) => {
+      const hide = $("#paper").classList.toggle("student-copy");
+      e.target.textContent = hide ? "Show answers (mark scheme)" : "Hide answers (student copy)";
+    };
+  }
+
   async function boot() {
     if (!id) { root.innerHTML = `<p class="msg err">No test chosen.</p>`; return; }
     me = await S.whoami();
@@ -165,8 +189,16 @@
       root.innerHTML = `<section class="card block"><h3>Sign in to take the test</h3><p><a class="btn" href="${S.profileUrl}">Sign in</a></p></section>`;
       return;
     }
-    const { data, error } = await S.sb.rpc("get_topic_test", { _id: id });
+    const staff = !!(me.is_admin || me.is_teacher || me.is_school_teacher);
+    const { data, error } = await S.sb.rpc(staff ? "staff_topic_test" : "get_topic_test", { _id: id });
     if (error || !data) { root.innerHTML = `<p class="msg err">${error ? esc(error.message) : "There is no topic test for this chapter yet."}</p>`; return; }
+    if (data.locked && staff) {
+      root.innerHTML = `<section class="card block"><h3>This subject is not on your licence</h3>
+        <p class="hint">Mark schemes are available for the subjects on your active licence at Full tier.</p>
+        <p><a class="btn" href="${S.base}plan/">See your plan</a> <a class="btn ghost" href="${chapterUrl()}">Back to the chapter</a></p></section>`;
+      return;
+    }
+    if (staff) { viewStaff(data); return; }
     if (data.locked) {
       root.innerHTML = `<section class="card block"><h3>Topic tests are part of the Full plan</h3>
         <p class="hint">Your access to this subject does not include the server-marked tests and the progress tracker. Upgrade to Full to take them.</p>

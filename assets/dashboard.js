@@ -1,6 +1,6 @@
-// Student dashboard: the first page after signing in. Reads the same data the profile page loads
-// (whoami, loadProgress, my_attempts, catalog) and lays it out visually. Teachers/admins are sent to
-// Profile, where their consoles live; signed-out visitors are sent to sign in.
+// Dashboard: the first page after signing in. Students get their own progress (whoami, loadProgress,
+// my_attempts, catalog) laid out visually; teachers, tutors and admins get the teacher dashboard in teacher.js;
+// signed-out visitors are sent to sign in.
 (function () {
   const S = window.Site;
   const root = document.getElementById("dashboard-root");
@@ -131,10 +131,10 @@
         <p>Use the email and password your teacher gave you.</p><p><a class="btn" href="${S.profileUrl}">Sign in</a></p></section>`;
       return;
     }
-    // Teachers, co-teachers and admins manage their classes and account on the Profile page.
-    if (me.is_admin || me.is_teacher || me.is_school_teacher) { location.href = S.profileUrl; return; }
     try { catalog = await S.catalog(); }
     catch (e) { root.innerHTML = `<div class="placeholder"><h2>Could not load</h2><p>Check your connection and refresh.</p></div>`; return; }
+    // Teachers, tutors, co-teachers and admins get the teacher dashboard (assets/teacher.js).
+    if (me.is_admin || me.is_teacher || me.is_school_teacher) { window.TeacherDash.run(root, me, S, catalog); return; }
     const done = await S.loadProgress();
     const attempts = (await S.sb.rpc("my_attempts")).data || [];
     const tests = (await S.sb.rpc("my_test_attempts")).data || [];

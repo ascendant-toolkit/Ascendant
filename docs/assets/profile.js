@@ -32,37 +32,7 @@
     : `${studs.length} of ${sc.seats} seats used`);
   const licenceLine = (sc, studs) => `${TIER_NAMES[sc.tier]} · ${seatText(sc, studs)} · ${sc.expires_at ? (isLive(sc) ? "ends " : "ended ") + fmt(sc.expires_at) : "no end date"}`;
 
-  // Academic words for assigned passwords: two words and two digits, e.g. OutcomeMethod47.
-  const WORDS = ("analyse approach assess assume benefit concept consist context contrast create data define derive "
-    + "design device distinct economy element evaluate evidence factor feature final focus formula function "
-    + "framework hypothesis identify illustrate impact indicate input interpret issue labour layer logic margin "
-    + "method model monitor network norm obtain outcome output parallel phase policy predict principle process "
-    + "project quote range ratio region relevant research resource response restrict role sector select sequence "
-    + "source specific structure survey symbol target theory tradition transfer trend unique valid variable version "
-    + "volume").split(" ");
-  const cap = (w) => w[0].toUpperCase() + w.slice(1);
-  const rnd = (n) => crypto.getRandomValues(new Uint32Array(1))[0] % n;
-  function genPassword(taken = new Set()) {
-    for (;;) {
-      const a = WORDS[rnd(WORDS.length)], b = WORDS[rnd(WORDS.length)];
-      const pw = cap(a) + cap(b) + String(10 + rnd(90));
-      if (a !== b && !taken.has(pw)) return pw;
-    }
-  }
-
-  // "Name, email" or "Name, email, second email" per line, as typed into the add-students boxes.
-  function parseStudentLines(text) {
-    const rows = [], bad = [];
-    text.split("\n").map((l) => l.trim()).filter(Boolean).forEach((l) => {
-      const parts = l.split(/[,\t;]/).map((x) => x.trim()).filter(Boolean);
-      const emails = parts.filter((x) => x.includes("@")).map((x) => x.toLowerCase());
-      const name = parts.filter((x) => !x.includes("@")).join(" ").trim();
-      const [email, email2] = emails;
-      if (!name || !email || emails.length > 2 || !emails.every((x) => EMAIL_RE.test(x)) || email === email2) bad.push(l);
-      else rows.push({ line: l, name, email, email2: email2 || null });
-    });
-    return { rows, bad };
-  }
+  const { genPassword, parseStudentLines } = window.Roster;  // assets/roster.js
 
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const fmt = (d) => (d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "");
@@ -102,11 +72,11 @@
       btn.disabled = true;
       const { error } = await sb.auth.signInWithPassword({ email, password });
       if (error) { btn.disabled = false; return msg(m, "Wrong email or password.", false); }
-      // First page after signing in is the dashboard (students); teachers/admins stay on their Profile console.
+      // First page after signing in is the dashboard; the admin lands on the Profile console.
       const who = await S.whoami(true);
       const next = sessionStorage.getItem("site.next");
       if (next && next.startsWith(S.base)) { sessionStorage.removeItem("site.next"); location.href = next; return; }
-      if (who && !who.is_admin && !who.is_teacher && !who.is_school_teacher) { location.href = S.base + "dashboard/"; return; }
+      if (who && !who.is_admin) { location.href = S.base + "dashboard/"; return; }
       boot();
     });
   }
@@ -162,7 +132,7 @@
       recovering = false;
       msg(m, "Password saved. Signing you in…", true);
       const who = await S.whoami(true);
-      location.href = who && !who.is_admin && !who.is_teacher && !who.is_school_teacher ? S.base + "dashboard/" : S.base + "profile/";
+      location.href = who && !who.is_admin ? S.base + "dashboard/" : S.base + "profile/";
     });
   }
 
@@ -184,8 +154,9 @@
     const pend = (me.requested || []).filter((k) => catalog.courses[k]);
     const avail = COURSE_KEYS.filter((k) => !me.subjects.includes(k) && !pend.includes(k));
     const pendHtml = pend.map((k) => `<span class="pill pending" data-accent="${catalog.courses[k].accent}">${esc(catalog.courses[k].title)} · waiting for approval <button class="x" data-cancel="${k}" title="Cancel request">×</button></span>`).join("");
+    const managed = me.plan_view === "managed" || (me.plan_view === undefined && me.school);
     const req = !me.is_admin && !me.is_teacher && avail.length
-      ? `<p class="hint subj-more">Need another subject? Ask your teacher, or see <a class="lnk" href="${S.base}pricing/">Plans</a>.</p>` : "";
+      ? `<p class="hint subj-more">Need another subject? Ask your teacher${managed ? "." : `, or see <a class="lnk" href="${S.base}plan/">your plan</a>.`}</p>` : "";
     return `<div class="pills">${pills(me.subjects.filter((k) => catalog.courses[k]))}${pendHtml}</div>${req}`;
   }
 
@@ -212,7 +183,7 @@
     const body = ents.length
       ? `<ul class="plain">${ents.map((e) => `<li>${esc(courseTitle(e.product))} · <b>${TIER_NAMES[e.tier] || e.tier}</b>${e.expires_at ? ` <span class="hint">until ${fmt(e.expires_at)}</span>` : ""}</li>`).join("")}</ul>`
       : `<p class="hint">You have full access while the site is in its launch period.</p>`;
-    return `<section class="card block"><h3>Your plan</h3>${body}<p><a class="lnk" href="${S.base}pricing/">See all plans →</a></p></section>`;
+    return `<section class="card block"><h3>Your plan</h3>${body}<p><a class="lnk" href="${S.base}plan/">Your plans and payment options →</a></p></section>`;
   }
 
   // ---------- student dashboard ----------
@@ -240,7 +211,8 @@
         const c = catalog.courses[k];
         return `<section class="card block" data-accent="${c.accent}"><h3><a href="${S.base}${c.url}">${esc(c.title)}</a></h3>${chapterMap(c, done)}</section>`;
       }).join("");
-      return `<section class="idcard"><h1>${esc(me.name)}</h1><p class="email">${esc(me.email)}${me.email2 ? ` · ${esc(me.email2)}` : ""}</p>${me.is_teacher ? '<p class="hint">Co-teacher: every subject is open to you.</p>' : ""}${subjectPanel(me)}</section><!--split-->
+      return `<section class="idcard"><h1>${esc(me.name)}</h1><p class="email">${esc(me.email)}${me.email2 ? ` · ${esc(me.email2)}` : ""}</p>${me.is_teacher ? '<p class="hint">Co-teacher: every subject is open to you.</p>' : ""}${subjectPanel(me)}
+        <p class="idcard-cta"><a class="btn" href="${S.base}dashboard/">Open your dashboard →</a></p></section><!--split-->
         <p class="hint">Course map. Each square is a chapter or syllabus section: filled means every activity is done, half means started, grey means nothing there yet.</p>${maps}${account}`;
     }
 
@@ -248,7 +220,7 @@
     return `
       <section class="idcard"><h1>${esc(me.name)}</h1><p class="email">${esc(me.email)}${me.email2 ? ` · ${esc(me.email2)}` : ""}${me.school ? ` · ${esc(me.school)}` : ""}</p>${subjectPanel(me)}
         <p class="idcard-cta"><a class="btn" href="${S.base}dashboard/">Open your dashboard →</a></p></section><!--split-->
-      ${planCard(me)}
+      ${me.plan_view === "managed" || (me.plan_view === undefined && me.school) ? "" : planCard(me)}
       ${account}`;
   }
 
@@ -715,105 +687,16 @@
   }
 
   // ---------- school or tutor teacher ----------
-  // Manages their own licence's students within the licence's seats and sees only their progress.
-  async function viewSchool(me) {
+  // Account only. Students, classes and trackers are on the Dashboard (teacher.js); the licence is on My plan.
+  function viewTeacherProfile(me) {
     const sc = me.school, subjects = sc.products.filter((k) => catalog.courses[k]);
-    root.innerHTML = `<p class="hint">Loading your students…</p>`;
-    const { data, error } = await sb.rpc("school_dashboard");
-    if (error) { root.innerHTML = `<p class="msg err">Could not load your students: ${esc(error.message)}</p>`; return; }
-    const students = data.students, byEmail = new Map();
-    data.progress.forEach((r) => { if (!byEmail.has(r.email)) byEmail.set(r.email, new Map()); byEmail.get(r.email).set(r.slug, r.done_at); });
-    const left = sc.per_subject ? null : Math.max(0, sc.seats - students.length);
-    const doneOf = (p) => byEmail.get(p.email) || new Map();
-    // Students who asked for a password reset come first, so the teacher sees them at the top.
-    students.sort((a, b) => (b.reset_requested_at ? 1 : 0) - (a.reset_requested_at ? 1 : 0));
-    const rows = students.map((p) => {
-      const d = doneOf(p), all = subjectSlugs(schoolSubs(sc, p).filter((k) => catalog.courses[k])), n = [...all].filter((x) => d.has(x)).length;
-      const status = p.signed_up_at ? (p.last_seen ? "Active " + fmt(p.last_seen) : "Signed up") : "Not signed up";
-      return `<tr data-email="${esc(p.email)}"><td><b>${esc(p.name)}</b>${p.reset_requested_at ? ' <span class="pill soft">Password reset requested</span>' : ""}<br><span class="hint">${esc(p.email)}${p.email2 ? `<br>${esc(p.email2)}` : ""}</span></td>
-        <td><code>${esc(p.password)}</code></td>${sc.per_subject ? `<td>${schoolSubs(sc, p).map((k) => esc(shortTitle(k))).join(", ") || "None"}</td>` : ""}<td>${esc(status)}</td><td>${pct(n, all.size)}%<br><span class="hint">${n}/${all.size}</span></td>
-        <td class="acts"><button class="mini ok" data-act="view">Progress</button>${sc.per_subject ? '<button class="mini" data-act="subs">Subjects</button>' : ""}<button class="mini" data-act="reset">Reset login</button><button class="mini danger" data-act="rm">Remove</button></td></tr>`;
-    }).join("");
     root.innerHTML = `
       <section class="idcard"><h1>${esc(me.name)}</h1><p class="email">${esc(me.email)} · ${esc(sc.name)}</p>
-        <div class="pills">${pills(subjects)}</div><p class="hint">${esc(licenceLine(sc, students))}</p></section>
+        <div class="pills">${pills(subjects)}</div>
+        <p class="idcard-cta"><a class="btn" href="${S.base}dashboard/">Open your dashboard →</a> <a class="btn ghost" href="${S.base}plan/">Your plan and licence</a></p></section>
       ${sc.active ? "" : `<section class="card block attn"><h3>This licence has ended</h3><p>Your students can't open lessons until it is renewed. Their progress is kept.</p></section>`}
-      <section class="card block"><h3>Add students</h3><p class="hint">${sc.per_subject ? esc(seatText(sc, students)) + "." : plural(left, "seat") + " free of " + sc.seats + "."} A password is generated for each student; give it to them with their email.</p>
-        ${sc.per_subject ? `<p class="hint">Subjects for the students you add</p><div class="chks" id="addsubs">${subjects.map((k) => `<label class="chk"><input type="checkbox" value="${k}" checked> ${esc(catalog.courses[k].title)}</label>`).join("")}</div>` : ""}
-        <form id="f-sadd"><label>One student per line: <b>Name, email</b> or <b>Name, email, second email</b>
-          <textarea name="lines" rows="5" required placeholder="An Nguyen, an@gmail.com"></textarea></label>
-          <button class="btn" type="submit" ${(sc.per_subject || left) && sc.active ? "" : "disabled"}>Add students</button><p class="msg" hidden></p></form></section>
-      <section class="card block"><div class="row"><h3>Students (${students.length})</h3>${students.length ? '<button class="mini" id="copypw">Copy logins as table</button>' : ""}</div>
-        ${students.length ? `<div class="tablewrap"><table class="tbl"><thead><tr><th>Student</th><th>Password</th>${sc.per_subject ? "<th>Subjects</th>" : ""}<th>Status</th><th>Progress</th><th></th></tr></thead><tbody id="sstu">${rows}</tbody></table></div>`
-          : '<p class="hint">No students yet.</p>'}
-        <p class="hint">If a student changes their own password, the one listed here is out of date. Reset login puts it back to the listed one.</p></section>
-      ${accountCard()}
-      <dialog id="dlg2" class="wide"><form method="dialog" id="f-view"></form></dialog>`;
+      ${accountCard()}`;
     wireAccount();
-
-    $("#f-sadd").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const f = e.target, m = $(".msg", f), { rows: list, bad } = parseStudentLines(f.lines.value);
-      if (bad.length) return msg(m, `Check these lines (need a name and one or two valid emails): ${bad.join(" | ")}`, false);
-      const picked = sc.per_subject ? [...root.querySelectorAll("#addsubs input:checked")].map((c) => c.value) : null;
-      if (sc.per_subject) {
-        if (!picked.length) return msg(m, "Tick at least one subject.", false);
-        const full = picked.find((k) => seatCap(sc, k) - seatsUsed(sc, students, k) < list.length);
-        if (full) return msg(m, `That's ${list.length} students but ${catalog.courses[full].title} has only ${plural(Math.max(0, seatCap(sc, full) - seatsUsed(sc, students, full)), "seat")} left.`, false);
-      } else if (list.length > left) return msg(m, `That's ${list.length} students but only ${plural(left, "seat")} left.`, false);
-      const taken = new Set(students.map((x) => x.password));
-      for (const [i, r] of list.entries()) {
-        const password = genPassword(taken); taken.add(password);
-        const { error } = await sb.rpc("school_add_student", { _name: r.name, _email: r.email, _email2: r.email2, _password: password, _subjects: picked });
-        if (error) { msg(m, `${i ? `Added ${plural(i, "student")}. ` : ""}Stopped at "${r.line}": ${error.message}`, false); return setTimeout(() => viewSchool(me), 2500); }
-      }
-      viewSchool(me);
-    });
-    $("#copypw")?.addEventListener("click", async () => {
-      await navigator.clipboard.writeText(["Name\tEmail\tEmail 2\tPassword", ...students.map((p) => [p.name, p.email, p.email2 || "", p.password].join("\t"))].join("\n"));
-      $("#copypw").textContent = "Copied";
-    });
-    $("#sstu")?.addEventListener("click", async (e) => {
-      const btn = e.target.closest("[data-act]");
-      if (!btn) return;
-      const p = students.find((x) => x.email === btn.closest("tr").dataset.email);
-      if (btn.dataset.act === "view") {
-        const d = doneOf(p), score = (slug) => data.attempts.find((a) => a.email === p.email && a.slug === slug);
-        $("#f-view").innerHTML = `<div class="row"><h3>${esc(p.name)}</h3><button class="btn ghost" value="close" formnovalidate>Close</button></div><p class="hint">${esc(p.email)}</p>
-          ${schoolSubs(sc, p).filter((k) => catalog.courses[k]).map((k) => {
-            const c = catalog.courses[k], n = c.slugs.filter((x) => d.has(x)).length;
-            return `<section class="subj"><h4>${esc(c.title)} · ${n}/${c.slugs.length} complete</h4>${chapterMap(c, d)}
-              ${c.slugs.map((slug) => {
-                const a = catalog.artifacts[slug], t = score(slug);
-                return `<div class="lessonrow"><div class="row"><span><b>${esc(a.title)}</b> <span class="hint">${esc(a.chapterTitle)}</span></span>
-                  <span>${t ? `<b>${t.pct}%</b> <span class="hint">${fmt(t.at)}</span> ` : ""}${d.has(slug) ? '<span class="ok-txt">✓ Complete</span>' : '<span class="no-txt">Not complete</span>'}</span></div></div>`;
-              }).join("")}</section>`;
-          }).join("") || '<p class="hint">No subjects on this licence.</p>'}`;
-        $("#dlg2").showModal();
-      } else if (btn.dataset.act === "subs") {
-        const have = schoolSubs(sc, p);
-        $("#f-view").innerHTML = `<div class="row"><h3>${esc(p.name)}: subjects</h3><button class="btn ghost" value="close" formnovalidate>Close</button></div>
-          <p class="hint">Tick the subjects this student takes. Changing them uses or frees a seat in each subject.</p>
-          <div class="chks" id="subsbox">${subjects.map((k) => `<label class="chk"><input type="checkbox" value="${k}" ${have.includes(k) ? "checked" : ""}> ${esc(catalog.courses[k].title)}</label>`).join("")}</div>
-          <p><button class="btn" type="button" id="savesubs">Save subjects</button> <span class="msg" id="subsmsg" hidden></span></p>`;
-        $("#dlg2").showModal();
-        $("#savesubs").addEventListener("click", async () => {
-          const chosen = [...$("#subsbox").querySelectorAll("input:checked")].map((c) => c.value), m = $("#subsmsg");
-          if (!chosen.length) return msg(m, "Tick at least one subject.", false);
-          const { error } = await sb.rpc("school_set_student_subjects", { _email: p.email, _subjects: chosen });
-          if (error) return msg(m, error.message.replace(/^.*?All /, "All "), false);
-          $("#dlg2").close(); viewSchool(me);
-        });
-      } else if (btn.dataset.act === "reset") {
-        if (!confirm(`Recreate the login for ${p.name} with the listed password? Their progress is kept.`)) return;
-        const { error } = await sb.rpc("school_reset_login", { _email: p.email });
-        alert(error ? "Could not reset: " + error.message : `Done. ${p.name} can sign in with: ${p.password}`);
-        if (!error) viewSchool(me);
-      } else if (confirm(`Remove ${p.name} from ${sc.name}? This frees their seat. They lose access to these lessons; their progress is kept if they're added back.`)) {
-        const { error } = await sb.rpc("school_remove_student", { _email: p.email });
-        if (error) alert(error.message); else viewSchool(me);
-      }
-    });
   }
 
   // ---------- boot ----------
@@ -837,7 +720,7 @@
       }
       return viewSignedOut();
     }
-    if (me.is_school_teacher) return viewSchool(me);
+    if (me.is_school_teacher) return viewTeacherProfile(me);
     const done = await S.loadProgress();
     let attempts = [];
     if (!me.is_admin && !me.is_teacher) attempts = (await S.sb.rpc("my_attempts")).data || [];
