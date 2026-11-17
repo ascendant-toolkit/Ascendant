@@ -156,7 +156,14 @@ def is_review(a):
 
 
 def at_key(a):
-    return [int(x) for x in a["at"].split(".")] if a.get("at") else [10**6]
+    """Syllabus order. The leading number in the description wins over a vaguer or wrong `at`;
+    an explicit `.99` stays last in its section, a more specific `at` is kept."""
+    at = a.get("at") or ""
+    m = re.match(r"(\d+(?:\.\d+)*)\b", a.get("desc", ""))
+    d = m.group(1) if m else ""
+    if d and (not at or not (at == d or at.startswith(d + ".") or at.endswith(".99"))):
+        at = d
+    return [int(x) for x in at.split(".")] if at else [10**6]
 
 
 for _l in by_chapter.values():
