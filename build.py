@@ -109,7 +109,7 @@ def layout(title, body, path, active, crumbs=None, accent=None, auth=False, extr
             parts.append(f'<a href="{root}{href}">{esc(label)}</a>' if href is not None else f"<span>{esc(label)}</span>")
         crumb_html = f'<nav class="crumbs" aria-label="Breadcrumb">{"<i>/</i>".join(parts)}</nav>'
     acc = f' data-accent="{accent}"' if accent else ""
-    gate = [active] if active in COURSES else []
+    gate = []  # course and chapter pages only list lesson titles; the lessons themselves are gated by their own shells
     full_title = SITE_TITLE if title == SITE_TITLE else f"{title} · {SITE_TITLE}"
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">

@@ -18,7 +18,7 @@
   function filterNav(me) {
     const admin = !!(me && me.is_admin);
     document.querySelectorAll("[data-admin]").forEach((a) => { a.hidden = !admin; });
-    if (admin) return;
+    if (admin || !me) return; // signed-out visitors can browse every subject; only registered students get a trimmed menu
     document.querySelectorAll("[data-course]").forEach((a) => {
       if (!me || !me.subjects.includes(a.dataset.course)) a.hidden = true;
     });
