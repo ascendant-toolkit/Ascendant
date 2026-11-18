@@ -1020,7 +1020,7 @@ ARTIFACTS = [
 
     # A-Level Economics
     {"src": "as-resit-exam-technique", "title": "AS Resit Exam Technique Pack", "kind": "Exam pack", "tier": "full",
-     "desc": "Nine printable resources for Paper 2: command words, scope, evaluation, application, and 8- and 12-mark structure.",
+     "desc": "Ten printable resources: Paper 2 command words, scope, evaluation, application, and 8- and 12-mark structure, plus a Paper 4 page on AO1, AO2 and AO3.",
      "places": [("a-econ", "as/exam-technique")]},
     {"src": "a-level-paper4-essay", "at": "3", "title": "Paper 4: The 20-Mark Essay", "kind": "Interactive",
      "desc": "How to earn application, analysis and evaluation marks: mark scheme decoded, examiner patterns, activities, four model essays and 76 past questions from 2023 to 2026.",
@@ -1030,6 +1030,9 @@ ARTIFACTS = [
      "places": [("a-econ", "a-level/exam-prep")]},
     {"src": "a-level-paper4-data-response", "at": "2", "title": "Paper 4 Section A: Data Response Technique", "kind": "Interactive",
      "desc": "The 20-mark data response question: how the marks are split, what each part asks, using the data, evaluating in short parts and three full reworded questions.",
+     "places": [("a-econ", "a-level/exam-prep")]},
+    {"src": "a-level-ao-guide", "at": "5", "title": "AO1, AO2 and AO3: What Each Mark Rewards", "kind": "Interactive",
+     "desc": "What knowledge, analysis and evaluation each look like in an answer, how the marks are weighted on Papers 3 and 4, advice for each objective and a sentence-tagging exercise.",
      "places": [("a-econ", "a-level/exam-prep")]},
     {"src": "a-level-revision-plan", "at": "4", "title": "A Level Economics Revision Plan and Exam Day", "kind": "Interactive", "tier": "full",
      "desc": "A three-phase revision plan with a planner weighted by syllabus size and your confidence, a topic tracker, a past paper routine, how to revise, a last-week checklist and an exam-day plan.",
