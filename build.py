@@ -118,15 +118,16 @@ def layout(title, body, path, active, crumbs=None, accent=None, auth=False, extr
 {seo_head(full_title, body, path)}<link rel="stylesheet" href="{root}assets/style.css">
 {favicon_links(root)}{THEME_HEAD}{GATE_HEAD if gate else ""}</head>
 <body{acc}>
+<a class="skip" href="#main">Skip to content</a>
 <header class="site">
 <div class="bar">
 <a class="brand" href="{root}"><img class="mark" src="{root}assets/logo.svg" alt="" width="34" height="34"><span>{esc(SITE_TITLE)}</span></a>
 <button class="theme" type="button" aria-label="Toggle dark mode"></button>
-<button class="menu" aria-label="Menu" aria-expanded="false">Menu</button>
-<nav class="main" aria-label="Main">{nav}</nav>
+<button class="menu" aria-label="Menu" aria-expanded="false" aria-controls="main-nav">Menu</button>
+<nav class="main" id="main-nav" aria-label="Main">{nav}</nav>
 </div>
 </header>
-<main>
+<main id="main" tabindex="-1">
 {crumb_html}
 {body}
 </main>
@@ -289,7 +290,7 @@ def chapter_page(ckey, key):
 
     first = "res" if ress and not revs else "rev"
     tt = TOPIC_TESTS.get(info["path"].rstrip("/"))
-    ttblock = (f'<section class="card block ttest" data-test="{tt["id"]}"><div class="row"><h3>Topic test</h3><span class="hint">{tt["marks"]} marks</span></div>'
+    ttblock = (f'<section class="card block ttest" data-test="{tt["id"]}"><div class="row"><h2>Topic test</h2><span class="hint">{tt["marks"]} marks</span></div>'
                f'<p class="hint">{tt["mcq_n"]} multiple choice questions and written questions in exam style. Take it when you finish the chapter, as often as you like.</p>'
                f'<p><a class="btn" href="{rel_root(info["path"])}tests/?t={tt["id"]}">Take the topic test</a> <span class="hint ttscore"></span></p></section>') if tt else ""
     body = (ttblock + '<div class="tabs chtabs" role="tablist">'
@@ -753,7 +754,7 @@ def build_pricing():
     def plan(name, price_html, tagline, items, cta, cls="", accent="", badge=""):
         acc = f' data-accent="{accent}"' if accent else ""
         bdg = f'<span class="badge">{esc(badge)}</span>' if badge else ""
-        return (f'<article class="plan {cls}"{acc}>{bdg}<h3>{esc(name)}</h3>{price_html}'
+        return (f'<article class="plan {cls}"{acc}>{bdg}<h2>{esc(name)}</h2>{price_html}'
                 f'<p class="tagline">{esc(tagline)}</p>{feats(items)}{cta}</article>')
 
     free = plan("Free", '<p class="price"><span class="amt">$0</span><span class="per">forever</span></p>',
@@ -780,8 +781,8 @@ def build_pricing():
                    "Seats per subject, from 25, invoiced annually"], f'<a class="btn" href="{r}contact/?topic=school&amp;role=school">Talk to us</a>')
 
     cycle = ('<div class="cycle" role="group" aria-label="Billing period">'
-             '<button type="button" data-cycle="y" class="on">Annual <span class="save">save ~30%</span></button>'
-             '<button type="button" data-cycle="m">Monthly</button></div>')
+             '<button type="button" data-cycle="y" class="on" aria-pressed="true">Annual <span class="save">save ~30%</span></button>'
+             '<button type="button" data-cycle="m" aria-pressed="false">Monthly</button></div>')
     faq = [("Can I cancel any time?",
             "Yes. Cancel whenever you like and you keep access until the end of the period you have paid for. "
             "Monthly plans stop at the next month, annual plans run to the end of the year, and there are no further charges."),
@@ -828,7 +829,7 @@ def build_pricing():
               "document.querySelectorAll('.cta-buy').forEach(function(b){var s=document.querySelector('.subj[data-plan='+b.dataset.plan+']');"
               "var ok=!!pid(b.dataset.plan,s&&s.value);b.disabled=!ok;b.title=ok?'':'Not available for this choice yet';});}"
               "function set(c){cycle=c;"
-              "document.querySelectorAll('.cycle button').forEach(function(b){b.classList.toggle('on',b.dataset.cycle===c);});"
+              "document.querySelectorAll('.cycle button').forEach(function(b){b.classList.toggle('on',b.dataset.cycle===c);b.setAttribute('aria-pressed',b.dataset.cycle===c);});"
               "document.querySelectorAll('.price[data-y]').forEach(function(p){"
               "p.querySelector('.amt').textContent='$'+(c==='y'?p.dataset.y:p.dataset.m);"
               "p.querySelector('.per').textContent=c==='y'?'/year':'/month';});sync();}"
