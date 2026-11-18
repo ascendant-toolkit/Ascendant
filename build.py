@@ -557,7 +557,7 @@ LEGAL = {
         ("Who we are", "Ascendant is an independent revision resource for Cambridge IGCSE and A-Level Economics and Computer Science. It is not affiliated with or endorsed by Cambridge University Press &amp; Assessment. You can reach us through the <a href=\"../contact/\">contact form</a>."),
         ("Your account", "You need an account to track progress and to use paid lessons. Keep your password private. Accounts are for one person: please do not share logins or the lesson content. If you are under 16, ask a parent or guardian to set up the account and any purchase."),
         ("What you are buying", "A paid plan gives you access to the lessons, assessments and practice for the subjects and tier you chose, for as long as your plan is active. Plans renew automatically each month or year until you cancel. Content is updated and improved over time, and we may add, change or retire individual items."),
-        ("Prices, payment and tax", "Prices are shown in US dollars. At checkout you are charged in your local currency with any VAT or sales tax added. Payments are handled by Paddle, who act as the merchant of record and sell the plan to you. Paddle's own terms apply to the payment itself."),
+        ("Prices, payment and tax", "Prices are shown in US dollars. At checkout you are charged in your local currency with any VAT or sales tax added. Our order process is conducted by our online reseller Paddle.com Market Limited. Paddle is the merchant of record for all orders: it sells the plan to you, handles payment, tax, invoices and refunds, and its <a href=\"https://www.paddle.com/legal/checkout-buyer-terms\">checkout buyer terms</a> apply to the purchase alongside these terms."),
         ("Cancelling", "Cancel at any time from your Paddle receipt email or by contacting us. You keep access until the end of the period you have paid for, then the plan stops and you are not charged again. Refunds are covered in the <a href=\"../refunds/\">refund policy</a>."),
         ("Acceptable use", "Use the site for your own revision or teaching. Do not copy, resell, scrape or redistribute the lessons, assessments or answer material, and do not try to break or bypass the site's access controls."),
         ("Our content and your results", "The lessons are our own work, built around the published Cambridge syllabi. We take care to be accurate, but we cannot guarantee any exam result or that the material is free of errors. Always check the official syllabus and mark schemes for your exam series."),
@@ -765,7 +765,9 @@ def build_pricing():
         '<p class="lede">Teach with it in the classroom, or roll it out across a whole school.</p>'
         f'<div class="plans-wrap plans-two">{teacher}{school}</div></section>'
         '<p class="hint">Prices in USD per subject (except All-Access, Teacher and School). Converted to your local '
-        "currency at checkout.</p>"
+        "currency at checkout, with any VAT or sales tax added.</p>"
+        '<p class="hint">Paid plans renew automatically each month or year until you cancel. Payments are processed by '
+        'Paddle, our reseller and merchant of record. See the <a href="../terms/">terms</a> and <a href="../refunds/">refund policy</a>.</p>'
         f'<section class="sec" aria-labelledby="rf"><h2 id="rf">Billing, cancellation and refunds</h2>'
         f'<div class="faq">{faq_html}</div></section>')
 
