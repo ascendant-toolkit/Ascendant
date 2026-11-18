@@ -17,7 +17,7 @@
     if ($("#lp-title") && first) $("#lp-title").textContent = "Welcome back, " + first;
     if ($("#signin")) { $("#signin").textContent = "Visit Dashboard"; $("#signin").setAttribute("href", "dashboard/"); }
     if ($("#sample")) $("#sample").hidden = true;
-    if ($("#lp-final")) $("#lp-final").hidden = true;
+    if ($("#samples")) $("#samples").hidden = true;
     if (!me.is_admin) cards.forEach((a) => { a.hidden = !me.subjects.includes(a.dataset.homeCourse); });
     if ($("#pitch")) {
       $("#pitch").hidden = true;

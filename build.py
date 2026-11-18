@@ -513,7 +513,14 @@ def build_home():
                      f'<span class="sub">{SYL_BLURB[ckey]}</span>'
                      f'<span class="count">{plural(n, "activity")} across {chs} chapters</span></a>')
     nsyl = NUM_WORDS.get(len(SYLLABI), str(len(SYLLABI))).capitalize()
-    sample = next(a for a in ARTIFACTS if a.get("public"))
+    by_slug = {a["slug"]: a for a in ARTIFACTS}
+    pick = [("ig-econ", "IGCSE Economics", "ig-market-equilibrium"), ("a-econ", "A-Level Economics", "market-structures-lab"),
+            ("ig-cs", "IGCSE Computer Science", "ig-cs-programming-concepts"), ("a-cs", "A-Level Computer Science", "insertion-sort")]
+    samples_html = "".join(
+        f'<a class="card" data-accent="{COURSES[ck]["accent"]}" href="artifacts/{sl}/#learn"><span class="tag">{lab}</span>'
+        f'<span class="t">{esc(by_slug[sl]["title"])}</span><span class="sub">{esc(by_slug[sl].get("desc", ""))}</span>'
+        f'<span class="count">{"Opens now, no account" if by_slug[sl].get("public") else "Free account"}</span></a>'
+        for ck, lab, sl in pick)
     tabs = "".join(f'<li><b>{t}</b><span>{d}</span></li>' for t, d in TABS)
     faq = "".join(f'<details><summary>{q}</summary><p>{a}</p></details>' for q, a in HOME_FAQ)
     steps = [("Pick your plan", f"Start free with {FREE_WORD} sample lessons, or choose the plan for your subject. Schools and tutors get a licence for their students."),
@@ -524,7 +531,7 @@ def build_home():
 <h1 id="lp-title">A teaching and learning toolkit: for everyone</h1>
 <p class="lp-sub">Students &middot; Tutors &middot; Teachers &middot; Schools</p>
 <p class="lead">Your syllabus, fully resourced, chapter by chapter: with animated explainers, hands-on activities, exam questions with model answers, marked assessments and progress tracking, all in one place.</p>
-<p class="cta"><a class="btn" href="pricing/">See plans</a><a class="btn ghost" id="sample" href="artifacts/{sample["slug"]}/#learn">Try a free lesson</a><a class="btn ghost" id="signin" href="profile/">Sign in</a></p>
+<p class="cta"><a class="btn" href="pricing/">See plans</a><a class="btn ghost" id="sample" href="#samples">Try a free lesson</a><a class="btn ghost" id="signin" href="profile/">Sign in</a></p>
 <ul class="lp-stats"><li><b>{total}</b><span>interactive activities</span></li><li><b>{chapters}</b><span>chapters</span></li><li><b>{len(SYLLABI)}</b><span>Cambridge syllabuses</span></li></ul></div>
 <div class="lp-visual" aria-hidden="false"><div class="lp-pane lp-pane-a"><span class="lp-tag">Economics &middot; Explore</span>{HERO_CHART}<p>Shift the curves and watch the market move.</p></div>
 <div class="lp-pane lp-pane-b"><span class="lp-tag">Computer Science &middot; Watch</span>{HERO_CODE}<p>Step through code and see every value change.</p></div></div></section>
@@ -560,9 +567,10 @@ def build_home():
 
 <section class="sec" aria-labelledby="how"><h2 id="how">How it works</h2><ol class="steps">{steps_html}</ol></section>
 
-<section class="sec lp-final" id="lp-final"><div class="free-card"><h2>Judge it for yourself</h2>
-<p class="lede">Open a complete sample lesson, no card needed.</p>
-<p class="cta"><a class="btn" href="artifacts/{sample["slug"]}/#learn">Try a free lesson</a><a class="btn ghost" href="pricing/">See plans</a></p></div></section>
+<section class="sec lp-final" id="samples"><h2>Try a free lesson</h2>
+<p class="lede">Pick your subject. One lesson opens straight away; the others open with a free account.</p>
+<div class="grid">{samples_html}</div>
+<p class="cta"><a class="btn ghost" href="pricing/">See plans</a></p></section>
 
 <section class="sec" aria-labelledby="fq"><h2 id="fq">Questions</h2><div class="faq">{faq}</div></section>"""
     write("index.html", layout(SITE_TITLE, body, "", "home", extra='<script src="assets/home.js"></script>'))
