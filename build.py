@@ -56,6 +56,32 @@ def rel_root(path):
     return "../" * depth
 
 
+SITE_URL = "https://ascendant.academy/"
+SITE_DESC = "Interactive Cambridge IGCSE and A-Level Economics and Computer Science lessons with marked assessments, model answers and progress tracking."
+PRIVATE = {"dashboard", "profile", "plan", "progress", "assess", "tests"}
+SITEMAP = []
+
+
+def seo_head(title, body, path):
+    """Description, canonical and social tags. Description comes from the page's lead paragraph."""
+    m = re.search(r'<p class="lead">(.*?)</p>', body, re.S)
+    desc = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", m.group(1))).strip() if m else ""
+    desc = html.unescape(desc)
+    if len(desc) < 25:
+        desc = SITE_DESC
+    desc = desc[:157].rsplit(" ", 1)[0] + "…" if len(desc) > 160 else desc
+    url = SITE_URL + path.lstrip("/")
+    if path.split("/")[0] in PRIVATE:
+        return '<meta name="robots" content="noindex">\n'
+    SITEMAP.append(url)
+    t, d = esc(title), esc(desc)
+    return (f'<meta name="description" content="{d}">\n<link rel="canonical" href="{url}">\n'
+            f'<meta property="og:type" content="website"><meta property="og:site_name" content="{esc(SITE_TITLE)}">'
+            f'<meta property="og:title" content="{t}"><meta property="og:description" content="{d}">'
+            f'<meta property="og:url" content="{url}"><meta property="og:image" content="{SITE_URL}assets/apple-touch-icon.png">'
+            f'<meta name="twitter:card" content="summary"><meta name="twitter:title" content="{t}"><meta name="twitter:description" content="{d}">\n')
+
+
 def layout(title, body, path, active, crumbs=None, accent=None, auth=False, extra=""):
     root = rel_root(path)
     nav = "".join(
@@ -75,7 +101,7 @@ def layout(title, body, path, active, crumbs=None, accent=None, auth=False, extr
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{esc(full_title)}</title>
-<link rel="stylesheet" href="{root}assets/style.css">
+{seo_head(full_title, body, path)}<link rel="stylesheet" href="{root}assets/style.css">
 {favicon_links(root)}{THEME_HEAD}{GATE_HEAD if gate else ""}</head>
 <body{acc}>
 <header class="site">
@@ -1000,7 +1026,7 @@ def shell_page(slug, title, courses, tier):
     r = "../../"
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{esc(title)}</title>{favicon_links(r)}{THEME_HEAD}
+<title>{esc(title)}</title><meta name="robots" content="noindex">{favicon_links(r)}{THEME_HEAD}
 <style>body{{margin:0;background:#f6f4ef;color:#5a6772;font:16px/1.5 -apple-system,Segoe UI,sans-serif}}#gate-msg{{padding:18vh 20px;text-align:center}}
 @media (prefers-color-scheme:dark){{:root:not([data-theme=light]) body{{background:#12171c;color:#9aa8b2}}}}:root[data-theme=dark] body{{background:#12171c;color:#9aa8b2}}</style></head>
 <body><p id="gate-msg">Opening lesson…</p>
@@ -1096,6 +1122,7 @@ def main():
     shutil.copytree(ROOT / "assets", OUT / "assets")
     (OUT / ".nojekyll").write_text("")
     (OUT / "CNAME").write_text("ascendant.academy\n")
+    SITEMAP.clear()
     build_home()
     if LANDING_PAGE:
         build_landing()
@@ -1112,6 +1139,10 @@ def main():
     build_assessments()
     build_topic_tests()
     build_artifacts()
+    urls = sorted(set(SITEMAP))
+    (OUT / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+                                     + "".join(f"<url><loc>{u}</loc></url>\n" for u in urls) + "</urlset>\n")
+    (OUT / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {SITE_URL}sitemap.xml\n")
     n = sum(1 for _ in OUT.rglob("index.html"))
     print(f"Built {n} index pages, {len(ARTIFACTS)} artifacts -> {OUT}")
 
