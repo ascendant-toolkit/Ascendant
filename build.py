@@ -500,6 +500,16 @@ HERO_CODE = """<pre class="lp-code" aria-label="Pseudocode trace example"><span 
 <span class="c">i = 3, total = 6</span></pre>"""
 
 
+NOTIFY = """<section class="sec" id="notify" aria-labelledby="nf"><div class="free-card"><h2 id="nf">Get launch news</h2>
+<p class="lede">Leave your email and we will tell you when paid plans open, plus any launch offers.</p>
+<form class="joinform notifyform" novalidate>
+<label>Email<input name="email" type="email" autocomplete="email" maxlength="254" required></label>
+<label>I am a<select name="role"><option value="student">Student</option><option value="parent">Parent</option><option value="teacher">Teacher</option></select></label>
+<input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0">
+<label class="chk consent"><input type="checkbox" name="consent" required> Email me about launch and new content. No spam, and you can opt out any time.</label>
+<button class="btn" type="submit">Notify me</button><p class="msg" hidden role="status"></p></form></div></section>"""
+
+
 def build_home():
     r = ""
     cards = []
@@ -573,8 +583,9 @@ def build_home():
 <div class="grid">{samples_html}</div>
 <p class="cta"><a class="btn ghost" href="pricing/">See plans</a></p></section>
 
+{NOTIFY}
 <section class="sec" aria-labelledby="fq"><h2 id="fq">Questions</h2><div class="faq">{faq}</div></section>"""
-    write("index.html", layout(SITE_TITLE, body, "", "home", extra='<script src="assets/home.js"></script>'))
+    write("index.html", layout(SITE_TITLE, body, "", "home", extra='<script src="assets/home.js"></script><script src="assets/notify.js"></script>'))
 
 
 def build_contact():
@@ -614,8 +625,8 @@ LEGAL = {
         ("Changes and ending access", "We may update these terms; the date at the top shows the latest version. We may suspend an account that breaks these terms. Nothing in these terms limits any legal rights you have as a consumer."),
     ]),
     "privacy": ("Privacy notice", "What we collect, why, and who handles it.", [
-        ("What we collect", "Your name, email address, the subjects you study, your progress and assessment attempts, and any message you send through the contact form. If you buy a plan, Paddle collects your payment details and billing address; we receive your email, the plan and the payment status, but never your card number."),
-        ("Why we use it", "To run your account, unlock the lessons you have paid for, show your progress, reply to your messages and send account emails such as password resets. We do not sell your data and we do not use it for advertising."),
+        ("What we collect", "Your name, email address, the subjects you study, your progress and assessment attempts, any message you send through the contact form, and your email and role (student, parent or teacher) if you join the launch-news list. If you buy a plan, Paddle collects your payment details and billing address; we receive your email, the plan and the payment status, but never your card number."),
+        ("Why we use it", "To run your account, unlock the lessons you have paid for, show your progress, reply to your messages and send account emails such as password resets. If you join the launch-news list, we use your email only to tell you about paid plans, launch offers and new content, and you can ask to be removed at any time. We do not sell your data and we do not use it for advertising."),
         ("Who handles it", "Supabase hosts our database and logins. Paddle processes payments as merchant of record. Resend delivers our account emails. GitHub hosts the website. Each handles data only to provide its service."),
         ("Cookies and storage", "We use your browser's local storage to keep you signed in and remember your progress. We do not use advertising or cross-site tracking cookies."),
         ("How long we keep it", "While your account exists. Payment records are kept as long as tax and accounting rules require. Ask us to delete your account and we will remove your data, except records we are legally required to keep."),
@@ -817,6 +828,7 @@ def build_pricing():
         "currency at checkout, with any VAT or sales tax added.</p>"
         '<p class="hint">Paid plans renew automatically each month or year until you cancel. Payments are processed by '
         'Paddle, our reseller and merchant of record. See the <a href="../terms/">terms</a> and <a href="../refunds/">refund policy</a>.</p>'
+        + NOTIFY +
         f'<section class="sec" aria-labelledby="rf"><h2 id="rf">Billing, cancellation and refunds</h2>'
         f'<div class="faq">{faq_html}</div></section>')
 
@@ -845,7 +857,7 @@ def build_pricing():
               "try{var ses=window.Site&&await Site.session();if(ses&&ses.user.email)o.customer={email:ses.user.email};}catch(e){}"
               "Paddle.Checkout.open(o);});});sync();}"
               "})();</script>")
-    write("pricing/index.html", layout("Plans", body, "pricing/", "pricing", [("Home", ""), ("Plans", None)], extra=script))
+    write("pricing/index.html", layout("Plans", body, "pricing/", "pricing", [("Home", ""), ("Plans", None)], extra=script + '<script src="../assets/notify.js"></script>'))
 
 
 def build_catalog():
