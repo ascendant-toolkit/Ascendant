@@ -108,9 +108,9 @@ ex = exam(
     Q(2, "Identify", 2, "Identify two rewards to factors of production. (May/June 2022, P22 style)", "Any two: rent, wages, interest, profit.", "[K|Wages (or rent).] [K|Interest (or profit).]"),
     Q(3, "Define", 2, "Define capital as a factor of production.", "Man-made goods used to produce other goods and services.", "[K|Capital is man-made goods,] [K|such as machinery, used to produce other goods and services.]"),
     Q(4, "Explain", 4, "Explain the role of enterprise as a factor of production.", "Organises other factors; takes risks; profit.",
-      "[K|Enterprise organises land, labour and capital to produce goods and services.] [N|The entrepreneur takes risks because the business could make a loss.] [N|The reward for taking the risk is profit.]"),
+      "[K|Enterprise organises land, labour and capital to produce goods and services.] [N|The entrepreneur takes risks, because the business could make a loss if costs are higher than revenue.] [N|The reward for taking the risk is profit. Entrepreneurs also make decisions about what and how to produce, and may create new products and jobs.]"),
     Q(5, "Explain", 4, "Explain the difference between land and capital as factors of production.", "Natural vs man-made; rent vs interest.",
-      "[K|Land is natural resources such as oil, forests and farmland,] [N|whereas capital is man-made, such as machines.] [K|Land earns rent] [N|while capital earns interest.]"),
+      "[K|Land is natural resources such as oil, forests, minerals and farmland, which are not made by people,] [N|whereas capital is man-made goods used to produce other goods, such as machines and factories.] [K|Land earns rent as its reward,] [N|while capital earns interest.]"),
 )
 tp = tips([
     ("Four factors, four rewards:", "land-rent, labour-wages, capital-interest, enterprise-profit."),
@@ -235,9 +235,9 @@ explore = '''
 ex = exam(
     Q(1, "Identify", 2, "Identify two causes of the increase in the quantity of a country's factors of production. (Feb/Mar 2022, P22 style)", "Any two: immigration, discovery of resources, investment in capital, more enterprise.", "[K|Immigration (more labour).] [K|Investment in machinery (more capital) or discovery of new resources.]"),
     Q(2, "Explain", 4, "Explain two ways the quality of labour can be improved.", "Education, training, healthcare; productivity.",
-      "[K|Education and training can increase workers' skills,] [N|so they produce more per hour.] [K|Better healthcare and nutrition keep workers healthy,] [N|so they work harder and take fewer days off.]"),
+      "[K|Education and training can increase workers' skills and knowledge,] [N|so they produce more per hour and can do more complex jobs.] [K|Better healthcare and nutrition keep workers healthy,] [N|so they work harder, concentrate better and take fewer days off, which raises the quality of the labour force and the economy's output.]"),
     Q(3, "Explain", 4, "Explain why a country's capital stock may increase.", "Investment; technology; depreciation offset.",
-      "[K|Firms and the government may invest in new machinery, factories and infrastructure.] [N|If investment is greater than depreciation the stock of capital rises.] [N|This increases productive capacity.]"),
+      "[K|Firms and the government may invest in new machinery, factories and infrastructure such as roads.] [N|If investment is greater than depreciation, the stock of capital rises.] [N|This increases the economy's productive capacity, so more goods and services can be produced, and a rise in profit or a fall in interest rates may encourage more investment.]"),
     Q(4, "Analyse", 6, "Analyse how an increase in the quantity and quality of its factors of production could affect an economy.", "Capacity, productivity, growth, PPC shift, costs.",
       "[K|An increase in the quantity of land, labour or capital means the economy can produce more.] [N|Better quality, through training and technology, raises productivity so output per worker rises.] [N|Costs of production fall and the economy's productive capacity rises, which is economic growth and an outward shift of the PPC.] [E|The effect depends on whether the extra factors are used and on whether demand rises to match.]", key=True),
     Q(5, "Analyse", 6, "Analyse the influences on the mobility of two factors of production. (Oct/Nov 2022, P22 style)", "Labour: skills, housing, family ties. Capital: specificity, transport costs.",

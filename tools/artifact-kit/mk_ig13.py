@@ -125,7 +125,7 @@ ex = exam(
     Q(4, "Explain", 4, "Explain opportunity cost and how it can influence a farmer's decision to grow apples. (May/June 2023, P22 style)", "Next best crop; compare incomes; choose.",
       "[K|Opportunity cost is the next best alternative given up.] [N|If the farmer grows apples on the land, the opportunity cost is the next best crop, such as barley.] [N|The farmer is more likely to grow apples if the expected income is greater than the income from the next best crop.]"),
     Q(5, "Explain", 4, "Explain the opportunity cost to India of exporting more textiles. (Feb/Mar 2023, P22 style)", "Resources used for textiles cannot be used elsewhere; the next best use.",
-      "[K|India has scarce resources such as labour, land and capital.] [N|Using more of them to make textiles for export means they cannot be used for something else,] [N|such as producing other goods or food for the home market, which is the opportunity cost.]"),
+      "[K|India has scarce resources such as labour, land and capital.] [N|Using more of them to make textiles for export means they cannot be used for something else,] [N|such as producing other goods or food for the home market, so the opportunity cost is the next best alternative given up, for example less food for consumers in India.]"),
 )
 tp = tips([
     ("Opportunity cost is only the next best alternative.", "Not everything given up."),
@@ -248,11 +248,11 @@ explore = '''
 '''
 ex = exam(
     Q(1, "Explain", 4, "Explain the influence of opportunity cost on consumers' decisions. (Feb/Mar 2021, P12 style)", "Limited income; giving up other goods; compare satisfaction; price changes.",
-      "[K|Consumers have limited incomes, so buying one good means giving up others.] [N|They compare the satisfaction from each and choose the option that gives the most.] [N|If the price of a good rises, the opportunity cost of buying it rises, so they may buy less of it.]"),
+      "[K|Consumers have limited incomes, so buying one good means giving up others.] [N|They compare the satisfaction from each and choose the option that gives them the most.] [N|If the price of a good rises, the opportunity cost of buying it rises, so they may buy less of it and spend on something else instead.]"),
     Q(2, "Explain", 4, "Explain, using an example, the influence of opportunity cost on government decision-making. (Oct/Nov 2021, P12 style)", "Limited revenue; spending on one project means not on another; example: hospital vs school.",
       "[K|A government has a limited tax revenue, so spending on one project means less is available for others.] [N|For example, building a new hospital may mean a new school cannot be built.] [N|The government compares the benefits to society of each and chooses the one with the greater benefit.]"),
     Q(3, "Explain", 4, "Explain two possible opportunity costs for firms if they invest in the latest technology. (May/June 2024, P22 style)", "Advertising, higher wages, dividends, other projects.",
-      "[K|One opportunity cost is spending on advertising.] [N|The money used for technology cannot be used to promote the firm's products.] [K|Another is higher wages for staff.] [N|The funds cannot be used to raise pay or recruit more workers.]"),
+      "[K|One opportunity cost is spending on advertising.] [N|The money used to buy the technology cannot be used to promote the firm's products, so sales may be lower.] [K|Another is higher wages for staff.] [N|The funds cannot be used to raise pay or recruit more workers, so the firm may lose staff or be unable to expand.]"),
     Q(4, "Explain", 4, "Explain how opportunity cost will influence a government's decision on whether to spend tax revenue on a new road. (Oct/Nov 2023, P12 style)", "Other uses of the revenue; compare benefits; choose.",
       "[K|Spending the revenue on a road means it cannot be used for something else, such as healthcare or education.] [N|The government has to compare the benefits of the road with the benefits of the alternatives.] [N|If the benefits of the road are greater than the benefits of the next best use, it is more likely to go ahead.]"),
     Q(5, "Analyse", 6, "Analyse, using a production possibility curve, the opportunity cost to an economy of producing more consumer goods. (May/June 2022, P22 style)", "More consumer goods means fewer capital goods; movement along PPC.",

@@ -124,7 +124,7 @@ explore = '''
 ex = exam(
     Q(1, "Define", 2, "Define a production possibility curve (PPC). (May/June 2021, P22 style)", "Maximum combinations of two goods with existing resources.", "[K|A PPC shows the maximum combinations of two goods or services] [K|that an economy can produce with its existing resources.]"),
     Q(2, "Explain", 4, "Explain why a PPC is usually bowed outwards.", "Resources not equally suited; opportunity cost rises.",
-      "[K|Resources are not equally suited to producing both goods.] [N|When an economy makes more of one good it has to use resources less suited to it,] [N|so more of the other good is given up for each extra unit: the opportunity cost rises, giving a bowed-out curve.]"),
+      "[K|Resources are not equally suited to producing both goods.] [N|As more of one good is made, resources that are less suited to it must be used,] [N|so more of the other good is given up for each extra unit. The opportunity cost therefore rises as the economy moves along the curve.]"),
     Q(3, "Explain", 4, "Explain how a PPC illustrates scarcity and opportunity cost.", "Limited resources; cannot have more of both; move along the curve.",
       "[K|A PPC shows the limit of what an economy can produce with its scarce resources, so scarcity is shown by the curve itself.] [N|To produce more of one good the economy has to move along the curve, which means producing less of the other.] [N|The amount of the other good given up is the opportunity cost.]"),
     Q(4, "Identify", 2, "Identify two things a point on a PPC tells us.", "Full employment; efficient; combination possible.", "[K|It is a combination of two goods that the economy can produce.] [K|All resources are fully and efficiently used.]"),
@@ -263,11 +263,11 @@ explore = '''
 '''
 ex = exam(
     Q(1, "Explain", 4, "Explain what is meant by a point inside a PPC.", "Unemployed or inefficiently used resources; could produce more.",
-      "[K|A point inside the PPC means resources are not fully or efficiently used,] [N|for example there is unemployment or machinery lies idle.] [N|The economy could produce more of one or both goods by using these resources.]"),
+      "[K|A point inside the PPC means that resources are not fully or efficiently used,] [N|for example there is unemployment or machinery lies idle.] [N|The economy could produce more of one or both goods by using these resources, so it is producing below its potential.]"),
     Q(2, "Explain", 4, "Explain why a point outside a PPC is unattainable.", "Beyond what resources and technology allow.",
-      "[K|A PPC shows the maximum output possible with the economy's existing resources and technology.] [N|A point outside it needs more resources or better technology than the economy has,] [N|so it cannot be reached until economic growth shifts the PPC outwards.]"),
+      "[K|A PPC shows the maximum output possible with the economy's existing resources and technology.] [N|A point outside it needs more resources or better technology than the economy has,] [N|so it cannot be reached at present. It can only be reached if economic growth shifts the PPC outwards.]"),
     Q(3, "Explain", 4, "Explain why a recession can be shown as a point inside the PPC.", "Unemployment; falling output; resources idle.",
-      "[K|In a recession output falls and unemployment rises, so labour and capital are not fully used.] [N|The economy is producing less than its maximum, which is shown by a point inside the PPC.]"),
+      "[K|In a recession output falls and unemployment rises, so labour and capital are not fully used.] [N|The economy is producing less than its maximum, which is shown by a point inside the PPC,] [N|and it could produce more of both goods by using the idle resources, so the economy is operating below capacity.]"),
     Q(4, "Analyse", 6, "Analyse why an economy may be producing at a point inside its PPC and how it could move to the curve. (Oct/Nov 2023, P22 style)", "Causes: unemployment, inefficiency, mismatch; policies: demand, training, efficiency.",
       "[K|An economy could be inside its PPC because of unemployment during a recession, when demand is low.] [N|Skills mismatches and poor management also leave resources under-used.] [N|Government spending, lower interest rates or lower taxes could raise demand so unemployed resources are used.] [N|Training and better organisation could improve how well resources are matched to jobs.] [E|The size of the gain depends on how much spare capacity there is.]", key=True),
 )
@@ -410,7 +410,7 @@ explore = '''
 ex = exam(
     Q(1, "Calculate", 2, "An economy moves along its PPC from 20 consumer goods and 86 capital goods to 40 consumer goods and 76 capital goods. Calculate the opportunity cost of producing the extra consumer goods.", "Capital goods given up: 86 − 76.", "[A|86 − 76] [A|= 10 capital goods.]"),
     Q(2, "Explain", 4, "Explain the opportunity cost to Pakistan of producing more consumer goods. (Oct/Nov 2023, P22 style)", "Capital goods given up; resources switched; slower growth.",
-      "[K|To produce more consumer goods Pakistan has to move resources away from capital goods.] [N|The opportunity cost is the capital goods given up, such as machinery and factories.] [N|Fewer capital goods may reduce future growth.]"),
+      "[K|To produce more consumer goods Pakistan has to move resources away from capital goods.] [N|The opportunity cost is the capital goods given up, such as machinery and factories.] [N|Fewer capital goods may reduce the economy's capacity and so its future growth, so the benefit now has a cost later.]"),
     Q(3, "Explain", 4, "Explain why the opportunity cost rises along a bowed-out PPC.", "Resources not equally suited; less productive switching.",
       "[K|Resources are not equally suited to producing both goods.] [N|As more of one good is made, resources less suited to it must be used,] [N|so more of the other good is given up for each extra unit.]"),
     Q(4, "Analyse", 6, "Analyse, using a PPC, the opportunity cost to an economy of producing more capital goods. (May/June 2022, P22 style)", "Draw PPC; move along; fewer consumer goods; future growth benefit.",
@@ -550,9 +550,9 @@ explore = '''
 '''
 ex = exam(
     Q(1, "Explain", 4, "Explain two causes of an outward shift of a PPC.", "Technology, education, immigration, investment.",
-      "[K|New technology could raise productivity,] [N|so more of both goods can be produced with the same resources.] [K|Immigration increases the labour force,] [N|so the economy has more resources and can produce more.]"),
+      "[K|New technology could raise productivity,] [N|so more of both goods can be produced with the same resources.] [K|Immigration increases the labour force,] [N|so the economy has more resources and can produce more. Both shift the PPC outwards.]"),
     Q(2, "Explain", 4, "Explain what an inward shift of a PPC might show. (Feb/Mar 2024, P22 style)", "Loss of resources; war, disaster, depletion; lower capacity.",
-      "[K|An inward shift shows a fall in the economy's productive capacity.] [N|It could be caused by war or a natural disaster that destroys factories, or by workers emigrating.] [N|The economy can now produce less of both goods.]"),
+      "[K|An inward shift shows a fall in the economy's productive capacity.] [N|It could be caused by war or a natural disaster that destroys factories and roads, or by workers emigrating or the depletion of resources.] [N|The economy can now produce less of both goods than before.]"),
     Q(3, "Analyse", 6, "Analyse how economic growth can be shown on a PPC. (Oct/Nov 2021, P22 style)", "Outward shift; causes; effect on output and opportunity cost.",
       "[K|Economic growth is shown by an outward shift of the PPC.] [N|It could be caused by more or better-quality resources, such as new technology or training.] [N|The economy can then produce more of both goods, so living standards could rise.] [E|Growth in capacity only raises output if resources are fully used and demand is sufficient.]", key=True),
     Q(4, "Analyse", 6, "Analyse how advances in technology could affect a country's PPC.", "Productivity; outward shift; possibly one-sided; growth.",

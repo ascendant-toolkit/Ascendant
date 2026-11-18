@@ -136,9 +136,9 @@ explore = '''
 ex = exam(
     Q(1, "Define", 2, "Define demand. (Oct/Nov 2022, P22 style)", "Quantity willing and able to buy at a price.", "[K|Demand is the quantity of a good or service consumers are willing and able to buy] [K|at a given price in a given period.]"),
     Q(2, "Explain", 4, "Explain why a demand curve slopes downwards.", "Substitution, income, diminishing utility.",
-      "[K|When the price falls the good becomes cheaper compared with substitutes,] [N|so consumers switch to it (substitution effect).] [K|Consumers' incomes buy more at lower prices,] [N|so they can afford to buy more (income effect). The quantity demanded therefore rises.]"),
+      "[K|When the price of a good falls, it becomes cheaper compared with substitutes,] [N|so consumers switch to it (the substitution effect).] [K|Consumers' incomes also buy more at lower prices,] [N|so they can afford to buy more (the income effect).] [N|Some new consumers may also enter the market. The quantity demanded therefore rises as the price falls, which gives a downward-sloping demand curve.]"),
     Q(3, "Explain", 4, "Explain how individual demand is linked to market demand.", "Add up all individual demands at each price.",
-      "[K|Market demand is the total demand of all consumers in the market.] [N|It is found by adding up the quantities every consumer wants at each price.] [N|More consumers means more demand at every price.]"),
+      "[K|Market demand is the total demand of all consumers in the market for a good.] [N|It is found by adding up the quantities every consumer wants to buy at each price, so the individual demand curves are added horizontally.] [N|If more consumers enter the market, there is more demand at every price, so the market demand curve shifts to the right, and a fall in the number of consumers shifts it to the left.]"),
     Q(4, "Identify", 2, "Identify how the effect of a rise in the price of a good would be shown on its demand curve.", "A movement along: a contraction.", "[K|A movement up along the demand curve] [K|(a contraction in demand).]"),
 )
 tp = tips([
@@ -273,7 +273,7 @@ ex = exam(
     Q(3, "Explain", 4, "Explain the difference between an extension in demand and an increase in demand. (Feb/Mar 2021, P22 style)", "Extension: price change, movement along. Increase: other factor, shift right.",
       "[K|An extension in demand is caused by a fall in the good's own price] [N|and is shown by a movement down along the same demand curve.] [K|An increase in demand is caused by a change in another factor such as income] [N|and is shown by a shift of the whole curve to the right.]"),
     Q(4, "Explain", 4, "Explain how a rise in the price of cigarettes will affect the quantity demanded.", "Contraction; substitution; income; addiction may limit.",
-      "[K|A rise in price causes a contraction in demand: a movement up along the demand curve.] [N|Cigarettes are dearer, so some smokers cut down or quit and affordability falls.] [E|The fall may be small because of addiction.]"),
+      "[K|A rise in the price of cigarettes causes a contraction in demand: a movement up along the demand curve to a lower quantity.] [N|Cigarettes are dearer, so affordability falls and some smokers cut down or quit.] [E|However, the fall may be small because cigarettes are addictive and have few substitutes, so demand is likely to be inelastic and quantity demanded falls by less than the price rises.]"),
 )
 tp = tips([
     ("Own price changes = movement along.", "Anything else = shift."),
@@ -404,11 +404,11 @@ explore = '''
 '''
 ex = exam(
     Q(1, "Explain", 4, "Explain two causes of a shift to the right in the demand curve for fish. (Feb/Mar 2022, P22 style)", "Income, tastes/health campaign, price of substitute, population.",
-      "[K|A rise in consumers' incomes could increase demand for fish,] [N|because they can afford more at every price.] [K|A health campaign promoting fish could change tastes,] [N|so more is demanded at every price.]"),
+      "[K|A rise in consumers' incomes could increase demand for fish,] [N|because consumers can afford more at every price, particularly if fish is a normal good, so the demand curve shifts to the right.] [K|A health campaign promoting fish could change tastes,] [N|so more people want to buy fish at every price, which also shifts the demand curve to the right.]"),
     Q(2, "Explain", 4, "Explain two causes of a shift of a product's demand curve to the left. (Oct/Nov 2023, P22 style)", "A fall in income, a rise in the price of a complement, bad publicity, a fall in the price of a substitute.",
-      "[K|A fall in consumers' incomes could reduce demand for a normal good,] [N|so less is demanded at every price.] [K|A fall in the price of a substitute could make consumers switch,] [N|so demand for the product falls at every price.]"),
+      "[K|A fall in consumers' incomes could reduce demand for a normal good,] [N|because people can afford less, so less is demanded at every price and the demand curve shifts to the left.] [K|A fall in the price of a substitute could make consumers switch to the substitute,] [N|so demand for the product falls at every price, and the curve shifts to the left.]"),
     Q(3, "Explain", 4, "Explain why a rise in the price of petrol may reduce the demand for cars.", "Complements; running costs; demand shifts left.",
-      "[K|Petrol and cars are complements, used together.] [N|A rise in the price of petrol makes running a car dearer,] [N|so fewer people want to buy cars and the demand curve shifts left.]"),
+      "[K|Petrol and cars are complements, because they are used together.] [N|A rise in the price of petrol makes running a car dearer, so some people decide not to buy a car, or to buy a smaller one.] [N|Fewer cars are demanded at every price, so the demand curve for cars shifts to the left.]"),
     Q(4, "Analyse", 6, "Analyse how a rise in incomes may affect the demand for different types of good.", "Normal vs inferior; luxury; shifts.",
       "[K|A rise in incomes increases demand for normal goods such as holidays and restaurant meals,] [N|so their demand curves shift right.] [N|It reduces demand for inferior goods, such as cheap own-brand products, as consumers switch to better alternatives,] [N|so their demand curves shift left.] [E|The size of the shift depends on how sensitive demand is to income.]", key=True),
 )

@@ -145,7 +145,7 @@ ex = exam(
     Q(4, "Calculate", 1, "Exports of goods are $120bn and imports of goods are $150bn. Calculate the trade in goods balance. (May/June 2020, P22 style)", "Exports − imports; deficit is negative.", "[A|120 − 150 = −$30bn (a deficit of $30bn).]"),
     Q(5, "Calculate", 2, "Goods balance −$30bn; services balance +$22bn; primary income −$6bn; secondary income +$4bn. Calculate the current account balance. (May/June 2024, P22 style)", "Add the four balances.", "[A|−30 + 22 − 6 + 4] [A|= −$10bn (a deficit).]"),
     Q(6, "Explain", 4, "Explain the difference between primary income and secondary income.", "Primary: earnings from work and assets abroad. Secondary: transfers with nothing in return.",
-      "[K|Primary income is income earned from, and paid to, other countries from work and assets,] [A|such as profits, interest and dividends.] [K|Secondary income is transfers of money with nothing received in return,] [A|such as workers' remittances and foreign aid.]"),
+      "[K|Primary income is income earned from, and paid to, other countries from work and assets,] [A|such as profits, interest and dividends on foreign investments, or wages of workers who work abroad.] [K|Secondary income is transfers of money between countries for which nothing is received in return,] [A|such as workers' remittances sent home to families and foreign aid. The difference is that primary income is a payment for a factor of production, while secondary income is a gift.]"),
 )
 tp = tips([
     ("Four components:", "goods, services, primary income, secondary income."),

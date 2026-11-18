@@ -230,7 +230,7 @@ explore = '''
 ex = exam(
     Q(1, "Calculate", 3, "The price of a good rises from $20 to $25. Quantity supplied rises from 200 to 230. Calculate PES. (May/June 2023, P22 style)", "%ΔQs ÷ %ΔP.", "[A|%ΔP = 5 ÷ 20 × 100 = 25%; %ΔQs = 30 ÷ 200 × 100 = 15%.] [A|PES = 15 ÷ 25] [A|= 0.6 (inelastic).]"),
     Q(2, "Explain", 4, "Explain what a PES of 2.5 means.", "Elastic; quantity responds more than price.",
-      "[K|A PES of 2.5 means supply is elastic.] [N|A 10% rise in price would cause quantity supplied to rise by 25%.] [N|Producers can respond strongly to price changes.]"),
+      "[K|A PES of 2.5 means supply is elastic, because it is greater than 1.] [N|A 10% rise in price would cause quantity supplied to rise by 25%.] [N|Producers can respond strongly to price changes, so output can be raised quickly if the price rises.]"),
     Q(3, "Identify", 2, "Identify the PES value for a perfectly inelastic supply curve.", "Zero.", "[K|Zero (0).] [K|Quantity supplied does not change.]"),
 )
 tp = tips([
@@ -359,7 +359,7 @@ ex = exam(
     Q(1, "Explain", 4, "Explain two influences on the price elasticity of supply of a good.", "Time, spare capacity, stocks, mobility.",
       "[K|The time period affects PES.] [N|In the short run firms cannot easily expand capacity so supply is inelastic, but in the long run they can build more so supply is more elastic.] [K|Spare capacity matters.] [N|Firms with unused machines and workers can raise output quickly, so supply is elastic.]"),
     Q(2, "Explain", 4, "Explain why the supply of fresh fruit is likely to be inelastic in the short run.", "Growing time; perishable; no stocks.",
-      "[K|Fruit takes months to grow, so farmers cannot raise output quickly.] [N|It is perishable and cannot be stored,] [N|so supply cannot be increased by selling stocks: supply is inelastic.]"),
+      "[K|Fruit takes months to grow, so farmers cannot raise output quickly when the price rises.] [N|It is also perishable and cannot be stored for long,] [N|so supply cannot be increased by selling stocks, which means that quantity supplied is not very responsive to price: supply is inelastic.]"),
     Q(3, "Analyse", 6, "Analyse how the PES of a good could affect the change in price when demand rises.", "Elastic: price rises less, quantity more; inelastic: price rises more.",
       "[K|If supply is elastic, firms can raise output easily when demand rises.] [N|Quantity rises by a large amount and the price rises only a little.] [N|If supply is inelastic, output cannot rise much,] [N|so the price rises by more and quantity by less.] [E|The effect is larger in the short run.]", key=True),
 )

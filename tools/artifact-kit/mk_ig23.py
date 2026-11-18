@@ -135,9 +135,9 @@ explore = '''
 ex = exam(
     Q(1, "Define", 2, "Define supply. (Oct/Nov 2022, P22 style)", "Quantity willing and able to sell at a price.", "[K|Supply is the quantity of a good or service producers are willing and able to sell] [K|at a given price in a given period.]"),
     Q(2, "Explain", 4, "Explain why a supply curve slopes upwards.", "Profit; rising marginal cost; new entrants.",
-      "[K|A higher price means a higher profit for each unit sold,] [N|so firms are willing to produce and sell more.] [K|Producing more usually raises marginal costs,] [N|so a higher price is needed to cover them; new firms may also enter.]"),
+      "[K|A higher price means a higher profit for each unit sold,] [N|so firms are willing to produce and sell more.] [K|Producing more usually raises marginal costs,] [N|so a higher price is needed to cover them, and new firms may also enter the market, so the quantity supplied rises as the price rises.]"),
     Q(3, "Explain", 4, "Explain how individual supply is linked to market supply.", "Add up all firms' supplies at each price.",
-      "[K|Market supply is the total supply of all firms in the market.] [N|It is found by adding up the quantities all firms will supply at each price.] [N|More firms in the market means more supplied at every price.]"),
+      "[K|Market supply is the total supply of all firms in the market.] [N|It is found by adding up the quantities that all firms will supply at each price.] [N|More firms in the market means more is supplied at every price, so the market supply curve shifts to the right.]"),
     Q(4, "Identify", 2, "Identify how the effect of a fall in the price of a good would be shown on its supply curve.", "A movement down: a contraction.", "[K|A movement down along the supply curve] [K|(a contraction in supply).]"),
 )
 tp = tips([
@@ -269,7 +269,7 @@ ex = exam(
     Q(3, "Explain", 4, "Explain the difference between an extension in supply and an increase in supply.", "Extension: price change, movement along. Increase: other factor, shift right.",
       "[K|An extension in supply is caused by a rise in the good's own price] [N|and is shown by a movement up along the same supply curve.] [K|An increase in supply is caused by a change in another factor such as costs] [N|and is shown by a shift of the whole curve to the right.]"),
     Q(4, "Explain", 4, "Explain why a fall in the price of oil may reduce the quantity supplied.", "Lower profit; high-cost wells close; contraction.",
-      "[K|A fall in price reduces the profit for each barrel.] [N|High-cost wells may no longer cover their costs, so they close or reduce output,] [N|which causes a contraction in supply: a movement down the curve.]"),
+      "[K|A fall in the price reduces the profit on each barrel of oil.] [N|High-cost wells may no longer cover their costs, so they close or reduce output,] [N|which causes a contraction in supply, shown as a movement down along the supply curve.]"),
 )
 tp = tips([
     ("Own price changes = movement along.", "Anything else = shift."),
@@ -401,9 +401,9 @@ ex = exam(
     Q(1, "Analyse", 6, "Analyse the causes of a shift to the right in the supply curve of chocolate. (Feb/Mar 2023, P22 style)", "Costs fall, technology, subsidy, good weather for cocoa, more firms.",
       "[K|A fall in the cost of cocoa or other inputs reduces producers' costs,] [N|so chocolate firms can supply more at every price.] [K|New technology could raise productivity and lower unit costs,] [N|so supply increases.] [K|A government subsidy lowers costs.] [N|It encourages firms to produce more at each price.] [E|The size of the shift depends on how much costs fall.]", key=True),
     Q(2, "Explain", 4, "Explain two causes of a shift to the left in the supply curve of a good.", "A tax, rising costs, a drought, new regulations.",
-      "[K|A tax on producers raises costs,] [N|so firms supply less at every price.] [K|A rise in wages or raw material costs reduces profit,] [N|so supply decreases at each price.]"),
+      "[K|A tax on producers raises their costs,] [N|so firms supply less at every price.] [K|A rise in wages or raw material costs reduces profit,] [N|so supply decreases at each price, shifting the supply curve to the left.]"),
     Q(3, "Explain", 4, "Explain how a subsidy would affect the supply of a good.", "Lowers costs; supply shifts right.",
-      "[K|A subsidy is a payment from the government to producers.] [N|It lowers their costs of production,] [N|so they can supply more at every price and the supply curve shifts right.]"),
+      "[K|A subsidy is a payment from the government to producers.] [N|It lowers their costs of production,] [N|so they can supply more at every price and the supply curve shifts to the right. The market price falls and the quantity sold rises.]"),
     Q(4, "Analyse", 6, "Analyse how advances in technology could affect the supply of a good.", "Productivity, cost, quality; supply right.",
       "[K|New technology can raise productivity and lower the cost of production.] [N|Firms can supply more at each price, so the supply curve shifts to the right.] [N|Lower costs may also lead to lower prices.] [E|The benefit depends on how quickly firms adopt the technology and the cost of investing.]", key=True),
 )

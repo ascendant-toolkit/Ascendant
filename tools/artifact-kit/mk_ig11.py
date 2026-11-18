@@ -121,11 +121,11 @@ ex = exam(
     Q(1, "Define", 2, "What is the basic economic problem? (Oct/Nov 2020, P11 style)", "Infinite wants but finite resources.", "[K|The basic economic problem is that people have infinite (unlimited) wants] [K|but resources are finite (limited), so choices have to be made.]"),
     Q(2, "Define", 2, "Define scarcity.", "Limited resources compared with unlimited wants.", "[K|Scarcity is the shortage of resources] [K|in relation to unlimited wants.]"),
     Q(3, "Explain", 4, "Explain how scarcity affects consumers.", "Limited income, unlimited wants, choose, opportunity cost.",
-      "[K|Consumers have limited income but unlimited wants.] [N|They cannot afford everything, so they have to choose which goods and services to buy.] [N|Buying one thing means giving up another, so every choice has an opportunity cost.]"),
+      "[K|Consumers have limited incomes but unlimited wants.] [N|They cannot afford everything they would like, so they have to choose which goods and services to buy.] [N|Buying one good means giving up another, so every choice has an opportunity cost: for example, spending money on a holiday means less is available for clothes. Scarcity therefore forces consumers to prioritise.]"),
     Q(4, "Explain", 4, "Explain why a government faces the basic economic problem.", "Limited revenue; wants for health, education, defence; choice.",
-      "[K|A government has limited tax revenue and borrowing, but there are unlimited demands for spending on health, education, defence and roads.] [N|It has to choose between them,] [N|so spending more on one means less on another: an opportunity cost.]"),
+      "[K|A government has limited tax revenue and borrowing, but there are unlimited demands for spending on health, education, defence and roads.] [N|It has to choose between them, so spending more on one means less on another, which is an opportunity cost.] [N|For example, building a new hospital may mean a school is not built, so the government must decide which use of its scarce funds will benefit the country most.]"),
     Q(5, "Explain", 4, "Explain why even a wealthy country such as Switzerland still faces the basic economic problem. (Oct/Nov 2022, P11 style)", "Finite resources, wants rise with income.",
-      "[K|Even a wealthy country has finite resources such as land, labour and capital.] [N|People's wants are unlimited and tend to increase as incomes rise,] [N|so there are still not enough resources to produce everything, and choices must be made.]"),
+      "[K|Even a wealthy country such as Switzerland has finite resources, such as land, labour and capital.] [N|People's wants are unlimited and tend to increase as incomes rise, because richer people want better housing, more travel and more services.] [N|There are therefore still not enough resources to produce everything people want, so choices must be made about what to produce, and every choice has an opportunity cost. Being wealthy does not remove scarcity.]"),
 )
 tp = tips([
     ("Always say 'infinite wants' and 'finite resources'.", "Both halves score the mark."),
@@ -244,11 +244,11 @@ explore = '''
 ex = exam(
     Q(1, "Identify", 3, "State the three basic economic questions.", "What, how, who.", "[K|What to produce.] [K|How to produce.] [K|Who to produce for.]"),
     Q(2, "Explain", 4, "Explain what is meant by the question 'what to produce'.", "Choice of goods and services and quantities; scarce resources; opportunity cost.",
-      "[K|'What to produce' is the decision about which goods and services, and how many of each, are made.] [N|Resources are scarce, so producing more of one good means fewer resources for another.] [N|For example, a government may have to choose between more healthcare and more military equipment.]"),
+      "[K|'What to produce' is the decision about which goods and services, and how many of each, are made in an economy.] [N|Resources are scarce, so producing more of one good means fewer resources for another, and a choice has to be made.] [N|For example, a government may have to choose between more healthcare and more military equipment, and each choice has an opportunity cost. In a market economy consumers' spending guides the decision, while in a planned economy the government decides.]"),
     Q(3, "Explain", 4, "Explain what is meant by the question 'how to produce'.", "Method, labour vs capital, technology.",
-      "[K|'How to produce' is the decision about the methods and mix of resources used.] [N|For example, firms can use labour-intensive methods with many workers or capital-intensive methods with machines.] [N|The choice depends on costs, technology and the resources available.]"),
+      "[K|'How to produce' is the decision about the methods and the mix of resources used to make goods and services.] [N|For example, firms can use labour-intensive methods with many workers or capital-intensive methods with machines.] [N|The choice depends on the relative costs of labour and capital, the technology available and the resources the economy has. A firm will usually choose the method that gives the lowest cost per unit.]"),
     Q(4, "Explain", 4, "Explain how the market decides what to produce.", "Consumer demand, price, profit, resources move.",
-      "[K|In a market economy consumers' spending shows what they want.] [N|When demand for a good rises, its price and profit rise,] [N|so firms switch resources into making it and away from less profitable goods.]"),
+      "[K|In a market economy, consumers' spending shows what they want, because they spend their money on the goods they value most.] [N|When demand for a good rises, its price and profit rise, so firms are attracted to make it,] [N|and they switch resources into making it and away from less profitable goods whose demand is falling. In this way, the pattern of spending decides what is produced, without the government telling firms what to make.]"),
 )
 tp = tips([
     ("Three questions:", "what, how, who."),
@@ -374,7 +374,7 @@ ex = exam(
     Q(2, "Identify", 2, "Identify two free goods. (Oct/Nov 2022, P12 style)", "Any two: sunlight, air, rain.", "[K|Sunlight.] [K|Air (or rain).]"),
     Q(3, "Identify", 2, "Identify a difference between economic goods and free goods.", "Economic goods scarce; free goods not.", "[K|Economic goods are scarce] [K|whereas free goods are not scarce / have no opportunity cost.]"),
     Q(4, "Explain", 4, "Explain how opportunity cost is different for economic goods and free goods. (Feb/Mar 2024, P12 style)", "Economic goods use scarce resources: opportunity cost. Free goods use none.",
-      "[K|Economic goods are scarce and use up resources,] [N|so the resources could have been used to produce something else: there is an opportunity cost.] [K|Free goods are not scarce and use no scarce resources,] [N|so there is no alternative given up and no opportunity cost.]"),
+      "[K|Economic goods are scarce and use up resources, such as labour and materials,] [N|so those resources could have been used to produce something else, and there is an opportunity cost of the alternative given up.] [K|Free goods, such as fresh air in the countryside, are not scarce and use no scarce resources,] [N|so there is no alternative given up in providing them, and no opportunity cost.]"),
     Q(5, "Explain", 4, "Explain why a free-of-charge school meal is still an economic good.", "Resources used; opportunity cost; paid by taxes.",
       "[K|The meal may be free to the pupil but producing it uses scarce resources such as food, labour and kitchens.] [N|Those resources could have been used to produce something else, so there is an opportunity cost.] [N|The meal is paid for by taxpayers, so it is an economic good.]"),
 )

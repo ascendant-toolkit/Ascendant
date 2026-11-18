@@ -136,9 +136,9 @@ explore = '''
 '''
 ex = exam(
     Q(1, "Explain", 4, "Explain how an increase in income may affect the price of a normal good.", "Demand rises; shortage; price rises.",
-      "[K|A rise in income increases demand for a normal good, shifting the demand curve to the right.] [N|At the original price quantity demanded exceeds quantity supplied, so there is a shortage.] [N|The price rises until a new equilibrium is reached at a higher price and quantity.]"),
+      "[K|A rise in income increases demand for a normal good, shifting the demand curve to the right.] [N|At the original price quantity demanded exceeds quantity supplied, so there is a shortage.] [N|Buyers compete and the price rises until a new equilibrium is reached at a higher price and a higher quantity.]"),
     Q(2, "Analyse", 4, "Analyse why the price of German luxury cars may have increased in 2018. (Oct/Nov 2020, P22 style)", "Demand up (incomes, exports) or supply down (costs, tariffs).",
-      "[K|Demand for luxury cars may have increased because incomes in key markets rose,] [N|shifting the demand curve right and raising the equilibrium price.] [K|Supply may have fallen because of higher costs or trade tariffs,] [N|shifting supply left and raising the price.]"),
+      "[K|Demand for luxury cars may have increased because incomes in key markets rose,] [N|shifting the demand curve right and raising the equilibrium price.] [K|Supply may have fallen because of higher costs, such as steel prices or trade tariffs,] [N|shifting supply left and raising the price.]"),
     Q(3, "Analyse", 6, "Analyse, using a demand and supply diagram, how a drought could affect the market for wheat. (Oct/Nov 2023, P22 style)", "Supply left; shortage; price up; quantity down.",
       "[K|A drought reduces the harvest, so supply of wheat decreases and S shifts left.] [N|At the original price quantity demanded exceeds quantity supplied: a shortage.] [N|The price rises to a new equilibrium P₁ and quantity falls to Q₁.] [E|Because wheat is a necessity the rise in price may be large.]", key=True),
     Q(4, "Analyse", 6, "Analyse, using a demand and supply diagram, how an increase in population size will affect the market for housing. (Feb/Mar 2024, P22 style)", "Demand right; price up; quantity up.",
@@ -288,7 +288,7 @@ explore = '''
 '''
 ex = exam(
     Q(1, "Explain", 4, "Explain how an increase in the price of milk may affect the revenue earned by milk producers.", "Quantity falls; revenue depends on PED.",
-      "[K|Revenue is price multiplied by quantity sold.] [N|A higher price means each litre earns more, but quantity demanded falls.] [N|If demand is inelastic, revenue rises; if elastic, revenue falls.]"),
+      "[K|Revenue is price multiplied by quantity sold.] [N|A higher price means each litre earns more, but quantity demanded falls.] [N|If demand is inelastic, the fall in quantity is proportionately smaller, so revenue rises; if demand is elastic, the fall in quantity is proportionately larger, so revenue falls.]"),
     Q(2, "Analyse", 6, "Analyse, using a demand and supply diagram, how a greater awareness of the health benefits of a product will affect its market. (Oct/Nov 2022, P22 style)", "Tastes: D right; price and quantity up; revenue up.",
       "[K|Greater awareness changes tastes in favour of the product, so demand increases and D shifts right.] [N|At the old price there is a shortage, so the price rises to P₁ and quantity to Q₁.] [N|Producers' sales and revenue rise.] [E|Producers may increase supply in time, limiting the rise in price.]", key=True),
     Q(3, "Analyse", 6, "Analyse how a subsidy given to producers could affect consumers and producers. (Feb/Mar 2022, P22 style)", "S right; price falls, quantity up; consumers gain; producers' costs fall.",

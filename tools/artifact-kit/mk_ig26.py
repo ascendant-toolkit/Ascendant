@@ -235,10 +235,10 @@ explore = '''
 ex = exam(
     Q(1, "Calculate", 3, "The price of a good rises from $10 to $12. Quantity demanded falls from 100 to 70. Calculate PED. (May/June 2023, P22 style)", "%ΔQ ÷ %ΔP.", "[A|%ΔP = 2 ÷ 10 × 100 = 20%; %ΔQ = −30 ÷ 100 × 100 = −30%.] [A|PED = −30 ÷ 20] [A|= −1.5.]"),
     Q(2, "Explain", 4, "Explain what a PED value of 0.4 means.", "Inelastic; quantity responds less than price.",
-      "[K|A PED of 0.4 means demand is inelastic.] [N|A 10% rise in price would cause quantity demanded to fall by only 4%.] [N|Consumers are not very responsive to price changes.]"),
+      "[K|A PED of 0.4 means demand is inelastic, because it is less than 1.] [N|A 10% rise in price would cause quantity demanded to fall by only 4%.] [N|Consumers are not very responsive to price changes, so a firm that raises its price would see total revenue rise.]"),
     Q(3, "Identify", 2, "Identify the PED value for a perfectly inelastic demand curve.", "Zero.", "[K|Zero (0).] [K|Quantity demanded does not change.]"),
     Q(4, "Explain", 4, "Explain how a demand curve would look if demand was perfectly elastic.", "Horizontal; any rise loses all sales.",
-      "[K|It would be a horizontal line.] [N|At that price consumers will buy any quantity,] [N|but if the price rises even slightly quantity demanded falls to zero.]"),
+      "[K|A perfectly elastic demand curve would be a horizontal line.] [N|At that price consumers will buy any quantity,] [N|but if the price rises even slightly, quantity demanded falls to zero, because consumers switch to other sellers. PED would equal infinity.]"),
 )
 tp = tips([
     ("PED = %ΔQ ÷ %ΔP.", "Always use percentages."),
@@ -364,9 +364,9 @@ explore = '''
 '''
 ex = exam(
     Q(1, "Explain", 4, "Explain two influences on the price elasticity of demand for a good.", "Substitutes, necessity, income share, time.",
-      "[K|The availability of substitutes affects PED.] [N|If a good has many close substitutes, consumers can switch easily when its price rises, so demand is elastic.] [K|Whether a good is a necessity matters.] [N|Necessities such as salt have inelastic demand because people must keep buying them.]"),
+      "[K|The availability of substitutes affects PED.] [N|If a good has many close substitutes, consumers can switch easily when its price rises, so demand is elastic.] [K|Whether a good is a necessity also matters.] [N|Necessities such as salt have inelastic demand because people must keep buying them even if the price rises.]"),
     Q(2, "Explain", 4, "Explain why demand for petrol is likely to be more elastic in the long run than in the short run.", "Time to adjust: alternatives, cars, moving.",
-      "[K|In the short run drivers have few alternatives and are tied to existing cars.] [N|In the long run consumers have time to switch to electric cars, move closer to work or use public transport,] [N|so quantity demanded responds more to the price: demand is more elastic.]"),
+      "[K|In the short run drivers have few alternatives and are tied to their existing cars and homes.] [N|In the long run consumers have time to switch to electric cars, move closer to work or use public transport,] [N|so quantity demanded responds more to a change in the price: demand is more elastic in the long run.]"),
     Q(3, "Identify", 2, "Identify two goods with inelastic demand and say why.", "Necessities, addictive goods.", "[K|Cigarettes, because they are addictive.] [K|Salt, because it is a cheap necessity with no substitute.]"),
 )
 tp = tips([
@@ -503,7 +503,7 @@ ex = exam(
     Q(3, "Analyse", 6, "Analyse the relationship between PED and the revenue earned by a firm when it changes its price.", "Rule for inelastic, elastic, unitary.",
       "[K|Revenue is price multiplied by quantity.] [N|If demand is inelastic, a price rise causes a smaller % fall in quantity, so revenue rises, and a price fall reduces revenue.] [N|If demand is elastic, a price rise causes a bigger % fall in quantity, so revenue falls, and a price fall raises revenue.] [N|If demand is unitary revenue does not change.] [E|The actual effect depends on how accurately the firm knows its PED.]", key=True),
     Q(4, "Discuss", 8, "Discuss whether a firm should lower its price to increase revenue.", "Depends on PED, costs, rival reactions.",
-      "[K|Total revenue is price multiplied by quantity sold. Price elasticity of demand (PED) measures how much the quantity demanded changes when the price changes.] [N|Lowering price raises revenue only if demand is elastic, because quantity rises by a bigger percentage than the price falls. For example, if a price cut of 10% raises sales by 20%, revenue rises. If demand is inelastic, the quantity rises by less than the price falls, so revenue falls, and the firm should raise price instead.] [N|The firm should also consider costs: extra output may raise total costs, so profit may fall even if revenue rises. Rival firms may respond by cutting their prices too, which cancels out the advantage.] [E|Overall, cutting price is likely to raise revenue only for elastic goods when the firm has spare capacity, so the firm needs to know its PED, its costs and how rivals will react before deciding.]", key=True),
+      "[K|Total revenue is price multiplied by quantity sold.] [N|If the price stays the same, more sales raise revenue.] [N|If the firm cut its price to sell more, revenue rises only if the percentage rise in quantity sold is greater than the percentage fall in price, which depends on the elasticity of demand.]", key=True),
 )
 tp = tips([
     ("Revenue = P × Q.", "Compare before and after."),
@@ -623,7 +623,7 @@ explore = '''
 '''
 ex = exam(
     Q(1, "Explain", 4, "Explain why a government might tax goods with inelastic demand.", "High revenue; small fall in quantity.",
-      "[K|Demand for goods such as cigarettes is inelastic.] [N|A tax raises the price, but quantity demanded falls by a smaller percentage,] [N|so many units are still sold and the government raises a lot of tax revenue.]"),
+      "[K|Demand for goods such as cigarettes and petrol is inelastic.] [N|A tax raises the price, but quantity demanded falls by a smaller percentage,] [N|so many units are still sold and the government raises a lot of tax revenue, which it can use to pay for public services.]"),
     Q(2, "Explain", 4, "Explain how knowledge of PED could help a firm decide whether to raise its prices.", "Inelastic: raise; elastic: don't.",
       "[K|If demand for its product is inelastic, a price rise will cause a smaller percentage fall in quantity,] [N|so revenue will rise and the firm could raise prices.] [K|If demand is elastic, a price rise will cause a bigger fall in quantity,] [N|so revenue will fall and the firm should not raise prices.]"),
     Q(3, "Analyse", 6, "Analyse how PED may influence the demands of workers for higher pay.", "Product demand inelastic: safe to ask; elastic: jobs lost.",
