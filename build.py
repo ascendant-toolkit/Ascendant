@@ -75,11 +75,25 @@ def seo_head(title, body, path):
         return '<meta name="robots" content="noindex">\n'
     SITEMAP.append(url)
     t, d = esc(title), esc(desc)
-    return (f'<meta name="description" content="{d}">\n<link rel="canonical" href="{url}">\n'
+    ld = []
+    org = {"@type": "Organization", "name": SITE_TITLE, "url": SITE_URL, "logo": SITE_URL + "assets/apple-touch-icon.png"}
+    if path.strip("/") == "":
+        ld += [{"@context": "https://schema.org", **org},
+               {"@context": "https://schema.org", "@type": "WebSite", "name": SITE_TITLE, "url": SITE_URL}]
+    elif path.strip("/") in COURSES:
+        ld.append({"@context": "https://schema.org", "@type": "Course", "name": html.unescape(title.split(" · ")[0]),
+                   "description": desc, "provider": org, "url": url})
+    qa = re.findall(r"<details><summary>(.*?)</summary><p>(.*?)</p></details>", body, re.S)
+    if qa:
+        clean = lambda x: html.unescape(re.sub(r"<[^>]+>", "", x)).strip()
+        ld.append({"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+            {"@type": "Question", "name": clean(q), "acceptedAnswer": {"@type": "Answer", "text": clean(a)}} for q, a in qa]})
+    ldh = "".join(f'<script type="application/ld+json">{json.dumps(o, ensure_ascii=False).replace("</", "<\\/")}</script>' for o in ld)
+    return (ldh + f'<meta name="description" content="{d}">\n<link rel="canonical" href="{url}">\n'
             f'<meta property="og:type" content="website"><meta property="og:site_name" content="{esc(SITE_TITLE)}">'
             f'<meta property="og:title" content="{t}"><meta property="og:description" content="{d}">'
-            f'<meta property="og:url" content="{url}"><meta property="og:image" content="{SITE_URL}assets/apple-touch-icon.png">'
-            f'<meta name="twitter:card" content="summary"><meta name="twitter:title" content="{t}"><meta name="twitter:description" content="{d}">\n')
+            f'<meta property="og:url" content="{url}"><meta property="og:image" content="{SITE_URL}assets/og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">'
+            f'<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{t}"><meta name="twitter:description" content="{d}">\n')
 
 
 def layout(title, body, path, active, crumbs=None, accent=None, auth=False, extra=""):
