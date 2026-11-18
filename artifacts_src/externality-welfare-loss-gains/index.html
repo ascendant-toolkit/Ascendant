@@ -301,7 +301,7 @@ table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
   <p>Pick a case and move the tax or subsidy. The red triangle is the welfare loss that is left, or the new one created by over-correcting. The marginal external cost or benefit is always $20, so the best policy is $20.</p>
   <div id="labBtns" class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:10px"></div>
   <div class="card"><div id="g1"></div>
-    <svg id="labS" viewBox="0 34 840 311" role="img" aria-label="Welfare loss and gain as the tax or subsidy changes" style="width:100%;height:auto;display:block"></svg>
+    <svg id="labS" viewBox="0 34 840 361" role="img" aria-label="Welfare loss and gain as the tax or subsidy changes" style="width:100%;height:auto;display:block"></svg>
     <div class="key" id="legS"></div>
     <div class="readout">
       <div><small>New output</small><strong id="r1"></strong></div>
@@ -319,7 +319,7 @@ table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
   <p>Here the market is already efficient: D = MPB = MSB and S = MPC = MSC. Any tax or subsidy pulls output away from Q = 50 and creates a deadweight loss. Compare a $20 tax here (loss $125) with the $20 tax on pollution in the first diagram (gain $125).</p>
   <div class="row" style="margin-bottom:8px"><button class="b pri" id="nxT">Tax</button><button class="b" id="nxS">Subsidy</button></div>
   <div class="card"><div id="g2"></div>
-    <svg id="labN" viewBox="0 34 840 311" role="img" aria-label="Deadweight loss from a tax or subsidy with no externality" style="width:100%;height:auto;display:block"></svg>
+    <svg id="labN" viewBox="0 34 840 361" role="img" aria-label="Deadweight loss from a tax or subsidy with no externality" style="width:100%;height:auto;display:block"></svg>
     <div class="key" id="legN"></div>
     <div class="readout">
       <div><small>New output</small><strong id="n1"></strong></div>
@@ -714,17 +714,18 @@ function curve(c, cls, v, name, tcls) {
   const [lo, hi] = seg(c);
   return SV.line(X(lo), Y(lineAt(c, lo)), X(hi), Y(lineAt(c, hi)), cls, OP(v)) + (name ? lt(X(hi) + 6, Y(lineAt(c, hi)) + 4, name, tcls, v) : "");
 }
-const guide = (q, p, pn, qn, v, qdy = 16) => SV.line(X(q), Y(p), X(q), Y(0), "ax", gs(v)) + SV.line(X(0), Y(p), X(q), Y(p), "ax", gs(v)) + (pn ? SV.text(62, Y(p) + 4, pn, "sm", { "text-anchor": "end", ...OP(v) }) : "") + (qn ? SV.text(X(q), Y(0) + qdy, qn, "sm", { "text-anchor": "middle", ...OP(v) }) : "");
+const guide = (q, p, pn, qn, v, qdy = 33) => SV.line(X(q), Y(p), X(q), Y(0), "ax", gs(v)) + SV.line(X(0), Y(p), X(q), Y(p), "ax", gs(v)) + (pn ? SV.text(78, Y(p) - 6, pn, "sm bd", { "text-anchor": "start", ...halo, ...OP(v) }) : "") + (qn ? SV.text(X(q), Y(0) + qdy, qn, "sm bd", { "text-anchor": "middle", ...OP(v) }) : "");
 function vArrow(x, p1, p2, cls, v) {
   const y1 = Y(p1), y2 = Y(p2), top = Math.min(y1, y2), bot = Math.max(y1, y2);
   return `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x, top + 8, x, bot - 8, cls)}${SV.arrowHead(x, top, "u", cls === "c4" ? "dot4" : "dot3")}${SV.arrowHead(x, bot, "d", cls === "c4" ? "dot4" : "dot3")}</g>`;
 }
-const axesSvg = (xl) => SV.line(70, Y(0), 720, Y(0), "ax") + SV.line(70, Y(0), 70, 52, "ax") + SV.text(720, Y(0) + 30, xl + " (units)", "lbl bd", { "text-anchor": "end" }) + SV.text(-181, 15, "Price, cost and benefit ($ per unit)", "lbl bd", { "text-anchor": "middle", transform: "rotate(-90)" });
+const ticks = () => { let t = ""; for (let v = 0; v <= 100; v += 10) t += SV.line(X(v), Y(0), X(v), Y(0) + 5, "ax", { style: "stroke-width:1.2" }) + SV.text(X(v), Y(0) + 19, v, "sm", { "text-anchor": "middle" }); for (let v = 10; v <= 100; v += 10) t += SV.line(64, Y(v), 70, Y(v), "ax", { style: "stroke-width:1.2" }) + SV.text(60, Y(v) + 4, v, "sm", { "text-anchor": "end" }); return t; };
+const axesSvg = (xl) => SV.line(70, Y(0), 720, Y(0), "ax") + SV.line(70, Y(0), 70, 52, "ax") + ticks() + SV.text(720, Y(0) + 76, xl + " (units)", "lbl bd", { "text-anchor": "end" }) + SV.text(-181, 15, "Price, cost and benefit ($ per unit)", "lbl bd", { "text-anchor": "middle", transform: "rotate(-90)" });
 
 /* ---------- page code: welfare areas ---------- */
 const D0 = [90, -0.8], S0 = [10, 0.8];
 const ply = (pts, cls, v, st = "") => SV.poly(pts.map(([q, p]) => [X(q), Y(p)]), cls, { style: `opacity:${Math.max(0, Math.min(1, v))};${st}` });
-const money = (n, sign) => (n < 0 ? "−" : sign && n > 0 ? "+" : "") + "$" + Math.abs(Math.round(n * 100) / 100).toLocaleString("en-GB", { maximumFractionDigits: 2 });
+const money = (n, sign) => (n < 0 ? "−" : sign && n > 0 ? "+" : "") + "$" + Math.abs(Math.round(n * 100) / 100).toLocaleString("en-GB", { minimumFractionDigits: Number.isInteger(Math.round(n * 100) / 100) ? 0 : 2, maximumFractionDigits: 2 });
 const GREY = "fill:var(--muted)";
 
 const CS = [
@@ -747,8 +748,8 @@ function dr(c, s) {
   if (s.sf > 0.01) {
     o += ply([[0, 90], [qq, pc], [0, pc]], "f1", s.sf * 0.3) + ply([[0, 10], [qq, pp], [0, pp]], "f4", s.sf * 0.35);
     if (s.nd > 0.01) o += ply([[0, pp], [qq, pp], [qq, pc], [0, pc]], "f1", s.nd * s.sf * 0.3, GREY);
-    o += lt(X(qq / 3) - 4, Y((90 + 2 * pc) / 3) + 4, "CS", "t1", s.sf) + lt(X(qq / 3) - 4, Y((10 + 2 * pp) / 3) + 4, "PS", "t4", s.sf);
-    if (s.nd > 0.01) o += lt(X(3), Y((pp + pc) / 2) + 4, c.gl, "t4", s.nd * s.sf);
+    o += lt(X(qq / 5), Y(Math.max(pc, pp) + (90 - Math.max(pc, pp)) / 2) + 4, "CS", "t1", s.sf, "middle") + lt(X(qq / 5), Y((10 + Math.min(pc, pp)) / 2) + 4, "PS", "t4", s.sf, "middle");
+    if (s.nd > 0.01) o += lt(X(qq * 0.45), Y((pp + pc) / 2) + 4, c.gl + " " + money(Math.abs((pc - pp) * qq)), "t4", s.nd * s.sf, "middle");
   }
   o += curve(D0, "c1", 1, c.Dn, "t1") + curve(S0, "c2", 1, c.Sn, "t2");
   o += curve(c.ex, "c3", s.e, c.exn, "t3").replace(/(<text[^>]*?)opacity="[^"]*"/, (m, a) => (c.coin ? a + `opacity="${Math.max(0, Math.min(1, s.e * (1 - s.m)))}"` : m));
@@ -762,23 +763,23 @@ function dr(c, s) {
     o += ply(c.tri, "f2", s.w * 0.5 * (1 - s.g)) + ply(c.tri, "f3", s.g * 0.5);
     const cx = (c.tri[0][0] + c.tri[1][0] + c.tri[2][0]) / 3, cy = (c.tri[0][1] + c.tri[1][1] + c.tri[2][1]) / 3;
     o += lt(X(cx) + (c.neg ? 0 : 10), Y(cy) + 4, "WL", "t2", s.w * (1 - s.g), "middle") + lt(X(cx) + (c.neg ? 0 : 10), Y(cy) + 4, "Gain", "t3", s.g, "middle");
-    const bx1 = X(lo), bx2 = X(hi), by = Y(0) + 25;
-    o += SV.line(bx1, by, bx2, by, "ax", gs(s.w)) + SV.line(bx1, by - 4, bx1, by + 4, "ax", gs(s.w)) + SV.line(bx2, by - 4, bx2, by + 4, "ax", gs(s.w)) + SV.text((bx1 + bx2) / 2, by + 15, fmtN(len, 1) + " units", "sm", { "text-anchor": "middle", ...OP(s.w) });
+    const bx1 = X(lo), bx2 = X(hi), by = Y(0) + 46;
+    o += SV.line(bx1, by, bx2, by, "ax", gs(s.w)) + SV.line(bx1, by - 4, bx1, by + 4, "ax", gs(s.w)) + SV.line(bx2, by - 4, bx2, by + 4, "ax", gs(s.w)) + SV.text((bx1 + bx2) / 2, by + 14, fmtN(len, 1) + " units", "sm", { "text-anchor": "middle", ...OP(s.w) });
     o += SV.text(X(50) + (c.neg ? 10 : -10), Y((lineAt(c.msb, 50) + lineAt(c.msc, 50)) / 2) + 4, "$20", "lbl bd t2", { "text-anchor": c.neg ? "start" : "end", ...halo, ...OP(s.w) });
   }
   if (s.sl > 0.01) {
     const q = c.sl, a = lineAt(c.top, q), b = lineAt(c.bot, q);
-    o += gapBar(q, 0.45, "f2", 0.85 * s.sl) + SV.circle(X(q), Y(a), 4, "dot2", OP(s.sl)) + SV.circle(X(q), Y(b), 4, "dot2", OP(s.sl)) + SV.line(X(q), Y(0), X(q), Y(Math.min(a, b)), "ax", gs(s.sl)) + SV.text(X(q), Y(0) + 16, "unit " + q, "sm", { "text-anchor": "middle", ...OP(s.sl) });
+    o += gapBar(q, 0.45, "f2", 0.85 * s.sl) + SV.circle(X(q), Y(a), 4, "dot2", OP(s.sl)) + SV.circle(X(q), Y(b), 4, "dot2", OP(s.sl)) + SV.line(X(q), Y(0), X(q), Y(Math.min(a, b)), "ax", gs(s.sl)) + SV.text(X(q), Y(0) + 33, "unit " + q, "sm", { "text-anchor": "middle", ...OP(s.sl) });
     o += SV.text(330, 58, `Unit ${q}:  MSB $${lineAt(c.msb, q).toFixed(2)}   MSC $${lineAt(c.msc, q).toFixed(2)}   ${c.neg ? "loss" : "net benefit forgone"} $${(a - b).toFixed(2)}`, "lbl bd t2", { ...OP(s.sl * (1 - s.sk)) });
   }
   o += SV.text(330, 58, `Welfare loss = ½ × ${fmtN(len, 1)} × $20 = ${money(0.5 * len * 20)}`, "lbl bd t2", { ...OP(s.w * (1 - s.g)) });
   o += SV.text(330, 58, `Welfare gain = the same triangle = ${money(0.5 * len * 20)}`, "lbl bd t3", { ...OP(s.g) });
-  o += guide(50, 50, "P1", "Q1", s.pg) + SV.circle(X(50), Y(50), 6, "dot2", OP(s.pg));
-  o += guide(Qs, c.Ps, s.nd < 0.5 ? "P*" : "", "Q*", s.sg) + SV.circle(X(Qs), Y(c.Ps), 6, "dot3", OP(s.sg));
+  o += guide(50, 50, "P1 = $50", "Q1 = 50", s.pg) + SV.circle(X(50), Y(50), 6, "dot2", OP(s.pg));
+  o += guide(Qs, c.Ps, s.nd < 0.5 ? "P* = " + money(c.Ps) : "", "Q* = " + Qs, s.sg) + SV.circle(X(Qs), Y(c.Ps), 6, "dot3", OP(s.sg));
   if (s.m > 0.01) o += curve([S0[0] + c.sgn * 20 * s.m, S0[1]], "c4", Math.min(1, s.m * 3), c.ivn, "t4").replace(/(<text[^>]*?)opacity="[^"]*"/, (m, a) => a + `opacity="${s.m > 0.98 ? 1 : 0}"`);
   if (s.nd > 0.01) {
     o += SV.circle(X(qq), Y(pc), 8, "dot4", OP(s.nd * 0.5)) + SV.circle(X(qq), Y(pc), 5, "dot3", OP(s.nd));
-    o += SV.text(62, Y(c.pc) + 4, money(c.pc), "sm", { "text-anchor": "end", ...OP(s.nd) }) + SV.text(62, Y(c.pp) + 4, money(c.pp), "sm", { "text-anchor": "end", ...OP(s.nd) });
+    o += "";
   }
   return o;
 }
@@ -838,12 +839,12 @@ const scnBox = $("#scnBox"), scnB = $("#scnBtns");
 CS.forEach((c, i) => {
   const d = document.createElement("div"); d.id = "scn" + c.key; d.hidden = i > 0; scnBox.appendChild(d);
   const st = document.createElement("div"), nm = document.createElement("div"); nm.innerHTML = "<h3>Who gains and who loses</h3>" + numbers(c); d.appendChild(st); d.appendChild(nm);
-  Lib.stepper(st, { w: 840, h: 365, label: c.btn + ": surplus, welfare loss and welfare gain", base: BASE0, draw: (s) => dr(c, s), tween: 800, dwell: 6800, steps: STEPS.map((s, k) => ({ cap: CAPS[c.key][k], s })) });
+  Lib.stepper(st, { w: 840, h: 395, label: c.btn + ": surplus, welfare loss and welfare gain", base: BASE0, draw: (s) => dr(c, s), tween: 800, dwell: 6800, steps: STEPS.map((s, k) => ({ cap: CAPS[c.key][k], s })) });
   const b = document.createElement("button"); b.className = "b" + (i ? "" : " pri"); b.textContent = (i + 1) + " · " + c.btn; b.onclick = () => { CS.forEach((z, k) => { $("#scn" + z.key).hidden = k !== i; }); $$("button", scnB).forEach((x, k) => x.classList.toggle("pri", k === i)); }; scnB.appendChild(b);
 });
 
 /* four small triangles on the Learn tab */
-$("#glance").innerHTML = CS.map((c) => `<div class="card"><h3>${c.btn}</h3><svg viewBox="0 34 840 331" role="img" aria-label="${c.btn}: welfare loss triangle" style="width:100%;height:auto;display:block">${dr(c, { ...BASE0, e: 1, br: 1, pg: 1, sg: 1, sk: 1, bo: 0, w: 1 })}</svg></div>`).join("");
+$("#glance").innerHTML = CS.map((c) => `<div class="card"><h3>${c.btn}</h3><svg viewBox="0 34 840 361" role="img" aria-label="${c.btn}: welfare loss triangle" style="width:100%;height:auto;display:block">${dr(c, { ...BASE0, e: 1, br: 1, pg: 1, sg: 1, sk: 1, bo: 0, w: 1 })}</svg></div>`).join("");
 
 /* ---------- lab 1: size the fix ---------- */
 let labC = CS[0], labS, nxS;
@@ -854,9 +855,9 @@ function labDraw() {
   let s = axesSvg(c.x) + curve(D0, "c1", 1, c.Dn, "t1") + curve(S0, "c2", 1, c.Sn, "t2") + curve(c.ex, "c3", 1, c.exn, "t3");
   if (t > 0) s += curve([S0[0] + sg * t, S0[1]], "c4", 1);
   if (wl > 0.5) s += ply([[c.Qs, c.Ps], [Qn, lineAt(c.msb, Qn)], [Qn, lineAt(c.msc, Qn)]], "f2", 0.55);
-  s += guide(c.Qs, c.Ps, "", d < 0.3 ? "Q* = Q2" : "Q*", 1, 16) + SV.line(X(Qn), Y(pc), X(Qn), Y(0), "ax", gs(1)) + SV.line(X(0), Y(pc), X(Qn), Y(pc), "ax", gs(1));
+  s += guide(c.Qs, c.Ps, "", d < 0.3 ? "Q* = Q2" : "Q*", 1, 33) + SV.line(X(Qn), Y(pc), X(Qn), Y(0), "ax", gs(1)) + SV.line(X(0), Y(pc), X(Qn), Y(pc), "ax", gs(1));
   s += SV.circle(X(c.Qs), Y(c.Ps), 5, "dot3") + SV.circle(X(Qn), Y(pc), 6, "dot4");
-  if (d >= 0.3) s += SV.text(X(Qn), Y(0) + (d < 6 ? 31 : 16), "Q2", "sm", { "text-anchor": "middle" });
+  if (d >= 0.3) s += SV.text(X(Qn), Y(0) + (d < 6 ? 48 : 33), "Q2", "sm", { "text-anchor": "middle" });
   $("#labS").innerHTML = s;
   $("#r1").textContent = fmtN(Qn, 1) + (d < 0.3 ? " (= Q*)" : "");
   $("#r2").textContent = wl < 0.5 ? "None" : money(wl);
@@ -889,7 +890,7 @@ function nxDraw() {
   if (t > 0) s += curve([S0[0] + sg * t, S0[1]], "c4", 1, nxMode === "tax" ? "S + tax" : "S − subsidy", "t4");
   if (dwl > 0.5) s += ply([[Qn, pc], [Qn, pp], [50, 50]], "f2", 0.6) + lt(X((2 * Qn + 50) / 3 + (Qn > 50 ? 0 : 0)) + (Qn < 50 ? -4 : 4), Y(50) + 4, "DWL", "t2", 1, "middle");
   s += lt(X(Qn / 3) - 4, Y((90 + 2 * pc) / 3) + 4, "CS", "t1") + lt(X(Qn / 3) - 4, Y((10 + 2 * pp) / 3) + 4, "PS", "t4");
-  s += guide(50, 50, "", "Q1 = Q*", 1, 16) + SV.circle(X(50), Y(50), 5, "dot3") + SV.circle(X(Qn), Y(pc), 6, "dot4");
+  s += guide(50, 50, "", "Q1 = Q*", 1, 33) + SV.circle(X(50), Y(50), 5, "dot3") + SV.circle(X(Qn), Y(pc), 6, "dot4");
   $("#labN").innerHTML = s;
   $("#n1").textContent = fmtN(Qn, 1); $("#n2").textContent = money(cs); $("#n3").textContent = money(ps);
   $("#n4l").textContent = nxMode === "tax" ? "Tax revenue" : "Subsidy cost"; $("#n4").textContent = money(gv);
