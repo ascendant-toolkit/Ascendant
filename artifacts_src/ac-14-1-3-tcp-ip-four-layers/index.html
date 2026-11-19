@@ -1,0 +1,909 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The TCP/IP Protocol Suite: Four Layers</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
+
+table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
+.synd{margin:8px 0;overflow-x:auto}
+.gantt{display:flex;margin:6px 0 0;font-family:var(--mono)}.gantt .gb{border:1.5px solid var(--ink);margin-left:-1.5px;text-align:center;padding:6px 0;font-weight:700;font-size:.85rem;background:var(--surface);min-width:0}
+.gantt .gb.c0{background:var(--accent-soft)}.gantt .gb.c1{background:var(--bad-soft)}.gantt .gb.c2{background:var(--good-soft)}.gantt .gb.c3{background:var(--warn-soft)}.gantt .gb.c4{background:var(--soft)}
+.gticks{display:flex;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:2px 0 10px}.gticks span{text-align:right;min-width:0}
+
+details.eq>summary .qb{flex-basis:100%;display:block}
+details.eq>summary .qp,details.eq>summary .qi{display:block;margin-top:6px}
+details.eq>summary .qp.sub{margin-left:1.6em}
+</style></head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">A Level Computer Science · 9618 · Syllabus 14.1.3</div>
+  <h1>The TCP/IP Protocol Suite: Four Layers</h1>
+  <p class="cbook">Coursebook: Chapter 14 · Communication and internet technologies, section 14.1 Protocols</p>
+  <p class="lead">The Application, Transport, Internet and Link layers: what each does, which jobs belong to which layer, and how IP and MAC addresses behave on a journey; animations, labs and the real 9618 questions from 2022 to 2026.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big"><h3>This page in five sentences</h3>
+  <p>The TCP/IP protocol suite has <b>four layers</b>, from the top <b>Application, Transport, Internet and Link</b>. The <b>Application</b> layer gives programs their services and defines the protocols they use; the <b>Transport</b> layer breaks data into numbered packets and delivers it from the source host to the destination host; the <b>Internet</b> layer adds IP addresses and routes each packet; the <b>Link</b> layer formats frames with MAC addresses and sends them over the physical medium. Match every job to its layer: sequence numbers and re-sending are Transport, IP addresses and routing are Internet, frames and MAC addresses are Link. A packet keeps the same IP addresses for the whole journey, but the MAC addresses change at every hop. For a tour of all four layers in real situations, see the resource <i>The Four Layers in the Real World</i>.</p></div>
+
+  <h2>1 · The four layers</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Layer</th><th>Purpose and function</th><th>Protocols and examples</th></tr>
+    <tr><td><b>Application</b> (top)</td><td>Provides services and an <b>interface to the user</b>: the programs that exchange data (web browser, email client, file transfer). Defines the protocols applications use to exchange data</td><td>HTTP(S), FTP, SMTP, POP3, IMAP, BitTorrent</td></tr>
+    <tr><td><b>Transport</b></td><td>Delivery from the <b>source host to the destination host</b> (end to end). Breaks data into <b>packets</b>, adds a <b>sequence number</b> to the header, controls the <b>flow</b>, detects errors, requests <b>re-sending</b> of lost packets and reassembles the data at the destination</td><td>TCP, UDP</td></tr>
+    <tr><td><b>Internet</b></td><td>Identifies the intended <b>network and host</b>. Adds a header with the <b>source and destination IP addresses</b>, forms datagrams, and <b>routes</b> each packet by the best route</td><td>IP</td></tr>
+    <tr><td><b>Link</b> (bottom)</td><td>Transports data within the local network segment, <b>formats datagrams into frames</b>, maps <b>IP addresses to MAC addresses</b>, ensures the correct network protocols are followed, and sends and receives the frames over the physical medium</td><td>Ethernet, Wi-Fi</td></tr>
+  </table></div>
+  <div class="tip"><b class="h">Order to learn</b>From the user down: <b>A</b>pplication, <b>T</b>ransport, <b>I</b>nternet, <b>L</b>ink: "All Tests Include Logic". Some books call the Link layer the Network Access or Data Link layer; the exam uses Link.</div>
+
+  <h2>2 · The Application layer</h2>
+  <ul>
+    <li>Provides <b>services and an interface</b> for the user's programs, such as login, file transfer and email.</li>
+    <li><b>Defines the protocols</b> that applications use to exchange data (HTTP, FTP, SMTP, POP3, IMAP, BitTorrent: see 14.1.4).</li>
+    <li>Can provide ways of <b>securing</b> communication, for example encryption and authentication.</li>
+  </ul>
+
+  <h2>3 · The Transport layer</h2>
+  <ul>
+    <li>Responsible for delivery from the <b>source host to the destination host</b>.</li>
+    <li>Breaks the data into <b>packets</b> and adds a <b>sequence number</b> (and port number) to the packet header.</li>
+    <li><b>Controls the flow</b> of packets, checks for errors and asks for lost or damaged packets to be <b>sent again</b>.</li>
+    <li>At the destination it uses the sequence numbers to put the packets back in <b>order</b>.</li>
+  </ul>
+
+  <h2>4 · The Internet layer</h2>
+  <ul>
+    <li>Identifies the intended <b>network and host</b>.</li>
+    <li>Adds a header containing the <b>source and destination IP addresses</b> and forms <b>datagrams</b> (packets) ready for delivery.</li>
+    <li><b>Routes</b> each packet independently by the best available route. Routers work at this layer.</li>
+  </ul>
+
+  <h2>5 · The Link layer</h2>
+  <ul>
+    <li>Transports data within the <b>local network segment</b>, from one device to the next (the <b>next hop</b>).</li>
+    <li><b>Formats the datagrams into frames</b>, mapping the IP address to a <b>MAC address</b>.</li>
+    <li>Ensures the correct network protocols are followed and gives the upper layers <b>access to the physical medium</b> (cable, Wi-Fi).</li>
+  </ul>
+
+  <h2>6 · What changes on a journey</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Address</th><th>Layer</th><th>Along the journey</th></tr>
+    <tr><td><b>IP address</b> (source and destination)</td><td>Internet</td><td>Stays the same from start to end</td></tr>
+    <tr><td><b>MAC address</b> (this hop)</td><td>Link</td><td>Changes at every hop, because each frame only travels one local segment</td></tr>
+    <tr><td><b>Sequence number</b></td><td>Transport</td><td>Stays with its packet so the destination can reorder them</td></tr>
+  </table></div>
+
+  <h2>7 · Common ways to lose marks</h2>
+  <ul>
+    <li>Putting the layers in the wrong order. The Application layer is the top, the Link layer the bottom.</li>
+    <li>Describing a layer by the function of another: <b>routing and IP addresses</b> are the <b>Internet</b> layer; <b>sequence numbers, error checking and re-sending</b> are the <b>Transport</b> layer.</li>
+    <li>Calling the Link layer the "Network" or "Physical" layer.</li>
+    <li>Writing "the Application layer is the application". It is the layer that provides services to applications and defines their protocols.</li>
+    <li>Describing only one function. A 5-mark question wants up to three points for <i>each</i> layer.</li>
+  </ul>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <h2>1 · The Transport layer: split, number, reorder</h2>
+  <p>Press Play, or click the steps.</p>
+  <div id="stT"></div>
+  <h2>2 · The Internet and Link layers: IP stays, MAC changes</h2>
+  <div id="stH"></div>
+  <h2>3 · The whole trip in one picture</h2>
+  <div id="stA"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Which layer does the job?</h2>
+  <p>Choose the layer for each job.</p>
+  <div class="card"><div id="wB" class="btnrow"></div><div id="wO"></div></div>
+
+  <h2>Lab 2 · The layers compared</h2>
+  <div class="card"><div id="eB" class="btnrow"></div><div id="eO"></div></div>
+
+  <h2>Lab 3 · Rebuild the message</h2>
+  <p>The Transport layer numbers each packet, so the destination can restore the order. Choose how many packets and shuffle them.</p>
+  <div class="card"><div id="rb"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · Which layer?</h2><div id="cl1" class="card"></div>
+  <h2>2 · Which address or number goes with which layer?</h2><div id="cl2" class="card"></div>
+  <h2>3 · Put the layers in order, top to bottom</h2><div id="o1" class="card"></div>
+  <h2>4 · Match each layer to its main job</h2><div id="m1" class="card"></div>
+  <h2>5 · Packets and layers</h2><div id="c1"></div>
+  <h2>6 · Multiple choice</h2><div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+<p class="note">Examples are explained in general terms. Check current details before quoting them in an exam answer.</p>
+  <div class="rw"><h3>Loading a web page</h3><p>Your browser (Application layer) asks for a page with HTTP. The Transport layer splits the reply into numbered packets, the Internet layer addresses each one, and the Link layer sends it over Wi-Fi to your router.</p><div class="use"><b>Exam use:</b> each layer does its own job as the message passes down.</div></div>
+  <div class="rw"><h3>A lost packet</h3><p>If a packet in a download is lost, the Transport layer notices a sequence number is missing and asks for it again, without the browser having to do anything.</p><div class="use"><b>Exam use:</b> the Transport layer handles sequencing, flow and error recovery.</div></div>
+  <div class="rw"><h3>Finding the way</h3><p>A router reads the destination IP address, which was added by the Internet layer, to decide where to send each packet next.</p><div class="use"><b>Exam use:</b> routing and IP addresses belong to the Internet layer.</div></div>
+  <div class="rw"><h3>Your router's job at home</h3><p>Your home router receives a frame over Wi-Fi, takes out the packet, reads the IP address, and sends it on in a new frame to your internet provider. The MAC addresses change; the IP addresses do not.</p><div class="use"><b>Exam use:</b> MAC addresses are for the next hop, IP addresses for the whole journey.</div></div>
+  <div class="rw"><h3>Wi-Fi or Ethernet</h3><p>Plug an Ethernet cable into a laptop and the web carries on working. Only the Link layer (the way the frames are sent) has changed.</p><div class="use"><b>Exam use:</b> the Link layer deals with the physical medium.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam questions</h2>
+  <p>Part 1 is real 9618 questions on the four TCP/IP layers (Paper 3), 2022 to 2026. Part 2 is a set of review questions for practice; they are not in exam format. Open each question for a reminder, a model answer and a common mistake. Each coloured phrase earns one mark; the number shows which mark point it is.</p>
+  <div class="key"><span class="k"><i></i> mark-scheme point</span><span class="a"><i></i> second part or applied point</span></div>
+  <h2>1. Past paper questions</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Session</th><th>Paper</th><th>Question</th><th>Marks</th><th>What it asks</th></tr>
+    <tr><td>O/N 2022</td><td>31, 33</td><td>2</td><td>5</td><td>Functions of the Transport and Internet layers</td></tr>
+    <tr><td>M/J 2024</td><td>31, 33</td><td>2(a), 2(b)</td><td>2 + 2</td><td>Order the four layers; the function of the Transport layer</td></tr>
+    <tr><td>M/J 2025</td><td>31</td><td>3(a)</td><td>5</td><td>Purpose of the Application layer and the Transport layer</td></tr>
+    <tr><td>M/J 2025</td><td>33</td><td>4(a)</td><td>5</td><td>Purpose of the Internet layer and the Link layer</td></tr>
+    <tr><td>O/N 2023</td><td>31, 33</td><td>2(b)</td><td>2</td><td>The purpose of the Link layer</td></tr>
+    <tr><td>M/J 2026</td><td>31</td><td>4</td><td>4</td><td>Match each TCP/IP layer to its description</td></tr>
+    <tr><td>M/J 2026</td><td>32</td><td>2</td><td>4</td><td>Complete a paragraph about TCP/IP</td></tr>
+  </table></div>
+  <p class="note">The functions of the layers are examined in nearly every series. Learn the three or so points for each layer and which layer owns which job; a 5-mark question wants both layers, up to three marks each.</p>
+
+  <h3>The functions of the layers</h3>
+  <details class="eq"><summary><span class="src">O/N 2022 · 9618/31, 33 · Q2</span> <span class="cmd">Outline</span> <span class="mark">5 marks</span> Outline the functions of the Transport and Internet layers of the TCP/IP protocol suite.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Up to three for each layer.</div>
+    <div class="ans"><p>Transport (max 3): <span class="mk k" data-t="1">breaks data into manageable packets (segmentation)</span> <span class="mk k" data-t="2">sequences the packets / adds a packet header</span> <span class="mk k" data-t="3">sends packets to the Internet layer / receives data from the Application layer</span> <span class="mk k" data-t="4">controls the flow of packets</span> <span class="mk k" data-t="5">handles packet loss or corruption: acknowledges receipt of complete, error-free packets</span> Internet (max 3): <span class="mk a" data-t="1">identifies the intended network and host</span> <span class="mk a" data-t="2">transmits packets to the Link layer</span> <span class="mk a" data-t="3">routes the packets independently by the optimum route</span> <span class="mk a" data-t="4">addresses packets with source and destination IP addresses</span> <span class="mk a" data-t="5">uses an IP address and port number to form a socket</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving a Transport function (sequencing, re-sending) for the Internet layer.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/31 · Q3(a)</span> <span class="cmd">Describe</span> <span class="mark">5 marks</span> The Application Layer and Transport Layer are two layers of the TCP/IP protocol suite. Describe the purpose of the Application Layer and the purpose of the Transport Layer.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Up to three for each.</div>
+    <div class="ans"><p>Application (max 3): <span class="mk k" data-t="1">To provide services / an interface with the user (access to applications such as login, file transfer, email)</span> <span class="mk k" data-t="2">To provide mechanisms for securing communication, e.g. encryption / authentication</span> <span class="mk k" data-t="3">To define the protocols used to exchange data</span> <span class="mk k" data-t="4">Error detection and recovery for application-specific errors</span> Transport (max 3): <span class="mk a" data-t="1">To provide logical communication between applications on different hosts / deliver data to the correct application process</span> <span class="mk a" data-t="2">To ensure error-free, end-to-end delivery of data in sequence, with error detection and automatic repeat request</span> <span class="mk a" data-t="3">To break data into segments when sent and reassemble them at the destination</span> <span class="mk a" data-t="4">To regulate network connections / provide flow control to prevent data loss</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2025 · 9618/33 · Q4(a)</span> <span class="cmd">Describe</span> <span class="mark">5 marks</span> The Internet layer and Link layer are two layers of the TCP/IP protocol suite. Describe the purpose of the Internet layer and the purpose of the Link layer.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Internet: IP addresses and routing. Link: frames, MAC addresses, the next hop.</div>
+    <div class="ans"><p>Internet (max 3): <span class="mk k" data-t="1">To identify the intended network and host</span> <span class="mk k" data-t="2">To add a header containing source and destination IP addresses</span> <span class="mk k" data-t="3">To prepare packets for delivery, formatting them into datagrams</span> <span class="mk k" data-t="4">To route datagrams through the optimum route</span> Link (max 3): <span class="mk a" data-t="1">To prepare the next hop by managing the link between two directly connected devices</span> <span class="mk a" data-t="2">To format datagrams into frames for transmission</span> <span class="mk a" data-t="3">To identify network protocols in the packet header</span> <span class="mk a" data-t="4">To deliver frames to and receive frames from the network, mapping IP addresses to MAC (physical) addresses</span> <span class="mk a" data-t="5">To provide error checking and correction, including resend requests</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">O/N 2023 · 9618/31, 33 · Q2(b)</span> <span class="cmd">Outline</span> <span class="mark">2 marks</span> Outline the purpose of the Link layer in the TCP/IP protocol suite.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Frames, MAC addresses, the physical medium.</div>
+    <div class="ans"><p>Any two: <span class="mk k" data-t="1">To ensure correct network protocols are followed</span> <span class="mk k" data-t="2">To enable the upper layers to access the physical medium / enable connection with the Internet layer</span> <span class="mk k" data-t="3">To be responsible for transporting data within the network / local segments</span> <span class="mk k" data-t="4">To format the data into frames for transmission</span> <span class="mk k" data-t="5">To map IP addresses to MAC (physical) addresses</span></p></div>
+  </div></details>
+
+  <h3>Order, matching and completing</h3>
+  <details class="eq"><summary><span class="src">M/J 2024 · 9618/31, 33 · Q2(a), (b)</span> <span class="cmd">Complete / Describe</span> <span class="mark">2 + 2 marks</span><span class="qb"><span class="qi">The TCP/IP protocol suite has four layers: Transport, Application, Link, Internet.</span><span class="qp">(a) Complete the diagram to show the correct order for these layers.</span><span class="qp">(b) Describe the function of the Transport layer.</span></span></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>(a) Application at the top. (b) end-to-end delivery, packets, sequence numbers, error recovery.</div>
+    <div class="ans"><p><b>(a)</b> <span class="mk k" data-t="1">all four in the correct positions (two marks; one mark for at least two correct)</span></p><pre class="plain">Application
+Transport
+Internet
+Link</pre><p><b>(b)</b> Any two: <span class="mk a" data-t="1">The Transport layer is responsible for delivery of data from the source host to the destination host</span> <span class="mk a" data-t="2">Data is broken into packets and passed to the Internet layer</span> <span class="mk a" data-t="3">It adds the sequence number to the packet header</span> <span class="mk a" data-t="4">It establishes end-to-end contact</span> <span class="mk a" data-t="5">It ensures data arrives error free / retransmits packets if lost</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/31 · Q4</span> <span class="cmd">Match</span> <span class="mark">4 marks</span> Draw one line to connect each TCP/IP layer to its most appropriate description. Layers: Application, Transport, Internet, Link. Descriptions: (A) ensures packets arrive in sequence without errors; (B) provides remote access to files on a host server to access and manage files stored in a remote location; (C) interconnects nodes or hosts in a network, encapsulates IP packets into frames and ensures correct protocols are followed; (D) identifies the intended network and host; (E) contains all the programs that exchange data and includes protocols: HTTP, FTP and POP3.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Five descriptions, four layers: one is a distractor.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">Application matches (E): the programs that exchange data, and the protocols HTTP, FTP and POP3</span> <span class="mk k" data-t="2">Transport matches (A): packets in sequence without errors</span> <span class="mk k" data-t="3">Internet matches (D): identifies the intended network and host</span> <span class="mk k" data-t="4">Link matches (C): interconnects nodes, encapsulates IP packets into frames</span></p><p>Description (B) is the odd one out: it describes what the FTP protocol offers, not a layer.</p></div>
+    <div class="warn"><b class="h">Common mistake</b>Matching Link to 'identifies the intended network and host'. That is the Internet layer.</div>
+  </div></details>
+  <details class="eq"><summary><span class="src">M/J 2026 · 9618/32 · Q2</span> <span class="cmd">Complete</span> <span class="mark">4 marks</span> Complete the paragraph using the most appropriate words from the list. Some words are not used. Words: application, controls, disconnects, four, interconnects, internet, link, lists, many, packets, seven, transport.<pre class="plain">The TCP/IP protocol suite consists of ........ layers which can be thought of as a stack. It is
+designed to send ........ of data across the internet. It is also used as a communications
+protocol to ensure accurate delivery of data over private networks. The lowest layer of the
+stack is the ........ layer. This is the layer that ........ nodes in the network.</pre></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Four layers; data sent in packets; the lowest layer is Link; it interconnects nodes.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">four</span> <span class="mk k" data-t="2">packets</span> <span class="mk k" data-t="3">link</span> <span class="mk k" data-t="4">interconnects</span></p></div>
+  </div></details>
+  <h2>2. Review questions</h2>
+  <p>Written for practice and revision, not taken from past papers. Use them to check your understanding before attempting the real questions above.</p>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">3 marks</span> A browser requests a web page. Describe what the Transport layer does to the reply before it is sent.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Packets, numbers, the header.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">It breaks the reply into packets (segments).</span> <span class="mk k" data-t="2">It adds a header containing a sequence number (and port number) to each.</span> <span class="mk k" data-t="3">It passes the packets to the Internet layer, and later checks they arrive complete and in order.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Identify</span> <span class="mark">2 marks</span><span class="qb"><span class="qi">Name the layer that</span><span class="qp">(a) adds the source and destination IP addresses;</span><span class="qp">(b) formats the data into frames with MAC addresses.</span></span></summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Internet adds the IP header. Link makes frames.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">(a) Internet layer</span> <span class="mk k" data-t="2">(b) Link layer</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">3 marks</span> A packet travels from a laptop to a server through three routers. State what stays the same and what changes about its addresses.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>IP end to end, MAC at each hop.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The source and destination IP addresses stay the same for the whole journey.</span> <span class="mk k" data-t="2">The MAC addresses change at each hop.</span> <span class="mk k" data-t="3">Because the Link layer only moves the frame across one local network segment at a time.</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">State</span> <span class="mark">2 marks</span> State what the Transport layer does with the sequence numbers when the packets arrive at the destination.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Packets can arrive out of order.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">It uses the sequence numbers to put the packets back into the correct order.</span> <span class="mk k" data-t="2">It detects that a packet is missing and asks for it to be sent again.</span></p></div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+<h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Learn the order.</b> Application, Transport, Internet, Link: top to bottom.</li>
+    <li><b>Match the job to the layer.</b> Sequence numbers, packets, re-sending: Transport. IP addresses, routing: Internet. Frames, MAC addresses, the cable or Wi-Fi: Link. User services and protocols: Application.</li>
+    <li><b>Three points per layer.</b> A 5-mark 'describe two layers' question rewards up to three points for each.</li>
+    <li><b>IP against MAC.</b> IP addresses stay the same for the journey; MAC addresses change at every hop.</li>
+    <li><b>Use the exam's name for the bottom layer.</b> Link, not Network or Physical.</li>
+  </ul>
+  <h2>Sentences you can use</h2>
+  <div class="tw"><table class="t">
+    <tr><th>You want to say</th><th>Use this sentence</th></tr>
+    <tr><td>what the Transport layer does</td><td>"It breaks data into numbered packets, controls the flow and ensures they arrive error free and in order."</td></tr>
+    <tr><td>what the Internet layer does</td><td>"It adds the source and destination IP addresses and routes each packet by the best route."</td></tr>
+    <tr><td>what the Link layer does</td><td>"It formats datagrams into frames with MAC addresses and sends them over the physical medium."</td></tr>
+    <tr><td>what the Application layer does</td><td>"It provides services and an interface to the user, and defines the protocols applications use."</td></tr>
+  </table></div>
+<h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Identify</td><td>Give the name or fact only.</td></tr>
+    <tr><td>Outline</td><td>Give the main points briefly.</td></tr>
+    <tr><td>Describe</td><td>Say what it does, in several points.</td></tr>
+    <tr><td>Match</td><td>Pair each item with the right description.</td></tr>
+  </table></div>
+<h2>Flashcards</h2><div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { sel = null; pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  /* Spread the correct answer across A-D: each reorderable question gets the least-used position so far
+     (ties broken by a seed from the quiz text, so quizzes differ). Skipped when options or the explanation
+     refer to each other or to letters, since reordering would break the wording. */
+  const dep = /\b(all|none|neither|both) of (the|these|those)\b|\bthe above\b|^both\b|\b(option|answer|statement)s? [A-D]\b|\b[A-D] (and|or|&) [A-D]\b|^[A-D]\b[.)]?\s/i;
+  let h = 0; for (const ch of o.qs.map((q) => q.q).join("")) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const fixed = (q) => q.opts.length < 3 || q.opts.some((t) => dep.test(t)) || dep.test(q.why || "");
+  const used = [0, 0, 0, 0, 0, 0]; o.qs.forEach((q) => { if (fixed(q)) used[q.a]++; });
+  o = { ...o, qs: o.qs.map((q, i) => {
+    if (fixed(q)) return q;
+    const n = q.opts.length; let to = q.a;
+    for (let k = 0; k < n; k++) { const p = (h + i + k) % n; if (used[p] < used[to]) to = p; }
+    used[to]++; if (to === q.a) return q;
+    const opts = q.opts.slice(); [opts[q.a], opts[to]] = [opts[to], opts[q.a]];
+    return { ...q, opts, a: to };
+  }) };
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const op = (v) => ({ opacity: Math.max(0, Math.min(1, v)) });
+const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px" };
+const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
+const axes = (x0, y0, x1, y1, xl, yl) => SV.line(x0, y0, x1, y0) + SV.line(x0, y0, x0, y1) + SV.text(x1, y0 + 26, xl, "sm", { "text-anchor": "end" }) + SV.text(x0 + 6, y1 - 6, yl, "sm");
+const tag = (x, y, t, c, v = 1, a = "start") => SV.text(x, y, t, "lbl bd " + c, { "text-anchor": a, ...halo, ...op(v) });
+/* click a button, show its row of results */
+function btnTable(btnId, outId, rows, heads) {
+  const box = $("#" + btnId), out = $("#" + outId); if (!box || !out) return;
+  box.innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  const show = (i) => { const r = rows[i]; $$("button", box).forEach((b, k) => b.classList.toggle("pri", k === i)); out.innerHTML = `<div class="tw"><table class="t"><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr><tr>${r.map((c, k) => `<td>${k ? c : "<b>" + c + "</b>"}</td>`).join("")}</tr></table></div>`; };
+  $$("button", box).forEach((b) => (b.onclick = () => show(+b.dataset.i))); show(0);
+}
+
+const bin = (n, w = 8) => n.toString(2).padStart(w, "0");
+const hx = (n, w = 2) => n.toString(16).toUpperCase().padStart(w, "0");
+const grp4 = (s) => s.replace(/(.{4})(?=.)/g, "$1 ");
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+/* row of boxes: items [{t, c, v}] t text, c fill class, v opacity */
+function boxRow(items, x0, y, w = 64, h = 52, gap = 10, o = {}) {
+  let s = "";
+  items.forEach((it, i) => {
+    const x = x0 + i * (w + gap), v = it.v === undefined ? 1 : it.v;
+    if (v <= 0) return;
+    s += SV.rect(x, y, w, h, it.c || "f3", { rx: 8, ...op(v * (it.c ? 0.55 : 0.18)) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) });
+    s += SV.text(x + w / 2, y + h / 2 + 8, it.t, "lbl bd", { "text-anchor": "middle", style: "font-size:" + (o.fs || 22) + "px;font-family:var(--mono)", ...op(v) });
+    if (it.top !== undefined) s += SV.text(x + w / 2, y - 8, it.top, "sm", { "text-anchor": "middle", ...op(v) });
+    if (it.bot !== undefined) s += SV.text(x + w / 2, y + h + 18, it.bot, "sm", { "text-anchor": "middle", ...op(v) });
+  });
+  return s;
+}
+
+/* memory cell: address on the left, value in the box */
+function memCell(x, y, addr, val, cls = "f3", v = 1, w = 150, h = 40) {
+  return SV.rect(x, y, w, h, cls, { rx: 6, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 6, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y + h / 2 + 6, String(addr), "sm", { style: "font-family:var(--mono)", ...op(v) }) +
+    SV.text(x + w - 12, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "end", style: "font-family:var(--mono);font-size:17px", ...op(v) });
+}
+function regBox(x, y, name, val, cls = "f2", v = 1, w = 120, h = 46) {
+  return SV.rect(x, y, w, h, cls, { rx: 8, ...op(v * 0.55) }) + SV.rect(x, y, w, h, "ax", { rx: 8, fill: "none", ...op(v) }) +
+    SV.text(x + 10, y - 7, name, "sm", op(v)) + SV.text(x + w / 2, y + h / 2 + 7, String(val), "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:19px", ...op(v) });
+}
+/* a list of code lines; hl is the highlighted index (or -1) */
+function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
+  return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
+}
+
+const LAYERS = [["Application", "f1", "HTTP request / the message", "message"], ["Transport", "f2", "seq number, port", "segments"], ["Internet", "f3", "source and destination IP address", "packets"], ["Link", "f4", "MAC addresses, frame check", "frames"]];
+
+/* Lab 2 */
+(function () {
+  const jobs = [["Adds the source and destination IP addresses to a packet", 2], ["Splits the data into numbered packets and re-sends lost ones", 1], ["Provides the interface a web browser uses to fetch a page", 0], ["Formats packets into frames and uses MAC addresses", 3], ["Chooses the best route for each packet", 2], ["Controls the flow of packets so the receiver is not overwhelmed", 1]];
+  let cur = 0, pick = null;
+  const paint = () => {
+    $$("#wB button").forEach((b, i) => b.classList.toggle("pri", i === cur));
+    const j = jobs[cur]; $("#wO").innerHTML = `<p><b>${j[0]}</b></p><div class="btnrow">` + LAYERS.map((l, i) => `<button class="b${pick === i ? " pri" : ""}" data-i="${i}">${l[0]}</button>`).join("") + '</div><div class="verdict">' + (pick === null ? "Choose a layer." : pick === j[1] ? "Correct: the " + LAYERS[j[1]][0] + " layer." : "Not the " + LAYERS[pick][0] + " layer. It is the " + LAYERS[j[1]][0] + " layer.") + "</div>";
+    $$("#wO button").forEach((b) => (b.onclick = () => { pick = +b.dataset.i; paint(); }));
+  };
+  $("#wB").innerHTML = jobs.map((j, i) => `<button class="b" data-i="${i}">Job ${i + 1}</button>`).join("");
+  $$("#wB button").forEach((b) => (b.onclick = () => { cur = +b.dataset.i; pick = null; paint(); })); paint();
+})();
+
+btnTable("eB", "eO", [
+  ["Application", "Services and interface to the user; the programs that exchange data", "HTTP(S), FTP, SMTP, POP3, IMAP, BitTorrent", "The message", "Describing it as the 'physical' layer"],
+  ["Transport", "End-to-end delivery: packets, sequence numbers, flow control, error recovery", "TCP, UDP", "Segments / packets", "Giving it IP addresses"],
+  ["Internet", "Identifies the network and host; IP addresses; routes packets", "IP", "Packets / datagrams", "Giving it re-sending of lost packets"],
+  ["Link", "Frames, MAC addresses, the next hop, the physical medium", "Ethernet, Wi-Fi", "Frames", "Calling it the 'Network' layer"]
+], ["Layer", "Purpose and function", "Protocols", "Data unit", "Trap"]);
+
+(function () {
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = SV.text(30, 22, "Sender", "lbl bd") + SV.text(560, 22, "Receiver", "lbl bd");
+    const order = [1, 2, 3, 4], arrive = [3, 1, 4, 2];
+    if (k >= 0) order.forEach((n, i) => { o += SV.rect(30 + i * 60, 34, 50, 38, "f2", { rx: 6, ...op(k >= 1 ? 0.9 : 0.5) }) + SV.text(55 + i * 60, 58, k >= 1 ? "#" + n : "", "lbl bd", { "text-anchor": "middle" }); });
+    if (k === 0) o += SV.rect(30, 34, 230, 38, "f2", { rx: 6, ...op(0.7) }) + SV.text(145, 58, "message", "lbl bd", { "text-anchor": "middle" });
+    if (k >= 2) arrive.forEach((n, i) => { const lost = n === 4 && k === 3; if (k >= 4 && n === 4 && k < 5) return; o += SV.rect(330 + i * 60, 120, 50, 38, lost ? "cell-no" : "f3", { rx: 6, ...op(lost ? 0.5 : 0.9) }) + SV.text(355 + i * 60, 144, lost ? "✗" : "#" + n, "lbl bd", { "text-anchor": "middle" }); });
+    if (k >= 2) o += SV.line(270, 55, 320, 135, "dash", op(0.6));
+    if (k >= 5) o = SV.text(30, 22, "Sender", "lbl bd") + SV.text(560, 22, "Receiver", "lbl bd") + order.map((n, i) => SV.rect(30 + i * 60, 34, 50, 38, "f2", { rx: 6, ...op(0.5) }) + SV.text(55 + i * 60, 58, "#" + n, "lbl bd", { "text-anchor": "middle" })).join("") + order.map((n, i) => SV.rect(330 + i * 60, 120, 50, 38, "cell-ok", { rx: 6 }) + SV.text(355 + i * 60, 144, "#" + n, "lbl bd", { "text-anchor": "middle" })).join("") + SV.text(330, 190, "Put in order using the sequence numbers", "sm");
+    if (k === 3) o += SV.text(330, 190, "Packet #4 is lost on the way", "lbl bd t2", { style: "font-size:14px" });
+    if (k === 4) o += SV.text(330, 190, "Receiver notices #4 is missing and asks for it again", "lbl bd t4", { style: "font-size:14px" });
+    return o;
+  };
+  Lib.stepper($("#stT"), { w: 760, h: 205, label: "Transport layer: packets, sequence numbers, re-sending", base: { i: 0 }, draw, tween: 250, dwell: 2700, steps: [
+    { cap: "The Transport layer receives the message from the Application layer.", s: { i: 0 } },
+    { cap: "It <b>breaks the message into packets</b> and adds a <b>sequence number</b> to each header.", s: { i: 1 } },
+    { cap: "The packets are sent. They may take different routes and <b>arrive out of order</b>.", s: { i: 2 } },
+    { cap: "One packet is <b>lost</b> on the way.", s: { i: 3 } },
+    { cap: "The destination's Transport layer sees a gap in the sequence numbers and <b>asks for that packet to be sent again</b>.", s: { i: 4 } },
+    { cap: "With every packet present, the sequence numbers let the layer <b>reassemble the message in the right order</b> and pass it up.", s: { i: 5 } }] });
+})();
+
+(function () {
+  const N = [["Laptop", 40, "192.168.1.5"], ["Home router", 230, ""], ["ISP router", 420, ""], ["Web server", 610, "93.184.216.34"]];
+  const MAC = [["AA:01", "BB:02"], ["BB:03", "CC:04"], ["CC:05", "DD:06"]];
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "";
+    N.forEach((n, i) => { o += SV.rect(n[1], 60, 110, 46, i === 0 || i === 3 ? "f1" : "f3", { rx: 8, ...op(0.8) }) + SV.text(n[1] + 55, 88, n[0], "lbl bd", { "text-anchor": "middle" }); if (i < 3) o += SV.line(n[1] + 110, 83, N[i + 1][1], 83, "ax", { "stroke-width": 2 }); });
+    o += SV.text(30, 30, "Internet layer (IP): source 192.168.1.5  →  destination 93.184.216.34, the same on every hop", "sm bd t1");
+    if (k >= 1 && k <= 3) { const h = k - 1, x = N[h][1] + 110, w = N[h + 1][1] - x; o += SV.rect(x + 8, 128, w - 16, 54, "cell-warn", { rx: 8 }) + SV.text(x + w / 2, 150, "Link layer frame", "sm bd", { "text-anchor": "middle" }) + SV.text(x + w / 2, 170, MAC[h][0] + " → " + MAC[h][1], "sm", { "text-anchor": "middle", style: "font-family:var(--mono)" }); o += SV.circle(x + w / 2, 83, 7, "dot4"); }
+    if (k === 4) o += SV.text(380, 160, "Arrived: IP addresses unchanged, three different pairs of MAC addresses used", "lbl bd t3", { "text-anchor": "middle", style: "font-size:14px" });
+    return o;
+  };
+  Lib.stepper($("#stH"), { w: 760, h: 200, label: "IP addresses stay the same, MAC addresses change at each hop", base: { i: 0 }, draw, tween: 250, dwell: 2800, steps: [
+    { cap: "A laptop sends to a web server. The <b>Internet layer</b> puts both IP addresses in the header. They will not change.", s: { i: 0 } },
+    { cap: "Hop 1: the <b>Link layer</b> frames the packet with the laptop's and the home router's <b>MAC addresses</b>.", s: { i: 1 } },
+    { cap: "Hop 2: the home router removes the frame, reads the destination IP, and makes a <b>new frame</b> with new MAC addresses.", s: { i: 2 } },
+    { cap: "Hop 3: the ISP router does the same, framing the packet for the web server.", s: { i: 3 } },
+    { cap: "The IP addresses stayed the same for the whole journey; the MAC addresses changed at every hop.", s: { i: 4 } }] });
+})();
+(function () {
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "";
+    const stack = (x, title, hl) => { let t = SV.text(x + 90, 20, title, "lbl bd", { "text-anchor": "middle" }); LAYERS.forEach((l, i) => (t += SV.rect(x, 30 + i * 46, 180, 40, hl === i ? "cell-warn" : l[1], { rx: 6, ...op(hl === i ? 1 : 0.6) }) + SV.text(x + 90, 55 + i * 46, l[0], "lbl bd", { "text-anchor": "middle", style: "font-size:15px" }))); return t; };
+    const hlS = k >= 1 && k <= 4 ? k - 1 : -1, hlR = k >= 6 && k <= 9 ? 9 - k : -1;
+    o += stack(40, "Sender", hlS) + stack(540, "Receiver", hlR);
+    o += SV.line(220, 175, 540, 175, "dash", op(k >= 5 && k <= 5 ? 1 : 0.3)) + SV.text(380, 168, k === 5 ? "frames cross the network" : "network and routers", "sm", { "text-anchor": "middle" });
+    if (k >= 1 && k <= 4) o += SV.text(260, 55 + (k - 1) * 46, "◀ " + ["creates the message", "adds sequence number, port", "adds IP addresses", "makes frames, sends"][k - 1], "sm");
+    if (k >= 6 && k <= 9) o += SV.text(330, 55 + (9 - k) * 46, ["receives the frames ▶", "checks the IP address ▶", "orders and checks packets ▶", "gives message to the program ▶"][k - 6], "sm");
+    return o;
+  };
+  Lib.stepper($("#stA"), { w: 760, h: 225, label: "A message through the TCP/IP stack", base: { i: 0 }, draw, tween: 250, dwell: 2600, steps: [
+    { cap: "Two hosts, each with the same four-layer stack. A message is sent from the left to the right.", s: { i: 0 } },
+    { cap: "<b>Application layer</b>: the user's program creates the message using a protocol such as HTTP.", s: { i: 1 } },
+    { cap: "<b>Transport layer</b>: breaks it into packets and adds a header with a sequence number.", s: { i: 2 } },
+    { cap: "<b>Internet layer</b>: adds the source and destination IP addresses.", s: { i: 3 } },
+    { cap: "<b>Link layer</b>: formats the packets into frames with MAC addresses and sends them over the physical network.", s: { i: 4 } },
+    { cap: "The frames travel across the network, passing through routers.", s: { i: 5 } },
+    { cap: "At the receiver the <b>Link layer</b> receives the frames, the first step on the way <b>up</b>.", s: { i: 6 } },
+    { cap: "The <b>Internet layer</b> checks the destination IP address and passes the packets up.", s: { i: 7 } },
+    { cap: "The <b>Transport layer</b> puts the packets in order using the sequence numbers and checks for loss or errors.", s: { i: 8 } },
+    { cap: "The <b>Application layer</b> gives the complete message to the program.", s: { i: 9 } }] });
+})();
+
+
+(function () {
+  let n = 4, order = [];
+  const paint = () => {
+    const shuffled = order.slice();
+    $("#rb").innerHTML = `<div class="btnrow">${[3, 4, 5, 6].map((c) => `<button class="b${c === n ? " pri" : ""}" data-n="${c}">${c} packets</button>`).join("")}<button class="b" id="rbs">Shuffle arrival</button></div>` +
+      `<p>Arrived in this order: <b>${shuffled.map((i) => "#" + (i + 1)).join("  ")}</b></p><p>After the Transport layer sorts them by sequence number: <b>${shuffled.slice().sort((a, b) => a - b).map((i) => "#" + (i + 1)).join("  ")}</b></p>`;
+    $$("#rb button[data-n]").forEach((b) => (b.onclick = () => { n = +b.dataset.n; order = [...Array(n).keys()]; shuf(); }));
+    $("#rbs").onclick = shuf;
+  };
+  const shuf = () => { order = [...Array(n).keys()]; for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; } paint(); };
+  shuf();
+})();
+Lib.classify($("#cl1"), { prompt: "Which layer does each job belong to?", buckets: [{"label": "Application"}, {"label": "Transport"}, {"label": "Internet"}, {"label": "Link"}], items: [{"text": "Provides an interface to the user's programs", "b": 0}, {"text": "Adds a sequence number to each packet", "b": 1}, {"text": "Adds the source and destination IP address", "b": 2}, {"text": "Formats datagrams into frames", "b": 3}, {"text": "Controls the flow of packets", "b": 1}, {"text": "Routes each packet by the best route", "b": 2}, {"text": "Maps IP addresses to MAC addresses", "b": 3}, {"text": "Defines the protocols programs use to exchange data", "b": 0}], done: "Application: user. Transport: packets and sequence. Internet: IP and routing. Link: frames and MAC." });
+Lib.classify($("#cl2"), { prompt: "Which layer does this belong to?", buckets: [{"label": "Transport"}, {"label": "Internet"}, {"label": "Link"}], items: [{"text": "Sequence number", "b": 0}, {"text": "Destination IP address", "b": 1}, {"text": "Source MAC address", "b": 2}, {"text": "Re-sending a lost packet", "b": 0}, {"text": "Routing", "b": 1}, {"text": "Wi-Fi or Ethernet", "b": 2}, {"text": "Putting packets back in order", "b": 0}, {"text": "A datagram", "b": 1}], done: "Sequence and re-sending are Transport. IP and routing are Internet. MAC, frames and Wi-Fi are Link." });
+Lib.order($("#o1"), { prompt: "Put the layers in order, from the top (nearest the user) to the bottom.", items: ["Application", "Transport", "Internet", "Link"], done: "Application, Transport, Internet, Link." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Application", "Services for the user's programs and the protocols they use"], ["Transport", "End-to-end delivery in numbered packets"], ["Internet", "IP addresses and routing"], ["Link", "Frames, MAC addresses and the physical medium"]], done: "Learn these terms." });
+Lib.calc($("#c1"), { qs: [
+  {"q": "A message of 4000 bytes is split into packets of 500 bytes. How many packets?", "a": 8, "unit": "", "tol": 0.01, "hint": "4000 ÷ 500.", "sol": "<b>8</b>."},
+  {"q": "A file of 2 MB is split into packets of 1000 bytes (take 1 MB as 1 000 000 bytes). How many packets?", "a": 2000, "unit": "", "tol": 0.01, "hint": "2 000 000 ÷ 1000.", "sol": "<b>2000</b>."},
+  {"q": "A packet passes through 3 routers between two hosts. How many separate frames (hops) are used?", "a": 4, "unit": "", "tol": 0.01, "hint": "Host to router 1, 1 to 2, 2 to 3, 3 to host.", "sol": "<b>4</b>."},
+  {"q": "Packets 1 to 6 are sent and packet 4 is lost. How many packets must be sent again?", "a": 1, "unit": "", "tol": 0.01, "hint": "Only the missing one.", "sol": "<b>1</b>."},
+  {"q": "How many layers have a header added or removed that the Application layer never sees (Transport, Internet and Link)?", "a": 3, "unit": "", "tol": 0.01, "hint": "Everything below the top.", "sol": "<b>3</b>."},
+] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "Which layer breaks data into packets and adds sequence numbers?", opts: ["Application", "Transport", "Internet", "Link"], a: 1, why: "Transport." },
+  { q: "Which layer adds source and destination IP addresses?", opts: ["Internet", "Link", "Application", "Transport"], a: 0, why: "Internet." },
+  { q: "Which is the bottom layer of the TCP/IP stack?", opts: ["Application", "Transport", "Internet", "Link"], a: 3, why: "Link." },
+  { q: "Which layer maps IP addresses to MAC addresses?", opts: ["Internet", "Link", "Application", "Transport"], a: 1, why: "Link." },
+  { q: "Which layer routes packets by the best route?", opts: ["Transport", "Link", "Internet", "Application"], a: 2, why: "Internet." },
+  { q: "Which layer defines HTTP and SMTP?", opts: ["Application", "Transport", "Internet", "Link"], a: 0, why: "Application." },
+] });
+Lib.cards($("#fc1"), { cards: [
+  ["Application", "User services; HTTP, FTP, SMTP, POP3, IMAP, BitTorrent."],
+  ["Transport", "Packets, sequence numbers, flow control, error recovery."],
+  ["Internet", "IP addresses and routing."],
+  ["Link", "Frames, MAC addresses, the physical medium."],
+  ["Datagram", "A packet with IP addresses in the header."],
+  ["Frame", "A packet with MAC addresses, ready for the physical medium."],
+  ["Hop", "One step from one device to the next."],
+  ["Next hop", "The next device on the route, prepared by the Link layer."],
+] });
+
+Lib.initTabs();
+</script>
+</body></html>

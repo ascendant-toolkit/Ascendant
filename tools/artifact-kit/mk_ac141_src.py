@@ -1,4 +1,4 @@
-"""A Level CS syllabus 14.1.1: why protocols are needed, the protocol stack and the TCP/IP layers. Run: python3 tools/artifact-kit/mk_ac1411.py"""
+"""Content bank for the old single 14.1.1 page (why protocols, the stack, the TCP/IP layers). mk_ac141.py slices its past paper questions, review questions and JS into the pages 14.1.1 to 14.1.3. Importing this module builds nothing."""
 from ak20 import *
 
 learn = '''
@@ -315,6 +315,5 @@ btnTable("eB", "eO", [
   ("Protocol", "A standard set of rules for communication."), ("Application", "User services; HTTP, FTP, SMTP, POP3, IMAP, BitTorrent."), ("Transport", "Packets, sequence numbers, flow control, error recovery."), ("Internet", "IP addresses and routing."),
   ("Link", "Frames, MAC addresses, the physical medium."), ("Adjacent", "A layer interacts only with the layer above and below."), ("Sending", "Down the stack; headers added."), ("Receiving", "Up the stack; headers removed.")])
 
-build("ac1411", "ac-14-1-1-protocols-tcp-ip-stack", "Protocols and the TCP/IP Stack", EYA("14.1.1"),
-  "Why protocols are essential, the layered protocol stack and the four TCP/IP layers with their functions, how a message passes down and up the stack; animations, labs and the real 9618 questions from 2022 to 2026.",
-  dict(sub=CBK("Chapter 14 · Communication and internet technologies, section 14.1 Protocols"), **tabs(learn, watch, explore, practise, real, exam, tips)), js)
+if __name__ == "__main__":
+    pass

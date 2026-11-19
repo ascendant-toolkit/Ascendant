@@ -44,123 +44,126 @@ function codeList(x, y, lines, hl, v = 1, lh = 30, w = 230) {
   return lines.map((l, i) => SV.rect(x, y + i * lh, w, lh - 4, i === hl ? "cell-warn" : "cell", { rx: 4, ...op(v) }) + SV.text(x + 10, y + i * lh + 18, l, "lbl", { style: "font-family:var(--mono);font-size:14px;white-space:pre", ...op(v) })).join("");
 }
 
+const LAYERS = [["Application", "f1", "HTTP request / the message", "message"], ["Transport", "f2", "seq number, port", "segments"], ["Internet", "f3", "source and destination IP address", "packets"], ["Link", "f4", "MAC addresses, frame check", "frames"]];
+
 (function () {
-  const stops = [["Sender's", "email client"], ["Sender's", "mail server"], ["Recipient's", "mail server"], ["Recipient's", "email client"]];
   const draw = (s) => {
     const k = Math.round(s.i); let o = "";
-    stops.forEach((t, i) => (o += SV.rect(20 + i * 185, 60, 140, 60, k >= i ? "f3" : "cell", { rx: 8, ...op(k >= i ? 1 : 0.5) }) + SV.text(90 + i * 185, 86, t[0], "lbl bd", { "text-anchor": "middle", style: "font-size:13px" }) + SV.text(90 + i * 185, 105, t[1], "lbl bd", { "text-anchor": "middle", style: "font-size:13px" })));
-    const labs = ["SMTP", "SMTP", "POP3 or IMAP"]; labs.forEach((t, i) => { const on = k > i; o += (i === 2 ? arrow(199 + i * 185, 90, 166 + i * 185, 90, "l", on ? "c2" : "c1", on ? 1 : 0.2) : arrow(166 + i * 185, 90, 199 + i * 185, 90, "r", on ? "c2" : "c1", on ? 1 : 0.2)) + SV.text(182 + i * 185, 50, t, "lbl bd" + (on ? " t3" : ""), { "text-anchor": "middle", style: "font-size:12px", ...op(on ? 1 : 0.35) }); });
-    if (k >= 1) o += SV.text(30, 160, k === 1 ? "push: the client sends the message to its mail server" : k === 2 ? "push: servers pass the message towards its destination" : "pull: the recipient's client retrieves the message", "lbl bd", { style: "font-size:15px" });
+    const stack = (x, title, hl) => { let t = SV.text(x + 90, 20, title, "lbl bd", { "text-anchor": "middle" }); LAYERS.forEach((l, i) => (t += SV.rect(x, 30 + i * 46, 180, 40, hl === i ? "cell-warn" : l[1], { rx: 6, ...op(hl === i ? 1 : 0.6) }) + SV.text(x + 90, 55 + i * 46, l[0], "lbl bd", { "text-anchor": "middle", style: "font-size:15px" }))); return t; };
+    const hlS = k >= 1 && k <= 4 ? k - 1 : -1, hlR = k >= 6 && k <= 9 ? 9 - k : -1;
+    o += stack(40, "Sender", hlS) + stack(540, "Receiver", hlR);
+    o += SV.line(220, 175, 540, 175, "dash", op(k >= 5 && k <= 5 ? 1 : 0.3)) + SV.text(380, 168, k === 5 ? "frames cross the network" : "network and routers", "sm", { "text-anchor": "middle" });
+    if (k >= 1 && k <= 4) o += SV.text(260, 55 + (k - 1) * 46, "◀ " + ["creates the message", "adds sequence number, port", "adds IP addresses", "makes frames, sends"][k - 1], "sm");
+    if (k >= 6 && k <= 9) o += SV.text(330, 55 + (9 - k) * 46, ["receives the frames ▶", "checks the IP address ▶", "orders and checks packets ▶", "gives message to the program ▶"][k - 6], "sm");
     return o;
   };
-  Lib.stepper($("#stA"), { w: 760, h: 190, label: "An email's journey", base: { i: 0 }, draw, tween: 250, dwell: 3000, steps: [
-    { cap: "An email travels from the sender's email client to the recipient's email client through two mail servers.", s: { i: 0 } },
-    { cap: "<b>SMTP</b> pushes the message from the sender's client to the sender's mail server.", s: { i: 1 } },
-    { cap: "<b>SMTP</b> again carries it from server to server, towards its destination.", s: { i: 2 } },
-    { cap: "The recipient's client <b>pulls</b> the message from the server with <b>POP3</b> or <b>IMAP</b>.", s: { i: 3 } }] });
+  Lib.stepper($("#stA"), { w: 760, h: 225, label: "A message through the TCP/IP stack", base: { i: 0 }, draw, tween: 250, dwell: 2600, steps: [
+    { cap: "Two hosts, each with the same four-layer stack. A message is sent from the left to the right.", s: { i: 0 } },
+    { cap: "<b>Application layer</b>: the user's program creates the message using a protocol such as HTTP.", s: { i: 1 } },
+    { cap: "<b>Transport layer</b>: breaks it into packets and adds a header with a sequence number.", s: { i: 2 } },
+    { cap: "<b>Internet layer</b>: adds the source and destination IP addresses.", s: { i: 3 } },
+    { cap: "<b>Link layer</b>: formats the packets into frames with MAC addresses and sends them over the physical network.", s: { i: 4 } },
+    { cap: "The frames travel across the network, passing through routers.", s: { i: 5 } },
+    { cap: "At the receiver the <b>Link layer</b> receives the frames, the first step on the way <b>up</b>.", s: { i: 6 } },
+    { cap: "The <b>Internet layer</b> checks the destination IP address and passes the packets up.", s: { i: 7 } },
+    { cap: "The <b>Transport layer</b> puts the packets in order using the sequence numbers and checks for loss or errors.", s: { i: 8 } },
+    { cap: "The <b>Application layer</b> gives the complete message to the program.", s: { i: 9 } }] });
 })();
 
 (function () {
   const draw = (s) => {
-    const k = Math.round(s.i); let o = SV.text(30, 22, "POP3", "lbl bd") + SV.text(400, 22, "IMAP", "lbl bd");
-    const box = (x, t, on, cls, y = 34) => SV.rect(x, y, 150, 44, on ? cls : "cell", { rx: 6 }) + SV.text(x + 75, y + 27, t, "lbl", { "text-anchor": "middle", style: "font-size:13px" });
-    o += box(30, "Mail server: 1 email", true, "f3") + box(400, "Mail server: 1 email", true, "f3");
-    o += box(30, k >= 1 ? "Laptop: downloaded" : "Laptop", k >= 1, "cell-ok", 82) + box(400, k >= 1 ? "Laptop: shows a copy" : "Laptop", k >= 1, "cell-ok", 82);
-    o += SV.rect(30, 130, 150, 44, k >= 2 ? "cell-no" : "cell", { rx: 6 }) + SV.text(105, 157, k >= 2 ? "Phone: nothing" : "Phone", "lbl", { "text-anchor": "middle", style: "font-size:13px" });
-    o += SV.rect(400, 130, 150, 44, k >= 2 ? "cell-ok" : "cell", { rx: 6 }) + SV.text(475, 157, k >= 2 ? "Phone: shows a copy" : "Phone", "lbl", { "text-anchor": "middle", style: "font-size:13px" });
-    if (k >= 1) { o += SV.rect(30 + 160, 34, 190, 44, k >= 1 ? "cell-no" : "cell", { rx: 6 }) + SV.text(285, 61, "removed from the server", "lbl", { "text-anchor": "middle", style: "font-size:12px" }); o += SV.text(560, 61, "stays on the server", "lbl bd t3", { style: "font-size:13px" }); }
+    const k = Math.round(s.i); let o = SV.text(30, 22, "On the way down: each layer wraps what it receives", "lbl bd");
+    const widths = [220, 300, 380, 460];
+    for (let i = 0; i <= 3; i++) { const lv = i, v = k >= lv ? 1 : 0; if (!v) continue; const w = widths[3 - lv] + 160, x = 30 + (3 - lv) * 0; o += SV.rect(30 + lv * 22, 34 + lv * 34, 700 - lv * 44, 160 - lv * 34 - 0, LAYERS[lv][1], { rx: 8, ...op(0.32) }) + SV.text(44 + lv * 22, 52 + lv * 34, [ "Application: message", "Transport header: seq, port", "Internet header: IP addresses", "Link header: MAC addresses" ][lv], "lbl bd", { style: "font-size:13px" }); }
     return o;
   };
-  Lib.stepper($("#stB"), { w: 760, h: 200, label: "POP3 and IMAP", base: { i: 0 }, draw, tween: 250, dwell: 3200, steps: [
-    { cap: "One email waits on the mail server. The user has a laptop and a phone.", s: { i: 0 } },
-    { cap: "The laptop retrieves it. With <b>POP3</b> the message is downloaded and normally removed from the server; with <b>IMAP</b> the server keeps it and the laptop shows a copy.", s: { i: 1 } },
-    { cap: "Later the user checks the phone. With POP3 the email is not there (it was downloaded to the laptop). With IMAP the phone shows the same email, <b>in sync</b>.", s: { i: 2 } }] });
+  Lib.stepper($("#stB"), { w: 760, h: 215, label: "Encapsulation", base: { i: 0 }, draw, tween: 250, dwell: 2800, steps: [
+    { cap: "The Application layer produces the <b>message</b> (the data).", s: { i: 0 } },
+    { cap: "The Transport layer adds a <b>header</b> in front: the sequence number and port.", s: { i: 1 } },
+    { cap: "The Internet layer adds its own header with the <b>source and destination IP addresses</b>.", s: { i: 2 } },
+    { cap: "The Link layer adds the <b>MAC addresses</b> to make a frame. Each layer treats everything from the layer above as its data. The receiver removes the headers in the opposite order.", s: { i: 3 } }] });
 })();
 
 (function () {
-  const peers = [[0, 1, 2, 3, 4, 5], [0, 1, 2], [3, 4, 5], [0, 3], []];
-  const names = ["Seed A", "Peer B", "Peer C", "Peer D", "Peer E"];
   const draw = (s) => {
     const k = Math.round(s.i); let o = "";
-    names.forEach((n, i) => { const y = 20 + i * 38; let have = peers[i].slice(); if (k >= 2 && i === 4) have = [0, 3, 4]; if (k >= 3 && i === 4) have = [0, 1, 2, 3, 4, 5]; o += SV.text(30, y + 22, n, "lbl bd", { style: "font-size:13px" }); for (let p = 0; p < 6; p++) o += SV.rect(130 + p * 52, y, 46, 30, have.includes(p) ? "f3" : "cell", { rx: 4, ...op(have.includes(p) ? 1 : 0.45) }) + SV.text(153 + p * 52, y + 20, "P" + (p + 1), "lbl", { "text-anchor": "middle", style: "font-size:12px" }); });
-    if (k >= 1) o += SV.text(480, 40, "tracker: lists the swarm", "lbl bd", { style: "font-size:13px" }) + SV.text(480, 62, "A, B, C, D, E", "sm");
-    if (k >= 2) o += SV.text(480, 110, "E asks several peers at once:", "lbl bd", { style: "font-size:13px" }) + SV.text(480, 132, "P1 from A, P4 from C, P5 from C...", "sm");
-    if (k >= 3) o += SV.text(480, 170, "E now has the whole file: a new seed", "lbl bd t3", { style: "font-size:13px" });
+    LAYERS.forEach((l, i) => { o += SV.rect(240, 20 + i * 48, 280, 40, k === 1 && i === 1 ? "cell-warn" : l[1], { rx: 6, ...op(0.7) }) + SV.text(380, 46 + i * 48, l[0], "lbl bd", { "text-anchor": "middle" }); });
+    if (k >= 1) { o += arrow(380, 68, 380, 108, "d", "c2", 0) ; }
+    if (k === 1) o += SV.text(30, 208, "Transport talks only to Application (above) and Internet (below)", "lbl bd", { style: "font-size:14px" });
+    if (k === 2) o += SV.text(30, 208, "Application never talks straight to Internet or Link", "lbl bd t2", { style: "font-size:14px" }) + SV.path("M 240 40 C 190 40 190 112 240 112", "c3", { fill: "none", "stroke-width": 2.5, "stroke-dasharray": "6 4" });
     return o;
   };
-  Lib.stepper($("#stC"), { w: 760, h: 215, label: "A BitTorrent swarm", base: { i: 0 }, draw, tween: 250, dwell: 3200, steps: [
-    { cap: "The file is split into six equal <b>pieces</b>. Seed A has them all; B, C and D have some. New peer E has none.", s: { i: 0 } },
-    { cap: "E gets the <b>torrent file</b> and contacts the <b>tracker</b>, which tells it who is in the <b>swarm</b>.", s: { i: 1 } },
-    { cap: "E downloads <b>different pieces from different peers at the same time</b>. Each piece it receives, it can share.", s: { i: 2 } },
-    { cap: "E now has every piece. If it stays connected and shares, it is a <b>seed</b>. No central server held the file.", s: { i: 3 } }] });
+  Lib.stepper($("#stC"), { w: 760, h: 225, label: "Adjacent layers", base: { i: 0 }, draw, tween: 250, dwell: 3200, steps: [
+    { cap: "The four layers form a stack. Each has its own functionality.", s: { i: 0 } },
+    { cap: "A layer can only accept input from the <b>next higher</b> or <b>next lower</b> layer. The Transport layer exchanges data only with the Application and Internet layers, through the interface between them.", s: { i: 1 } },
+    { cap: "The Application layer cannot skip a layer and talk straight to the Link layer. Each layer relies on the one below it.", s: { i: 2 } }] });
 })();
 
 /* Lab 1 */
+/* Lab 1 */
 (function () {
-  const P = ["HTTP/HTTPS", "FTP", "SMTP", "POP3", "IMAP", "BitTorrent"];
-  const q = [["Your browser fetches a web page", 0], ["Sending an email from your client to a mail server", 2], ["Downloading emails to one device and removing them from the server", 3], ["Reading the same inbox, in sync, on a phone and a laptop", 4], ["Uploading a folder of files to a web server", 1], ["Downloading a large file in pieces from thousands of other users", 5]];
-  let cur = 0, pick = null;
+  let cur = 0;
+  const rows = [["Application", "GET /index.html", "The message from the program", "HTTP"], ["Transport", "[seq 1, port 80] GET /index.html", "Packets numbered and ported", "TCP"], ["Internet", "[src 192.168.1.5, dst 93.184.216.34] [seq 1, port 80] GET ...", "IP addresses added", "IP"], ["Link", "[MAC AA:01 → BB:02] [IP addresses] [seq, port] GET ...", "A frame for the local network", "Ethernet / Wi-Fi"]];
   const paint = () => {
-    $$("#wB button").forEach((b, i) => b.classList.toggle("pri", i === cur));
-    const Q = q[cur]; $("#wO").innerHTML = `<p><b>${Q[0]}</b></p><div class="btnrow">` + P.map((p, i) => `<button class="b${pick === i ? " pri" : ""}" data-i="${i}">${p}</button>`).join("") + '</div><div class="verdict">' + (pick === null ? "Choose a protocol." : pick === Q[1] ? "Correct: " + P[Q[1]] + "." : "Not " + P[pick] + ". The best answer is " + P[Q[1]] + ".") + "</div>";
-    $$("#wO button").forEach((b) => (b.onclick = () => { pick = +b.dataset.i; paint(); }));
+    $$("#pB button").forEach((b, i) => b.classList.toggle("pri", i === cur));
+    $("#pO").innerHTML = rows.slice(0, cur + 1).map((r, i) => `<div class="tw"><table class="t mono"><tr><th>${r[0]} layer</th><td style="${i === cur ? "background:var(--warn-soft)" : ""}">${r[1]}</td></tr></table></div>`).join("");
+    $("#pV").textContent = rows[cur][0] + " layer: " + rows[cur][2] + " (protocols: " + rows[cur][3] + ").";
   };
-  $("#wB").innerHTML = q.map((x, i) => `<button class="b" data-i="${i}">Situation ${i + 1}</button>`).join("");
-  $$("#wB button").forEach((b) => (b.onclick = () => { cur = +b.dataset.i; pick = null; paint(); })); paint();
+  $("#pB").innerHTML = rows.map((r, i) => `<button class="b" data-i="${i}">${r[0]}</button>`).join("");
+  $$("#pB button").forEach((b) => (b.onclick = () => { cur = +b.dataset.i; paint(); })); paint();
 })();
 
-/* Lab 2: swarm */
+
 (function () {
-  const N = 8, names = ["A (seed)", "B", "C", "D", "E", "F"]; let have, round, seed = 7;
-  const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
-  const reset = () => { seed = 7; round = 0; have = names.map((_, i) => (i === 0 ? new Set([...Array(N).keys()]) : new Set())); paint("Press Next round."); };
-  const paint = (msg) => {
-    $("#tS").innerHTML = '<div class="tw"><table class="t mono"><tr><th>Peer</th>' + Array.from({ length: N }, (_, i) => `<th>P${i + 1}</th>`).join("") + "<th>Done?</th></tr>" + names.map((n, i) => "<tr><td>" + n + "</td>" + Array.from({ length: N }, (_, p) => `<td style="${have[i].has(p) ? "background:var(--good-soft)" : ""}">${have[i].has(p) ? "✓" : ""}</td>`).join("") + "<td>" + (have[i].size === N ? "seed" : have[i].size + "/" + N) + "</td></tr>").join("") + "</table></div>";
-    $("#tV").textContent = msg;
+  const L = ["Application", "Transport", "Internet", "Link"];
+  let a = null, b = null;
+  const paint = () => {
+    const pick = (who, sel) => `<div class="btnrow">` + L.map((l, i) => `<button class="b${sel === i ? " pri" : ""}" data-w="${who}" data-i="${i}">${l}</button>`).join("") + `</div>`;
+    let v = "Choose a layer in each row.";
+    if (a !== null && b !== null) v = a === b ? "That is the same layer. Pick two different layers." : Math.abs(a - b) === 1 ? L[a] + " and " + L[b] + " are <b>adjacent</b>: they can exchange data through their interface." : L[a] + " and " + L[b] + " are <b>not adjacent</b>. Data has to pass through " + (Math.abs(a - b) === 2 ? "the " + L[Math.min(a, b) + 1] + " layer" : "the layers between them") + " first.";
+    $("#adj").innerHTML = "<p><b>First layer</b></p>" + pick("a", a) + "<p><b>Second layer</b></p>" + pick("b", b) + `<div class="verdict">${v}</div>`;
+    $$("#adj button").forEach((x) => (x.onclick = () => { if (x.dataset.w === "a") a = +x.dataset.i; else b = +x.dataset.i; paint(); }));
   };
-  $("#tN").onclick = () => {
-    round++; const snap = have.map((h) => new Set(h)); let moved = 0;
-    names.forEach((_, i) => { if (snap[i].size === N) return; const need = [...Array(N).keys()].filter((p) => !snap[i].has(p)); const options = []; need.forEach((p) => names.forEach((_, j) => { if (j !== i && snap[j].has(p)) options.push(p); })); if (options.length) { have[i].add(options[Math.floor(rnd() * options.length)]); moved++; } });
-    const done = have.every((h) => h.size === N);
-    paint(done ? "Round " + round + ": every peer has the whole file and can seed it. No server held the file." : "Round " + round + ": " + moved + " pieces were downloaded from other peers. Every piece a peer receives it can pass on.");
-  };
-  $("#tR").onclick = reset; reset();
+  paint();
 })();
 
-btnTable("eB", "eO", [
-  ["HTTP / HTTPS", "Web pages / hypertext documents", "Browser requests, server responds; HTTPS is secure", "Sending and receiving web pages"],
-  ["FTP", "Files between devices", "Upload and download to a server", "Sending and receiving files"],
-  ["SMTP", "Sending email", "Push: client to server, server to server", "Sending / uploading emails"],
-  ["POP3", "Receiving email", "Pull: download from the server, normally removed", "Receiving / downloading emails"],
-  ["IMAP", "Receiving email", "Pull: any device, server copy kept, in sync", "Access email from any device"],
-  ["BitTorrent", "Peer-to-peer file sharing", "Torrent file, tracker, swarm, pieces, seeds", "Sharing files peer to peer"]
-], ["Protocol", "Purpose", "Key points", "Exam wording"]);
-Lib.classify($("#cl1"), { prompt: "Which protocol is described?", buckets: [{"label": "HTTP(S)"}, {"label": "FTP"}, {"label": "SMTP"}, {"label": "POP3 / IMAP"}, {"label": "BitTorrent"}], items: [{"text": "Transfers web pages between a server and a browser", "b": 0}, {"text": "Sends and receives files over a network", "b": 1}, {"text": "Sends email towards its destination", "b": 2}, {"text": "Retrieves email from a mail server", "b": 3}, {"text": "Peer-to-peer file sharing", "b": 4}, {"text": "Hypertext documents", "b": 0}, {"text": "Reads email from any device without removing it from the server", "b": 3}, {"text": "Uses a tracker, a swarm and pieces of a file", "b": 4}], done: "Web pages: HTTP. Files: FTP. Sending mail: SMTP. Receiving mail: POP3/IMAP. Peer to peer: BitTorrent." });
-Lib.classify($("#cl2"), { prompt: "Is it a push or a pull protocol?", buckets: [{"label": "Push"}, {"label": "Pull"}], items: [{"text": "SMTP", "b": 0}, {"text": "POP3", "b": 1}, {"text": "IMAP", "b": 1}, {"text": "Sending an email to the mail server", "b": 0}, {"text": "Retrieving emails from the mail server", "b": 1}, {"text": "Delivering mail between mail servers", "b": 0}], done: "SMTP pushes mail out. POP3 and IMAP pull mail in." });
-Lib.order($("#o1"), { prompt: "Put the journey of an email in order.", items: ["The sender's email client pushes the message to its mail server with SMTP", "That mail server passes it to the recipient's mail server with SMTP", "The recipient's mail server stores it in their mailbox", "The recipient's client retrieves it with POP3 or IMAP"], done: "Client, server, server, mailbox, retrieve." });
-Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["HTTP", "Transferring hypertext documents"], ["SMTP", "Sending email towards its destination"], ["IMAP", "Reading email on any device, in sync with the server"], ["BitTorrent", "Peer-to-peer file sharing"], ["FTP", "Sending and receiving files over a network"]], done: "Learn these terms." });
+(function () {
+  const opts = [["Ethernet cable", "Ethernet frames"], ["Wi-Fi", "Wi-Fi frames"], ["Mobile data", "mobile network frames"]];
+  const rows = [["Application", "Web browser using HTTP"], ["Transport", "Numbered packets"], ["Internet", "IP addresses"]];
+  let cur = 0;
+  const paint = () => {
+    $$("#swB button").forEach((b, i) => b.classList.toggle("pri", i === cur));
+    $("#swO").innerHTML = '<div class="tw"><table class="t"><tr><th>Layer</th><th>What it uses</th><th>Changed?</th></tr>' + rows.map((r) => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>No</td></tr>`).join("") + `<tr><td><b>Link</b></td><td style="background:var(--warn-soft)">${opts[cur][1]} over ${opts[cur][0].toLowerCase()}</td><td>${cur === 0 ? "No (starting point)" : "<b>Yes</b>"}</td></tr></table></div>`;
+  };
+  $("#swB").innerHTML = opts.map((o, i) => `<button class="b" data-i="${i}">${o[0]}</button>`).join("");
+  $$("#swB button").forEach((b) => (b.onclick = () => { cur = +b.dataset.i; paint(); })); paint();
+})();
+Lib.classify($("#cl1"), { prompt: "Does this happen on the way down (sending) or on the way up (receiving)?", buckets: [{"label": "Down the stack"}, {"label": "Up the stack"}], items: [{"text": "A header is added", "b": 0}, {"text": "A header is removed", "b": 1}, {"text": "The data starts at the Application layer", "b": 0}, {"text": "The data ends at the Application layer", "b": 1}, {"text": "Data is passed to the next lower layer", "b": 0}, {"text": "Data is passed to the next higher layer", "b": 1}, {"text": "The Link layer sends the frames onto the network", "b": 0}, {"text": "The Link layer receives the frames from the network", "b": 1}], done: "Sending: down, headers added. Receiving: up, headers removed." });
+Lib.classify($("#cl2"), { prompt: "Is the statement about a protocol or about the stack?", buckets: [{"label": "About a protocol"}, {"label": "About the stack"}], items: [{"text": "A standard set of rules for communication", "b": 0}, {"text": "Layers that can only talk to adjacent layers", "b": 1}, {"text": "Allows devices from different manufacturers to communicate", "b": 0}, {"text": "Headers are added on the way down", "b": 1}, {"text": "Makes communication independent of hardware and software", "b": 0}, {"text": "User interaction at the top, hardware access at the bottom", "b": 1}], done: "A protocol is the rules. The stack is the layered way of implementing them." });
+Lib.order($("#o1"), { prompt: "Put the layers in order, from the top (nearest the user) to the bottom.", items: ["Application", "Transport", "Internet", "Link"], done: "Application, Transport, Internet, Link." });
+Lib.match($("#m1"), { prompt: "Match the term to its meaning.", pairs: [["Stack", "Layers of protocols, each with its own function"], ["Layer", "One level of the stack with one specific job"], ["Interface", "The only point of interaction between adjacent layers"], ["Header", "Information added to the data by a layer"], ["Adjacent", "The layer directly above or directly below"]], done: "Learn these terms." });
 Lib.calc($("#c1"), { qs: [
-  {"q": "A file is split into 20 equal pieces. A peer has 12. How many more does it need?", "a": 8, "unit": "", "tol": 0.01, "hint": "20 − 12.", "sol": "<b>8</b>."},
-  {"q": "A 600 MB file is split into pieces of 2 MB. How many pieces?", "a": 300, "unit": "", "tol": 0.01, "hint": "600 ÷ 2.", "sol": "<b>300</b>."},
-  {"q": "How many protocols are used when an email is sent from one client and read on another using IMAP (count each protocol name once: SMTP, IMAP)?", "a": 2, "unit": "", "tol": 0.01, "hint": "SMTP and IMAP.", "sol": "<b>2</b>."},
-  {"q": "A user has 3 devices and uses IMAP. On how many devices can they read the same message?", "a": 3, "unit": "", "tol": 0.01, "hint": "All devices see the server's copy.", "sol": "<b>3</b>."},
-  {"q": "A user has 3 devices and uses POP3 with default settings. On how many devices will the message be downloaded?", "a": 1, "unit": "", "tol": 0.01, "hint": "The first to download it; it is then removed.", "sol": "<b>1</b>."},
+  {"q": "How many layers are in the TCP/IP protocol suite as used in the exam?", "a": 4, "unit": "", "tol": 0.01, "hint": "Application, Transport, Internet, Link.", "sol": "<b>4</b>."},
+  {"q": "A message goes down the stack. How many headers have been added by the time it leaves the bottom layer (one for each layer below the top)?", "a": 3, "unit": "", "tol": 0.01, "hint": "Transport, Internet and Link.", "sol": "<b>3</b>."},
+  {"q": "How many layers can the second layer from the top exchange data with directly?", "a": 2, "unit": "", "tol": 0.01, "hint": "The adjacent layers above and below.", "sol": "<b>2</b>."},
+  {"q": "How many layers can the top layer exchange data with directly?", "a": 1, "unit": "", "tol": 0.01, "hint": "Only the layer below it.", "sol": "<b>1</b>."},
+  {"q": "A message passes down 4 layers, across the network and up 4 layers. How many layers does it pass through in total?", "a": 8, "unit": "", "tol": 0.01, "hint": "4 + 4.", "sol": "<b>8</b>."},
 ] });
 Lib.quiz($("#qz1"), { qs: [
-  { q: "Which protocol sends email?", opts: ["POP3", "IMAP", "SMTP", "FTP"], a: 2, why: "SMTP." },
-  { q: "Which protocol lets you read email on any device without removing it from the server?", opts: ["IMAP", "SMTP", "HTTP", "FTP"], a: 0, why: "IMAP." },
-  { q: "What does HTTP transfer?", opts: ["Email", "Hypertext documents (web pages)", "Peer-to-peer files", "MAC addresses"], a: 1, why: "Web pages." },
-  { q: "In BitTorrent there is...", opts: ["a central server holding the file", "no central server holding the file: users share pieces", "only one source", "no tracker or swarm"], a: 1, why: "Peer to peer." },
-  { q: "FTP is used for...", opts: ["sending and receiving files", "reading email", "web browsing only", "routing"], a: 0, why: "File transfer." },
-  { q: "A peer with the complete file that keeps sharing it is called...", opts: ["a tracker", "a seed", "a router", "a swarm"], a: 1, why: "A seed." },
+  { q: "Where does user interaction take place in a protocol stack?", opts: ["The bottom layer", "The top layer", "Every layer", "The middle layers only"], a: 1, why: "At the top." },
+  { q: "Where does direct access to the hardware take place?", opts: ["The top layer", "The bottom layer", "Every layer", "None"], a: 1, why: "At the bottom." },
+  { q: "A layer can only interact with...", opts: ["any other layer", "the adjacent layers", "the top layer", "the bottom layer"], a: 1, why: "Above and below." },
+  { q: "What happens to the header as data passes down the stack?", opts: ["It is removed", "Data is added to it", "It is encrypted", "Nothing"], a: 1, why: "Each layer adds to the header." },
+  { q: "Why is a layered design useful?", opts: ["It makes the data smaller", "A layer can be changed without changing the others", "It removes the need for hardware", "It makes the connection free"], a: 1, why: "Independence of the layers." },
+  { q: "What carries out the interactions between layers?", opts: ["Installed software", "A cable", "A router only", "The user"], a: 0, why: "Installed software." },
 ] });
 Lib.cards($("#fc1"), { cards: [
-  ["HTTP(S)", "Web pages / hypertext documents."],
-  ["FTP", "Sending and receiving files."],
-  ["SMTP", "Sending email (push)."],
-  ["POP3", "Receiving email (pull); downloaded."],
-  ["IMAP", "Receiving email (pull); any device, in sync."],
-  ["BitTorrent", "Peer-to-peer file sharing."],
-  ["Tracker", "Holds data about the peers in the swarm."],
-  ["Seed", "A peer with the whole file that shares it."],
+  ["Stack", "Layers of protocols, each with its own function."],
+  ["Adjacent", "A layer interacts only with the layer above and below."],
+  ["Interface", "The only interaction between adjacent layers."],
+  ["Top layer", "User interaction."],
+  ["Bottom layer", "Direct access to the hardware."],
+  ["Sending", "Down the stack; data added to the header."],
+  ["Receiving", "Up the stack; headers removed."],
+  ["Why layers", "Each layer can change on its own."],
 ] });
