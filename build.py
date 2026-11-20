@@ -770,22 +770,23 @@ def build_pricing():
         acc = f' data-accent="{accent}"' if accent else ""
         bdg = f'<span class="badge">{esc(badge)}</span>' if badge else ""
         return (f'<article class="plan {cls}"{acc}>{bdg}<h2>{esc(name)}</h2>{price_html}'
-                f'<p class="tagline">{esc(tagline)}</p>{feats(items)}{cta}</article>')
+                f'<p class="tagline">{esc(tagline)}</p>{feats(items)}<div class="act">{cta}</div></article>')
 
     free = plan("Free", '<p class="price"><span class="amt">$0</span><span class="per">forever</span></p>',
                 "A proper taste of how it works.",
                 [f"{FREE_WORD.capitalize()} full sample lessons", "Interactive charts and code walkthroughs", "Progress tracking"],
                 f'<a class="btn ghost" href="{join}">Create a free account</a>')
-    basic = plan("Basic", price(74, 9), "One subject, the whole syllabus to learn from.",
+    basic = plan("Basic", price(100, 10), "One subject, the whole syllabus to learn from.",
                  ["Learn, Watch, Explore and Real world in every chapter", "Every animation and interactive tool",
                   "All chapters and levels in that subject", "Learn on any device"], buy("basic", "Choose Basic", True))
-    full = plan("Full", price(149, 18), "Everything for one subject: learn it, then practise it for the exam.",
+    full = plan("Full", price(200, 20), "Everything for one subject: learn it, then practise it for the exam.",
                 ["Everything in Basic", "Practise, Exam questions and Tips & keywords in every chapter",
                  "Unit assessments and topic tests", "Multiple choice marked instantly, written answers self-marked against the mark scheme",
-                 "Exam-technique packs"],
+                 "Exam-technique packs", "Priority support"],
                 buy("full", "Get Full", True), cls="featured", accent="teal", badge="Most popular")
-    allp = plan("All-Access", price(249, 30), "Every subject, every level, every feature.",
-                ["Everything in Full", "All four subjects and all levels", "New subjects, content and features as they are added"],
+    allp = plan("All-Access", price(300, 30), "Your choice of four subjects, at all levels, every feature.",
+                ["Everything in Full", "Your choice of four subjects, at all levels, every feature", "Priority support",
+                 "New content and features as they are added"],
                 buy("all", "Go All-Access"))
     teacher = plan("Teacher", price(374, 44), "One teacher, all your classes.",
                    ["Full content for the subjects you teach", "Class progress and homework dashboards",
@@ -797,7 +798,7 @@ def build_pricing():
                    "Seats per subject, from 25, invoiced annually"], f'<a class="btn" href="{r}contact/?topic=school&amp;role=school">Talk to us</a>')
 
     cycle = ('<div class="cycle" role="group" aria-label="Billing period">'
-             '<button type="button" data-cycle="y" class="on" aria-pressed="true">Annual <span class="save">save ~30%</span></button>'
+             '<button type="button" data-cycle="y" class="on" aria-pressed="true">Annual <span class="save">save ~17%</span></button>'
              '<button type="button" data-cycle="m" aria-pressed="false">Monthly</button></div>')
     faq = [("What is the difference between Basic and Full?",
             "Basic is for learning: the Learn, Watch, Explore and Real world sections of every chapter. Full adds the exam side: Practise, "
@@ -822,7 +823,7 @@ def build_pricing():
             "Prices are shown in US dollars. Prices include VAT and sales tax, so there is nothing added at checkout. You are billed in your local "
             "currency and the tax is handled for you."),
            ("Why is annual cheaper?",
-            "Paying for the year up front saves you around 30% against paying monthly: roughly three months free.")]
+            "Paying for the year up front saves you around 17% against paying monthly: roughly two months free.")]
     faq_html = "".join(f"<details><summary>{esc(q)}</summary><p>{esc(a)}</p></details>" for q, a in faq)
 
     body = (

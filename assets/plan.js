@@ -32,7 +32,7 @@
   }
 
   const payOptions = (lead, portal) => `<section class="card block"><h3>Payment options</h3><p>${lead}</p>
-    <p class="hint">Pay by card or the local payment methods shown at checkout. Annual plans save about 30% against monthly. You are billed in your local currency, with VAT and sales tax already included in the price, and you keep access until the end of the period you have paid for if you cancel.</p>
+    <p class="hint">Pay by card or the local payment methods shown at checkout. Annual plans save about 17% against monthly. You are billed in your local currency, with VAT and sales tax already included in the price, and you keep access until the end of the period you have paid for if you cancel.</p>
     <p><a class="btn" href="${S.base}pricing/">See plans and prices</a> ${portal ? '<button class="btn ghost" id="portal-btn" type="button">Manage billing</button>' : `<a class="btn ghost" href="${S.base}contact/?topic=billing">Change or cancel a plan</a>`}</p><p class="msg err" id="portal-err" hidden></p></section>`;
 
   async function payments() {
