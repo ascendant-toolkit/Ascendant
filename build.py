@@ -773,15 +773,16 @@ def build_pricing():
                 [f"{FREE_WORD.capitalize()} full sample lessons", "Interactive charts and code walkthroughs", "Progress tracking"],
                 f'<a class="btn ghost" href="{join}">Create a free account</a>')
     basic = plan("Basic", price(74, 9), "One subject, the whole syllabus to learn from.",
-                 ["Every lesson and interactive tool for one subject", "All chapters and levels in that subject",
-                  "Learn on any device"], buy("basic", "Choose Basic", True))
-    full = plan("Full", price(149, 18), "Everything for one subject, from learning to exam practice.",
-                ["Everything in Basic", "Server-marked assessments with instant feedback",
-                 "Progress and homework tracking", "Exam-technique packs and model answers"],
+                 ["Learn, Watch, Explore and Real world in every chapter", "Every animation and interactive tool",
+                  "All chapters and levels in that subject", "Learn on any device"], buy("basic", "Choose Basic", True))
+    full = plan("Full", price(149, 18), "Everything for one subject: learn it, then practise it for the exam.",
+                ["Everything in Basic", "Practise, Exam questions and Tips & keywords in every chapter",
+                 "Unit assessments and topic tests", "Multiple choice marked instantly, written answers self-marked against the mark scheme",
+                 "Exam-technique packs"],
                 buy("full", "Get Full", True), cls="featured", accent="teal", badge="Most popular")
-    allp = plan("All-Access", price(249, 30), "Both subjects, every level, the lot.",
-                ["Everything in Full", "Every subject and level we offer", "Exam-question packs",
-                 "Early access to new content"], buy("all", "Go All-Access"))
+    allp = plan("All-Access", price(249, 30), "Every subject, every level, every feature.",
+                ["Everything in Full", "All four subjects and all levels", "New subjects, content and features as they are added"],
+                buy("all", "Go All-Access"))
     teacher = plan("Teacher", price(374, 44), "One teacher, all your classes.",
                    ["Full content for the subjects you teach", "Class progress and homework dashboards",
                     "Assign and track assessments", "Lesson-delivery mode for the classroom"],
@@ -794,7 +795,16 @@ def build_pricing():
     cycle = ('<div class="cycle" role="group" aria-label="Billing period">'
              '<button type="button" data-cycle="y" class="on" aria-pressed="true">Annual <span class="save">save ~30%</span></button>'
              '<button type="button" data-cycle="m" aria-pressed="false">Monthly</button></div>')
-    faq = [("Can I cancel any time?",
+    faq = [("What is the difference between Basic and Full?",
+            "Basic is for learning: the Learn, Watch, Explore and Real world sections of every chapter. Full adds the exam side: Practise, "
+            "Exam questions, Tips and keywords, unit assessments and topic tests. Every chapter is built the same way, so you always know where things are."),
+           ("How does the marking work?",
+            "Multiple choice and number questions are marked instantly, so you know straight away whether you were right. Longer written answers "
+            "are self-marked against the mark scheme. Comparing your answer with how the marks are awarded is one of the best ways to learn what "
+            "examiners reward and how to move up a grade."),
+           ("Will more be added?",
+            "Yes. We keep expanding the content, the subjects and the features, and your plan covers what is added to it. Homework tracking is planned and is not available yet."),
+           ("Can I cancel any time?",
             "Yes. Cancel whenever you like and you keep access until the end of the period you have paid for. "
             "Monthly plans stop at the next month, annual plans run to the end of the year, and there are no further charges."),
            ("Do you offer refunds?",
@@ -829,7 +839,7 @@ def build_pricing():
         '<p class="hint">Paid plans renew automatically each month or year until you cancel. Payments are processed by '
         'Paddle, our reseller and merchant of record. See the <a href="../terms/">terms</a> and <a href="../refunds/">refund policy</a>.</p>'
         + NOTIFY +
-        f'<section class="sec" aria-labelledby="rf"><h2 id="rf">Billing, cancellation and refunds</h2>'
+        f'<section class="sec" aria-labelledby="rf"><h2 id="rf">Plans, billing and refunds</h2>'
         f'<div class="faq">{faq_html}</div></section>')
 
     cfg = json.dumps({"env": PADDLE["env"], "token": PADDLE["token"], "prices": pp}, separators=(",", ":"))
