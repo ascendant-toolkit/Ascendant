@@ -617,7 +617,7 @@ LEGAL = {
         ("Who we are", "Ascendant is an independent revision resource for Cambridge IGCSE and A-Level Economics and Computer Science. It is not affiliated with or endorsed by Cambridge University Press &amp; Assessment. You can reach us through the <a href=\"../contact/\">contact form</a>."),
         ("Your account", "You need an account to track progress and to use paid lessons. Keep your password private. Accounts are for one person: please do not share logins or the lesson content. If you are under 16, ask a parent or guardian to set up the account and any purchase."),
         ("What you are buying", "A paid plan gives you access to the lessons, assessments and practice for the subjects and tier you chose, for as long as your plan is active. Plans renew automatically each month or year until you cancel. Content is updated and improved over time, and we may add, change or retire individual items."),
-        ("Prices, payment and tax", "Prices are shown in US dollars. At checkout you are charged in your local currency with any VAT or sales tax added. Our order process is conducted by our online reseller Paddle.com Market Limited. Paddle is the merchant of record for all orders: it sells the plan to you, handles payment, tax, invoices and refunds, and its <a href=\"https://www.paddle.com/legal/checkout-buyer-terms\">checkout buyer terms</a> apply to the purchase alongside these terms."),
+        ("Prices, payment and tax", "Prices are shown in US dollars. Prices include VAT and sales tax, so the price you see is the price you pay. At checkout you are charged in your local currency. Our order process is conducted by our online reseller Paddle.com Market Limited. Paddle is the merchant of record for all orders: it sells the plan to you, handles payment, tax, invoices and refunds, and its <a href=\"https://www.paddle.com/legal/checkout-buyer-terms\">checkout buyer terms</a> apply to the purchase alongside these terms."),
         ("Cancelling", "Cancel at any time from your Paddle receipt email or by contacting us. You keep access until the end of the period you have paid for, then the plan stops and you are not charged again. Refunds are covered in the <a href=\"../refunds/\">refund policy</a>."),
         ("Acceptable use", "Use the site for your own revision or teaching. Do not copy, resell, scrape or redistribute the lessons, assessments or answer material, and do not try to break or bypass the site's access controls."),
         ("Our content and your results", "The lessons are our own work, built around the published Cambridge syllabi. We take care to be accurate, but we cannot guarantee any exam result or that the material is free of errors. Always check the official syllabus and mark schemes for your exam series."),
@@ -772,17 +772,17 @@ def build_pricing():
                 "A proper taste of how it works.",
                 [f"{FREE_WORD.capitalize()} full sample lessons", "Interactive charts and code walkthroughs", "Progress tracking"],
                 f'<a class="btn ghost" href="{join}">Create a free account</a>')
-    basic = plan("Basic", price(59, 7), "One subject, the whole syllabus to learn from.",
+    basic = plan("Basic", price(74, 9), "One subject, the whole syllabus to learn from.",
                  ["Every lesson and interactive tool for one subject", "All chapters and levels in that subject",
                   "Learn on any device"], buy("basic", "Choose Basic", True))
-    full = plan("Full", price(119, 14), "Everything for one subject, from learning to exam practice.",
+    full = plan("Full", price(149, 18), "Everything for one subject, from learning to exam practice.",
                 ["Everything in Basic", "Server-marked assessments with instant feedback",
                  "Progress and homework tracking", "Exam-technique packs and model answers"],
                 buy("full", "Get Full", True), cls="featured", accent="teal", badge="Most popular")
-    allp = plan("All-Access", price(199, 24), "Both subjects, every level, the lot.",
+    allp = plan("All-Access", price(249, 30), "Both subjects, every level, the lot.",
                 ["Everything in Full", "Every subject and level we offer", "Exam-question packs",
                  "Early access to new content"], buy("all", "Go All-Access"))
-    teacher = plan("Teacher", price(299, 35), "One teacher, all your classes.",
+    teacher = plan("Teacher", price(374, 44), "One teacher, all your classes.",
                    ["Full content for the subjects you teach", "Class progress and homework dashboards",
                     "Assign and track assessments", "Lesson-delivery mode for the classroom"],
                    buy("teacher", "Choose Teacher"))
@@ -805,8 +805,8 @@ def build_pricing():
             "genuine reason, get in touch: any goodwill refund is worked out at the standard monthly price for the months "
             "you have used, not the discounted annual rate."),
            ("Which currency am I charged in?",
-            "Prices are shown in US dollars. At checkout you are billed in your local currency, with any VAT or sales tax "
-            "added and handled for you."),
+            "Prices are shown in US dollars. Prices include VAT and sales tax, so there is nothing added at checkout. You are billed in your local "
+            "currency and the tax is handled for you."),
            ("Why is annual cheaper?",
             "Paying for the year up front saves you around 30% against paying monthly: roughly three months free.")]
     faq_html = "".join(f"<details><summary>{esc(q)}</summary><p>{esc(a)}</p></details>" for q, a in faq)
@@ -825,7 +825,7 @@ def build_pricing():
         '<p class="lede">Teach with it in the classroom, or roll it out across a whole school.</p>'
         f'<div class="plans-wrap plans-two">{teacher}{school}</div></section>'
         '<p class="hint">Prices in USD per subject (except All-Access, Teacher and School). Converted to your local '
-        "currency at checkout, with any VAT or sales tax added.</p>"
+        "currency at checkout. VAT and sales tax are included in the prices shown, with nothing added at checkout.</p>"
         '<p class="hint">Paid plans renew automatically each month or year until you cancel. Payments are processed by '
         'Paddle, our reseller and merchant of record. See the <a href="../terms/">terms</a> and <a href="../refunds/">refund policy</a>.</p>'
         + NOTIFY +
