@@ -44,7 +44,6 @@
 
   // Practise, Exam questions and Tips & keywords ship in a second payload under a Full-only key (artifact_key(slug + ":full")).
   // Full accounts get the panels and the script lines that fill them spliced back in; everyone else gets an upgrade card.
-  const PANELS = ["practise", "exam", "tips"];
   const lockCard = (root) => `<div class="card" style="text-align:center;padding:28px 20px"><h2 style="margin:0 0 8px">Part of the Full plan</h2>
     <p style="margin:0 0 14px">Practise, Exam questions and Tips &amp; keywords are included with Full. Multiple choice is marked instantly and written answers are self-marked against the mark scheme.</p>
     <p style="margin:0"><a href="${root}pricing/" style="font-weight:700">See the plans</a></p></div>`;
@@ -55,9 +54,10 @@
       if (data) full = await decrypt(data, "payload.full.bin");
     } catch (e) { full = null; }
     const root = new URL("../../", location.href).href, swap = (s, a, b) => s.split(a).join(b);
-    PANELS.forEach((n) => { p.index = swap(p.index, `<div class="fulllock" data-lock="${n}"></div>`, full ? full.panels[n] : lockCard(root)); });
+    const names = full ? Object.keys(full.panels) : (p.index.match(/data-lock="[^"]+"/g) || []).map((s) => s.slice(11, -1));
+    names.forEach((n) => { p.index = swap(p.index, `<div class="fulllock" data-lock="${n}"></div>`, full ? full.panels[n] : lockCard(root)); });
     p.index = swap(p.index, "/*@@FULL@@*/", full ? full.js : "");
-    if (!full) p.index = p.index.replace(/(data-p="(?:practise|exam|tips)"[^>]*>)([^<]*)/g, '$1$2 <span style="font-size:.7em;opacity:.7;margin-left:.3em">Full</span>');
+    if (!full) p.index = p.index.replace(new RegExp('(data-p="(?:' + names.join("|") + ')"[^>]*>)([^<]*)', "g"), '$1$2 <span style="font-size:.7em;opacity:.7;margin-left:.3em">Full</span>');
     return p;
   }
 
