@@ -54,9 +54,12 @@ async function ensureAccount(email: string, name: string | null): Promise<string
 async function fulfil(txn: any) {
   const items: any[] = txn.items ?? [];
   const ids = items.map((i) => i.price?.id ?? i.price_id).filter(Boolean);
-  const { data: prices } = await db.from("paddle_prices").select("*").in("price_id", ids);
-  console.log("lookup customer", txn.customer_id);
-  const cust = await paddleCustomer(txn.customer_id);
+  // Independent lookups run together: Paddle gives up on a delivery after about 5 seconds.
+  const [{ data: prices }, cust, { data: prior }] = await Promise.all([
+    db.from("paddle_prices").select("*").in("price_id", ids),
+    paddleCustomer(txn.customer_id),
+    db.from("payments").select("status").eq("txn_id", txn.id).maybeSingle(),
+  ]);
   console.log("customer ok");
   const amount = txn.details?.totals?.total, currency = txn.currency_code;
   const base = { txn_id: txn.id, customer_id: txn.customer_id, amount, currency };
@@ -70,7 +73,6 @@ async function fulfil(txn: any) {
     if (!known.length) return;
   }
 
-  const { data: prior } = await db.from("payments").select("status").eq("txn_id", txn.id).maybeSingle();
   if (prior?.status === "refunded") return; // a late retry must not undo a refund
 
   const email = await ensureAccount(cust.email, cust.name);
@@ -83,14 +85,17 @@ async function fulfil(txn: any) {
     const active = cur && (!cur.expires_at || new Date(cur.expires_at) > new Date());
     // Never downgrade a manual or school grant of the same or higher tier.
     if (active && cur.source !== "payment" && RANK[cur.tier] >= RANK[p.tier]) continue;
-    const { error } = await db.from("entitlements").upsert({
-      email, product: p.product, source: "payment", plan: p.period === "y" ? "annual" : "monthly",
-      tier: p.tier, starts_at: cur?.source === "payment" && active ? cur.starts_at : new Date().toISOString(),
-      expires_at: expires, note: `Paddle ${txn.id}`,
-    }, { onConflict: "email,product" });
+    const [{ error }, { error: perr }] = await Promise.all([
+      db.from("entitlements").upsert({
+        email, product: p.product, source: "payment", plan: p.period === "y" ? "annual" : "monthly",
+        tier: p.tier, starts_at: cur?.source === "payment" && active ? cur.starts_at : new Date().toISOString(),
+        expires_at: expires, note: `Paddle ${txn.id}`,
+      }, { onConflict: "email,product" }),
+      db.from("payments").upsert({ ...base, email, price_id: p.price_id, product: p.product, tier: p.tier, status: "granted" },
+        { onConflict: "txn_id" }),
+    ]);
     if (error) throw error;
-    await db.from("payments").upsert({ ...base, email, price_id: p.price_id, product: p.product, tier: p.tier, status: "granted" },
-      { onConflict: "txn_id" });
+    if (perr) throw perr;
   }
 }
 

@@ -31,9 +31,9 @@
       <p class="hint">Receipts are emailed by Paddle, our payment provider. Refunds: see the <a class="lnk" href="${S.base}refunds/">refund policy</a>.</p></section>` : "";
   }
 
-  const payOptions = (lead) => `<section class="card block"><h3>Payment options</h3><p>${lead}</p>
+  const payOptions = (lead, portal) => `<section class="card block"><h3>Payment options</h3><p>${lead}</p>
     <p class="hint">Pay by card or the local payment methods shown at checkout. Annual plans save about 30% against monthly. You are billed in your local currency, with any tax added at checkout, and you keep access until the end of the period you have paid for if you cancel.</p>
-    <p><a class="btn" href="${S.base}pricing/">See plans and prices</a> <a class="btn ghost" href="${S.base}contact/?topic=billing">Change or cancel a plan</a></p></section>`;
+    <p><a class="btn" href="${S.base}pricing/">See plans and prices</a> ${portal ? '<button class="btn ghost" id="portal-btn" type="button">Manage billing</button>' : `<a class="btn ghost" href="${S.base}contact/?topic=billing">Change or cancel a plan</a>`}</p><p class="msg err" id="portal-err" hidden></p></section>`;
 
   async function payments() {
     try { const { data } = await S.sb.rpc("my_payments"); return data || []; } catch (e) { return []; }
@@ -57,8 +57,21 @@
       ${ents.length ? `<section class="card block"><div class="tablewrap"><table class="tbl"><thead><tr><th>Subject</th><th>Level</th><th>Billing</th><th>Source</th><th>Status</th></tr></thead><tbody>${ents.map(row).join("")}</tbody></table></div>
           <p class="hint">Basic opens every lesson. Full adds marked assessments, topic tests and your progress tracker.</p></section>`
         : `<section class="card block"><h3>Free access</h3><p class="hint">You can open the free sample lessons and track your progress. A paid plan unlocks the full syllabus for a subject.</p></section>`}
-      ${payOptions(paid ? "Add another subject, move up to Full, or switch between monthly and annual billing." : "Choose a subject and a plan to unlock the full syllabus.")}
+      ${payOptions(paid ? "Add another subject, move up to Full, or switch between monthly and annual billing." : "Choose a subject and a plan to unlock the full syllabus.", paid)}
       ${paymentTable(pays)}`;
+    const pb = document.getElementById("portal-btn");
+    if (pb) pb.addEventListener("click", async () => {
+      const err = document.getElementById("portal-err");
+      err.hidden = true; pb.disabled = true; pb.textContent = "Opening...";
+      try {
+        const { data, error } = await S.sb.functions.invoke("paddle-portal");
+        if (error || !data || !data.url) throw new Error("no url");
+        location.href = data.url;
+      } catch (e) {
+        err.innerHTML = `Could not open billing. <a class="lnk" href="${S.base}contact/?topic=billing">Contact us</a> and we will sort it.`;
+        err.hidden = false; pb.disabled = false; pb.textContent = "Manage billing";
+      }
+    });
   }
 
   async function licence(me) {
