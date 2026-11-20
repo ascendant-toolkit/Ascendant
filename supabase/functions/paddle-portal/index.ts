@@ -16,6 +16,10 @@ const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SE
 const anon = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, { auth: { persistSession: false } });
 
 const base = () => (Deno.env.get("PADDLE_ENV") === "live" ? "https://api.paddle.com" : "https://sandbox-api.paddle.com");
+const keyShape = () => {
+  const k = Deno.env.get("PADDLE_API_KEY") ?? "";
+  return `len=${k.length} prefix_ok=${k.startsWith("pdl_live_apikey_")} ws=${/\s/.test(k)} quote=${/['"]/.test(k)} env=${Deno.env.get("PADDLE_ENV")}`;
+};
 const paddle = (path: string, init: RequestInit = {}) =>
   fetch(`${base()}${path}`, {
     ...init,
@@ -42,13 +46,13 @@ Deno.serve(async (req) => {
     let ids: string[] = [];
     const sr = await paddle(`/subscriptions?customer_id=${pay.customer_id}&status=active,trialing,past_due,paused`);
     if (sr.ok) ids = ((await sr.json()).data ?? []).map((s: any) => s.id);
-    else console.log("subscription list skipped", sr.status);
+    else console.log("subscription list skipped", sr.status, keyShape(), (await sr.text()).slice(0, 300));
 
     const r = await paddle(`/customers/${pay.customer_id}/portal-sessions`, {
       method: "POST",
       body: JSON.stringify(ids.length ? { subscription_ids: ids } : {}),
     });
-    if (!r.ok) throw new Error(`portal session failed: ${r.status}`);
+    if (!r.ok) throw new Error(`portal session failed: ${r.status} ${(await r.text()).slice(0, 300)}`);
     const { data } = await r.json();
     return json({ url: data.urls.general.overview });
   } catch (e) {
