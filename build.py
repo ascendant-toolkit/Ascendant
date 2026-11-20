@@ -12,7 +12,11 @@ import json
 import os
 import re
 import shutil
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "tools"))
+import split_full  # noqa: E402
 
 from site_data import A_CS_MOVED, A_ECON_MOVED, ARTIFACTS, COURSES, PADDLE, LANDING_PAGE, SITE_TAGLINE, SITE_TITLE
 
@@ -1067,7 +1071,7 @@ def encrypt_payload(master, slug, payload):
     return iv + AESGCM(key).encrypt(iv, plain, None)
 
 
-def shell_page(slug, title, courses, tier):
+def shell_page(slug, title, courses, tier, split=False):
     r = "../../"
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -1078,7 +1082,7 @@ def shell_page(slug, title, courses, tier):
 <script src="{r}assets/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="{r}assets/app.js"></script>
-<script src="{r}assets/gateload.js" data-slug="{slug}" data-courses="{",".join(courses)}" data-tier="{tier}"></script>
+<script src="{r}assets/gateload.js" data-slug="{slug}" data-courses="{",".join(courses)}" data-tier="{tier}"{' data-split="1"' if split else ''}></script>
 </body></html>
 """
 
@@ -1086,6 +1090,7 @@ def shell_page(slug, title, courses, tier):
 def build_artifacts():
     master = gate_master()
     seed = []
+    n_split, n_whole = [], []
     for a in ARTIFACTS:
         first = a["places"][0]
         info = chapter_info[first]
@@ -1123,10 +1128,21 @@ def build_artifacts():
                 shutil.copy2(f, target)
         if locked:
             index = bundle.pop("index.html")
+            tier = a.get("tier", "basic")
+            split = split_full.split(index) if tier == "basic" else None
+            (dest / "payload.full.bin").unlink(missing_ok=True)
+            if split:  # Practise, Exam questions and Tips & keywords go in a second payload under a Full-only key
+                index = split[0]
+                (dest / "payload.full.bin").write_bytes(encrypt_payload(master, a["slug"] + ":full", split[1]))
+                n_split.append(a["slug"])
+            else:
+                if tier == "basic":
+                    n_whole.append(a["slug"])
             (dest / "payload.bin").write_bytes(encrypt_payload(master, a["slug"], {"index": index, "files": bundle}))
-            (dest / "index.html").write_text(bust(shell_page(a["slug"], a["title"], courses, a.get("tier", "basic"))), encoding="utf-8")
+            (dest / "index.html").write_text(bust(shell_page(a["slug"], a["title"], courses, tier, bool(split))), encoding="utf-8")
         if courses:
             seed.append((a["slug"], courses, a.get("tier", "basic")))
+    print(f"Full-panel split: {len(n_split)} lessons split, {len(n_whole)} basic lessons left whole: {', '.join(n_whole)}")
     lines = ["-- Written by build.py. Safe to rerun: lists the locked lessons, which courses unlock each and the lowest tier that opens it (see schema.sql, v7).",
              "insert into public.artifact_courses (slug, courses, min_tier) values"]
     lines.append(",\n".join("  ('%s', array[%s], '%s')" % (s, ",".join("'%s'" % c for c in cs), t) for s, cs, t in seed))

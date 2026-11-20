@@ -890,6 +890,7 @@ alter table public.artifact_courses add constraint artifact_courses_min_tier_che
 create or replace function public.artifact_key(_slug text) returns text
 language plpgsql stable security definer set search_path = public, extensions as $$
 declare e text := lower(auth.jwt() ->> 'email'); c text[]; m text; mt text; trank int; staff boolean;
+        base text := regexp_replace(_slug, ':full$', '');
 begin
   if e is null then return null; end if;
   select value into m from settings where key = 'gate_master';
@@ -897,8 +898,10 @@ begin
   -- Admins and co-teachers can open any lesson, even one not yet listed in artifact_courses.
   staff := exists (select 1 from admins where email = e) or exists (select 1 from teachers where email = e);
   if not staff then
-    select courses, min_tier into c, mt from artifact_courses where slug = _slug;
+    select courses, min_tier into c, mt from artifact_courses where slug = base;
     if c is null then return null; end if;
+    -- '<slug>:full' is the key for a lesson's Practise / Exam / Tips panels: it needs the Full tier whatever the lesson's own tier.
+    if base <> _slug and tier_rank(mt) < tier_rank('full') then mt := 'full'; end if;
     -- School teachers open their licence's subjects at their licence's tier while it runs.
     if exists (select 1 from school_teachers where email = e) then
       if not exists (select 1 from school_teachers t join schools s on s.id = t.school_id
