@@ -792,9 +792,9 @@ def build_pricing():
                 ["Everything in Full", "Your choice of four subjects, at all levels, every feature", "Priority support",
                  "New content and features as they are added"],
                 buy("all", "Go All-Access"))
-    teacher = plan("Teacher", price(500, 50), "One teacher, all your classes.",
-                   ["Full content for the subjects you teach", "Class progress and homework dashboards",
-                    "Assign and track assessments", "Lesson-delivery mode for the classroom"],
+    teacher = plan("Teacher", price(500, 50), "One teacher, every subject and level.",
+                   ["Full content for up to four subjects, at every level", "Mark schemes, model answers and answer keys for every topic test",
+                    "Lesson-delivery mode for the classroom", "Add a school licence when you want student seats"],
                    buy("teacher", "Choose Teacher"))
     school = plan("School", '<p class="price"><span class="amt">$50</span><span class="per">/student / subject / year</span></p>',
                   "Whole-school access, managed centrally.",

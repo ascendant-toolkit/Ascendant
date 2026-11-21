@@ -58,6 +58,56 @@ async function ensureAccount(email: string, name: string | null): Promise<string
   return email;
 }
 
+const ALL_COURSES = ["ig-econ", "ig-cs", "a-econ", "a-cs"]; // the platform's four courses; Teacher covers them all, capped at four subjects
+
+// Teacher plan: a one-teacher "tutor" licence (no student seats) plus the teacher login. Renewals extend it, refunds end it.
+async function fulfilTeacher(txn: any, cust: { email: string; name: string | null }, base: any, priceId: string) {
+  const email = cust.email;
+  const ends = txn.billing_period?.ends_at ? new Date(txn.billing_period.ends_at).getTime() : Date.now() + 31 * 24 * 3600 * 1000;
+  const expires = new Date(ends + GRACE_MS).toISOString();
+  const hold = async (note: string) => {
+    await db.from("payments").upsert({ ...base, email, price_id: priceId, status: "needs_setup", note }, { onConflict: "txn_id", ignoreDuplicates: true });
+  };
+
+  const { data: existing } = await db.from("school_teachers").select("school_id").eq("email", email).maybeSingle();
+  if (existing) {
+    // Renewal (or a late retry): extend the licence this teacher already holds.
+    const { data: sc } = await db.from("schools").select("expires_at").eq("id", existing.school_id).maybeSingle();
+    if (!sc || !sc.expires_at || new Date(sc.expires_at) < new Date(expires)) {
+      await db.from("schools").update({ expires_at: expires }).eq("id", existing.school_id);
+    }
+    await db.from("payments").upsert({ ...base, email, price_id: priceId, status: "granted", note: `school:${existing.school_id}` }, { onConflict: "txn_id" });
+    return;
+  }
+
+  // An email that is already an admin, co-teacher or student cannot also be a licence teacher: leave it for hand fulfilment.
+  const [a, tc, pr] = await Promise.all([
+    db.from("admins").select("email").eq("email", email).maybeSingle(),
+    db.from("teachers").select("email").eq("email", email).maybeSingle(),
+    db.from("profiles").select("email").or(`email.eq.${email},email2.eq.${email}`).limit(1).maybeSingle(),
+  ]);
+  if (a.data || tc.data || pr.data) return hold("Teacher plan: this email already has another account. Set up the licence by hand in the admin Schools tab");
+
+  const sid = `tutor-${email.split("@")[0].toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 24) || "t"}-${txn.id.slice(-6).toLowerCase()}`;
+  const name = cust.name || email.split("@")[0];
+  const { error: se } = await db.from("schools").insert({ id: sid, name, kind: "tutor", products: ALL_COURSES, tier: "full", seats: 0, expires_at: expires, note: `Paddle ${txn.id}` });
+  if (se) throw se;
+  // Same pattern as new student buyers: gate_signup needs a roster row whose password matches the login being created.
+  const tmp = crypto.randomUUID() + crypto.randomUUID();
+  const { error: te } = await db.from("school_teachers").insert({ email, school_id: sid, name, password: tmp });
+  if (te) { await db.from("schools").delete().eq("id", sid); throw te; }
+  const { error: ce } = await db.auth.admin.createUser({ email, password: tmp, email_confirm: true });
+  if (ce && !/already|registered|exists/i.test(ce.message)) {
+    await db.from("school_teachers").delete().eq("email", email);
+    await db.from("schools").delete().eq("id", sid); // roll back so a retry starts clean
+    throw ce;
+  }
+  await db.from("school_teachers").update({ password: "" }).eq("email", email);
+  await db.from("payments").upsert({ ...base, email, price_id: priceId, status: "granted", note: `school:${sid}` }, { onConflict: "txn_id" });
+  const site = Deno.env.get("SITE_URL") ?? "https://ascendant.academy";
+  await anon.auth.resetPasswordForEmail(email, { redirectTo: `${site}/profile/` });
+}
+
 async function fulfil(txn: any) {
   const items: any[] = txn.items ?? [];
   const ids = items.map((i) => i.price?.id ?? i.price_id).filter(Boolean);
@@ -72,15 +122,17 @@ async function fulfil(txn: any) {
   const base = { txn_id: txn.id, customer_id: txn.customer_id, amount, currency };
 
   const known = (prices ?? []).filter((p) => p.kind === "student" && p.product);
-  const hasTeacher = (prices ?? []).some((p) => p.kind === "teacher");
-  if (!known.length || hasTeacher || known.length < ids.length) {
-    // Teacher plan or a price we do not recognise: record it for hand fulfilment rather than guess.
-    await db.from("payments").upsert({ ...base, email: cust.email, price_id: ids.join(","), status: "needs_setup",
-      note: hasTeacher ? "Teacher plan: create the school-of-one in the admin Schools tab" : "Unrecognised price id" }, { onConflict: "txn_id", ignoreDuplicates: true });
-    if (!known.length) return;
-  }
+  const teacherPrice = (prices ?? []).find((p) => p.kind === "teacher");
 
   if (prior?.status === "refunded") return; // a late retry must not undo a refund
+  if (teacherPrice) return await fulfilTeacher(txn, cust, base, teacherPrice.price_id);
+
+  if (!known.length || known.length < ids.length) {
+    // A price we do not recognise: record it for hand fulfilment rather than guess.
+    await db.from("payments").upsert({ ...base, email: cust.email, price_id: ids.join(","), status: "needs_setup",
+      note: "Unrecognised price id" }, { onConflict: "txn_id", ignoreDuplicates: true });
+    if (!known.length) return;
+  }
 
   const email = await ensureAccount(cust.email, cust.name);
   console.log("account ok");
@@ -115,6 +167,8 @@ async function refund(adj: any) {
   const { data: pay } = await db.from("payments").select("*").eq("txn_id", adj.transaction_id).maybeSingle();
   if (!pay) return;
   await db.from("payments").update({ status: "refunded" }).eq("txn_id", pay.txn_id);
+  const sid = /^school:(.+)$/.exec(pay.note ?? "")?.[1];
+  if (sid) await db.from("schools").update({ expires_at: new Date().toISOString() }).eq("id", sid); // Teacher plan licence ends at once
   if (pay.product) {
     await db.from("entitlements").update({ expires_at: new Date().toISOString() })
       .eq("email", pay.email).eq("product", pay.product).eq("source", "payment");
