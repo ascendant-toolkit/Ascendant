@@ -107,7 +107,11 @@ async function fulfil(txn: any) {
 }
 
 async function refund(adj: any) {
-  if (adj.action !== "refund" || adj.status !== "approved" || adj.type !== "full") return;
+  if (adj.action !== "refund" || adj.status !== "approved") return;
+  // Paddle can label a refund of the whole amount "partial" at adjustment level when it was raised per item, so also
+  // accept an adjustment whose items are all full.
+  const items: any[] = adj.items ?? [];
+  if (adj.type !== "full" && !(items.length && items.every((i) => i.type === "full"))) return;
   const { data: pay } = await db.from("payments").select("*").eq("txn_id", adj.transaction_id).maybeSingle();
   if (!pay) return;
   await db.from("payments").update({ status: "refunded" }).eq("txn_id", pay.txn_id);
