@@ -41,10 +41,17 @@ async function paddleCustomer(id: string): Promise<{ email: string; name: string
 async function ensureAccount(email: string, name: string | null): Promise<string> {
   const { data: p } = await db.from("profiles").select("email").or(`email.eq.${email},email2.eq.${email}`).limit(1).maybeSingle();
   if (p) return p.email;
-  const { error: ce } = await db.auth.admin.createUser({ email, email_confirm: true });
-  if (ce && !/already|registered|exists/i.test(ce.message)) throw ce;
-  const { error: pe } = await db.from("profiles").insert({ email, name: name || email.split("@")[0], subjects: [], password: "" });
+  // The database's gate_signup trigger only lets a login be created when its password matches a roster profile, so the
+  // profile goes in first with a throwaway password, the login is created with it, then the password is cleared.
+  const tmp = crypto.randomUUID() + crypto.randomUUID();
+  const { error: pe } = await db.from("profiles").insert({ email, name: name || email.split("@")[0], subjects: [], password: tmp });
   if (pe) throw pe;
+  const { error: ce } = await db.auth.admin.createUser({ email, password: tmp, email_confirm: true });
+  if (ce && !/already|registered|exists/i.test(ce.message)) {
+    await db.from("profiles").delete().eq("email", email); // roll back so a retry starts clean
+    throw ce;
+  }
+  await db.from("profiles").update({ password: "" }).eq("email", email);
   // New buyers set their own password through the normal reset flow.
   const site = Deno.env.get("SITE_URL") ?? "https://ascendant.academy";
   await anon.auth.resetPasswordForEmail(email, { redirectTo: `${site}/profile/` });
