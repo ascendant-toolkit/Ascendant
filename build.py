@@ -138,7 +138,7 @@ def layout(title, body, path, active, crumbs=None, accent=None, auth=False, extr
 </main>
 <footer class="site"><p><a href="{root}schools/">For schools</a> · <a href="{root}contact/">Contact</a> · <a href="{root}terms/">Terms</a> · <a href="{root}privacy/">Privacy</a> · <a href="{root}refunds/">Refunds</a> · <a href="mailto:{SUPPORT_EMAIL}">{SUPPORT_EMAIL}</a></p><p>Independent revision resource for Cambridge IGCSE and A-Level. Not affiliated with or endorsed by Cambridge University Press &amp; Assessment.</p></footer>
 <script src="{root}assets/site.js"></script>
-{auth_scripts(root, gate)}{extra}
+{auth_scripts(root, gate)}{extra}{CF_BEACON}
 </body></html>
 """
 
@@ -473,6 +473,11 @@ def build_landing():
     write("welcome/index.html", layout(SITE_TITLE, body, "welcome/", "home", extra='<script src="../assets/home.js"></script>'))
 
 
+# Cloudflare Web Analytics (cookie-free). Paste the site token from Cloudflare > Analytics & Logs > Web Analytics here; empty = no script,
+# and the privacy notice then says nothing about analytics. The token is public (it ships in every page).
+CF_BEACON_TOKEN = ""
+CF_BEACON = (f'<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon=\'{{"token": "{CF_BEACON_TOKEN}"}}\'></script>'
+             if CF_BEACON_TOKEN else "")
 SUPPORT_EMAIL = "support@ascendant.academy"
 SUPPORT_LINK = f'<a href="mailto:{SUPPORT_EMAIL}">{SUPPORT_EMAIL}</a>'
 NUM_WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten"}
@@ -636,7 +641,7 @@ LEGAL = {
         ("What we collect", "Your name, email address, the subjects you study, your progress and assessment attempts, any message you send through the contact form, and your email and role (student, parent or teacher) if you join the launch-news list. If you buy a plan, Paddle collects your payment details and billing address; we receive your email, the plan and the payment status, but never your card number."),
         ("Why we use it", "To run your account, unlock the lessons you have paid for, show your progress, reply to your messages and send account emails such as password resets. If you join the launch-news list, we use your email only to tell you about paid plans, launch offers and new content, and you can ask to be removed at any time. We do not sell your data and we do not use it for advertising."),
         ("Who handles it", "Supabase hosts our database and logins. Paddle processes payments as merchant of record. Resend delivers our account emails. GitHub hosts the website. Each handles data only to provide its service."),
-        ("Cookies and storage", "We use your browser's local storage to keep you signed in and remember your progress. We do not use advertising or cross-site tracking cookies."),
+        ("Cookies and storage", "We use your browser's local storage to keep you signed in and remember your progress. We do not use advertising or cross-site tracking cookies." + (" To see which pages are used, we use Cloudflare Web Analytics, which does not use cookies or local storage and does not build profiles of individual visitors." if CF_BEACON_TOKEN else "")),
         ("How long we keep it", "While your account exists. Payment records are kept as long as tax and accounting rules require. Ask us to delete your account and we will remove your data, except records we are legally required to keep."),
         ("Your rights", "You can ask to see, correct or delete the personal data we hold about you, or to object to how we use it. Use the <a href=\"../contact/\">contact form</a> and choose the topic that fits, or email <a href=\"mailto:support@ascendant.academy\">support@ascendant.academy</a>. Students in a school may also be able to ask their teacher to correct details."),
         ("Children", "Many of our students are under 18. Younger students should use the site with a parent or guardian's agreement, and any purchase should be made by an adult."),
