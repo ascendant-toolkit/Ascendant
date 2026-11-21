@@ -106,6 +106,7 @@ def layout(title, body, path, active, crumbs=None, accent=None, auth=False, extr
         f'<a href="{root}{href}"{" class=on aria-current=page" if key == active else ""}{f" data-course={key}" if key in COURSES else ""}>{label}</a>'
         for key, label, href in NAV
     )
+    nav += f'<a class="join" href="{root}pricing/">Sign up</a>'
     crumb_html = ""
     if crumbs:
         parts = []
@@ -546,7 +547,7 @@ def build_home():
 <h1 id="lp-title">A teaching and learning toolkit: for everyone</h1>
 <p class="lp-sub">Students &middot; Tutors &middot; Teachers &middot; Schools</p>
 <p class="lead">Your syllabus, fully resourced, chapter by chapter: with animated explainers, hands-on activities, exam questions with model answers, marked assessments and progress tracking, all in one place.</p>
-<p class="cta"><a class="btn" href="pricing/">See plans</a><a class="btn ghost" id="sample" href="#samples">Try a free lesson</a><a class="btn ghost" id="signin" href="profile/">Sign in</a></p>
+<p class="cta"><a class="btn" id="joinbtn" href="pricing/">Sign up</a><a class="btn ghost" id="sample" href="#samples">Try a free lesson</a><a class="btn ghost" id="signin" href="profile/">Sign in</a></p>
 <ul class="lp-stats"><li><b>{total}</b><span>interactive activities</span></li><li><b>{chapters}</b><span>chapters</span></li><li><b>{len(SYLLABI)}</b><span>Cambridge syllabuses</span></li></ul></div>
 <div class="lp-visual" aria-hidden="false"><div class="lp-pane lp-pane-a"><span class="lp-tag">Economics &middot; Explore</span>{HERO_CHART}<p>Shift the curves and watch the market move.</p></div>
 <div class="lp-pane lp-pane-b"><span class="lp-tag">Computer Science &middot; Watch</span>{HERO_CODE}<p>Step through code and see every value change.</p></div></div></section>

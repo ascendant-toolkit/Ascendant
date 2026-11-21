@@ -321,7 +321,8 @@
   // The "Plans" link in the navbar follows who pays: signed-in individuals and licence holders get "My plan",
   // students placed by a school or tutor, and co-teachers, have no plan to manage so the link goes away.
   Site.adaptNav = () => {
-    const a = document.querySelector('nav.main a[href$="pricing/"]');
+    if (Site.me) document.querySelectorAll("nav.main a.join").forEach((j) => { j.hidden = true; });
+    const a = document.querySelector('nav.main a[href$="pricing/"]:not(.join)');
     if (!a || !Site.me || a.classList.contains("on")) return;
     const m = Site.me, v = m.plan_view || (m.is_admin ? "admin" : m.is_school_teacher ? "licence" : m.is_teacher ? "none" : m.school ? "managed" : "individual");
     if (v === "managed" || v === "none") a.hidden = true;
