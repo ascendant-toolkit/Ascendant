@@ -136,7 +136,7 @@ def layout(title, body, path, active, crumbs=None, accent=None, auth=False, extr
 {crumb_html}
 {body}
 </main>
-<footer class="site"><p><a href="{root}schools/">For schools</a> · <a href="{root}contact/">Contact</a> · <a href="{root}terms/">Terms</a> · <a href="{root}privacy/">Privacy</a> · <a href="{root}refunds/">Refunds</a></p><p>Independent revision resource for Cambridge IGCSE and A-Level. Not affiliated with or endorsed by Cambridge University Press &amp; Assessment.</p></footer>
+<footer class="site"><p><a href="{root}schools/">For schools</a> · <a href="{root}contact/">Contact</a> · <a href="{root}terms/">Terms</a> · <a href="{root}privacy/">Privacy</a> · <a href="{root}refunds/">Refunds</a> · <a href="mailto:{SUPPORT_EMAIL}">{SUPPORT_EMAIL}</a></p><p>Independent revision resource for Cambridge IGCSE and A-Level. Not affiliated with or endorsed by Cambridge University Press &amp; Assessment.</p></footer>
 <script src="{root}assets/site.js"></script>
 {auth_scripts(root, gate)}{extra}
 </body></html>
@@ -473,6 +473,8 @@ def build_landing():
     write("welcome/index.html", layout(SITE_TITLE, body, "welcome/", "home", extra='<script src="../assets/home.js"></script>'))
 
 
+SUPPORT_EMAIL = "support@ascendant.academy"
+SUPPORT_LINK = f'<a href="mailto:{SUPPORT_EMAIL}">{SUPPORT_EMAIL}</a>'
 NUM_WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten"}
 N_FREE = len([a for a in ARTIFACTS if a.get("tier") == "free"])
 FREE_WORD = NUM_WORDS.get(N_FREE, str(N_FREE))
@@ -601,6 +603,7 @@ def build_contact():
     opt = lambda items: "".join(f'<option value="{k}">{v}</option>' for k, v in items)
     body = (head("Contact", "Questions about your account, a licence or anything else. We reply by email.", "Get in touch")
             + '<section class="sec" style="margin-top:8px"><div class="free-card"><form id="contactform" class="joinform" novalidate>'
+            f'<p class="hint">Prefer email? Write to {SUPPORT_LINK}.</p>'
             '<p class="hint">Students in a school: your teacher can reset your password and change your subjects first. Teachers: ask your school administrator. '
             'Tutors and schools can message us here, and so can students without a school or tutor.</p>'
             '<label>Name<input name="name" autocomplete="name" maxlength="120" required></label>'
@@ -635,7 +638,7 @@ LEGAL = {
         ("Who handles it", "Supabase hosts our database and logins. Paddle processes payments as merchant of record. Resend delivers our account emails. GitHub hosts the website. Each handles data only to provide its service."),
         ("Cookies and storage", "We use your browser's local storage to keep you signed in and remember your progress. We do not use advertising or cross-site tracking cookies."),
         ("How long we keep it", "While your account exists. Payment records are kept as long as tax and accounting rules require. Ask us to delete your account and we will remove your data, except records we are legally required to keep."),
-        ("Your rights", "You can ask to see, correct or delete the personal data we hold about you, or to object to how we use it. Use the <a href=\"../contact/\">contact form</a> and choose the topic that fits. Students in a school may also be able to ask their teacher to correct details."),
+        ("Your rights", "You can ask to see, correct or delete the personal data we hold about you, or to object to how we use it. Use the <a href=\"../contact/\">contact form</a> and choose the topic that fits, or email <a href=\"mailto:support@ascendant.academy\">support@ascendant.academy</a>. Students in a school may also be able to ask their teacher to correct details."),
         ("Children", "Many of our students are under 18. Younger students should use the site with a parent or guardian's agreement, and any purchase should be made by an adult."),
     ]),
     "refunds": ("Refund policy", "How refunds and cancellations work.", [
@@ -643,7 +646,7 @@ LEGAL = {
         ("Monthly plans", "Cancel at any time and you are not charged again. You keep access until the end of the month you have paid for. After the first 14 days, monthly payments are not refunded."),
         ("Annual plans", "After the first 14 days an annual plan is non-refundable and you keep full access until it ends. If you have a genuine reason, get in touch: any goodwill refund is worked out at the standard monthly price for the months you have used, not the discounted annual rate."),
         ("Schools and tutors", "Licences are annual commitments with no mid-term refunds. Schools get a 30-day evaluation instead. After that the licence runs for the agreed term."),
-        ("How to ask", "Use the <a href=\"../contact/\">contact form</a> and choose Billing or refunds, or reply to your Paddle receipt. Approved refunds go back to your original payment method and your access ends when the refund is made."),
+        ("How to ask", "Use the <a href=\"../contact/\">contact form</a> and choose Billing or refunds, email <a href=\"mailto:support@ascendant.academy\">support@ascendant.academy</a>, or reply to your Paddle receipt. Approved refunds go back to your original payment method and your access ends when the refund is made."),
         ("Your legal rights", "This policy does not affect any rights you have under consumer law."),
     ]),
 }
@@ -810,6 +813,8 @@ def build_pricing():
             "examiners reward and how to move up a grade."),
            ("Will more be added?",
             "Yes. We keep expanding the content, the subjects and the features, and your plan covers what is added to it. Homework tracking is planned and is not available yet."),
+           ("What does priority support mean?",
+            "Messages from Full and All-Access members are answered before the others. Write to support@ascendant.academy or use the contact form on the website."),
            ("Can I cancel any time?",
             "Yes. Cancel whenever you like and you keep access until the end of the period you have paid for. "
             "Monthly plans stop at the next month, annual plans run to the end of the year, and there are no further charges."),
