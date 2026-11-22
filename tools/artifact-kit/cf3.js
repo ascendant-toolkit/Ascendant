@@ -102,6 +102,10 @@ Lib.order($("#o1"), { prompt: "Put the accelerator chain in order.", items: [
   "Investment falls, reducing aggregate demand even though income is still rising",
 ], done: "The key point is the rate of change of income." });
 Lib.calc($("#c1"), { qs: [
+  { q: "Saving is S = −200 + 0.2Y. What is saving when income is $4,000?", a: 600, sol: "−200 + 0.2 × 4,000 = <b>$600</b>." },
+  { q: "Using that saving figure and income of $4,000, what is the average propensity to consume (2 decimal places)?", a: 0.85, tol: 0.01, sol: "APS = 600 ÷ 4,000 = 0.15, so APC = 1 − 0.15 = <b>0.85</b>." },
+  { q: "A $1m rise in GDP causes induced investment to rise by $3m. What is the accelerator coefficient?", a: 3, sol: "3 ÷ 1 = <b>3</b>." },
+  { q: "A firm has 10 machines and each produces 100 units. Demand rises from 1,000 to 1,200 units. How many extra machines does it need (induced investment)?", a: 2, sol: "1,200 ÷ 100 = 12 machines needed, so <b>2</b> more." },
   { q: "Consumption is C = 100 + 0.75Y. What is consumption when income is $600?", a: 550, sol: "100 + 0.75 × 600 = <b>$550</b>." },
   { q: "What is saving at income $600 ($)?", a: 50, sol: "600 − 550 = <b>$50</b>." },
   { q: "What is the average propensity to consume at income $600 (2 decimal places)?", a: 0.92, tol: 0.01, sol: "550 ÷ 600 = <b>0.92</b>." },
@@ -119,6 +123,9 @@ Lib.quiz($("#qz1"), { qs: [
   { q: "A rise in saving that is not matched by a rise in investment will probably:", opts: ["raise national income", "lower national income", "not affect national income", "raise the multiplier"], a: 1, why: "Withdrawals exceed injections, so income falls." },
 ] });
 Lib.cards($("#fc1"), { cards: [
+  ["Savings function", "S = −a + sY: −a is autonomous dissaving, sY is induced saving."],
+  ["Autonomous vs induced investment", "Autonomous: independent of income, shifts the AE line. Induced: caused by a change in income, a movement along the line."],
+  ["Accelerator coefficient", "Induced investment ÷ the change in GDP that caused it."],
   ["Consumption function", "C = a + cY: consumption depends on disposable income."],
   ["Autonomous consumption", "Spending that does not depend on current income (the intercept a)."],
   ["MPC", "Change in consumption ÷ change in income."],

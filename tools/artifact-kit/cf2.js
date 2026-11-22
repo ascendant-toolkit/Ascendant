@@ -98,6 +98,10 @@ Lib.order($("#o1"), { prompt: "Put the multiplier process in order.", items: [
   "National income rises by a multiple of the original injection",
 ], done: "Always mention the leakages that make each round smaller." });
 Lib.calc($("#c1"), { qs: [
+  { q: "An economy has national income of $3,200bn and imports of $630bn. What is the average propensity to import (2 decimal places)?", a: 0.2, tol: 0.01, sol: "630 ÷ 3,200 = <b>0.20</b>." },
+  { q: "Income rises by $400bn and imports rise by $80bn. What is the marginal propensity to import?", a: 0.2, tol: 0.01, sol: "80 ÷ 400 = <b>0.2</b>." },
+  { q: "Income is $500bn and tax revenue is $100bn. What is the average rate of tax?", a: 0.2, tol: 0.01, sol: "100 ÷ 500 = <b>0.2</b>." },
+  { q: "Income rises by $200bn and tax revenue rises by $60bn. What is the marginal rate of tax?", a: 0.3, tol: 0.01, sol: "60 ÷ 200 = <b>0.3</b>." },
   { q: "In a closed economy with no government the MPC is 0.8. What is the multiplier?", a: 5, sol: "1 ÷ (1 − 0.8) = <b>5</b>." },
   { q: "An injection of $40m is made with a multiplier of 5. By how much does national income rise ($m)?", a: 200, sol: "5 × 40 = <b>$200m</b>." },
   { q: "The MPC is 0.6 in a closed economy with no government and investment rises by $100m. What is the rise in national income ($m)?", a: 250, sol: "1 ÷ 0.4 = 2.5; 2.5 × 100 = <b>$250m</b>." },
@@ -115,6 +119,8 @@ Lib.quiz($("#qz1"), { qs: [
   { q: "A fall in injections will:", opts: ["raise income by a multiple", "reduce income by a multiple", "not affect income", "raise the multiplier"], a: 1, why: "The multiplier works in both directions." },
 ] });
 Lib.cards($("#fc1"), { cards: [
+  ["APM and MPM", "Average: imports ÷ income. Marginal: change in imports ÷ change in income."],
+  ["Average and marginal rate of tax", "ART = tax ÷ income. MRT = change in tax ÷ change in income. MRT above ART means a progressive tax."],
   ["Multiplier", "The ratio of the change in national income to the change in injections that caused it."],
   ["k = 1 ÷ (1 − MPC)", "The multiplier in a closed economy with no government."],
   ["k = 1 ÷ MPW", "The multiplier with all leakages: MPW = MPS + MRT + MPM."],
