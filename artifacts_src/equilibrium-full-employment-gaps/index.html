@@ -227,6 +227,8 @@ table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
 .gantt{display:flex;margin:6px 0 0;font-family:var(--mono)}.gantt .gb{border:1.5px solid var(--ink);margin-left:-1.5px;text-align:center;padding:6px 0;font-weight:700;font-size:.85rem;background:var(--surface);min-width:0}
 .gantt .gb.c0{background:var(--accent-soft)}.gantt .gb.c1{background:var(--bad-soft)}.gantt .gb.c2{background:var(--good-soft)}.gantt .gb.c3{background:var(--warn-soft)}.gantt .gb.c4{background:var(--soft)}
 .gticks{display:flex;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:2px 0 10px}.gticks span{text-align:right;min-width:0}
+
+#pic1,#stD,#stI{max-width:680px;margin-left:auto;margin-right:auto}
 </style></head>
 <body>
 <div class="wrap">
@@ -704,24 +706,25 @@ function btnTable(btnId, outId, rows, heads) {
 }
 
 /* ---------- 45 degree diagram ---------- */
-const GX0 = 80, GY0 = 340;
+const GX0 = 70, GMX = 600, GSC = 0.6, GTOP = 36, GY0 = GTOP + GMX * GSC;
 const tickSet = (gx, gy, x0, y0, xm, ym, step, grid) => { let o = ""; for (let v = 0; v <= xm + 0.001; v += step) { if (grid && v > 0) o += SV.line(gx(v), y0, gx(v), gy(ym), "", { style: "stroke:var(--line);stroke-width:1;opacity:.55" }); o += SV.line(gx(v), y0, gx(v), y0 + 5, "", {}) + SV.text(gx(v), y0 + 18, v, "sm", { "text-anchor": "middle" }); }
   for (let v = step; v <= ym + 0.001; v += step) { if (grid) o += SV.line(x0, gy(v), gx(xm), gy(v), "", { style: "stroke:var(--line);stroke-width:1;opacity:.55" }); o += SV.line(x0 - 5, gy(v), x0, gy(v), "", {}) + SV.text(x0 - 9, gy(v) + 4, v, "sm", { "text-anchor": "end" }); } return o; };
 const niceStep = (mx) => [10, 20, 50, 100, 200, 500, 1000].find((s) => s >= mx / 6) || 1000;
 function gapDraw(cfg, s) {
-  const mx = cfg.max, sc = 290 / mx, gx = (v) => GX0 + sc * v, gy = (v) => GY0 - sc * v;
+  const gx = (v) => GX0 + GSC * v, gy = (v) => GY0 - GSC * v, mx = GMX;
   const A = cfg.A0 + (s.sh || 0) * cfg.dA, sl = cfg.s, Y = A / (1 - sl), AEF = A + sl * cfg.YF, gap = AEF - cfg.YF;
-  let o = tickSet(gx, gy, GX0, GY0, mx, mx, 100, true) + axes(GX0, GY0, GX0 + 330, GY0 - 305, "", "Aggregate expenditure") + SV.text(gx(mx / 2), GY0 + 54, "National income, Y", "sm", { "text-anchor": "middle" });
-  o += SV.line(gx(0), gy(0), gx(mx), gy(mx), "c3") + tag(gx(mx) + 4, gy(mx) + 4, "45° line", "t3", 1);
-  o += SV.line(gx(0), gy(A), gx(mx), gy(A + sl * mx), s.sh > 0.01 ? "c2" : "c1", { "stroke-width": 3 }) + tag(gx(mx) + 4, gy(A + sl * mx) + 4, "AE", s.sh > 0.01 ? "t2" : "t1", 1);
-  if (s.yf > 0) o += SV.line(gx(cfg.YF), GY0, gx(cfg.YF), gy(mx), "c3 dash", op(s.yf)) + tag(gx(cfg.YF), GY0 + 36, "YF = " + cfg.YF, "t3", s.yf, "middle");
-  if (s.eq > 0) o += SV.line(gx(Y), GY0, gx(Y), gy(Y), "c1 dash", op(s.eq)) + SV.circle(gx(Y), gy(Y), 6, "dot1", op(s.eq)) + tag(gx(Y), GY0 + 36, "Y = " + Lib.fmtN(Y, 0), "t1", s.eq, "middle");
-  if (s.gap > 0 && Math.abs(gap) > 0.5) { const c = gap < 0 ? "t2" : "t4"; o += SV.line(gx(cfg.YF), gy(cfg.YF), gx(cfg.YF), gy(AEF), "c2", { "stroke-width": 6, ...op(s.gap) }) + tag(gx(cfg.YF) + 10, (gy(cfg.YF) + gy(AEF)) / 2 + 5, gap < 0 ? "deflationary gap" : "inflationary gap", c, s.gap); }
+  let o = tickSet(gx, gy, GX0, GY0, mx, mx, 100, true) + axes(GX0, GY0, gx(mx) + 8, GTOP - 14, "", "Aggregate expenditure, AE") + SV.text(gx(mx / 2), GY0 + 52, "National income, Y", "sm", { "text-anchor": "middle" });
+  o += SV.line(gx(0), gy(0), gx(mx), gy(mx), "c3") + tag(gx(mx) + 6, gy(mx) + 4, "45° line", "t3", 1);
+  o += SV.line(gx(0), gy(A), gx(mx), gy(A + sl * mx), s.sh > 0.01 ? "c2" : "c1", { "stroke-width": 3.5 }) + tag(gx(mx) + 6, gy(A + sl * mx) + 6, "AE", s.sh > 0.01 ? "t2" : "t1", 1);
+  const left = Y <= cfg.YF;
+  if (s.yf > 0) o += SV.line(gx(cfg.YF), GY0, gx(cfg.YF), gy(mx), "c3 dash", op(s.yf)) + tag(gx(cfg.YF) + (left ? 4 : -4), GY0 + 34, "YF = " + cfg.YF, "t3", s.yf, left ? "start" : "end");
+  if (s.eq > 0) o += SV.line(gx(Y), GY0, gx(Y), gy(Y), "c1 dash", op(s.eq)) + SV.circle(gx(Y), gy(Y), 6, "dot1", op(s.eq)) + tag(gx(Y) + (left ? -4 : 4), GY0 + 34, "Y = " + Lib.fmtN(Y, 0), "t1", s.eq, left ? "end" : "start");
+  if (s.gap > 0 && Math.abs(gap) > 0.5) { const hi = Math.max(cfg.YF, AEF); o += SV.line(gx(cfg.YF), gy(cfg.YF), gx(cfg.YF), gy(AEF), "c2", { "stroke-width": 8, ...op(s.gap) }) + tag(gx(cfg.YF) - 14, gy(hi) - 16, gap < 0 ? "deflationary gap = " + Lib.fmtN(-gap, 0) : "inflationary gap = " + Lib.fmtN(gap, 0), "t2", s.gap, "end"); }
   return o;
 }
-const DCFG = { max: 600, A0: 120, dA: 80, s: 0.6, YF: 500 }, ICFG = { max: 600, A0: 200, dA: -40, s: 0.6, YF: 400 };
-$("#pic1").innerHTML = `<svg viewBox="0 0 760 400" role="img" aria-label="Keynesian 45 degree diagram: aggregate expenditure line crossing the 45 degree line at equilibrium income below full employment">${gapDraw(DCFG, { sh: 0, yf: 1, eq: 1, gap: 1 })}</svg>`;
-function gapStepper(el, cfg, label, steps, base) { Lib.stepper(el, { w: 760, h: 400, label, base, draw: (s) => gapDraw(cfg, s), tween: 1100, dwell: 5600, steps }); }
+const DCFG = { A0: 120, dA: 80, s: 0.6, YF: 500 }, ICFG = { A0: 200, dA: -40, s: 0.6, YF: 400 };
+$("#pic1").innerHTML = `<svg viewBox="0 0 620 ${GY0 + 66}" role="img" aria-label="Keynesian 45 degree diagram: aggregate expenditure line crossing the 45 degree line at equilibrium income below full employment">${gapDraw(DCFG, { sh: 0, yf: 1, eq: 1, gap: 1 })}</svg>`;
+function gapStepper(el, cfg, label, steps, base) { Lib.stepper(el, { w: 620, h: GY0 + 66, label, base, draw: (s) => gapDraw(cfg, s), tween: 1100, dwell: 5600, steps }); }
 gapStepper($("#stD"), DCFG, "AE line below full employment, deflationary gap closed by a rise in government spending", [
   { cap: "<b>The 45° line.</b> Every point has expenditure equal to income. Output settles only where AE meets this line.", s: { sh: 0 } },
   { cap: "<b>The AE line</b> starts at autonomous spending of 120 and slopes up with slope 0.6, because some of each extra dollar of income is spent on domestic output.", s: { sh: 0, eq: 0 } },

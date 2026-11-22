@@ -696,15 +696,17 @@ const halo = { style: "paint-order:stroke;stroke:var(--surface);stroke-width:5px
 const arrow = (x1, y1, x2, y2, dir, cls, v) => `<g style="opacity:${Math.max(0, Math.min(1, v))}">${SV.line(x1, y1, x2, y2, cls, { "stroke-width": 2.5 })}${SV.arrowHead(x2, y2, dir, cls === "c2" ? "dot2" : cls === "c3" ? "dot3" : cls === "c4" ? "dot4" : "dot1")}</g>`;
 
 /* ---------- Watch 1: consumption function ---------- */
+const ytk = (yf, vals, x0, x1) => vals.map((v) => SV.line(x0, yf(v), x1, yf(v), "", { style: "stroke:var(--line);stroke-width:1;opacity:.6" }) + SV.text(x0 - 8, yf(v) + 4, v, "sm", { "text-anchor": "end" })).join("");
 const CXs = (y) => 70 + y * 0.85, CYs = (v) => 330 - v * 0.42;
 function consDraw(s) {
   let o = SV.line(70, 330, 760, 330) + SV.line(70, 330, 70, 30) + SV.text(760, 370, "Disposable income Y", "sm", { "text-anchor": "end" }) + SV.text(76, 24, "Consumption C", "sm");
   [0, 200, 400, 600, 800].forEach((y) => { o += SV.text(CXs(y), 346, y, "sm", { "text-anchor": "middle" }); });
+  o = ytk(CYs, [100, 200, 300, 400, 500, 600, 700], 70, 760) + o;
   if (s.l > 0) o += SV.line(CXs(0), CYs(0), CXs(700), CYs(700), "gr", { "stroke-dasharray": "5 5", ...op(s.l) }) + SV.text(CXs(700) - 4, CYs(700) + 18, "C = Y", "sm bd", { "text-anchor": "end", ...halo, ...op(s.l) });
   if (s.c > 0) o += SV.line(CXs(0), CYs(100), CXs(800), CYs(700), "c1", op(s.c)) + SV.text(CXs(800) - 4, CYs(700) - 10, "C = 100 + 0.75Y", "lbl bd t1", { "text-anchor": "end", ...halo, ...op(s.c) });
   if (s.a > 0) o += SV.circle(CXs(0), CYs(100), 6, "dot3", op(s.a)) + SV.text(CXs(0) + 12, CYs(100) - 8, "autonomous consumption = 100", "lbl bd t3", { ...halo, ...op(s.a) });
   if (s.b > 0) o += SV.line(CXs(400), CYs(400), CXs(400), 330, "gr", op(s.b)) + SV.circle(CXs(400), CYs(400), 7, "dot2", op(s.b)) + SV.text(CXs(400), 372, "Y = 400: C = Y, saving = 0", "lbl bd t2", { "text-anchor": "middle", ...op(s.b) });
-  if (s.m > 0) o += SV.line(CXs(600), CYs(550), CXs(800), CYs(550), "c4", { "stroke-width": 3, ...op(s.m) }) + SV.line(CXs(800), CYs(550), CXs(800), CYs(700), "c4", { "stroke-width": 3, ...op(s.m) }) + SV.text(CXs(700), CYs(550) + 18, "ΔY = 200", "sm bd t4", { "text-anchor": "middle", ...halo, ...op(s.m) }) + SV.text(CXs(800) + 6, CYs(625), "ΔC = 150", "sm bd t4", { ...halo, ...op(s.m) });
+  if (s.m > 0) o += SV.line(CXs(600), CYs(550), CXs(800), CYs(550), "c4", { "stroke-width": 3, ...op(s.m) }) + SV.line(CXs(800), CYs(550), CXs(800), CYs(700), "c4", { "stroke-width": 3, ...op(s.m) }) + SV.text(CXs(700), CYs(550) + 18, "ΔY = 200", "sm bd t4", { "text-anchor": "middle", ...halo, ...op(s.m) }) + SV.text(CXs(800) - 8, CYs(625) + 4, "ΔC = 150", "sm bd t4", { "text-anchor": "end", ...halo, ...op(s.m) });
   return o;
 }
 Lib.stepper($("#stC"), { w: 780, h: 385, label: "Consumption function C equals 100 plus 0.75 Y with the 45 degree line", base: { l: 0, c: 0, a: 0, b: 0, m: 0 }, draw: consDraw, tween: 800, dwell: 5600, steps: [
@@ -743,7 +745,7 @@ function labCons() {
   $("#cv").textContent = S < -0.5 ? `At income $${y} consumption ($${Lib.fmtN(C, 0)}) is above income, so households dissave $${Lib.fmtN(-S, 0)} (APC is above 1).` : S > 0.5 ? `At income $${y} households consume $${Lib.fmtN(C, 0)} and save $${Lib.fmtN(S, 0)}. The APC (${Lib.fmtN(C / y, 2)}) is below 1, while the MPC stays at ${Lib.fmtN(c, 2)}.` : `At income $${y} consumption equals income: break-even, saving is zero.`;
   let o = SV.line(40, 270, 400, 270) + SV.line(40, 270, 40, 20) + SV.text(396, 292, "Income Y", "sm", { "text-anchor": "end" }) + SV.text(46, 24, "C", "sm");
   o += SV.line(F.x(0), F.y(0), F.x(800), F.y(800), "gr", { "stroke-dasharray": "5 5" }) + SV.line(F.x(0), F.y(a), F.x(800), F.y(a + c * 800), "c1") + SV.line(F.x(y), F.y(C), F.x(y), 270, "gr") + SV.circle(F.x(y), F.y(C), 6, "dot1") + SV.text(F.x(800) - 4, F.y(800) + 16, "C = Y", "sm bd", { "text-anchor": "end" }) + SV.text(F.x(y), 288, y, "sm bd", { "text-anchor": "middle" });
-  $("#labN").innerHTML = o;
+  $("#labN").innerHTML = ytk(F.y, [200, 400, 600], 40, 400) + o;
 }
 Lib.slider($("#g1"), { id: "ca", label: "Autonomous consumption a ($): ", min: 0, max: 200, step: 20, value: 100, fmt: (v) => v, onInput: labCons });
 Lib.slider($("#g2"), { id: "cc", label: "Marginal propensity to consume c: ", min: 0.5, max: 0.95, step: 0.05, value: 0.75, fmt: (v) => Lib.fmtN(v, 2), onInput: labCons });

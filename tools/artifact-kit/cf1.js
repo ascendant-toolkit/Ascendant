@@ -28,10 +28,12 @@ Lib.stepper($("#stF"), { w: 780, h: 385, label: "Circular flow of income with sa
 ] });
 
 /* ---------- Watch 2: injections and withdrawals graph ---------- */
+const ytk = (yf, vals, x0, x1) => vals.map((v) => SV.line(x0, yf(v), x1, yf(v), "", { style: "stroke:var(--line);stroke-width:1;opacity:.6" }) + SV.text(x0 - 8, yf(v) + 4, v, "sm", { "text-anchor": "end" })).join("");
 const GX = (y) => 70 + y * 0.85, GY = (v) => 330 - v * 0.75;
 function jwDraw(s) {
   let o = SV.line(70, 330, 760, 330) + SV.line(70, 330, 70, 30) + SV.text(760, 370, "National income Y ($m)", "sm", { "text-anchor": "end" }) + SV.text(76, 24, "Injections and withdrawals ($m)", "sm");
   [0, 200, 400, 600, 800].forEach((y) => { o += SV.text(GX(y), 346, y, "sm", { "text-anchor": "middle" }); });
+  o = ytk(GY, [100, 200, 300, 400], 70, 760) + o;
   if (s.w > 0) o += SV.line(GX(0), GY(0), GX(800), GY(400), "c2", op(s.w)) + SV.text(GX(800) - 4, GY(400) - 8, "W = 0.5Y", "lbl bd t2", { "text-anchor": "end", ...op(s.w) });
   if (s.j > 0) o += SV.line(GX(0), GY(200), GX(800), GY(200), "c3", op(s.j)) + SV.text(GX(800) - 4, GY(200) - 8, "J = $200m", "lbl bd t3", { "text-anchor": "end", ...op(s.j) });
   if (s.e > 0) o += SV.line(GX(400), GY(200), GX(400), 330, "gr", op(s.e)) + SV.circle(GX(400), GY(200), 7, "dot1", op(s.e)) + SV.text(GX(400), 372, "Y = 400", "lbl bd", { "text-anchor": "middle", ...op(s.e) });
@@ -57,7 +59,7 @@ function labEq() {
   $("#ev").textContent = `Withdrawals are ${Math.round(w * 100)}% of income, so they equal injections of $${J}m when Y = ${J} ÷ ${w} = $${Lib.fmtN(Y, 0)}m. A smaller share of income leaking out (a lower w) means a higher equilibrium income for the same injections.`;
   let o = SV.line(40, 270, 400, 270) + SV.line(40, 270, 40, 20) + SV.text(396, 292, "National income Y ($m)", "sm", { "text-anchor": "end" }) + SV.text(46, 24, "J, W ($m)", "sm");
   o += SV.line(F.x(0), F.y(0), F.x(1000), F.y(w * 1000), "c2") + SV.line(F.x(0), F.y(J), F.x(1000), F.y(J), "c3") + SV.line(F.x(Y), F.y(J), F.x(Y), 270, "gr") + SV.circle(F.x(Y), F.y(J), 6, "dot1") + SV.text(F.x(Y), 288, Lib.fmtN(Y, 0), "sm bd", { "text-anchor": "middle" }) + SV.text(396, F.y(w * 1000) + 16, "W", "sm bd t2", { "text-anchor": "end" }) + SV.text(396, F.y(J) - 6, "J", "sm bd t3", { "text-anchor": "end" });
-  $("#labJ").innerHTML = o;
+  $("#labJ").innerHTML = ytk(F.y, [100, 200, 300], 40, 400) + o;
 }
 Lib.slider($("#g1"), { id: "jj", label: "Injections J ($m): ", min: 100, max: 300, step: 20, value: 200, fmt: (v) => v, onInput: labEq });
 Lib.slider($("#g2"), { id: "ww", label: "Withdrawal rate w (share of income): ", min: 0.3, max: 0.8, step: 0.05, value: 0.5, fmt: (v) => Lib.fmtN(v, 2), onInput: labEq });
