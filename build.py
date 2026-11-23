@@ -475,7 +475,7 @@ def build_landing():
 
 # Cloudflare Web Analytics (cookie-free). Paste the site token from Cloudflare > Analytics & Logs > Web Analytics here; empty = no script,
 # and the privacy notice then says nothing about analytics. The token is public (it ships in every page).
-CF_BEACON_TOKEN = ""
+CF_BEACON_TOKEN = "fac8709a88264e1f8c717fe556bd9f5a"
 CF_BEACON = (f'<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon=\'{{"token": "{CF_BEACON_TOKEN}"}}\'></script>'
              if CF_BEACON_TOKEN else "")
 SUPPORT_EMAIL = "support@ascendant.academy"
