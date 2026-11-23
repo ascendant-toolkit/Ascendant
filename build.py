@@ -487,7 +487,7 @@ FREE_WORD = NUM_WORDS.get(N_FREE, str(N_FREE))
 HOME_FAQ = [
     ("Who is it for?", "Cambridge IGCSE and A-Level students in Economics and Computer Science, the teachers who teach them, and schools and tutors who want one place for lessons, practice and progress."),
     ("Which exam board is this for?", "Cambridge International only: " + ", ".join(f"{lvl} {subj} {code}" for _, lvl, subj, code in SYLLABI[:-1]) + f" and {SYLLABI[-1][1]} {SYLLABI[-1][2]} {SYLLABI[-1][3]}."),
-    ("Can I try it first?", f"Yes. A free account opens {FREE_WORD} full sample lessons, so you can judge the quality before paying anything."),
+    ("Can I try it first?", f"Yes. {FREE_WORD.capitalize()} full sample lessons open with no account, so you can judge the quality before paying anything."),
     ("Does it replace classroom teaching?", "No. It is built to support teachers: ready-made lessons and practice to use in class, and a way for students to revise and learn independently at home."),
     ("Can my school or tutoring business use it?", "Yes. Schools and tutors get a licence for a set number of students, free teacher accounts, and dashboards to see each student's progress. See the plans page or get in touch."),
     ("Does it work on a phone?", "Yes. Every page works on phones, tablets and laptops, in light or dark mode."),
@@ -591,7 +591,7 @@ def build_home():
 <section class="sec" aria-labelledby="how"><h2 id="how">How it works</h2><ol class="steps">{steps_html}</ol></section>
 
 <section class="sec lp-final" id="samples"><h2>Try a free lesson</h2>
-<p class="lede">Pick your subject. One lesson opens straight away; the others open with a free account.</p>
+<p class="lede">Pick your subject. Every sample opens straight away, no account needed.</p>
 <div class="grid">{samples_html}</div>
 <p class="cta"><a class="btn ghost" href="pricing/">See plans</a></p></section>
 
@@ -1040,11 +1040,33 @@ def crumb_bar(crumbs, root):
 SVGFIX = '<script>' + (ROOT / 'tools' / 'artifact-kit' / 'svgfix.js').read_text(encoding='utf-8') + '</script>'
 
 
-def inject_pill(text, back_href, back_label, home_href, slug, courses, review=True, crumbs=None):
+# Sign-up nudge for public sample lessons: shown only to signed-out visitors, dismissible for the session.
+PUBLIC_CTA_CSS = ("<style id=pub-cta>.pub-cta{position:fixed;left:12px;bottom:12px;z-index:2147482999;max-width:330px;box-sizing:border-box;"
+                  "padding:14px 36px 14px 16px;background:#fff;color:#16202a;border:1px solid #d9d4c9;border-radius:12px;"
+                  "box-shadow:0 6px 24px rgba(0,0,0,.18);font:14px/1.45 -apple-system,Segoe UI,sans-serif}"
+                  ".pub-cta b{display:block;font-size:15px;margin-bottom:2px}.pub-cta p{margin:0 0 10px}"
+                  ".pub-cta a{display:inline-block;padding:7px 14px;border-radius:8px;background:#2b5d7c;color:#fff;text-decoration:none;font-weight:600}"
+                  ".pub-cta button{position:absolute;top:4px;right:6px;border:0;background:none;color:inherit;font-size:20px;line-height:1;cursor:pointer;opacity:.6}"
+                  "@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .pub-cta{background:#1b232b;color:#e8edf0;border-color:#2c3842}"
+                  ":root:not([data-theme=light]) .pub-cta a{background:#7fb6d6;color:#12171c}}"
+                  ":root[data-theme=dark] .pub-cta{background:#1b232b;color:#e8edf0;border-color:#2c3842}:root[data-theme=dark] .pub-cta a{background:#7fb6d6;color:#12171c}"
+                  "@media (max-width:600px){.pub-cta{left:8px;right:8px;max-width:none;bottom:60px}}</style>")
+
+
+def public_cta(home_href):
+    return (PUBLIC_CTA_CSS + f'<div class="pub-cta" id="pub-cta" hidden><button type="button" aria-label="Close" '
+            f'onclick="this.parentNode.hidden=true;try{{sessionStorage.setItem(\'pubcta\',1)}}catch(e){{}}">&times;</button>'
+            f'<b>This is a free sample lesson</b><p>Plans unlock every chapter in your syllabus, with exam questions, progress tracking and topic tests.</p>'
+            f'<a href="{home_href}pricing/">See plans</a></div>'
+            "<script>window.addEventListener('load',function(){var c=document.getElementById('pub-cta');try{if(sessionStorage.getItem('pubcta'))return}catch(e){}"
+            "if(!window.Site||!Site.sb){c.hidden=false;return}Site.session().then(function(s){if(!s)c.hidden=false}).catch(function(){})})</script>")
+
+
+def inject_pill(text, back_href, back_label, home_href, slug, courses, review=True, crumbs=None, public=False):
     done_btn = f'<button data-done-slug="{slug}" hidden></button><button data-role-toggle="{slug}" hidden></button><button data-role-delete="{slug}" hidden></button><button data-role-restore="{slug}" hidden></button>'
     pill = (f'{PILL_CSS}<div class="site-pill"><button type="button" class="pill-more" aria-label="Menu" onclick="this.parentNode.classList.toggle(&#39;open&#39;)">☰</button><a href="{back_href}">← {esc(back_label)}</a>'
             f'<a href="{home_href}">Home</a><button type="button" title="Light / dark" onclick="{THEME_CLICK}">◐</button>{done_btn}</div>'
-            f'{auth_scripts(home_href, courses)}{TAB_SCROLL}{PILL_JS}{TOP_RESET}{SVGFIX}')
+            f'{auth_scripts(home_href, courses)}{TAB_SCROLL}{PILL_JS}{TOP_RESET}{SVGFIX}' + (public_cta(home_href) if public else ''))
     head = favicon_links(home_href) + THEME_HEAD + GATE_HEAD
     text = text.replace("<head>", "<head>" + head, 1) if "<head>" in text else head + text
     if crumbs:
@@ -1124,7 +1146,7 @@ def build_artifacts():
                 continue
             rel = f.relative_to(src)
             if f.suffix == ".html":
-                content = bust(inject_pill(f.read_text(encoding="utf-8"), back, label, depth_root, a["slug"], courses, is_review(a), crumbs))
+                content = bust(inject_pill(f.read_text(encoding="utf-8"), back, label, depth_root, a["slug"], courses, is_review(a), crumbs, bool(a.get("public"))))
             elif f.suffix in TEXT_EXT:
                 content = f.read_text(encoding="utf-8")
             else:
