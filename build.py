@@ -1041,7 +1041,7 @@ SVGFIX = '<script>' + (ROOT / 'tools' / 'artifact-kit' / 'svgfix.js').read_text(
 
 
 # Sign-up nudge for public sample lessons: shown only to signed-out visitors, dismissible for the session.
-PUBLIC_CTA_CSS = ("<style id=pub-cta>.pub-cta{position:fixed;left:12px;bottom:12px;z-index:2147482999;max-width:330px;box-sizing:border-box;"
+PUBLIC_CTA_CSS = ("<style id=pub-cta-css>.pub-cta{position:fixed;left:12px;bottom:12px;z-index:2147482999;max-width:330px;box-sizing:border-box;"
                   "padding:14px 36px 14px 16px;background:#fff;color:#16202a;border:1px solid #d9d4c9;border-radius:12px;"
                   "box-shadow:0 6px 24px rgba(0,0,0,.18);font:14px/1.45 -apple-system,Segoe UI,sans-serif}"
                   ".pub-cta b{display:block;font-size:15px;margin-bottom:2px}.pub-cta p{margin:0 0 10px}"
@@ -1059,7 +1059,7 @@ def public_cta(home_href):
             f'<b>This is a free sample lesson</b><p>Plans unlock every chapter in your syllabus, with exam questions, progress tracking and topic tests.</p>'
             f'<a href="{home_href}pricing/">See plans</a></div>'
             "<script>window.addEventListener('load',function(){var c=document.getElementById('pub-cta');try{if(sessionStorage.getItem('pubcta'))return}catch(e){}"
-            "if(!window.Site||!Site.sb){c.hidden=false;return}Site.session().then(function(s){if(!s)c.hidden=false}).catch(function(){})})</script>")
+            "var show=function(){c.hidden=false};if(!window.Site||!Site.sb){setTimeout(show,6000);return}Site.session().then(function(s){if(!s)setTimeout(show,6000)}).catch(function(){})})</script>")
 
 
 def inject_pill(text, back_href, back_label, home_href, slug, courses, review=True, crumbs=None, public=False):
