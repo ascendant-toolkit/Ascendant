@@ -782,8 +782,8 @@ def build_pricing():
                 f'<p class="tagline">{esc(tagline)}</p>{feats(items)}<div class="act">{cta}</div></article>')
 
     free = plan("Free", '<p class="price"><span class="amt">$0</span><span class="per">forever</span></p>',
-                "A proper taste of how it works.",
-                [f"{FREE_WORD.capitalize()} full sample lessons", "Interactive charts and code walkthroughs", "Progress tracking"],
+                "Try the lessons before you pay anything.",
+                [f"{FREE_WORD.capitalize()} full sample lessons, no account needed", "Interactive charts and code walkthroughs", "A free account saves your progress"],
                 f'<a class="btn ghost" href="{join}">Create a free account</a>')
     basic = plan("Basic", price(100, 10), "One subject, the whole syllabus to learn from.",
                  ["Learn, Watch, Explore and Real world in every chapter", "Every animation and interactive tool",
