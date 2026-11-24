@@ -136,7 +136,7 @@ def render(spec, name, out_dir, tmp):
         segs.append(s)
     if spec.get("outro", True):
         s = tmp / f"{name}_outro.mp4"; l1, l2, l3 = outro_pngs(name, tmp)
-        sec = B["outro"]["seconds"]
+        sec = spec.get("outro_seconds", B["outro"]["seconds"]); k = sec / 5  # fade timings scale with length
         bgsrc = globe if intro else None
         if bgsrc is None:
             raise SystemExit("outro needs an intro file to take the globe frame from")
@@ -144,8 +144,8 @@ def render(spec, name, out_dir, tmp):
            "-filter_complex",
            f"[0:v]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},gblur=sigma=22,eq=brightness=-0.2,"
            f"zoompan=z='1+0.0008*on':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={int(sec * FPS)}:s={W}x{H}:fps={FPS},format=yuv420p[bg];"
-           "[1:v]format=rgba,fade=t=in:st=0.3:d=0.6:alpha=1[a];[2:v]format=rgba,fade=t=in:st=1.1:d=0.6:alpha=1[b];"
-           f"[3:v]format=rgba,fade=t=in:st=1.9:d=0.6:alpha=1[c];[bg][a]overlay[x];[x][b]overlay[y];[y][c]overlay,fade=t=out:st={sec - 0.7}:d=0.7,format=yuv420p",
+           f"[1:v]format=rgba,fade=t=in:st={0.3*k:.2f}:d={0.6*k:.2f}:alpha=1[a];[2:v]format=rgba,fade=t=in:st={1.1*k:.2f}:d={0.6*k:.2f}:alpha=1[b];"
+           f"[3:v]format=rgba,fade=t=in:st={1.9*k:.2f}:d={0.6*k:.2f}:alpha=1[c];[bg][a]overlay[x];[x][b]overlay[y];[y][c]overlay,fade=t=out:st={sec - 0.7 * k:.2f}:d={0.7 * k:.2f},format=yuv420p",
            "-t", sec, "-an", "-c:v", "libx264", "-crf", "18", s)
         segs.append(s)
     # chain crossfades with exact offsets
