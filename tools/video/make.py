@@ -51,7 +51,7 @@ def caption_png(text, f, out):
     im.save(out)
 
 
-def outro_pngs(name, tmp):
+def outro_pngs(name, tmp, minimal=False):
     W, H = name_f = FORMATS[name]["W"], FORMATS[name]["H"]
     o = B["outro"]; email = LOCAL.get("email", "")
     layers = [Image.new("RGBA", (W, H)) for _ in range(3)]
@@ -74,7 +74,7 @@ def outro_pngs(name, tmp):
     d[1].rounded_rectangle((l - 50, t - 34, r + 50, b + 34), radius=24, outline=C["green"], width=4, fill=(10, 22, 34, 170))
     d[1].text((cx, y_url), B["url"], font=fu, fill=C["green"], anchor="mm")
     fb, fr = font("body", 38, True), font("body", 38)
-    socials = B["socials"]
+    socials = [] if minimal else B["socials"]
     groups = [socials[i:i + cols] for i in range(0, len(socials), cols)]
     for y, grp in zip(rows_y, groups):
         widths = [d[2].textlength(p + "  ", font=fb) + d[2].textlength(h, font=fr) for p, h in grp]
@@ -83,7 +83,7 @@ def outro_pngs(name, tmp):
             d[2].text((x, y), p + "  ", font=fb, fill=C["white"], anchor="lm")
             d[2].text((x + d[2].textlength(p + "  ", font=fb), y), h, font=fr, fill=C["soft"], anchor="lm")
             x += w + 70
-    if email:
+    if email and not minimal:
         d[2].text((cx, email_y), email, font=fr, fill=C["white"], anchor="mm")
     paths = []
     for i, im in enumerate(layers):
@@ -135,7 +135,7 @@ def render(spec, name, out_dir, tmp):
            "-t", card.get("seconds", 6), "-an", "-c:v", "libx264", "-crf", "18", s)
         segs.append(s)
     if spec.get("outro", True):
-        s = tmp / f"{name}_outro.mp4"; l1, l2, l3 = outro_pngs(name, tmp)
+        s = tmp / f"{name}_outro.mp4"; l1, l2, l3 = outro_pngs(name, tmp, spec.get("outro_minimal", False))
         sec = spec.get("outro_seconds", B["outro"]["seconds"]); k = sec / 5  # fade timings scale with length
         bgsrc = globe if intro else None
         if bgsrc is None:
