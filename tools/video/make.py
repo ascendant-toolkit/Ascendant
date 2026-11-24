@@ -99,8 +99,12 @@ def render(spec, name, out_dir, tmp):
     segs, intro = [], None
     if spec.get("intro"):
         intro = ROOT / spec["intro"]
-        globe = tmp / "globe.png"
-        sh("ffmpeg", "-y", "-v", "error", "-ss", "0.1", "-i", intro, "-frames:v", "1", globe)
+        # clean globe frame for backgrounds: a still from the spec ("globe": png) or the intro's first frames
+        if spec.get("globe"):
+            globe = ROOT / spec["globe"]
+        else:
+            globe = tmp / "globe.png"
+            sh("ffmpeg", "-y", "-v", "error", "-ss", "0.1", "-i", intro, "-frames:v", "1", globe)
     if intro:
         s = tmp / f"{name}_intro.mp4"
         if name == "wide":
@@ -133,7 +137,7 @@ def render(spec, name, out_dir, tmp):
     if spec.get("outro", True):
         s = tmp / f"{name}_outro.mp4"; l1, l2, l3 = outro_pngs(name, tmp)
         sec = B["outro"]["seconds"]
-        bgsrc = tmp / "globe.png" if intro else None
+        bgsrc = globe if intro else None
         if bgsrc is None:
             raise SystemExit("outro needs an intro file to take the globe frame from")
         sh("ffmpeg", "-y", "-v", "error", "-loop", "1", "-i", bgsrc, "-loop", "1", "-t", sec, "-i", l1, "-loop", "1", "-t", sec, "-i", l2, "-loop", "1", "-t", sec, "-i", l3,
