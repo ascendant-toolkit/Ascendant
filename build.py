@@ -106,7 +106,7 @@ def layout(title, body, path, active, crumbs=None, accent=None, auth=False, extr
         f'<a href="{root}{href}"{" class=on aria-current=page" if key == active else ""}{f" data-course={key}" if key in COURSES else ""}>{label}</a>'
         for key, label, href in NAV
     )
-    nav += f'<a class="join" href="{root}pricing/">Sign up</a>'
+    nav += f'<a class="join" href="{root}pricing/">Sign in / up</a>'
     crumb_html = ""
     if crumbs:
         parts = []
