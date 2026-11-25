@@ -2,7 +2,7 @@
 from ak8 import *
 
 def tbl_html(name, cols, rows, key=()):
-    h = f'<div class="tw" style="display:inline-block;margin:4px 10px 4px 0;vertical-align:top"><table class="t mono"><caption style="text-align:left;font-weight:700">{name}</caption><tr>' + "".join(f'<th>{"<u>" + c + "</u>" if c in key else c}</th>' for c in cols) + "</tr>"
+    h = f'<div class="tw" style="display:inline-block;max-width:100%;margin:4px 10px 4px 0;vertical-align:top"><table class="t mono"><caption style="text-align:left;font-weight:700">{name}</caption><tr>' + "".join(f'<th>{"<u>" + c + "</u>" if c in key else c}</th>' for c in cols) + "</tr>"
     for r in rows: h += "<tr>" + "".join(f"<td>{c}</td>" for c in r) + "</tr>"
     return h + "</table></div>"
 

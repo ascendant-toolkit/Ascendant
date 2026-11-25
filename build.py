@@ -16,6 +16,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "tools"))
+import cs_keywords  # noqa: E402
 import split_full  # noqa: E402
 
 from site_data import A_CS_MOVED, A_ECON_MOVED, ARTIFACTS, COURSES, PADDLE, LANDING_PAGE, SITE_TAGLINE, SITE_TITLE
@@ -1146,7 +1147,10 @@ def build_artifacts():
                 continue
             rel = f.relative_to(src)
             if f.suffix == ".html":
-                content = bust(inject_pill(f.read_text(encoding="utf-8"), back, label, depth_root, a["slug"], courses, is_review(a), crumbs, bool(a.get("public"))))
+                page = f.read_text(encoding="utf-8")
+                if rel.name == "index.html":
+                    page = cs_keywords.apply(page, a["src"])
+                content = bust(inject_pill(page, back, label, depth_root, a["slug"], courses, is_review(a), crumbs, bool(a.get("public"))))
             elif f.suffix in TEXT_EXT:
                 content = f.read_text(encoding="utf-8")
             else:
