@@ -1,6 +1,6 @@
-"""Extra key words for A Level Computer Science pages. build.py adds them to the end of each page's Learn tab.
+"""Extra key words for lesson pages in every course. build.py adds them to the end of each page's Learn tab.
 
-"term | meaning". A leading * marks wider reading: a word that is not in the 9618 syllabus wording.
+"term | meaning". A leading * marks wider reading: a word that goes beyond the main syllabus wording.
 (14.1 has its own key words, built into the pages by artifact-kit/kw141.py.)
 """
 import re
@@ -249,13 +249,271 @@ WORDS = {
         "PermissionError | Raised when the program is not allowed to open the file",
         "*pickle | The Python module that writes objects to a binary file and reads them back",
         "*Corrupt file | A file whose contents are damaged or not in the expected form"],
+    # ---------------- IGCSE Computer Science
+    "number-systems": [
+        "Logic gate | A circuit that takes binary inputs and gives a binary output. Computers process data with logic gates",
+    ],
+    "igcse-compression-lab": [
+        "Nibble | 4 bits",
+        "Kibibyte (KiB) | 1024 bytes",
+        "Mebibyte (MiB) | 1024 KiB",
+        "Gibibyte (GiB) | 1024 MiB",
+        "Tebibyte (TiB) | 1024 GiB",
+        "Pebibyte (PiB) | 1024 TiB",
+        "Exbibyte (EiB) | 1024 PiB",
+        "Storage space | The room a file takes up on a storage device, which compression reduces",
+        "Transmission time | How long a file takes to send, which is shorter for a smaller file",
+    ],
+    "ig-cs-data-transmission": [
+        "Packet number | The number in a packet header used to put the packets back in order",
+        "Originator's address | The address of the sending device, held in the packet header",
+    ],
+    "ig-cs-error-detection": [
+        "Data loss | Bits go missing during transmission",
+        "Data gain | Extra bits appear during transmission",
+    ],
+    "ig-cs-computer-architecture": [
+        "*Overclocking | Running a CPU faster than its rated clock speed, which produces more heat",
+    ],
+    "ig-cs-network-hardware": [
+        "*Switch | Connects devices on a local network and sends data only to the intended one",
+        "*Wireless access point (WAP) | Lets wireless devices join a wired network",
+        "*DHCP | The service that gives devices a dynamic IP address",
+    ],
+    "ig-cs-interrupts": [
+        "Software interrupt | An interrupt caused by a program, such as division by zero or two processes using the same memory location",
+        "Hardware interrupt | An interrupt caused by a device, such as a key press or a mouse movement",
+        "*Interrupt queue | Interrupts waiting to be handled, in order of priority",
+    ],
+    "ig-cs-high-low-level-languages": [
+        "Syntax | The rules for how statements must be written in a language",
+    ],
+    "ig-cs-assembly-languages": [
+        "*Opcode | The part of an instruction giving the operation",
+        "*Operand | The data or address the instruction uses",
+    ],
+    "ig-cs-ide": [
+        "*Syntax highlighting | The code editor colours different parts of the code, which makes errors easier to spot",
+    ],
+    "internet-and-www": [
+        "Favourite (bookmark) | A saved web address that can be opened again quickly",
+        "Navigation tools | Browser buttons such as back, forward and refresh",
+        "*ISP (internet service provider) | A company that provides access to the internet",
+    ],
+    "blockchain-explained": [
+        "Digital currency | A currency that exists only electronically",
+    ],
+    "cyber-security": [
+        "Secure Socket Layer (SSL) | A security protocol that encrypts data sent between a browser and a web server",
+    ],
+    "ig-cs-robotics": [
+        "*End effector | The tool or gripper at the end of a robot arm",
+        "*Autonomous robot | A robot that acts without a person controlling it",
+    ],
+    "ig-cs-artificial-intelligence": [
+        "*Chatbot | A program that holds a conversation with a user",
+        "*Neural network | Layers of linked nodes that learn patterns from data",
+    ],
+    "ig-cs-test-data": [
+        "*Erroneous data | Another name for abnormal data, which should be rejected",
+    ],
+    "ig-cs-trace-tables-errors-algorithms": [
+        "Syntax error | Code that breaks the rules of the language",
+        "Logic error | The program runs but gives the wrong result",
+        "Run-time error | An error while the program runs that stops it, such as division by zero",
+    ],
+    "ig-cs-file-handling": [
+        "*Append | Adding data to the end of an existing file",
+    ],
+    "ig-cs-sql": [
+        "*Wildcard (*) | In SELECT *, a symbol meaning all fields",
+    ],
+    # ---------------- IGCSE Economics
+    "ig-allocation-questions": [
+        "For whom to produce | The basic economic question of who receives the goods and services",
+    ],
+    "ig-factors-quantity-quality": [
+        "*Human capital | The skills, knowledge and health of workers",
+    ],
+    "ig-ppc-points": [
+        "Attainable point | A combination of goods on or inside the PPC, which can be produced with current resources",
+    ],
+    "ig-ppc-shifts": [
+        "*Productive potential | The most an economy can produce with its resources and technology",
+    ],
+    "ig-how-markets-work": [
+        "*Product market | A market where goods and services are bought and sold, unlike a factor market",
+    ],
+    "ig-demand-definition": [
+        "Demand schedule | A table showing the quantity demanded at each price",
+    ],
+    "ig-supply-definition": [
+        "Supply schedule | A table showing the quantity supplied at each price",
+    ],
+    "ig-supply-shifts": [
+        "*Joint supply | Producing one good also produces another, such as beef and leather",
+    ],
+    "ig-pes-determinants": [
+        "*Barriers to entry | Obstacles that stop new firms joining a market, which can make supply less elastic",
+    ],
+    "ig-mixed-system": [
+        "*Planning | The government deciding how some resources are used",
+    ],
+    "ig-government-intervention": [
+        "*Government failure | Government intervention that makes the use of resources worse",
+        "*Specific tax | An indirect tax of a fixed amount on each unit",
+        "*Ad valorem tax | An indirect tax charged as a percentage of the price",
+    ],
+    "ig-money": [
+        "Recognisable | A characteristic of money: people can easily identify it as genuine",
+    ],
+    "ig-banking": [
+        "*Shareholder | A part-owner of a company such as a commercial bank",
+    ],
+    "ig-wage-determination": [
+        "*Derived demand | Demand for workers that comes from the demand for what they produce",
+        "*Earnings | Total pay, including wages, overtime and bonuses",
+    ],
+    "ig-mergers": [
+        "*Takeover | One firm gaining control of another, usually by buying most of its shares",
+    ],
+    "ig-fiscal-taxation": [
+        "*Tax avoidance | Legally arranging affairs to pay less tax",
+    ],
+    "ig-supply-side-definition": [
+        "*Productive potential | The most an economy can produce with its resources and technology",
+    ],
+    "ig-unemployment-types": [
+        "*Voluntary unemployment | People choosing not to take jobs available at current wages",
+    ],
+    "ig-living-standards-indicators": [
+        "*Per capita | Per person: the same meaning as per head",
+    ],
+    "ig-poverty-policies": [
+        "*Aid | Help such as money, goods or expertise given to a country or group",
+    ],
+    "ig-population-factors": [
+        "*Fertility rate | The average number of children born to each woman",
+    ],
+    "ig-population-effects": [
+        "*Dependants | People, mainly children and older people, who rely on the income of those working",
+    ],
+    "ig-development-differences": [
+        "*Debt | Money owed, whose repayments can reduce what a country has to spend on development",
+    ],
+    "ig-globalisation-definition": [
+        "*Trade bloc | A group of countries that agree to reduce trade barriers between themselves",
+    ],
+    "ig-fx-determination": [
+        "*Managed exchange rate | A rate set mainly by the market, with the central bank stepping in at times",
+    ],
+    "ig-fx-consequences": [
+        "Export price | The price of a country's goods to foreign buyers, which changes when the exchange rate changes",
+    ],
+    "ig-bop-structure": [
+        "*Credit | An item that brings money into a country, recorded as positive",
+        "*Debit | An item that takes money out of a country, recorded as negative",
+    ],
+    # ---------------- AS and A Level Economics
+    "as-market-economy": [
+        "*Invisible hand | Adam Smith's idea that people acting in their own interest are guided by prices towards outcomes that benefit others",
+    ],
+    "as-merit-demerit-goods": [
+        "Imperfect information | Consumers or producers lack full or accurate knowledge, so a good may be under- or over-consumed",
+    ],
+    "as-elasticity-of-supply": [
+        "Factor mobility | How easily factors of production can move into producing a good, which raises PES",
+    ],
+    "as-related-markets": [
+        "*Competitive supply | The same resources could make either good, so producing more of one means less of the other",
+        "*Composite demand | A good demanded for several different uses",
+    ],
+    "as-reasons-for-intervention": [
+        "Non-provision of public goods | A free market may not supply a public good at all, because of the free rider problem",
+    ],
+    "as-government-intervention": [
+        "*Government failure | Government intervention that leads to a worse allocation of resources",
+    ],
+    "as-market-basic-prices-gross-net": [
+        "Indirect taxes (in national income) | Subtracted, and subsidies added, to change a value at market prices into basic prices",
+    ],
+    "as-causes-consequences-of-growth": [
+        "Externalities of growth | Effects of growth on third parties, such as pollution, which may not appear in GDP",
+    ],
+    "as-consequences-of-inflation": [
+        "*Fiscal drag | Rising money incomes pull people into higher tax bands when the bands are not raised with inflation",
+    ],
+    "as-taxation": [
+        "*Canons of taxation | Principles of a good tax, such as equity, certainty, convenience and economy",
+    ],
+    "as-protectionism-tools": [
+        "*Exchange control | A government limit on buying foreign currency, which restricts imports",
+    ],
+    "as-exchange-rate-determination": [
+        "Capital (financial) flows | Money moving between countries to invest or save, which changes demand for and supply of a currency",
+    ],
+    "as-correcting-current-account-imbalances": [
+        "Monetary policy | Using interest rates, the money supply and credit rules; tighter policy may reduce spending on imports, and may also change the exchange rate",
+    ],
+    "private-external-costs-benefits": [
+        "Moral hazard | A person takes more risk because someone else bears some of the cost, for example after buying insurance",
+        "*Adverse selection | Hidden information before a deal means higher-risk people are more likely to take it",
+    ],
+    "cost-benefit-analysis": [
+        "*Shadow price | An estimated value for a cost or benefit that has no market price",
+    ],
+    "short-run-production-and-costs": [
+        "Law of variable proportions | Another name for the law of diminishing returns",
+    ],
+    "market-spectrum-perfect-competition": [
+        "Barriers to exit | Obstacles that make it costly for a firm to leave a market, such as sunk costs",
+    ],
+    "why-and-how-firms-grow": [
+        "*Synergy | A merged firm performing better than the two firms would separately",
+    ],
+    "differing-objectives-of-firms": [
+        "Kinked demand curve | A demand curve that is more elastic above the current price than below it, so revenue may fall whichever way price moves",
+    ],
+    "regulation-provision-privatisation": [
+        "*Administrative cost | The cost of running, monitoring and enforcing a policy",
+    ],
+    "redistribution-policies-benefits": [
+        "Negative income tax | People earning below a set level receive payments through the tax system, which fall as income rises",
+        "Universal basic income | A regular payment to everyone, whatever their income or work",
+        "*Horizontal equity | People in similar circumstances are treated in the same way",
+        "*Vertical equity | People in different circumstances are treated differently, for example higher earners paying more",
+        "*Unemployment trap | Taking a job leaves someone little or no better off because benefits are lost and tax is paid",
+    ],
+    "monopsony-and-trade-unions": [
+        "*Closed shop | A workplace where all workers must belong to a particular trade union",
+    ],
+    "sustainable-economic-growth": [
+        "Mitigation | Action to reduce the damage growth does to the environment, including climate change",
+    ],
+    "commercial-banks-credit-creation": [
+        "Demand deposit account | A bank account from which money can be withdrawn at any time without notice",
+    ],
+    "effectiveness-of-macro-policies": [
+        "*Tinbergen's rule | A government generally needs at least as many independent policy instruments as it has targets",
+    ],
+    "population-growth-structure": [
+        "*Population pyramid | A chart of a population by age group and sex",
+        "*Fertility rate | The average number of children born to each woman",
+        "*Malthusian theory | The idea that population could grow faster than the food supply",
+    ],
+    "economic-structure-pattern-of-trade": [
+        "*Deindustrialisation | A long-term fall in the share of manufacturing in output or employment",
+    ],
+    "international-aid": [
+        "*Microfinance | Small loans and other financial services for people who cannot use ordinary banks",
+    ],
 }
 
 START, END = "<!-- key words -->", "<!-- /key words -->"
 
 
 def _table(rows):
-    return ('<div class="tw"><table class="t"><tr><th>Key word</th><th>Meaning</th></tr>'
+    return ('<div class="tw" style="overflow-x:auto"><table class="t" style="min-width:0;width:100%"><tr><th>Key word</th><th>Meaning</th></tr>'
             + "".join(f"<tr><td><b>{w}</b></td><td>{m}</td></tr>" for w, m in rows) + "</table></div>")
 
 
@@ -276,5 +534,5 @@ def apply(page, slug):
     if core:
         block += _table(core)
     if wider:
-        block += ('<h3>Wider words</h3><p>Not in the 9618 syllabus wording. They help you understand the topic and read around it.</p>' + _table(wider))
+        block += ('<h3>Wider words</h3><p>These go beyond the main syllabus wording. They help you understand the topic and read around it.</p>' + _table(wider))
     return page[:end] + block + "</div>\n" + END + "\n" + page[end:]
