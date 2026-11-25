@@ -2,6 +2,7 @@
 Run: python3 tools/artifact-kit/mk_ac141res.py"""
 from ak20 import *
 import mk_ac141 as P   # reuses PRE (shared JS helpers); importing also rebuilds pages 14.1.1 to 14.1.3, which is harmless
+import mk_ac1414 as Q   # real protocol questions for resource 2
 
 SUB = P.SUB
 mcq = P.mcq
@@ -96,7 +97,7 @@ review_r1 = req("4 marks", "Explain", "Maya opens a school website on her laptop
   "<p>" + mks(["The Link layer.", "It is the layer that gives access to the physical medium and sends and receives the frames."]) + "</p>", None) + req("3 marks", "Describe", "Describe how the TCP/IP layers are used when an email is sent from one person to another. Do not describe the functions of the individual layers.", "Direction of travel, interfaces and headers, not the jobs.",
   "<p>" + mks(["The message is created at the top (Application) layer of the sender and passes down through the layers.", "Each layer only passes data to the adjacent layer, adding data to the header on the way down.", "It is sent over the network and passes up the layers on the receiving device, with headers removed, until the email program receives it."]) + "</p>", None)
 
-exam_r1 = exam20("These review questions apply the layers to real situations; they are not past paper questions. The real 9618 questions on the layers are in 14.1.2 and 14.1.3.", [], "", review_r1)
+exam_r1 = exam20("Part 1 is real 9618 questions on the four TCP/IP layers (Paper 3), 2022 to 2026. Part 2 is a set of review questions that apply the layers to real situations; they are not in exam format.", P.where3, P.past3, review_r1)
 
 tips_r1 = tips_html([
   ("Use the situation.", "In a scenario question, name the layer and say what it does for that situation, for example 'the Transport layer numbers the packets of the web page'."),
@@ -320,7 +321,7 @@ review_r2 = req("1 mark", "Identify", "Name the protocol used by an email client
   "<p>" + mks(["The file is split into pieces.", "Users (peers) download pieces from several other peers at once and share the pieces they have, forming a swarm.", "No central server holds the file; a tracker holds data about the peers."]) + "</p>", None) + req("2 marks", "Explain", "A web designer needs to upload 200 files to a web host. Name the most suitable protocol and give one reason.", "Which protocol is for files?",
   "<p>" + mks(["FTP", "It is designed for sending and receiving files over a network, so many files can be transferred to the server."]) + "</p>", None) + req("2 marks", "Identify", "State the layer of the TCP/IP suite to which all six protocols HTTP, FTP, SMTP, POP3, IMAP and BitTorrent belong.", "The one the user's programs use.", "<p>" + mks(["The Application layer"]) + "</p>", None)
 
-exam_r2 = exam20("These review questions separate the six application layer protocols; they are not past paper questions. The real 9618 questions on these protocols are in 14.1.4.", [], "", review_r2)
+exam_r2 = exam20("Part 1 is real 9618 questions on the Application layer protocols (Paper 3), 2022 to 2025. Part 2 is a set of review questions that separate the six protocols; they are not in exam format.", Q.where, Q.past.replace("The TCP/IP layers themselves are on the previous page. ", ""), review_r2)
 
 tips_r2 = tips_html([
   ("Sending or receiving?", "SMTP sends. POP3 and IMAP receive. Say which in your answer."),
