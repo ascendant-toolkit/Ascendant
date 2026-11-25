@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nested Statements</title>
+
+<style>:root{
+  --bg:#f5f3ee; --surface:#fff; --ink:#17212b; --muted:#566573; --line:#d9d4c7; --soft:#eef2f5;
+  --accent:#2b5d7c; --accent-ink:#fff; --accent-soft:#e0ecf3;
+  --good:#1d7a4c; --good-soft:#dff2e7; --bad:#b3372f; --bad-soft:#f9e2df; --warn:#a85d00; --warn-soft:#fbead2;
+  --k:#1f5fa8; --a:#1d7a4c; --n:#7a3fa0; --e:#b25a00;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --surface:#1b232b; --ink:#e8edf0; --muted:#9aa8b2; --line:#2e3a44; --soft:#202b34;
+  --accent:#7fb6d6; --accent-ink:#0d1a23; --accent-soft:#1f3140;
+  --good:#6ccb9b; --good-soft:#173a2a; --bad:#f0857d; --bad-soft:#3d1f1c; --warn:#f0b36a; --warn-soft:#3a2b14;
+  --k:#7fb2ee; --a:#6ccb9b; --n:#c79be6; --e:#f0a95a; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
+h1,h2,h3{font-family:var(--serif);line-height:1.18;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,5vw,2.5rem);letter-spacing:-.015em}
+h2{font-size:1.45rem;margin:26px 0 10px}
+h3{font-size:1.12rem;margin:18px 0 6px}
+p{margin:0 0 .8em}
+.eyebrow{font:700 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.cbook{margin:6px 0 0;font:600 .86rem var(--sans);color:var(--muted)}
+.lead{color:var(--muted);font-size:1.08rem;max-width:68ch;margin-top:8px}
+header.top{padding:6px 0 14px}
+.tablist{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+.tablist button{font:600 .9rem var(--sans);padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tablist button:focus-visible,.b:focus-visible,summary:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[role=tabpanel][hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 14px}
+.card.big{background:var(--accent-soft);border-color:var(--accent)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid2>.card{margin:0}
+.formula{font:600 1.05rem var(--mono);background:var(--soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;overflow-x:auto}
+.kw{font-weight:700;color:var(--accent)}
+table.t{border-collapse:collapse;width:auto;max-width:100%;font-size:.93rem;margin:8px 0}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font:700 .72rem var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tw{overflow-x:auto}table.t.mono th,table.t.mono td{padding:3px 14px;line-height:1.3}table.t.mono{font-size:.9rem}
+.b{font:700 .9rem var(--sans);padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.b:hover{background:var(--soft)}
+.b.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.b:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:.88rem;color:var(--muted)}
+.pill{display:inline-block;font:700 .72rem var(--sans);padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);vertical-align:middle}
+.tip{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.tip b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--warn)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.warn b.h{display:block;font:700 .72rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+/* stepper */
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0 14px}
+.stp svg{display:block;width:100%;height:auto;background:var(--surface)}
+.stp-cap{padding:12px 16px;background:var(--ink);color:var(--bg);font-size:1.02rem;min-height:3.6em}
+.stp-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.stp-dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stp-dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:700 .72rem var(--sans);cursor:pointer;padding:0}
+.stp-dots button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stp-dots button.done{border-color:var(--accent);color:var(--accent)}
+/* svg theme classes */
+svg text{font-family:var(--sans);fill:var(--ink)}
+svg .ax{stroke:var(--ink);stroke-width:2;fill:none}
+svg .gr{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;fill:none}
+svg .lbl{font-size:13px}
+svg .sm{font-size:11.5px;fill:var(--muted)}
+svg .bd{font-weight:700}
+svg .c1{stroke:var(--accent);stroke-width:3.5;fill:none}
+svg .c2{stroke:var(--bad);stroke-width:3.5;fill:none}
+svg .c3{stroke:var(--good);stroke-width:3.5;fill:none}
+svg .c4{stroke:var(--warn);stroke-width:3.5;fill:none}
+svg .f1{fill:var(--accent);opacity:.18} svg .f2{fill:var(--bad);opacity:.18} svg .f3{fill:var(--good);opacity:.2} svg .f4{fill:var(--warn);opacity:.22}
+svg .dash{stroke-dasharray:6 5}
+svg .t1{fill:var(--accent)} svg .t2{fill:var(--bad)} svg .t3{fill:var(--good)} svg .t4{fill:var(--warn)}
+svg .dot1{fill:var(--accent)} svg .dot2{fill:var(--bad)} svg .dot3{fill:var(--good)} svg .dot4{fill:var(--warn)}
+/* sliders */
+.sl{margin:10px 0}
+.sl label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.sl output{font:600 .9rem var(--mono);color:var(--accent)}
+.sl input{width:100%;accent-color:var(--accent);margin:6px 0}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.readout div{border-top:3px solid var(--accent);background:var(--surface);padding:8px 10px;border-radius:0 0 8px 8px;border:1px solid var(--line);border-top:3px solid var(--accent)}
+.readout small{display:block;font:700 .66rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.readout strong{font:700 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.verdict{padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-weight:600;margin:8px 0}
+/* classify / match */
+.cls .pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:10px;min-height:54px;background:var(--soft)}
+.cls .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}
+.cls .bk{border:2px solid var(--line);border-radius:10px;padding:8px;min-height:84px;background:var(--surface)}
+.cls .bk h4{margin:0 0 6px;font:700 .82rem var(--sans);color:var(--accent)}
+.cls .bk .slot{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.cls .bk.over,.cls .pool.over{border-color:var(--accent);background:var(--accent-soft)}
+.chip{font:600 .88rem var(--sans);padding:6px 11px;border-radius:8px;border:1.5px solid var(--accent);background:var(--surface);color:var(--ink);cursor:grab;user-select:none;text-align:left}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--good);background:var(--good-soft)}
+.chip.no{border-color:var(--bad);background:var(--bad-soft)}
+.cls .msg,.ord .msg,.calc .msg{font-weight:700;margin:8px 0}
+.match .bk h4{font-size:.9rem;color:var(--ink)}
+/* order */
+.ord ol{list-style:none;margin:10px 0;padding:0;counter-reset:o}
+.ord li{counter-increment:o;display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);cursor:grab}
+.ord li::before{content:counter(o);font:700 .8rem var(--mono);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.ord li.ok{border-color:var(--good);background:var(--good-soft)} .ord li.no{border-color:var(--bad);background:var(--bad-soft)}
+.ord li.drag{opacity:.4}
+.ord li span{flex:1}
+.ord li button{padding:2px 8px}
+/* quiz */
+.qz .q{margin:0 0 16px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.qz .q p.qt{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;font:500 .95rem var(--sans);padding:9px 12px;margin:5px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)} .opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.why{display:none;margin-top:8px;font-size:.92rem;padding:8px 12px;background:var(--soft);border-radius:8px}
+.q.done .why{display:block}
+.score{font:700 1.05rem var(--sans);margin:10px 0}
+/* calc */
+.calc .q{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.calc input[type=number],.calc input[type=text]{width:130px;padding:7px 10px;font:600 1rem var(--mono);border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.calc .sol{display:none;margin-top:8px;padding:10px 12px;background:var(--soft);border-radius:8px;font-size:.93rem}
+.calc .sol.show{display:block}
+.calc .fb{font-weight:700;margin-left:8px}
+.calc .fb.ok{color:var(--good)} .calc .fb.no{color:var(--bad)}
+/* cards */
+.fc{perspective:900px;max-width:520px}
+.fc .face{min-height:170px;display:grid;place-items:center;text-align:center;padding:20px;border-radius:14px;border:2px solid var(--accent);background:var(--surface);cursor:pointer;font-size:1.1rem}
+.fc .face.back{background:var(--accent-soft)}
+.fc .face small{display:block;font:700 .66rem var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+/* exam Qs */
+details.eq{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.eq>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.eq>summary::-webkit-details-marker{display:none}
+details.eq>summary::before{content:"▸";color:var(--accent)}
+details.eq[open]>summary::before{content:"▾"}
+details.eq .body{padding:4px 18px 16px}
+.mark{font:700 .72rem var(--mono);background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px}
+.cmd{font:700 .72rem var(--sans);background:var(--warn-soft);color:var(--warn);padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.ans{border-left:4px solid var(--accent);padding:6px 14px;margin:10px 0;background:var(--soft);border-radius:0 8px 8px 0}
+.mk{border-bottom:2px solid currentColor;padding-bottom:1px}
+.mk[data-t]::after{content:" [" attr(data-t) "]";font:700 .64rem var(--sans);vertical-align:super;opacity:.85}
+.mk.k{color:var(--k)} .mk.a{color:var(--a)} .mk.n{color:var(--n)} .mk.e{color:var(--e)}
+.key{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;margin:6px 0}
+.key span{display:inline-flex;gap:5px;align-items:center}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key .k i{background:var(--k)} .key .a i{background:var(--a)} .key .n i{background:var(--n)} .key .e i{background:var(--e)}
+.rw{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px}
+.rw h3{margin:0 0 4px}
+.rw .use{margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:.93rem}
+.rw .use b{color:var(--accent)}
+ul.tips{list-style:none;padding:0;margin:0}
+ul.tips li{padding:10px 14px;margin-bottom:8px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;background:var(--surface)}
+ul.tips li b{color:var(--warn)}
+.algo{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:14px;align-items:start;margin:10px 0 14px}
+.algo .stp{margin:0}
+@media (max-width:820px){.algo{grid-template-columns:minmax(0,1fr)}}
+.code{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ctabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line);background:var(--soft)}
+.ctabs button{font:700 .78rem var(--sans);padding:6px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;background:var(--bg);color:var(--muted);cursor:pointer}
+.ctabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--accent)}
+pre.cp{margin:0;padding:8px 0;font:500 .82rem/1.55 var(--mono);overflow-x:auto;counter-reset:l}
+pre.cp[hidden]{display:none}
+pre.cp .ln{display:block;padding:0 12px 0 8px;white-space:pre;border-left:4px solid transparent;counter-increment:l}
+pre.cp .ln::before{content:counter(l);display:inline-block;width:1.7em;margin-right:.8em;text-align:right;color:var(--muted);opacity:.6}
+pre.cp .ln.on{background:var(--warn-soft);border-left-color:var(--warn);font-weight:700}
+svg .cell{fill:var(--soft);stroke:var(--line);stroke-width:2}
+svg .cell-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+svg .cell-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+svg .cell-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .cell-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3}
+svg .cell-sorted{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .cell-dimg{opacity:.28}
+svg .nd{fill:var(--soft);stroke:var(--muted);stroke-width:2}
+svg .nd-cur{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3.5}
+svg .nd-ok{fill:var(--good-soft);stroke:var(--good);stroke-width:3.5}
+svg .nd-no{fill:var(--bad-soft);stroke:var(--bad);stroke-width:3}
+svg .nd-seen{fill:var(--good-soft);stroke:var(--good);stroke-width:2}
+svg .edge{stroke:var(--muted);stroke-width:2.5;fill:none}
+svg .arr{fill:var(--muted)}
+svg .edge-on{stroke:var(--accent);stroke-width:4;fill:none}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.vars span{font:600 .85rem var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.bar{height:14px;border-radius:7px;background:var(--accent);min-width:2px}
+.bar.b2{background:var(--bad)} .bar.b3{background:var(--good)} .bar.b4{background:var(--warn)}
+table.mx td,table.mx th{text-align:center;font:600 .95rem var(--mono);padding:6px 10px}
+table.mx td.z{color:var(--muted);opacity:.6} table.mx td.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+table.mx td.hl{outline:3px solid var(--warn);outline-offset:-3px}
+table.mx td.ls{text-align:left}
+@media (max-width:640px){.tablist{position:static}}
+@media print{.tablist{display:none}[role=tabpanel][hidden]{display:block}.stp-ctl{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.stp{scroll-margin-top:70px}
+
+.src{display:inline-block;font:700 .7rem var(--sans);letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+pre.plain{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:500 .82rem/1.5 var(--mono);overflow-x:auto;margin:8px 0;white-space:pre}
+
+.ob{display:inline-block;border-top:1.5px solid currentColor;line-height:1.05;padding-top:0}
+.bx{font-family:var(--mono);font-size:.92em;white-space:nowrap}
+svg .w{stroke:var(--muted);stroke-width:2;fill:none}
+svg .w.on{stroke:var(--good);stroke-width:3.2}
+svg .w.off{stroke:var(--muted);stroke-width:2;opacity:.75}
+svg .dot{fill:var(--ink)}
+.circ{margin:8px 0}
+table.km{border-collapse:collapse;margin:8px 0;font-family:var(--mono)}
+table.km th{padding:6px 12px;font:700 .8rem var(--mono);color:var(--muted);text-align:center}
+table.km td{width:62px;height:46px;border:1px solid var(--line);text-align:center;position:relative;background:var(--surface)}
+table.km td .v{font-size:1.15rem;font-weight:700}
+table.km td .n{position:absolute;right:4px;bottom:1px;font-size:.62rem;color:var(--muted)}
+.kleg{font-size:.9rem}.kg{display:inline-block;border:2.5px solid var(--c);border-radius:6px;padding:1px 8px;margin-right:6px;font-family:var(--mono)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.grid3>.card{margin:0}
+table.km td.clk{cursor:pointer}table.km td.clk:hover{background:var(--accent-soft)}
+table.km td .num{font-size:1rem;font-weight:700;color:var(--muted)}
+
+table.stk td,table.stk th{min-width:34px;text-align:center;padding:2px 8px}
+.synd{margin:8px 0;overflow-x:auto}
+.gantt{display:flex;margin:6px 0 0;font-family:var(--mono)}.gantt .gb{border:1.5px solid var(--ink);margin-left:-1.5px;text-align:center;padding:6px 0;font-weight:700;font-size:.85rem;background:var(--surface);min-width:0}
+.gantt .gb.c0{background:var(--accent-soft)}.gantt .gb.c1{background:var(--bad-soft)}.gantt .gb.c2{background:var(--good-soft)}.gantt .gb.c3{background:var(--warn-soft)}.gantt .gb.c4{background:var(--soft)}
+.gticks{display:flex;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin:2px 0 10px}.gticks span{text-align:right;min-width:0}
+</style></head>
+<body>
+<style>
+.txin{font:600 1.05rem var(--mono);padding:9px 12px;border-radius:9px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,420px)}
+.drill select,.sel{font:600 .95rem var(--sans);padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.drill .qline{font-size:1.1rem;font-weight:600;margin:8px 0}
+.drill input{font:700 1.1rem var(--mono);padding:8px 12px;border-radius:8px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,220px);text-transform:uppercase}
+.drill .fb{font-weight:700;margin-left:8px}.drill .fb.ok{color:var(--good)}.drill .fb.no{color:var(--bad)}
+.flag{display:inline-block;font:700 .7rem var(--sans);padding:1px 7px;border-radius:99px;background:var(--bad-soft);color:var(--bad)}
+.okf{display:inline-block;font:700 .7rem var(--sans);padding:1px 7px;border-radius:99px;background:var(--good-soft);color:var(--good)}
+.lab{font:700 .7rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 4px}
+.out{font:700 1.15rem var(--mono);letter-spacing:.12em;padding:10px 14px;border-radius:9px;background:var(--soft);border:1px solid var(--line);word-break:break-all;min-height:46px}
+.out.bad{color:var(--bad)}.out.good{color:var(--good)}
+.cip{font-family:var(--mono);font-size:.82rem;text-align:center}
+.cip td,.cip th{padding:4px 6px;text-align:center}
+.ch{display:grid;gap:8px;margin:10px 0}
+.ch button{text-align:left;font:600 .95rem var(--sans);padding:10px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.ch button:hover{border-color:var(--accent)}
+.ch button.ok{border-color:var(--good);background:var(--good-soft)}.ch button.no{border-color:var(--bad);background:var(--bad-soft)}
+.kpub{color:var(--good);font-weight:700}.kpri{color:var(--bad);font-weight:700}
+</style>
+<style>
+.ipin{font:600 1.05rem var(--mono);padding:9px 12px;border-radius:9px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(100%,420px)}
+.mac{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.mac span{font:700 1.1rem var(--mono);padding:8px 10px;border-radius:8px;border:2px solid var(--line);background:var(--surface)}
+.mac .m1{border-color:var(--accent);color:var(--accent)}.mac .m2{border-color:var(--good);color:var(--good)}
+.scn{display:grid;gap:8px;margin:10px 0}.scn .r{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface)}
+.scn .r.ok{border-color:var(--good);background:var(--good-soft)}.scn .r.no{border-color:var(--bad);background:var(--bad-soft)}.scn .r span.q{flex:1 1 240px;font-weight:600}
+.mem{display:flex;gap:4px;margin:6px 0}.mem i{flex:1;height:26px;border-radius:5px;background:var(--soft);border:1px solid var(--line)}.mem i.u{background:var(--accent);border-color:var(--accent)}.mem i.v{background:var(--bad);border-color:var(--bad)}
+</style>
+<style>
+.mono td,.mono th{font-family:var(--mono)}
+.ln2{font-family:var(--mono);font-size:.9rem}
+.fcw{overflow-x:auto}
+.chk{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.chk label{display:flex;align-items:center;gap:6px;padding:7px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;font-weight:600}
+.chk label.ok{border-color:var(--good);background:var(--good-soft)}.chk label.no{border-color:var(--bad);background:var(--bad-soft)}
+</style>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">IGCSE Computer Science · 0478 · Chapter 8 · 8.1.5 · Nested statements</div>
+  <h1>Nested Statements</h1>
+  <p class="lead">Selection and iteration placed inside each other, up to three levels deep.</p>
+</header>
+
+<nav class="tablist" role="tablist" aria-label="Sections">
+  <button role="tab" data-p="learn">Learn</button>
+  <button role="tab" data-p="watch">Watch</button>
+  <button role="tab" data-p="explore">Explore</button>
+  <button role="tab" data-p="practise">Practise</button>
+  <button role="tab" data-p="real">Real world</button>
+  <button role="tab" data-p="exam">Exam questions</button>
+  <button role="tab" data-p="tips">Tips &amp; keywords</button>
+</nav>
+
+<section id="learn" role="tabpanel">
+  <div class="card big">
+    <h3>The big idea</h3>
+    <p>A <span class="kw">nested statement</span> is a structure <b>inside</b> another structure. The inner one only runs when the outer one reaches it, and it runs again each time the outer one does.</p>
+  </div>
+
+  <h2>8.1.5 Nested statements</h2>
+  <p>A statement is <span class="kw">nested</span> when one structure is placed <b>completely inside</b> another: an IF inside an IF, a loop inside a loop, an IF inside a loop, and so on. Nesting lets a program make follow-up decisions and repeat whole blocks of work.</p>
+
+  <h3>Nested selection</h3>
+  <p>An IF inside another IF. The <b>inner</b> condition is only tested if the program reaches it through the <b>outer</b> one. Each IF needs its own <span class="ln2">ENDIF</span>.</p>
+  <div id="cdIf" class="code"></div>
+  <p>A <b>CASE</b> statement can be nested too, and an IF can sit inside one of its branches.</p>
+  <div id="cdCase" class="code"></div>
+
+  <h3>Selection inside iteration</h3>
+  <p>An IF inside a loop makes a decision about <b>every</b> item. This is how you count passes, check each input or find the highest value.</p>
+  <div id="cdHi" class="code"></div>
+
+  <h3>Nested iteration</h3>
+  <p>A loop inside a loop. For <b>each single repeat</b> of the outer loop, the inner loop runs <b>all</b> of its repeats. Each loop needs its own counter.</p>
+  <div id="cdLp" class="code"></div>
+  <div class="tip"><b class="h">How many times?</b>For two FOR loops with fixed limits, multiply: outer repeats × inner repeats. 3 × 3 = 9.</div>
+
+  <h3>Where a line sits changes what it does</h3>
+  <div class="tw"><table class="t">
+    <tr><th>A line placed...</th><th>runs...</th><th>Typical use</th></tr>
+    <tr><td>before the outer loop</td><td>once, at the start</td><td>set an overall total to 0</td></tr>
+    <tr><td>inside the outer loop, before the inner loop</td><td>once per outer repeat</td><td>reset a total for each student</td></tr>
+    <tr><td>inside the inner loop</td><td>every inner repeat</td><td>input one mark and add it on</td></tr>
+    <tr><td>inside the outer loop, after the inner loop</td><td>once per outer repeat</td><td>output that student's total</td></tr>
+    <tr><td>after the outer loop</td><td>once, at the end</td><td>output the overall result</td></tr>
+  </table></div>
+
+  <h3>Keeping it readable</h3>
+  <p><b>Indent</b> each level further than the one outside it, and close structures in reverse order: the last one opened is the <b>first</b> one closed. Structures may sit inside each other but must never cross.</p>
+  <div class="warn"><b class="h">Three levels is the limit</b>In the exam you will not be asked to write more than <b>three levels</b> of nested statements.</div>
+  <div class="tip"><b class="h">Nested IF or AND?</b><code>IF A THEN IF B</code> with no ELSE does the same job as <code>IF A AND B</code>. Use a nested IF when each level needs its own ELSE or its own message. In Python, <code>elif</code> keeps a chain of tests flat.</div>
+</section>
+
+<section id="watch" role="tabpanel" hidden>
+  <p>Press Play, or click the numbered steps. The code panel has a Pseudocode tab and a Python tab, and the highlighted line follows the animation.</p>
+  <h2>1 · An IF inside an IF</h2><div id="aI"></div>
+  <h2>2 · An IF inside a loop</h2><div id="aH"></div>
+  <h2>3 · A loop inside a loop</h2><div id="aL"></div>
+  <h2>4 · Three levels: loop, validation loop and IF</h2><div id="aT"></div>
+</section>
+
+<section id="explore" role="tabpanel" hidden>
+  <h2>Lab 1 · Follow the path</h2>
+  <p>Change the age and membership. The highlighted lines show which parts run.</p>
+  <div class="card"><div id="s1"></div><label><input type="checkbox" id="mem"> Member</label><div id="pcode"></div><div class="verdict" id="pv" aria-live="polite"></div></div>
+
+  <h2>Lab 2 · Loops inside loops</h2>
+  <p>Each box is one run of the inner loop body, labelled outer,inner. Tick the box to make the inner loop's end value depend on the outer counter.</p>
+  <div class="card"><div id="s2"></div><div id="s3"></div><label><input type="checkbox" id="tri"> Inner loop runs from 1 TO Outer</label><div id="gcode"></div><div id="grid" style="margin:10px 0"></div><div class="verdict" id="gv" aria-live="polite"></div></div>
+
+  <h2>Lab 3 · Where does Total ← 0 go?</h2>
+  <p>Two students each have three marks: Student 1 has 5, 6, 7 and Student 2 has 8, 9, 10. Move the line that resets Total and compare the output.</p>
+  <div class="card"><div id="s4"></div><div id="rcode"></div><div class="out" id="rout" style="min-height:44px"></div><div class="verdict" id="rv" aria-live="polite"></div></div>
+</section>
+
+<section id="practise" role="tabpanel" hidden>
+  <h2>1 · What is nested in what?</h2>
+  <div id="cl1" class="card"></div>
+  <h2>2 · Build a nested loop</h2>
+  <div id="o1" class="card"></div>
+  <h2>3 · Trace it</h2>
+  <div id="c1"></div>
+  <h2>4 · Multiple choice</h2>
+  <div id="qz1"></div>
+</section>
+
+<section id="real" role="tabpanel" hidden>
+  <p class="note">Descriptions are kept general. Check current details before quoting specifics.</p>
+  <div class="rw"><h3>A cash machine</h3><p>The machine first checks the PIN. Only if it is correct does it check whether there is enough money for the withdrawal.</p><div class="use"><b>Exam use:</b> nested selection: the inner test is only reached when the outer test is TRUE.</div></div>
+  <div class="rw"><h3>A school report run</h3><p>For every student, the program goes through every subject, then prints that student's average.</p><div class="use"><b>Exam use:</b> nested iteration: outer loop for students, inner loop for subjects.</div></div>
+  <div class="rw"><h3>Checking a login form</h3><p>The system keeps asking while attempts remain, and inside that loop it decides whether the details match.</p><div class="use"><b>Exam use:</b> selection inside a condition-controlled loop.</div></div>
+  <div class="rw"><h3>Drawing a screen</h3><p>An image is drawn one row at a time, and within each row one pixel at a time.</p><div class="use"><b>Exam use:</b> nested FOR loops: total pixels = rows × pixels per row.</div></div>
+</section>
+
+<section id="exam" role="tabpanel" hidden>
+  <h2>Exam-style questions</h2>
+  <p>These are written for this page in the style of Paper 2 (pseudocode, trace and "write an algorithm" questions). They only use ideas up to and including this page. Open each one for reminders, a model answer and common mistakes. Each underlined phrase earns one mark; the number shows which mark point it is.</p>
+  <details class="eq"><summary>Q1 <span class="cmd">State</span> <span class="mark">2 marks</span> State what is meant by a <b>nested statement</b> and give one example.</summary><div class="body">
+    
+    <div class="tip"><b class="h">Reminder</b>Say what is inside what.</div>
+    <div class="ans"><span class="mk k" data-t="1">A statement / structure placed inside another one</span> <span class="mk k" data-t="2">Example: an IF inside a loop (or IF inside IF, or loop inside loop)</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Giving two separate IF statements one after the other. That is not nesting.</div>
+  </div></details>
+  <details class="eq"><summary>Q2 <span class="cmd">State</span> <span class="mark">3 marks</span> State the output of this code when X is 12 and Y is 3.</summary><div class="body">
+    <pre class="cp" style="margin:8px 0"><span class="ln">IF X &gt; 10</span><span class="ln">  THEN</span><span class="ln">    IF Y &gt; 5</span><span class="ln">      THEN</span><span class="ln">        OUTPUT &quot;A&quot;</span><span class="ln">      ELSE</span><span class="ln">        OUTPUT &quot;B&quot;</span><span class="ln">    ENDIF</span><span class="ln">  ELSE</span><span class="ln">    OUTPUT &quot;C&quot;</span><span class="ln">ENDIF</span></pre>
+    <div class="tip"><b class="h">Reminder</b>Test the outer condition first.</div>
+    <div class="ans"><span class="mk k" data-t="1">X > 10 is TRUE, so the inner IF is tested</span> <span class="mk k" data-t="2">Y > 5 is FALSE, so the inner ELSE runs</span> <span class="mk k" data-t="3">Output: B</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Outputting C. The outer ELSE only runs when X > 10 is FALSE.</div>
+  </div></details>
+  <details class="eq"><summary>Q3 <span class="cmd">State</span> <span class="mark">2 marks</span> State how many times the word "Hi" is output, and show how you worked it out.</summary><div class="body">
+    <pre class="cp" style="margin:8px 0"><span class="ln">FOR A ← 1 TO 4</span><span class="ln">    FOR B ← 1 TO 5</span><span class="ln">        OUTPUT &quot;Hi&quot;</span><span class="ln">    NEXT B</span><span class="ln">NEXT A</span></pre>
+    <div class="tip"><b class="h">Reminder</b>Multiply the repeats.</div>
+    <div class="ans"><span class="mk k" data-t="1">4 × 5</span> <span class="mk k" data-t="2">= 20 times</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Adding 4 + 5. The inner loop runs fully for <b>each</b> outer repeat.</div>
+  </div></details>
+  <details class="eq"><summary>Q4 <span class="cmd">Write</span> <span class="mark">4 marks</span> A mark is stored in Mark. Write pseudocode to output "Invalid" if it is below 0 or above 100. Otherwise output "Pass" for 50 or more and "Fail" for less than 50.</summary><div class="body">
+    
+    <div class="tip"><b class="h">Reminder</b>Validate on the outer IF, grade on the inner IF.</div>
+    <div class="ans"><span class="mk k" data-t="1">IF Mark &lt; 0 OR Mark > 100</span> <span class="mk k" data-t="2">THEN OUTPUT "Invalid"</span> <span class="mk k" data-t="3">inner IF Mark >= 50 inside the ELSE, outputting "Pass" / "Fail"</span> <span class="mk k" data-t="4">both IFs closed with ENDIF in the right places</span><pre class="cp" style="margin:6px 0"><span class="ln">IF Mark &lt; 0 OR Mark &gt; 100</span><span class="ln">  THEN</span><span class="ln">    OUTPUT &quot;Invalid&quot;</span><span class="ln">  ELSE</span><span class="ln">    IF Mark &gt;= 50</span><span class="ln">      THEN</span><span class="ln">        OUTPUT &quot;Pass&quot;</span><span class="ln">      ELSE</span><span class="ln">        OUTPUT &quot;Fail&quot;</span><span class="ln">    ENDIF</span><span class="ln">ENDIF</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Writing AND in the first test. No number is both below 0 and above 100.</div>
+  </div></details>
+  <details class="eq"><summary>Q5 <span class="cmd">Write</span> <span class="mark">5 marks</span> Write pseudocode to input 30 numbers. Count how many are positive and how many are negative (ignore zeros), then output both counts.</summary><div class="body">
+    
+    <div class="tip"><b class="h">Reminder</b>Set both counts to 0 before the loop.</div>
+    <div class="ans"><span class="mk k" data-t="1">Positive ← 0 and Negative ← 0 before the loop</span> <span class="mk k" data-t="2">loop 30 times with INPUT inside</span> <span class="mk k" data-t="3">IF Number > 0, add 1 to Positive</span> <span class="mk k" data-t="4">test for Number &lt; 0 and add 1 to Negative</span> <span class="mk k" data-t="5">OUTPUT both after the loop</span><pre class="cp" style="margin:6px 0"><span class="ln">Positive ← 0</span><span class="ln">Negative ← 0</span><span class="ln">FOR Count ← 1 TO 30</span><span class="ln">    INPUT Number</span><span class="ln">    IF Number &gt; 0</span><span class="ln">      THEN</span><span class="ln">        Positive ← Positive + 1</span><span class="ln">      ELSE</span><span class="ln">        IF Number &lt; 0</span><span class="ln">          THEN</span><span class="ln">            Negative ← Negative + 1</span><span class="ln">        ENDIF</span><span class="ln">    ENDIF</span><span class="ln">NEXT Count</span><span class="ln">OUTPUT Positive, Negative</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Using a plain ELSE for negatives, which also counts the zeros.</div>
+  </div></details>
+  <details class="eq"><summary>Q6 <span class="cmd">Complete</span> <span class="mark">4 marks</span> Give the values output by this code, in order.</summary><div class="body">
+    <pre class="cp" style="margin:8px 0"><span class="ln">FOR A ← 1 TO 3</span><span class="ln">    FOR B ← 1 TO A</span><span class="ln">        OUTPUT A * B</span><span class="ln">    NEXT B</span><span class="ln">NEXT A</span></pre>
+    <div class="tip"><b class="h">Reminder</b>Write down A and B for every inner repeat.</div>
+    <div class="ans"><span class="mk k" data-t="1">A = 1: B runs 1 to 1, output 1</span> <span class="mk k" data-t="2">A = 2: outputs 2, 4</span> <span class="mk k" data-t="3">A = 3: outputs 3, 6, 9</span> <span class="mk k" data-t="4">full order: 1, 2, 4, 3, 6, 9</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Running B from 1 to 3 every time. Its end value is <b>A</b>.</div>
+  </div></details>
+  <details class="eq"><summary>Q7 <span class="cmd">Write</span> <span class="mark">6 marks</span> There are 5 students and each takes 3 tests. Write pseudocode to input the marks and output the total for each student.</summary><div class="body">
+    
+    <div class="tip"><b class="h">Reminder</b>Ask where Total ← 0 must go.</div>
+    <div class="ans"><span class="mk k" data-t="1">outer loop for 5 students</span> <span class="mk k" data-t="2">Total ← 0 inside the outer loop</span> <span class="mk k" data-t="3">inner loop for 3 tests</span> <span class="mk k" data-t="4">INPUT Mark inside the inner loop</span> <span class="mk k" data-t="5">Total ← Total + Mark inside the inner loop</span> <span class="mk k" data-t="6">OUTPUT Total after the inner loop but inside the outer loop</span><pre class="cp" style="margin:6px 0"><span class="ln">FOR Student ← 1 TO 5</span><span class="ln">    Total ← 0</span><span class="ln">    FOR Test ← 1 TO 3</span><span class="ln">        INPUT Mark</span><span class="ln">        Total ← Total + Mark</span><span class="ln">    NEXT Test</span><span class="ln">    OUTPUT Total</span><span class="ln">NEXT Student</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Setting Total ← 0 before the outer loop, so totals carry over between students.</div>
+  </div></details>
+  <details class="eq"><summary>Q8 <span class="cmd">Explain</span> <span class="mark">3 marks</span> The code below should output 12 values but does not run correctly. Identify the error, explain why it is wrong and correct it.</summary><div class="body">
+    <pre class="cp" style="margin:8px 0"><span class="ln">FOR X ← 1 TO 3</span><span class="ln">    FOR Y ← 1 TO 4</span><span class="ln">        OUTPUT X + Y</span><span class="ln">    NEXT X</span><span class="ln">NEXT Y</span></pre>
+    <div class="tip"><b class="h">Reminder</b>Which loop was opened last?</div>
+    <div class="ans"><span class="mk k" data-t="1">NEXT X and NEXT Y are the wrong way round</span> <span class="mk k" data-t="2">the inner loop (Y) must be closed before the outer loop (X), because loops cannot cross</span> <span class="mk k" data-t="3">correct order: NEXT Y then NEXT X</span></div>
+    <div class="warn"><b class="h">Common mistake</b>Changing the loop limits. The limits are fine; the order of the NEXT lines is not.</div>
+  </div></details>
+  <details class="eq"><summary>Q9 <span class="cmd">Write</span> <span class="mark">6 marks</span> Write pseudocode to input the ages of 100 visitors. Each age must be from 0 to 120; ask again until it is. Count the visitors aged under 12 and output the count.</summary><div class="body">
+    
+    <div class="tip"><b class="h">Reminder</b>This needs three levels: FOR, then REPEAT, and an IF.</div>
+    <div class="ans"><span class="mk k" data-t="1">Children ← 0 before the loop</span> <span class="mk k" data-t="2">FOR loop that repeats 100 times</span> <span class="mk k" data-t="3">REPEAT with INPUT Age inside</span> <span class="mk k" data-t="4">UNTIL Age >= 0 AND Age &lt;= 120</span> <span class="mk k" data-t="5">IF Age &lt; 12 add 1 to Children, inside the FOR loop but after the REPEAT</span> <span class="mk k" data-t="6">OUTPUT Children after the FOR loop</span><pre class="cp" style="margin:6px 0"><span class="ln">Children ← 0</span><span class="ln">FOR Visitor ← 1 TO 100</span><span class="ln">    REPEAT</span><span class="ln">        INPUT Age</span><span class="ln">    UNTIL Age &gt;= 0 AND Age &lt;= 120</span><span class="ln">    IF Age &lt; 12</span><span class="ln">      THEN</span><span class="ln">        Children ← Children + 1</span><span class="ln">    ENDIF</span><span class="ln">NEXT Visitor</span><span class="ln">OUTPUT Children</span></pre></div>
+    <div class="warn"><b class="h">Common mistake</b>Counting inside the REPEAT loop, before the age has been checked.</div>
+  </div></details>
+</section>
+
+<section id="tips" role="tabpanel" hidden>
+  <h2>Top tips</h2>
+  <ul class="tips">
+    <li><b>Indent every level.</b> The indentation should show which structure each line belongs to.</li>
+    <li><b>Close in reverse order.</b> The structure opened last is closed first.</li>
+    <li><b>Every IF needs its own ENDIF</b>, every FOR its own NEXT with the matching counter.</li>
+    <li><b>Two nested FOR loops: multiply</b> the repeats (unless the inner limits change).</li>
+    <li><b>Place totals carefully.</b> Reset inside the outer loop if each group needs its own total.</li>
+    <li><b>Trace the outer counter slowly and the inner counter quickly.</b> Add a trace table column for each.</li>
+  </ul>
+
+  <h2>Command words</h2>
+  <div class="tw"><table class="t">
+    <tr><th>Command word</th><th>What it asks for</th></tr>
+    <tr><td>State / Name / Identify</td><td>A short fact. No explanation.</td></tr>
+    <tr><td>Describe</td><td>What happens, step by step, or the main features.</td></tr>
+    <tr><td>Explain</td><td>What happens and why. Use because or so.</td></tr>
+    <tr><td>Complete</td><td>Fill in the gaps, trace table or code you are given.</td></tr>
+    <tr><td>Write / Give</td><td>Produce an algorithm, code or an example. Be precise.</td></tr>
+  </table></div>
+  <h2>Keyword flashcards</h2>
+  <div id="fc1"></div>
+</section>
+</div>
+
+<script>
+const $ = (s, e = document) => e.querySelector(s), $$ = (s, e = document) => [...e.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtN = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+
+/* ---------- tabs ---------- */
+function initTabs() {
+  const list = $(".tablist"), tabs = $$("[role=tab]", list), panels = tabs.map((t) => $("#" + t.dataset.p));
+  const show = (i, focus) => {
+    tabs.forEach((t, k) => { t.setAttribute("aria-selected", k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+    if (focus) tabs[i].focus();
+    try { history.replaceState(null, "", "#" + tabs[i].dataset.p); } catch (e) {}
+    window.dispatchEvent(new Event("resize"));
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(i); window.scrollTo(0, 0); });
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show((i + tabs.length - 1) % tabs.length, true); }
+    });
+  });
+  const start = tabs.findIndex((t) => "#" + t.dataset.p === location.hash);
+  show(start < 0 ? 0 : start);
+}
+
+/* ---------- svg string helpers ---------- */
+const at = (o) => Object.entries(o || {}).map(([k, v]) => ` ${k}="${v}"`).join("");
+const SV = {
+  line: (x1, y1, x2, y2, c = "ax", o) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"${at(o)}/>`,
+  text: (x, y, t, c = "lbl", o) => `<text x="${x}" y="${y}" class="${c}"${at(o)}>${t}</text>`,
+  circle: (x, y, r, c = "dot1", o) => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"${at(o)}/>`,
+  rect: (x, y, w, h, c = "f1", o) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" class="${c}"${at(o)}/>`,
+  path: (d, c = "c1", o) => `<path d="${d}" class="${c}"${at(o)}/>`,
+  poly: (pts, c = "f1", o) => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" class="${c}"${at(o)}/>`,
+  arrowHead: (x, y, dir, c = "dot1") => { const s = 7; const p = { r: [[x, y], [x - s * 1.6, y - s], [x - s * 1.6, y + s]], l: [[x, y], [x + s * 1.6, y - s], [x + s * 1.6, y + s]], u: [[x, y], [x - s, y + s * 1.6], [x + s, y + s * 1.6]], d: [[x, y], [x - s, y - s * 1.6], [x + s, y - s * 1.6]] }[dir]; return `<polygon points="${p.map((q) => q.join(",")).join(" ")}" class="${c}"/>`; },
+};
+const ptsPath = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* ---------- animated stepper ---------- */
+function stepper(el, cfg) {
+  const W = cfg.w || 760, H = cfg.h || 400, steps = cfg.steps;
+  el.innerHTML = `<div class="stp"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.label || "Animated diagram")}"></svg>
+    <div class="stp-cap" aria-live="polite"></div>
+    <div class="stp-ctl"><button class="b" data-a="back">◀ Back</button><button class="b pri" data-a="play">▶ Play</button><button class="b" data-a="next">Next ▶</button><button class="b" data-a="restart" aria-label="Restart">↻</button><span class="stp-dots"></span></div></div>`;
+  const svg = $("svg", el), cap = $(".stp-cap", el), dots = $(".stp-dots", el), playBtn = $("[data-a=play]", el);
+  let lastW = 0, cur = 0, drawn = { ...cfg.base, ...steps[0].s }, raf = 0, timer = 0, playing = false;
+  steps.forEach((_, i) => { const d = document.createElement("button"); d.textContent = i + 1; d.setAttribute("aria-label", "Step " + (i + 1)); d.onclick = () => { stop(); go(i); }; dots.appendChild(d); });
+  const interp = (a, b, t) => { const o = {}; for (const k in b) o[k] = typeof b[k] === "number" && typeof a[k] === "number" ? a[k] + (b[k] - a[k]) * t : t > 0.5 ? b[k] : a[k] !== undefined ? a[k] : b[k]; return o; };
+  const paint = (s) => { drawn = s; svg.innerHTML = cfg.draw(s); };
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    if (!lastW && el.clientWidth && fit()) lastW = el.clientWidth;
+    cap.innerHTML = steps[cur].cap;
+    cfg.onStep && cfg.onStep(cur);
+    $$("button", dots).forEach((d, k) => { d.classList.toggle("on", k === cur); d.classList.toggle("done", k < cur); });
+    const from = drawn, to = { ...cfg.base, ...steps[cur].s }, t0 = performance.now(), dur = reduced ? 0 : cfg.tween || 900;
+    cancelAnimationFrame(raf);
+    const tick = (now) => { const t = dur ? Math.max(0, Math.min(1, (now - t0) / dur)) : 1, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; paint(interp(from, to, e)); if (t < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; clearTimeout(timer); playBtn.textContent = "▶ Play"; }
+  function advance() { if (!playing) return; if (cur >= steps.length - 1) return stop(); go(cur + 1); timer = setTimeout(advance, cfg.dwell || 4800); }
+  playBtn.onclick = () => { if (playing) return stop(); if (cur >= steps.length - 1) go(0); playing = true; playBtn.textContent = "❚❚ Pause"; timer = setTimeout(advance, cfg.dwell ? Math.min(cfg.dwell, 3000) : 2500); };
+  $("[data-a=back]", el).onclick = () => { stop(); go(cur - 1); };
+  $("[data-a=next]", el).onclick = () => { stop(); go(cur + 1); };
+  $("[data-a=restart]", el).onclick = () => { stop(); go(0); };
+  // Lock caption height to the tallest step so the buttons never move.
+  const fit = () => { const cs = getComputedStyle(cap), pad = cs.boxSizing === "border-box" ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom); cap.style.minHeight = "0"; let m = 0; steps.forEach((s) => { cap.innerHTML = s.cap; m = Math.max(m, cap.offsetHeight); }); cap.innerHTML = steps[cur].cap; if (m) cap.style.minHeight = Math.ceil(m - pad) + "px"; return m; };
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = el.clientWidth; if (w && w !== lastW && fit()) lastW = w; }).observe(el);
+  paint(drawn); go(0); fit();
+}
+
+/* ---------- slider ---------- */
+function slider(el, o) {
+  const id = o.id;
+  el.innerHTML = `<div class="sl"><label for="${id}">${o.label}<output id="${id}o"></output></label><input type="range" id="${id}" min="${o.min}" max="${o.max}" step="${o.step || 1}" value="${o.value}"></div>`;
+  const i = $("#" + id, el), out = $("#" + id + "o", el);
+  const upd = () => { out.textContent = (o.fmt || ((v) => v))(+i.value); o.onInput && o.onInput(+i.value); };
+  i.addEventListener("input", upd); upd();
+  return { get: () => +i.value, set: (v) => { i.value = v; upd(); } };
+}
+
+/* ---------- classify (also powers match) ---------- */
+function classify(el, o) {
+  const items = o.items.map((x, i) => ({ ...x, id: i })), cap = o.cap || 99;
+  el.classList.add("cls"); if (o.match) el.classList.add("match");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<div class="pool" data-b="pool" aria-label="Items to place"></div>
+    <div class="buckets">${o.buckets.map((b, i) => `<div class="bk" data-b="${i}"><h4>${b.label}</h4><div class="slot"></div></div>`).join("")}</div>
+    <div class="row"><button class="b pri" data-a="check">Check</button><button class="b" data-a="reset">Reset</button></div><div class="msg" aria-live="polite"></div>`;
+  const pool = $(".pool", el), msg = $(".msg", el);
+  let sel = null;
+  const chip = (it) => { const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.draggable = true; c.textContent = it.text; c.dataset.id = it.id;
+    c.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.id); sel = c; });
+    c.addEventListener("click", (e) => { e.stopPropagation(); if (sel === c) { c.classList.remove("sel"); sel = null; } else { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); } });
+    return c; };
+  const place = (c, zone) => {
+    const slot = zone === pool ? pool : $(".slot", zone);
+    if (zone !== pool && slot.children.length >= cap) { const old = slot.firstElementChild; pool.appendChild(old); }
+    slot.appendChild(c); c.classList.remove("sel", "ok", "no"); sel = null; msg.textContent = "";
+  };
+  const fill = () => { sel = null; pool.innerHTML = ""; $$(".slot", el).forEach((s) => (s.innerHTML = "")); (o.noShuffle ? items : shuffle(items)).forEach((it) => pool.appendChild(chip(it))); msg.textContent = ""; };
+  [pool, ...$$(".bk", el)].forEach((z) => {
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
+    z.addEventListener("click", () => { if (sel) place(sel, z); });
+  });
+  $("[data-a=check]", el).onclick = () => {
+    let ok = 0;
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    const left = $$(".chip", pool).length;
+    msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
+  };
+  $("[data-a=reset]", el).onclick = fill;
+  fill();
+}
+function match(el, o) {
+  classify(el, { match: true, cap: 1, prompt: o.prompt, buckets: o.pairs.map((p) => ({ label: p[0] })), items: o.pairs.map((p, i) => ({ text: p[1], b: i })), done: o.done });
+}
+
+/* ---------- ordering ---------- */
+function order(el, o) {
+  el.classList.add("ord");
+  el.innerHTML = `${o.prompt ? `<p>${o.prompt}</p>` : ""}<ol></ol><div class="row"><button class="b pri" data-a="check">Check order</button><button class="b" data-a="reset">Shuffle again</button></div><div class="msg" aria-live="polite"></div>`;
+  const ol = $("ol", el), msg = $(".msg", el);
+  let dragEl = null;
+  const make = (t, id) => { const li = document.createElement("li"); li.draggable = true; li.dataset.id = id; li.innerHTML = `<span>${t}</span><button class="b" type="button" aria-label="Move up">↑</button><button class="b" type="button" aria-label="Move down">↓</button>`;
+    li.addEventListener("dragstart", () => { dragEl = li; li.classList.add("drag"); });
+    li.addEventListener("dragend", () => { li.classList.remove("drag"); dragEl = null; });
+    li.addEventListener("dragover", (e) => { e.preventDefault(); if (!dragEl || dragEl === li) return; const r = li.getBoundingClientRect(); ol.insertBefore(dragEl, e.clientY < r.top + r.height / 2 ? li : li.nextSibling); });
+    $$("button", li)[0].onclick = () => { li.previousElementSibling && ol.insertBefore(li, li.previousElementSibling); };
+    $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
+    return li; };
+  const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=reset]", el).onclick = fill; fill();
+}
+
+/* ---------- multiple choice ---------- */
+function quiz(el, o) {
+  el.classList.add("qz");
+  let score = 0, answered = 0;
+  /* Spread the correct answer across A-D: each reorderable question gets the least-used position so far
+     (ties broken by a seed from the quiz text, so quizzes differ). Skipped when options or the explanation
+     refer to each other or to letters, since reordering would break the wording. */
+  const dep = /\b(all|none|neither|both) of (the|these|those)\b|\bthe above\b|^both\b|\b(option|answer|statement)s? [A-D]\b|\b[A-D] (and|or|&) [A-D]\b|^[A-D]\b[.)]?\s/i;
+  let h = 0; for (const ch of o.qs.map((q) => q.q).join("")) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const fixed = (q) => q.opts.length < 3 || q.opts.some((t) => dep.test(t)) || dep.test(q.why || "");
+  const used = [0, 0, 0, 0, 0, 0]; o.qs.forEach((q) => { if (fixed(q)) used[q.a]++; });
+  o = { ...o, qs: o.qs.map((q, i) => {
+    if (fixed(q)) return q;
+    const n = q.opts.length; let to = q.a;
+    for (let k = 0; k < n; k++) { const p = (h + i + k) % n; if (used[p] < used[to]) to = p; }
+    used[to]++; if (to === q.a) return q;
+    const opts = q.opts.slice(); [opts[q.a], opts[to]] = [opts[to], opts[q.a]];
+    return { ...q, opts, a: to };
+  }) };
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p class="qt">${i + 1}. ${q.q}</p>${q.opts.map((t, k) => `<button class="opt" data-k="${k}">${String.fromCharCode(65 + k)}. ${t}</button>`).join("")}<div class="why"><b>${"Answer: " + String.fromCharCode(65 + q.a)}.</b> ${q.why}</div></div>`).join("") + `<div class="score" aria-live="polite"></div><button class="b" data-a="again">Try again</button>`;
+  const sc = $(".score", el);
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i];
+    $$(".opt", box).forEach((b) => b.addEventListener("click", () => { if (box.classList.contains("done")) return; box.classList.add("done"); answered++; const k = +b.dataset.k; if (k === q.a) score++; b.classList.add(k === q.a ? "ok" : "no"); $$(".opt", box)[q.a].classList.add("ok"); sc.textContent = `Score: ${score} / ${answered} answered (of ${o.qs.length})`; })); });
+  $("[data-a=again]", el).onclick = () => { score = answered = 0; sc.textContent = ""; $$(".q", el).forEach((b) => { b.classList.remove("done"); $$(".opt", b).forEach((x) => x.classList.remove("ok", "no")); }); };
+}
+
+/* ---------- calculations ---------- */
+function calc(el, o) {
+  el.classList.add("calc");
+  el.innerHTML = o.qs.map((q, i) => `<div class="q" data-i="${i}"><p>${i + 1}. ${q.q}</p>
+    <div class="row"><input type="text" inputmode="${q.t ? "text" : "decimal"}" autocapitalize="off" autocomplete="off" aria-label="Answer ${i + 1}" placeholder="${q.ph || "answer"}">${q.unit ? `<span>${q.unit}</span>` : ""}<button class="b pri" data-a="c">Check</button><button class="b" data-a="h">Hint</button><button class="b" data-a="s">Show working</button><span class="fb" aria-live="polite"></span></div>
+    <div class="sol" data-s="h">${q.hint || "Write the formula first, then substitute."}</div><div class="sol" data-s="s">${q.sol}</div></div>`).join("");
+  $$(".q", el).forEach((box) => { const q = o.qs[+box.dataset.i], inp = $("input", box), fb = $(".fb", box);
+    const check = () => { const v = parseFloat(inp.value.replace(/[,$%\s−]/g, (m) => (m === "−" ? "-" : ""))); const good = q.t ? q.t.includes(inp.value.replace(/\s/g, "").toUpperCase()) : !isNaN(v) && Math.abs(v - q.a) <= (q.tol ?? 0.01); fb.textContent = good ? "✓ Correct" : "✗ Not quite"; fb.className = "fb " + (good ? "ok" : "no"); };
+    $("[data-a=c]", box).onclick = check; inp.addEventListener("keydown", (e) => e.key === "Enter" && check());
+    $("[data-a=h]", box).onclick = () => $("[data-s=h]", box).classList.toggle("show");
+    $("[data-a=s]", box).onclick = () => $("[data-s=s]", box).classList.toggle("show"); });
+}
+
+/* ---------- flashcards ---------- */
+function cards(el, o) {
+  let deck = o.cards.map((c) => c), i = 0, back = false, known = new Set();
+  el.classList.add("fc");
+  el.innerHTML = `<div class="face" tabindex="0" role="button" aria-label="Flip card"></div><div class="row" style="margin-top:10px"><button class="b" data-a="p">◀</button><button class="b" data-a="f">Flip</button><button class="b" data-a="n">▶</button><button class="b" data-a="s">Shuffle</button><button class="b pri" data-a="k">I know this</button><span class="note" data-c></span></div>`;
+  const face = $(".face", el), cnt = $("[data-c]", el);
+  const paint = () => { const c = deck[i]; face.className = "face" + (back ? " back" : ""); face.innerHTML = `<div><small>${back ? "Definition" : "Term"}</small>${back ? c[1] : "<b>" + c[0] + "</b>"}</div>`; cnt.textContent = `${i + 1} / ${deck.length} · known ${known.size}`; };
+  const flip = () => { back = !back; paint(); };
+  face.onclick = flip; face.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), flip());
+  $("[data-a=f]", el).onclick = flip;
+  $("[data-a=n]", el).onclick = () => { i = (i + 1) % deck.length; back = false; paint(); };
+  $("[data-a=p]", el).onclick = () => { i = (i + deck.length - 1) % deck.length; back = false; paint(); };
+  $("[data-a=s]", el).onclick = () => { deck = shuffle(deck); i = 0; back = false; paint(); };
+  $("[data-a=k]", el).onclick = () => { known.add(deck[i][0]); i = (i + 1) % deck.length; back = false; paint(); };
+  paint();
+}
+
+
+/* ---------- array cells (svg) ---------- */
+/* o: x0,y,w,h,gap, cls {i:'cur|ok|no|warn|sorted'}, dim (array of indexes), ptr {i:'L'|'L,M'}, idx (show indexes), lift {i:dy} */
+function cells(arr, o = {}) {
+  const w = o.w || 56, h = o.h || 48, gap = o.gap ?? 6, y = o.y || 90, n = arr.length, tot = n * w + (n - 1) * gap, x0 = o.x0 ?? 0;
+  const dim = new Set(o.dim || []), cls = o.cls || {}, ptr = o.ptr || {}, lift = o.lift || {};
+  let out = "";
+  arr.forEach((v, i) => {
+    const x = x0 + i * (w + gap), yy = y - (lift[i] || 0), c = cls[i] ? " cell-" + cls[i] : "";
+    out += `<g class="${dim.has(i) ? "cell-dimg" : ""}">` + SV.rect(x, yy, w, h, "cell" + c, { rx: 8 }) + SV.text(x + w / 2, yy + h / 2 + 7, v === null ? "" : v, "lbl bd", { "text-anchor": "middle", style: "font-size:20px;font-family:var(--mono)" });
+    if (o.idx !== false) out += SV.text(x + w / 2, y + h + 17, i, "sm", { "text-anchor": "middle" });
+    out += "</g>";
+    if (ptr[i]) {
+      out += SV.poly([[x + w / 2, y + h + 24], [x + w / 2 - 6, y + h + 34], [x + w / 2 + 6, y + h + 34]], "t1");
+      out += SV.text(x + w / 2, y + h + 51, ptr[i], "lbl bd t1", { "text-anchor": "middle" });
+    }
+  });
+  return out;
+}
+
+/* ---------- code panel: Pseudocode / Python tabs with a highlighted line ---------- */
+function codePanel(el, o) {
+  const langs = [["ps", "Pseudocode", o.pseudo], ["py", "Python", o.py]];
+  el.classList.add("code");
+  el.innerHTML = `<div class="ctabs" role="tablist" aria-label="Code language">${langs.map((l, i) => `<button role="tab" type="button" aria-selected="${i === 0}" data-l="${l[0]}">${l[1]}</button>`).join("")}</div>` +
+    langs.map((l, i) => `<pre class="cp" data-l="${l[0]}"${i ? " hidden" : ""}>${l[2].map((t, k) => `<span class="ln" data-k="${k}">${esc(t) || " "}</span>`).join("")}</pre>`).join("");
+  const tabs = $$("[role=tab]", el), pres = $$("pre", el);
+  tabs.forEach((t, i) => t.addEventListener("click", () => { tabs.forEach((x, k) => { x.setAttribute("aria-selected", k === i); pres[k].hidden = k !== i; }); }));
+  return { hl(ps, py) { [[ps, 0], [py, 1]].forEach(([ks, k]) => { $$(".ln", pres[k]).forEach((l) => l.classList.remove("on")); [].concat(ks ?? []).forEach((n) => { const l = $(`.ln[data-k="${n}"]`, pres[k]); l && l.classList.add("on"); }); }); } };
+}
+
+/* ---------- algorithm stepper: frames {cap, ps, py, svg} + code panel ---------- */
+function algo(el, o) {
+  el.classList.add("algo");
+  el.innerHTML = `<div class="aS"></div><div class="aC"></div>`;
+  const cp = codePanel($(".aC", el), o), fr = o.frames;
+  stepper($(".aS", el), { w: o.w || 640, h: o.h || 250, label: o.label, base: { i: 0 }, tween: 1, dwell: o.dwell || 2200, draw: (s) => fr[Math.max(0, Math.min(fr.length - 1, Math.round(s.i)))].svg, onStep: (c) => cp.hl(fr[c].ps, fr[c].py), steps: fr.map((f, i) => ({ cap: f.cap, s: { i } })) });
+}
+
+/* ---------- graphs: svg drawing, adjacency structures ---------- */
+function adjOf(g) {
+  const m = new Map(g.nodes.map((n) => [n.id, []]));
+  g.edges.forEach(([a, b, w]) => { m.get(a).push([b, w]); if (!g.directed) m.get(b).push([a, w]); });
+  m.forEach((l) => l.sort((x, y) => (x[0] < y[0] ? -1 : 1)));
+  return m;
+}
+/* o: cls {id:'cur|ok|seen|no'}, sub {id:'text under node'}, on Set of "a-b" keys (both orders for undirected), r radius */
+function graphSvg(g, o = {}) {
+  const r = o.r || 20, P = Object.fromEntries(g.nodes.map((n) => [n.id, n])), cls = o.cls || {}, on = o.on || new Set(), sub = o.sub || {};
+  let s = "";
+  g.edges.forEach(([a, b, w]) => {
+    const A = P[a], B = P[b], dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, hot = on.has(a + "-" + b) || (!g.directed && on.has(b + "-" + a));
+    const rev = g.directed && g.edges.some(([x, y]) => x === b && y === a), ox = rev ? -uy * 7 : 0, oy = rev ? ux * 7 : 0;
+    const x1 = A.x + ux * (g.directed ? r : 0) + ox, y1 = A.y + uy * (g.directed ? r : 0) + oy, x2 = B.x - ux * (g.directed ? r + 2 : 0) + ox, y2 = B.y - uy * (g.directed ? r + 2 : 0) + oy;
+    s += SV.line(x1, y1, x2, y2, hot ? "edge-on" : "edge");
+    if (g.directed) { const hx = x2, hy = y2, px = -uy, py = ux, k = 11; s += `<polygon points="${hx},${hy} ${hx - ux * k + px * 6},${hy - uy * k + py * 6} ${hx - ux * k - px * 6},${hy - uy * k - py * 6}" class="${hot ? "t1" : "arr"}"/>`; }
+    if (g.weighted) { const mx = (A.x + B.x) / 2 - uy * (rev ? 18 : 11), my = (A.y + B.y) / 2 + ux * (rev ? 18 : 11); s += SV.text(mx, my + 5, w, "lbl bd" + (hot ? " t1" : ""), { "text-anchor": "middle", style: "font-size:14px;paint-order:stroke;stroke:var(--surface);stroke-width:4px" }); }
+  });
+  g.nodes.forEach((n) => {
+    s += SV.circle(n.x, n.y, r, "nd" + (cls[n.id] ? " nd-" + cls[n.id] : "")) + SV.text(n.x, n.y + 6, n.id, "lbl bd", { "text-anchor": "middle", style: "font-size:16px" });
+    if (sub[n.id] !== undefined) s += SV.text(n.x, n.y + r + 16, sub[n.id], "sm bd t4", { "text-anchor": "middle", style: "font-size:13px;font-family:var(--mono)" });
+  });
+  return s;
+}
+function matrixHtml(g, o = {}) {
+  const ids = g.nodes.map((n) => n.id), cell = (a, b) => { const e = g.edges.find(([x, y]) => (x === a && y === b) || (!g.directed && x === b && y === a)); return e ? (g.weighted ? e[2] : 1) : g.weighted ? "–" : 0; };
+  return `<div class="tw"><table class="t mx"><tr><th></th>${ids.map((i) => `<th>${i}</th>`).join("")}</tr>${ids.map((a) => `<tr><th>${a}</th>${ids.map((b) => { const v = cell(a, b), hl = o.hl && o.hl[0] === a && o.hl[1] === b; return `<td class="${v === 0 || v === "–" ? "z" : "on"}${hl ? " hl" : ""}">${v}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function listHtml(g) {
+  const A = adjOf(g);
+  return `<div class="tw"><table class="t mx"><tr><th>Vertex</th><th>${g.directed ? "Points to" : "Adjacent to"}</th></tr>${g.nodes.map((n) => `<tr><th>${n.id}</th><td class="ls">${A.get(n.id).map(([b, w]) => (g.weighted ? `${b} (${w})` : b)).join(", ") || "–"}</td></tr>`).join("")}</table></div>`;
+}
+
+window.Lib = { adjOf, graphSvg, matrixHtml, listHtml, cells, codePanel, algo,  initTabs, SV, ptsPath, stepper, slider, classify, match, order, quiz, calc, cards, fmtN, esc };
+
+const GOOD = "var(--good)", BAD = "var(--bad)", ACC = "var(--accent)", MUT = "var(--muted)", WARN = "var(--warn)";
+const fv = (v) => (v === null || v === undefined ? "?" : v === true ? "TRUE" : v === false ? "FALSE" : typeof v === "string" ? '"' + v + '"' : v);
+/* One animation frame: variable boxes, optional character cells or input queue, a condition result, and the output so far. */
+function trSvg(f, o) {
+  const W = 640; let s = SV.text(14, 24, f.title || o.title || "", "lbl bd", { "text-anchor": "start" });
+  if (f.right) s += SV.text(W - 14, 24, f.right, "lbl bd t4", { "text-anchor": "end" });
+  const vs = f.vars || [], n = vs.length;
+  if (n) {
+    const gap = 10, w = Math.min(150, Math.floor((W - 28 - (n - 1) * gap) / n)), tot = n * w + (n - 1) * gap, x0 = (W - tot) / 2;
+    vs.forEach(([k, v], i) => {
+      const x = x0 + i * (w + gap), hi = (f.hl || []).includes(k), t = String(fv(v));
+      s += SV.rect(x, 38, w, 58, "", { rx: 10, style: `fill:var(--surface);stroke:${hi ? ACC : MUT};stroke-width:${hi ? 4 : 2}` });
+      s += SV.text(x + w / 2, 56, k, "sm", { "text-anchor": "middle" });
+      s += SV.text(x + w / 2, 84, t, "lbl bd", { "text-anchor": "middle", style: `font-size:${t.length > 9 ? 13 : t.length > 6 ? 16 : 20}px;font-family:var(--mono)` });
+    });
+  }
+  if (f.cells) {
+    const a = f.cells, m = a.length, g = 5, w = Math.min(44, Math.floor((W - 28 - (m - 1) * g) / m)), tot = m * w + (m - 1) * g, x0 = (W - tot) / 2;
+    s += Lib.cells(a, { x0, y: 112, w, h: 38, gap: g, cls: f.cc || {}, idx: false });
+    a.forEach((_, i) => (s += SV.text(x0 + i * (w + g) + w / 2, 166, i + 1, "sm", { "text-anchor": "middle" })));
+  } else if (f.inp) {
+    const t = f.inp.length ? "Waiting to be typed in:   " + f.inp.map(fv).join("    ") : "Nothing left to input";
+    s += SV.rect(14, 114, W - 28, 36, "", { rx: 10, style: "fill:var(--soft);stroke:var(--line);stroke-width:2" });
+    s += SV.text(W / 2, 138, t, "lbl bd", { "text-anchor": "middle", style: "font-family:var(--mono);font-size:15px" });
+  }
+  if (f.cond) s += SV.text(W / 2, 196, `${f.cond[0]}   is   ${f.cond[1] ? "TRUE" : "FALSE"}`, "lbl bd " + (f.cond[1] ? "t3" : "t2"), { "text-anchor": "middle", style: "font-family:var(--mono)" });
+  else if (f.note) s += SV.text(W / 2, 196, f.note, "lbl bd " + (f.nc || ""), { "text-anchor": "middle" });
+  let ot = (f.out || []).join("   "); if (ot.length > 62) ot = "…" + ot.slice(-61);
+  s += SV.rect(14, 212, W - 28, 44, "", { rx: 10, style: "fill:var(--soft);stroke:var(--line);stroke-width:2" });
+  s += SV.text(26, 229, "Output", "sm", { "text-anchor": "start" });
+  s += SV.text(26, 249, ot, "lbl bd", { "text-anchor": "start", style: "font-family:var(--mono);font-size:15px" });
+  return s;
+}
+function tr(el, o) {
+  Lib.algo(el, { w: 640, h: 270, label: o.label, pseudo: o.pseudo, py: o.py, dwell: o.dwell || 2000, frames: o.frames.map((f) => ({ cap: f.cap, ps: f.ps, py: f.py, svg: trSvg(f, o) })) });
+}
+const nums = (v, k = 20) => v.trim().split(/[\s,]+/).filter(Boolean).map(Number).filter((x) => !isNaN(x)).slice(0, k);
+
+const IF_PS = ["INPUT Age", "INPUT Member", "IF Age >= 18", "  THEN", "    IF Member = \"Y\"", "      THEN", "        Price ← 8", "      ELSE", "        Price ← 10", "    ENDIF", "  ELSE", "    Price ← 5", "ENDIF", "OUTPUT Price"], IF_PY = ["age = int(input())", "member = input()", "if age >= 18:", "    if member == \"Y\":", "        price = 8", "    else:", "        price = 10", "else:", "    price = 5", "print(price)"], HI_PS = ["Highest ← 0", "FOR Count ← 1 TO 4", "    INPUT Mark", "    IF Mark > Highest", "      THEN", "        Highest ← Mark", "    ENDIF", "NEXT Count", "OUTPUT Highest"], HI_PY = ["highest = 0", "for count in range(1, 5):", "    mark = int(input())", "    if mark > highest:", "        highest = mark", "print(highest)"], LP_PS = ["FOR Row ← 1 TO 3", "    FOR Column ← 1 TO 3", "        OUTPUT Row * Column", "    NEXT Column", "NEXT Row"], LP_PY = ["for row in range(1, 4):", "    for column in range(1, 4):", "        print(row * column)"], TH_PS = ["FOR Student ← 1 TO 2", "    REPEAT", "        INPUT Mark", "    UNTIL Mark >= 0 AND Mark <= 100", "    IF Mark >= 50", "      THEN", "        OUTPUT \"Pass\"", "      ELSE", "        OUTPUT \"Fail\"", "    ENDIF", "NEXT Student"], TH_PY = ["for student in range(1, 3):", "    mark = int(input())", "    while mark < 0 or mark > 100:", "        mark = int(input())", "    if mark >= 50:", "        print(\"Pass\")", "    else:", "        print(\"Fail\")"];
+tr($("#aI"), { label: "Nested IF", title: "Nested selection", pseudo: IF_PS, py: IF_PY, frames: [{"cap": "A cinema price depends on age. <b>Only adults</b> are then asked about membership. The user types 20, then \"N\".", "ps": [0], "py": [0], "vars": [["Age", null], ["Member", null], ["Price", null]], "hl": [], "out": [], "inp": [20, "N"]}, {"cap": "<b>INPUT Age</b>: 20.", "ps": [0], "py": [0], "vars": [["Age", 20], ["Member", null], ["Price", null]], "hl": ["Age"], "out": [], "inp": ["N"]}, {"cap": "<b>INPUT Member</b>: \"N\".", "ps": [1], "py": [1], "vars": [["Age", 20], ["Member", "N"], ["Price", null]], "hl": ["Member"], "out": [], "inp": []}, {"cap": "<b>Outer IF</b>: is 20 >= 18? TRUE, so go into the outer THEN.", "ps": [2, 3], "py": [2], "vars": [["Age", 20], ["Member", "N"], ["Price", null]], "hl": [], "out": [], "cond": ["20 >= 18", true]}, {"cap": "<b>Inner IF</b>: is Member = \"Y\"? It is only tested because the outer test passed.", "ps": [4], "py": [3], "vars": [["Age", 20], ["Member", "N"], ["Price", null]], "hl": [], "out": [], "cond": ["\"N\" = \"Y\"", false]}, {"cap": "FALSE, so the <b>inner ELSE</b> runs: Price ← 10.", "ps": [7, 8], "py": [5, 6], "vars": [["Age", 20], ["Member", "N"], ["Price", 10]], "hl": ["Price"], "out": []}, {"cap": "<b>ENDIF</b> closes the inner IF. The outer ELSE is skipped, because the outer test was TRUE.", "ps": [9, 12], "py": [], "vars": [["Age", 20], ["Member", "N"], ["Price", 10]], "hl": ["Price"], "out": [], "note": "Outer ELSE skipped"}, {"cap": "<b>OUTPUT Price</b>: 10.", "ps": [13], "py": [9], "vars": [["Age", 20], ["Member", "N"], ["Price", 10]], "hl": ["Price"], "out": ["10"]}] });
+tr($("#aH"), { label: "IF inside a loop", title: "Selection inside iteration", pseudo: HI_PS, py: HI_PY, dwell: 1800, frames: [{"cap": "<b>Highest ← 0</b>. Marks cannot be below 0, so any real mark can beat it.", "ps": [0], "py": [0], "vars": [["Count", null], ["Mark", null], ["Highest", 0]], "hl": ["Highest"], "out": [], "inp": [41, 73, 58, 90]}, {"cap": "Loop 1. <b>INPUT Mark</b>: 41.", "ps": [1, 2], "py": [1, 2], "vars": [["Count", 1], ["Mark", 41], ["Highest", 0]], "hl": ["Count", "Mark"], "out": [], "inp": [73, 58, 90]}, {"cap": "The <b>IF is inside the loop</b>, so this mark is tested now. Is 41 > 0?", "ps": [3], "py": [3], "vars": [["Count", 1], ["Mark", 41], ["Highest", 0]], "hl": [], "out": [], "cond": ["41 > 0", true], "inp": [73, 58, 90]}, {"cap": "TRUE, so <b>Highest ← 41</b>.", "ps": [5], "py": [4], "vars": [["Count", 1], ["Mark", 41], ["Highest", 41]], "hl": ["Highest"], "out": [], "cond": ["41 > Highest", true], "inp": [73, 58, 90]}, {"cap": "Loop 2. <b>INPUT Mark</b>: 73.", "ps": [1, 2], "py": [1, 2], "vars": [["Count", 2], ["Mark", 73], ["Highest", 41]], "hl": ["Count", "Mark"], "out": [], "inp": [58, 90]}, {"cap": "The <b>IF is inside the loop</b>, so this mark is tested now. Is 73 > 41?", "ps": [3], "py": [3], "vars": [["Count", 2], ["Mark", 73], ["Highest", 41]], "hl": [], "out": [], "cond": ["73 > 41", true], "inp": [58, 90]}, {"cap": "TRUE, so <b>Highest ← 73</b>.", "ps": [5], "py": [4], "vars": [["Count", 2], ["Mark", 73], ["Highest", 73]], "hl": ["Highest"], "out": [], "cond": ["73 > Highest", true], "inp": [58, 90]}, {"cap": "Loop 3. <b>INPUT Mark</b>: 58.", "ps": [1, 2], "py": [1, 2], "vars": [["Count", 3], ["Mark", 58], ["Highest", 73]], "hl": ["Count", "Mark"], "out": [], "inp": [90]}, {"cap": "The <b>IF is inside the loop</b>, so this mark is tested now. Is 58 > 73?", "ps": [3], "py": [3], "vars": [["Count", 3], ["Mark", 58], ["Highest", 73]], "hl": [], "out": [], "cond": ["58 > 73", false], "inp": [90]}, {"cap": "Loop 4. <b>INPUT Mark</b>: 90.", "ps": [1, 2], "py": [1, 2], "vars": [["Count", 4], ["Mark", 90], ["Highest", 73]], "hl": ["Count", "Mark"], "out": [], "inp": []}, {"cap": "The <b>IF is inside the loop</b>, so this mark is tested now. Is 90 > 73?", "ps": [3], "py": [3], "vars": [["Count", 4], ["Mark", 90], ["Highest", 73]], "hl": [], "out": [], "cond": ["90 > 73", true], "inp": []}, {"cap": "TRUE, so <b>Highest ← 90</b>.", "ps": [5], "py": [4], "vars": [["Count", 4], ["Mark", 90], ["Highest", 90]], "hl": ["Highest"], "out": [], "cond": ["90 > Highest", true], "inp": []}, {"cap": "The loop has ended. <b>OUTPUT Highest</b>: 90. This is outside the loop, so it appears once.", "ps": [8], "py": [5], "vars": [["Count", 4], ["Mark", 90], ["Highest", 90]], "hl": ["Highest"], "out": ["90"], "inp": []}] });
+tr($("#aL"), { label: "Nested loops", title: "Nested iteration", pseudo: LP_PS, py: LP_PY, dwell: 1500, frames: [{"cap": "Two FOR loops, one inside the other. Watch how fast each counter changes.", "ps": [0], "py": [0], "vars": [["Row", null], ["Column", null]], "hl": [], "out": []}, {"cap": "<b>Outer loop</b>: Row is 1. The inner loop now starts again from the beginning.", "ps": [0], "py": [0], "vars": [["Row", 1], ["Column", null]], "hl": ["Row"], "out": []}, {"cap": "<b>Inner loop</b>: Column is 1. OUTPUT 1 * 1 = <b>1</b>.", "ps": [1, 2], "py": [1, 2], "vars": [["Row", 1], ["Column", 1]], "hl": ["Column"], "out": ["1"]}, {"cap": "<b>Inner loop</b>: Column is 2. OUTPUT 1 * 2 = <b>2</b>.", "ps": [1, 2], "py": [1, 2], "vars": [["Row", 1], ["Column", 2]], "hl": ["Column"], "out": ["1", "2"]}, {"cap": "<b>Inner loop</b>: Column is 3. OUTPUT 1 * 3 = <b>3</b>.", "ps": [1, 2], "py": [1, 2], "vars": [["Row", 1], ["Column", 3]], "hl": ["Column"], "out": ["1", "2", "3"]}, {"cap": "The inner loop has finished all 3 repeats. <b>NEXT Row</b> moves the outer loop on.", "ps": [4], "py": [], "vars": [["Row", 1], ["Column", 3]], "hl": ["Row"], "out": ["1", "2", "3"]}, {"cap": "<b>Outer loop</b>: Row is 2. The inner loop now starts again from the beginning.", "ps": [0], "py": [0], "vars": [["Row", 2], ["Column", null]], "hl": ["Row"], "out": ["1", "2", "3"]}, {"cap": "<b>Inner loop</b>: Column is 1. OUTPUT 2 * 1 = <b>2</b>.", "ps": [1, 2], "py": [1, 2], "vars": [["Row", 2], ["Column", 1]], "hl": ["Column"], "out": ["1", "2", "3", "2"]}, {"cap": "<b>Inner loop</b>: Column is 2. OUTPUT 2 * 2 = <b>4</b>.", "ps": [1, 2], "py": [1, 2], "vars": [["Row", 2], ["Column", 2]], "hl": ["Column"], "out": ["1", "2", "3", "2", "4"]}, {"cap": "<b>Inner loop</b>: Column is 3. OUTPUT 2 * 3 = <b>6</b>.", "ps": [1, 2], "py": [1, 2], "vars": [["Row", 2], ["Column", 3]], "hl": ["Column"], "out": ["1", "2", "3", "2", "4", "6"]}, {"cap": "The inner loop has finished all 3 repeats. <b>NEXT Row</b> moves the outer loop on.", "ps": [4], "py": [], "vars": [["Row", 2], ["Column", 3]], "hl": ["Row"], "out": ["1", "2", "3", "2", "4", "6"]}, {"cap": "<b>Outer loop</b>: Row is 3. The inner loop now starts again from the beginning.", "ps": [0], "py": [0], "vars": [["Row", 3], ["Column", null]], "hl": ["Row"], "out": ["1", "2", "3", "2", "4", "6"]}, {"cap": "<b>Inner loop</b>: Column is 1. OUTPUT 3 * 1 = <b>3</b>.", "ps": [1, 2], "py": [1, 2], "vars": [["Row", 3], ["Column", 1]], "hl": ["Column"], "out": ["1", "2", "3", "2", "4", "6", "3"]}, {"cap": "<b>Inner loop</b>: Column is 2. OUTPUT 3 * 2 = <b>6</b>.", "ps": [1, 2], "py": [1, 2], "vars": [["Row", 3], ["Column", 2]], "hl": ["Column"], "out": ["1", "2", "3", "2", "4", "6", "3", "6"]}, {"cap": "<b>Inner loop</b>: Column is 3. OUTPUT 3 * 3 = <b>9</b>.", "ps": [1, 2], "py": [1, 2], "vars": [["Row", 3], ["Column", 3]], "hl": ["Column"], "out": ["1", "2", "3", "2", "4", "6", "3", "6", "9"]}, {"cap": "The inner loop has finished all 3 repeats. The outer loop has finished too. 3 × 3 = <b>9</b> outputs.", "ps": [4], "py": [], "vars": [["Row", 3], ["Column", 3]], "hl": ["Row"], "out": ["1", "2", "3", "2", "4", "6", "3", "6", "9"]}] });
+tr($("#aT"), { label: "Three levels", title: "Three levels of nesting", pseudo: TH_PS, py: TH_PY, frames: [{"cap": "Three structures: a <b>FOR</b> loop holding a <b>REPEAT</b> loop (validation) and an <b>IF</b>.", "ps": [0], "py": [0], "vars": [["Student", null], ["Mark", null]], "hl": [], "out": [], "inp": [120, 64, 38]}, {"cap": "<b>FOR</b>: Student 1.", "ps": [0], "py": [0], "vars": [["Student", 1], ["Mark", null]], "hl": ["Student"], "out": [], "inp": [120, 64, 38]}, {"cap": "<b>INPUT Mark</b>: 120.", "ps": [1, 2], "py": [1], "vars": [["Student", 1], ["Mark", 120]], "hl": ["Mark"], "out": [], "inp": [64, 38]}, {"cap": "Out of range, so the <b>inner loop repeats</b>. The student number does not change.", "ps": [3], "py": [2], "vars": [["Student", 1], ["Mark", 120]], "hl": [], "out": [], "cond": ["120 >= 0 AND 120 <= 100", false], "inp": [64, 38]}, {"cap": "<b>INPUT Mark</b>: 64.", "ps": [1, 2], "py": [3], "vars": [["Student", 1], ["Mark", 64]], "hl": ["Mark"], "out": [], "inp": [38]}, {"cap": "Valid, so leave the REPEAT loop.", "ps": [3], "py": [2], "vars": [["Student", 1], ["Mark", 64]], "hl": [], "out": [], "cond": ["64 >= 0 AND 64 <= 100", true], "inp": [38]}, {"cap": "Now the <b>IF</b>, still inside the FOR loop. Is 64 >= 50?", "ps": [4], "py": [4], "vars": [["Student", 1], ["Mark", 64]], "hl": [], "out": [], "cond": ["64 >= 50", true], "inp": [38]}, {"cap": "OUTPUT \"Pass\". Then <b>NEXT Student</b>.", "ps": [6, 10], "py": [5], "vars": [["Student", 1], ["Mark", 64]], "hl": [], "out": ["Pass"], "inp": [38]}, {"cap": "<b>FOR</b>: Student 2.", "ps": [0], "py": [0], "vars": [["Student", 2], ["Mark", 64]], "hl": ["Student"], "out": ["Pass"], "inp": [38]}, {"cap": "<b>INPUT Mark</b>: 38.", "ps": [1, 2], "py": [1], "vars": [["Student", 2], ["Mark", 38]], "hl": ["Mark"], "out": ["Pass"], "inp": []}, {"cap": "Valid, so leave the REPEAT loop.", "ps": [3], "py": [2], "vars": [["Student", 2], ["Mark", 38]], "hl": [], "out": ["Pass"], "cond": ["38 >= 0 AND 38 <= 100", true], "inp": []}, {"cap": "Now the <b>IF</b>, still inside the FOR loop. Is 38 >= 50?", "ps": [4], "py": [4], "vars": [["Student", 2], ["Mark", 38]], "hl": [], "out": ["Pass"], "cond": ["38 >= 50", false], "inp": []}, {"cap": "OUTPUT \"Fail\". Then <b>NEXT Student</b>.", "ps": [8, 10], "py": [7], "vars": [["Student", 2], ["Mark", 38]], "hl": [], "out": ["Pass", "Fail"], "inp": []}] });
+Lib.codePanel($("#cdIf"), { pseudo: IF_PS, py: IF_PY });
+Lib.codePanel($("#cdCase"), { pseudo: ["CASE OF Choice", "    1 : IF Balance > 0", "          THEN", '            OUTPUT "Withdraw"', "          ELSE", '            OUTPUT "No funds"', "        ENDIF", '    2 : OUTPUT "Deposit"', '    OTHERWISE OUTPUT "Invalid"', "ENDCASE"], py: ["match choice:", "    case 1:", "        if balance > 0:", '            print("Withdraw")', "        else:", '            print("No funds")', "    case 2:", '        print("Deposit")', "    case _:", '        print("Invalid")'] });
+Lib.codePanel($("#cdHi"), { pseudo: HI_PS, py: HI_PY });
+Lib.codePanel($("#cdLp"), { pseudo: LP_PS, py: LP_PY });
+
+
+/* ---------- Lab 1 ---------- */
+(() => {
+  const cp = Lib.codePanel($("#pcode"), { pseudo: IF_PS, py: IF_PY }); let a;
+  const upd = () => { if (!a) return; const age = a.get(), m = $("#mem").checked, adult = age >= 18, price = adult ? (m ? 8 : 10) : 5;
+    cp.hl(adult ? (m ? [2, 4, 6, 13] : [2, 4, 8, 13]) : [2, 11, 13], adult ? (m ? [2, 3, 4, 9] : [2, 3, 6, 9]) : [2, 8, 9]);
+    $("#pv").innerHTML = adult ? `${age} >= 18 is TRUE, so the inner IF is tested. ${m ? "Member" : "Not a member"}: price <b>${price}</b>.` : `${age} >= 18 is FALSE. The inner IF is <b>never tested</b>, so membership makes no difference: price <b>5</b>.`; };
+  a = Lib.slider($("#s1"), { id: "pa", label: "Age ", min: 5, max: 40, value: 20, onInput: upd });
+  $("#mem").onchange = upd; upd();
+})();
+
+/* ---------- Lab 2 ---------- */
+(() => {
+  let a, b;
+  const upd = () => { if (!a || !b) return; const o = a.get(), n = b.get(), t = $("#tri").checked; let total = 0;
+    Lib.codePanel($("#gcode"), { pseudo: [`FOR Outer ← 1 TO ${o}`, `    FOR Inner ← 1 TO ${t ? "Outer" : n}`, '        OUTPUT Outer, ",", Inner', "    NEXT Inner", "NEXT Outer"], py: [`for outer in range(1, ${o + 1}):`, `    for inner in range(1, ${t ? "outer + 1" : n + 1}):`, '        print(outer, ",", inner)'] });
+    $("#grid").innerHTML = Array.from({ length: o }, (_, i) => `<div style="display:flex;gap:4px;margin-bottom:4px;flex-wrap:wrap">` + Array.from({ length: t ? i + 1 : n }, (_, j) => { total++; return `<span style="border:1px solid var(--line);border-radius:6px;padding:2px 7px;font-family:var(--mono)">${i + 1},${j + 1}</span>`; }).join("") + "</div>").join("");
+    $("#gv").innerHTML = t ? `The inner loop runs 1, then 2, ... up to ${o} times: <b>${total}</b> in total. The inner limit slider is not used.` : `${o} × ${n} = <b>${total}</b> runs of the inner body.`; };
+  a = Lib.slider($("#s2"), { id: "go", label: "Outer loop end ", min: 1, max: 6, value: 3, onInput: upd });
+  b = Lib.slider($("#s3"), { id: "gi", label: "Inner loop end ", min: 1, max: 8, value: 4, onInput: upd });
+  $("#tri").onchange = upd; upd();
+})();
+
+/* ---------- Lab 3 ---------- */
+Lib.slider($("#s4"), { id: "rp", label: "Position of Total ← 0: ", min: 1, max: 3, value: 1, fmt: (v) => ["before the outer loop", "inside the outer loop", "inside the inner loop"][v - 1], onInput: (p) => {
+  const L = ["FOR Student ← 1 TO 2", "    FOR Test ← 1 TO 3", "        INPUT Mark", "        Total ← Total + Mark", "    NEXT Test", "    OUTPUT Total", "NEXT Student"], Q = ["for student in range(1, 3):", "    for test in range(1, 4):", "        mark = int(input())", "        total = total + mark", "    print(total)"];
+  if (p === 1) { L.splice(0, 0, "Total ← 0"); Q.splice(0, 0, "total = 0"); } else if (p === 2) { L.splice(1, 0, "    Total ← 0"); Q.splice(1, 0, "    total = 0"); } else { L.splice(2, 0, "        Total ← 0"); Q.splice(2, 0, "        total = 0"); }
+  Lib.codePanel($("#rcode"), { pseudo: L, py: Q });
+  const out = []; let total = 0;
+  for (const marks of [[5, 6, 7], [8, 9, 10]]) { if (p === 2) total = 0; for (const m of marks) { if (p === 3) total = 0; total += m; } out.push(total); }
+  $("#rout").textContent = out.join("   ");
+  $("#rv").innerHTML = ["Wrong for Student 2: the total <b>carries on</b> from Student 1.", "<b>Correct.</b> Total is reset once for each student.", "Wrong: Total is reset before <b>every</b> mark, so only the last mark survives."][p - 1]; } });
+
+/* ---------- Practise ---------- */
+Lib.classify($("#cl1"), { prompt: "Match each task to the structure it needs.", buckets: [{ label: "IF inside IF" }, { label: "IF inside a loop" }, { label: "Loop inside a loop" }], items: [
+  { text: "Check the username, and only if it is right check the password", b: 0 }, { text: "If the customer is a member, check whether they spent over 50", b: 0 },
+  { text: "Count how many of 100 marks are passes", b: 1 }, { text: "Find the smallest of 20 temperatures", b: 1 },
+  { text: "Input 7 daily readings for each of 4 weeks", b: 2 }, { text: "Output the times tables from 1 to 12", b: 2 }],
+  done: "Follow-up decision: nested IF. Decision for every item: IF in a loop. Repeats of repeats: nested loops." });
+Lib.order($("#o1"), { prompt: "Output a total for each of 3 days, 24 readings per day.", items: ["FOR Day ← 1 TO 3", "Total ← 0", "FOR Hour ← 1 TO 24", "INPUT Reading", "Total ← Total + Reading", "NEXT Hour", "OUTPUT Total", "NEXT Day"], done: "Reset, inner loop, output, all inside the outer loop." });
+Lib.calc($("#c1"), { qs: [
+  { q: "FOR A ← 1 TO 6, containing FOR B ← 1 TO 4. How many times does the inner body run?", a: 24, sol: "6 × 4 = 24." },
+  { q: "FOR A ← 1 TO 4, containing FOR B ← 1 TO A. How many times does the inner body run?", a: 10, sol: "1 + 2 + 3 + 4 = 10." },
+  { q: "Three nested FOR loops each run 1 TO 3. How many times does the innermost body run?", a: 27, sol: "3 × 3 × 3 = 27." },
+  { q: "Total ← 0. FOR A ← 1 TO 3, FOR B ← 1 TO 2, Total ← Total + A. What is the final Total?", a: 12, sol: "Each A is added twice: 2 + 4 + 6 = 12." },
+  { q: "IF N > 5 THEN (IF N > 10 THEN X ← 1 ELSE X ← 2) ELSE X ← 3. What is X when N is 10?", a: 2, sol: "10 > 5 is TRUE, 10 > 10 is FALSE, so X ← 2." }] });
+Lib.quiz($("#qz1"), { qs: [
+  { q: "When is an inner IF tested?", opts: ["Only when the program reaches it through the outer structure", "Always, before the outer IF", "Only when the outer test is FALSE and there is no ELSE", "Once at the start of the program"], a: 0, why: "It sits inside one branch of the outer structure." },
+  { q: "In nested loops, which loop completes all its repeats first?", opts: ["The inner loop", "The outer loop", "They finish together on every pass", "Whichever has the larger limit"], a: 0, why: "The inner loop runs fully for each outer repeat." },
+  { q: "What is the greatest number of nesting levels you will be asked to write?", opts: ["Three", "Two", "Five", "There is no limit"], a: 0, why: "The syllabus limits it to three." },
+  { q: "Why indent nested statements?", opts: ["It makes the structure easy to read", "It makes the program run faster", "It removes the need for ENDIF", "It creates local variables"], a: 0, why: "Indentation shows which lines belong together." },
+  { q: "IF A THEN IF B (no ELSE anywhere) does the same job as...", opts: ["IF A AND B", "IF A OR B", "IF NOT A", "a WHILE loop on A"], a: 0, why: "Both conditions must be TRUE." }] });
+Lib.cards($("#fc1"), { cards: [
+  ["Nested statement", "A structure placed inside another structure."],
+  ["Nested selection", "A selection statement inside another selection statement."],
+  ["Nested iteration", "A loop inside another loop."],
+  ["Outer loop", "The loop that contains another loop."],
+  ["Inner loop", "The loop inside; it runs fully for each repeat of the outer loop."],
+  ["Indentation", "Moving lines to the right to show which structure they belong to."]] });
+
+
+Lib.initTabs();
+</script>
+</body></html>
