@@ -3,6 +3,8 @@
 "term | meaning". A leading * marks wider reading: a word that is not in the 9618 syllabus wording.
 (14.1 has its own key words, built into the pages by artifact-kit/kw141.py.)
 """
+import re
+
 WORDS = {
     # 1 Information representation
     "ac-1-1-1-number-bases-bcd-hex": [
@@ -215,6 +217,38 @@ WORDS = {
         "*Anonymous variable | The underscore, used where the value does not matter"],
     "ac-20-2-1-file-processing": ["*Binary file | A file storing data in internal binary form; Python's pickle module can read and write records this way"],
     "ac-20-2-2-exception-handling": ["Robust program | One that copes with unexpected input or events without crashing"],
+    # extra pages for sections 19 and 20
+    "linked-lists": ["*Unordered linked list | A list whose items are not kept in any order, so a new item can be added at the start"],
+    "insertion-sort": ["*Stable sort | Items with equal keys stay in their original order, as they do in an insertion sort"],
+    "recursion-fibonacci": ["Recursive call | The line where a function calls itself"],
+    "recursion-binary-tree": [
+        "General case | The case in which the procedure calls itself again on a smaller part of the problem",
+        "*Backtracking | Returning to a node after finishing one of its subtrees, as the calls unwind"],
+    "recursion-binary-search": ["Divide and conquer | Repeatedly splitting a problem into smaller parts, as each call searches half of the list"],
+    "recursion-lists-strings": [
+        "Concatenation | Joining strings end to end", "Iteration | Repeating steps with a loop, the alternative to recursion"],
+    "ac-20-1-3-oop-in-python": [
+        "Instance | An object created from a class", "Property (attribute) | A data item belonging to a class",
+        "Class diagram | A diagram showing a class's name, attributes and methods"],
+    "ac-20-1-2-constructor": ["Instantiation | Creating an object from a class, which runs the constructor"],
+    "ac-20-1-2-encapsulation": ["Data integrity | Data staying accurate and valid, which a setter can protect by checking new values"],
+    "ac-20-1-2-getters-and-setters": ["*Accessor | Another name for a getter", "*Mutator | Another name for a setter"],
+    "ac-20-1-2-inheritance": ["Base class | Another name for a parent class or superclass"],
+    "ac-20-1-2-polymorphism": [
+        "*Overloading | Several methods with the same name but different parameters. This differs from overriding",
+        "*Dynamic binding | The choice of which method to run is made while the program is running, from the object's class"],
+    "ac-20-1-2-containment": ["*Composition | A strong form of containment in which the parts do not exist without the whole"],
+    "ac-20-2-1-storing-records-serial-sequential": ["Binary file | A file storing data in internal binary form, such as records written with Python's pickle module", "*pickle | The Python module that writes objects to a binary file and reads them back"],
+    "ac-20-2-1-adding-to-random-file": ["Binary file | A file storing data in internal binary form, such as records written with Python's pickle module"],
+    "ac-20-2-1-finding-in-random-file": ["Record key | The field that identifies a record and is used to work out its address", "Binary file | A file storing data in internal binary form, such as records written with Python's pickle module"],
+    "ac-20-2-2-what-is-an-exception": ["Exception handler | The code that runs when an exception occurs"],
+    "ac-20-2-2-why-and-when-exception-handling": ["Robust program | One that copes with unexpected input or events without crashing"],
+    "ac-20-2-2-try-except-python": ["IndexError | Raised in Python when a list or string index is out of range"],
+    "ac-20-2-2-exception-handling-files": [
+        "with open | A Python statement that closes the file automatically, even if an exception occurs",
+        "PermissionError | Raised when the program is not allowed to open the file",
+        "*pickle | The Python module that writes objects to a binary file and reads them back",
+        "*Corrupt file | A file whose contents are damaged or not in the expected form"],
 }
 
 START, END = "<!-- key words -->", "<!-- /key words -->"
@@ -229,9 +263,12 @@ def apply(page, slug):
     """Add the page's key words to the end of its Learn tab."""
     if slug not in WORDS or START in page:
         return page
-    a = page.index('<section id="learn"')
-    end = page.index("</section>", a)
-    assert "<section" not in page[a + 8:end], slug
+    depth = 0
+    for tag in re.finditer(r"<(/?)section\b", page[page.index('<section id="learn"'):]):   # the tab may hold sub-sections
+        depth += -1 if tag[1] else 1
+        if depth == 0:
+            end = page.index('<section id="learn"') + tag.start()
+            break
     pairs = [[x.strip() for x in w.split(" | ", 1)] for w in WORDS[slug]]
     core = [(w, m) for w, m in pairs if not w.startswith("*")]
     wider = [(w.lstrip("*"), m) for w, m in pairs if w.startswith("*")]
