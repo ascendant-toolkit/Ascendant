@@ -3,7 +3,6 @@ import json as _j
 from ak20 import *
 
 SUB = CBK("Chapter 20 · Further programming, section 20.1 Programming paradigms")
-NOTE_PAPERS = "Class design is asked in Paper 3 as pseudocode and class diagrams; writing the classes as code is asked in Paper 4. The real questions are on the 20.1.2 and 20.1.3 pages in this section; this page is the extra explanation behind them."
 
 
 def both(py, ps):
@@ -59,8 +58,9 @@ def practise(*ids):
     return "".join(f"  <h2>{n} · {_PT[k]}</h2>{_PE[k]}\n" for n, k in enumerate(ids, 1))
 
 
-def finish(name, slug, title, lead, learn, watch, explore, prac, real, review, tipsl, sents, js, past_note=NOTE_PAPERS, sub_num="20.1.2"):
-    exam = exam20("Review questions for practice; they are not in exam format.", [], '', review)
-    exam = exam.replace('  <h2>1. Past paper questions</h2>\n', '  <h2>1. Where this is examined</h2>\n  <p class="note">' + past_note + '</p>\n', 1)
+def finish(name, slug, title, lead, learn, watch, explore, prac, real, review, tipsl, sents, js, sub_num="20.1.2"):
+    import pp19   # real past paper questions for each sub-topic
+    exam = exam20("Part 1 is real 9618 questions on this sub-topic. Part 2 is a set of review questions for practice; they are not in exam format.", [], '', review)
+    exam = exam.replace('  <h2>1. Past paper questions</h2>\n', '  <h2>1. Past paper questions</h2>\n' + pp19.section(pp19.oop(name), pp19.OOP_NOTES.get(name, "")), 1)
     tips = tips_html(tipsl, sents, [("Define / State", "Give the meaning in one precise sentence."), ("Write program code", "Produce working Python in the form the question describes."), ("Complete the class diagram", "Fill in properties and methods; the question tells you which are missing."), ("Explain", "A reason as well as the fact.")]) + FC
     build(name, slug, title, EYA(sub_num), lead, dict(sub=SUB, **tabs(learn, watch, explore, prac, real, exam, tips)), SHARED + js)

@@ -421,8 +421,6 @@ sceneItem = (o) => {
 };
 '''
 
-NOTE7 = ("Binary trees are tested in the data structures part of the syllabus (19.1). Writing one as classes combines that with the class skills in 20.1.2 and 20.1.3, which is how Paper 4 sets programming tasks. No single past paper question is quoted on this page; for real questions see the 19.1 binary tree page and the 20.1.3 page.")
-
 finish("ac20r7", "ac-20-1-2-writing-a-binary-tree", "Writing a Binary Tree with Classes",
        "A Node class and a Tree class: constructors, private pointers with getters and setters, containment, a CountTree child class and polymorphism; insert, search and in-order traversal with animations, a tree-building lab and review questions.",
-       learn, watch, explore, practise("cl", "o", "m", "c", "q"), real, review, tipsl, sents, js7 + stA + stB + stC + stD + lab, NOTE7, "20.1.2 and 19.1")
+       learn, watch, explore, practise("cl", "o", "m", "c", "q"), real, review, tipsl, sents, js7 + stA + stB + stC + stD + lab, "20.1.2 and 19.1")
