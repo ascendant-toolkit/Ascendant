@@ -3,15 +3,15 @@
 
     tools/video/.venv/bin/python tools/video/make.py tools/video/specs/<spec>.json [wide square vertical]
 
-Paths in a spec are relative to the 'Social Videos' folder (git-ignored). The contact
-email lives in 'Social Videos/local.json' ({"email": "..."}), never in the repo.
+Paths in a spec are relative to the 'Media/Social Videos' folder (git-ignored). The contact
+email lives in 'Media/Social Videos/local.json' ({"email": "..."}), never in the repo.
 """
 import json, subprocess, sys, tempfile
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parent.parent / "Social Videos"
+ROOT = HERE.parent.parent / "Media" / "Social Videos"
 B = json.loads((HERE / "brand.json").read_text())
 LOCAL = json.loads((ROOT / "local.json").read_text()) if (ROOT / "local.json").exists() else {}
 C = {k: tuple(v) if isinstance(v, list) else v for k, v in B["colors"].items()}

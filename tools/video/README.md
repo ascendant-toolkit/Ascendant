@@ -7,7 +7,7 @@ python3 -m venv tools/video/.venv && tools/video/.venv/bin/pip install pillow   
 tools/video/.venv/bin/python tools/video/make.py tools/video/specs/<spec>.json [wide square vertical]
 ```
 
-Media lives in `Social Videos/` (git-ignored: large, and the music licence is not ours to publish). Spec paths are relative to that folder. The contact email sits in `Social Videos/local.json` as `{"email": "..."}`. It never goes in the repo.
+Media lives in `Media/Social Videos/` (git-ignored: large, and the music licence is not ours to publish). Spec paths are relative to that folder. The contact email sits in `Media/Social Videos/local.json` as `{"email": "..."}`. It never goes in the repo.
 
 Outputs: `wide` 1920x1080 (X, YouTube), `square` 1080x1080 (Instagram feed), `vertical` 1080x1920 (TikTok, Reels, YouTube Shorts).
 
