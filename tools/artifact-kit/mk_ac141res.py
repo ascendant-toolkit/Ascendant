@@ -207,7 +207,7 @@ btnTable("dB", "dO", [
   "Put a web page request in order as it is sent.",
   ["The browser creates an HTTP request", "The message is split into numbered packets", "IP addresses are added to each packet", "Each packet is put into a frame and sent over Wi-Fi"],
   "Application, Transport, Internet, Link.") + MATCH([
-  ["Chrome", "Application layer"], ["Sequence number", "Transport layer"], ["203.0.113.10", "Internet layer (an IP address)"], ["Wi-Fi chip", "Link layer"], ["Router (routing)", "Internet layer"], ["Frame", "Link layer"]]) + CALC([
+  ["Chrome", "Application layer"], ["Sequence number", "Transport layer"], ["203.0.113.10 (an IP address)", "Internet layer"], ["Wi-Fi chip", "Link layer"], ["Router (routing)", "Internet layer"], ["Frame", "Link layer"]]) + CALC([
   {"q": "A 3 MB photo (3 000 000 bytes) is split into packets of 1500 bytes. How many packets?", "a": 2000, "unit": "", "tol": 0.01, "hint": "3 000 000 ÷ 1500.", "sol": "<b>2000</b>."},
   {"q": "A video call sends 50 packets every second. How many packets in a 2-minute call?", "a": 6000, "unit": "", "tol": 0.01, "hint": "50 × 120.", "sol": "<b>6000</b>."},
   {"q": "A packet crosses 4 routers between a laptop and a server. How many separate frames are made for the journey?", "a": 5, "unit": "", "tol": 0.01, "hint": "Laptop to router 1, then 1 to 2, 2 to 3, 3 to 4, 4 to server.", "sol": "<b>5</b>."},

@@ -469,9 +469,11 @@ function classify(el, o) {
     z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("over"); const c = $(`[data-id="${e.dataTransfer.getData("text/plain")}"]`, el); c && place(c, z); });
     z.addEventListener("click", () => { if (sel) place(sel, z); });
   });
+  // match: pairs sharing the same answer (or prompt) text are interchangeable
+  const fits = (it, j) => it.b === j || (!!o.match && (it.text === o.items[j].text || o.buckets[it.b].label === o.buckets[j].label));
   $("[data-a=check]", el).onclick = () => {
     let ok = 0;
-    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = items[+c.dataset.id].b === +b.dataset.b; c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
+    $$(".bk", el).forEach((b) => $$(".chip", b).forEach((c) => { const good = fits(items[+c.dataset.id], +b.dataset.b); c.classList.toggle("ok", good); c.classList.toggle("no", !good); if (good) ok++; }));
     const left = $$(".chip", pool).length;
     msg.textContent = left ? `${left} still to place. ${ok} correct so far.` : ok === items.length ? "All correct. " + (o.done || "") : `${ok} of ${items.length} correct. Red ones are in the wrong place; move them and check again.`;
   };
@@ -496,7 +498,7 @@ function order(el, o) {
     $$("button", li)[1].onclick = () => { li.nextElementSibling && ol.insertBefore(li.nextElementSibling, li); };
     return li; };
   const fill = () => { ol.innerHTML = ""; let s; do { s = shuffle(o.items.map((t, i) => [t, i])); } while (o.items.length > 1 && s.every((x, i) => x[1] === i)); s.forEach(([t, i]) => ol.appendChild(make(t, i))); msg.textContent = ""; };
-  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = +li.dataset.id === i; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
+  $("[data-a=check]", el).onclick = () => { let ok = 0; $$("li", ol).forEach((li, i) => { const g = o.items[+li.dataset.id] === o.items[i]; li.classList.toggle("ok", g); li.classList.toggle("no", !g); if (g) ok++; }); msg.textContent = ok === o.items.length ? "Correct order. " + (o.done || "") : `${ok} of ${o.items.length} in the right place.`; };
   $("[data-a=reset]", el).onclick = fill; fill();
 }
 

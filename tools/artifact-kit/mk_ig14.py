@@ -515,7 +515,7 @@ Lib.match($("#m1"), { prompt: "Match the cause to its effect on the PPC.", pairs
   ["New technology", "Outward shift"],
   ["War", "Inward shift"],
   ["Falling unemployment", "Move to the PPC"],
-  ["Immigration", "Outward shift (more labour)"],
+  ["Immigration (more labour)", "Outward shift"],
   ["Depletion of resources", "Inward shift"],
   ["Farming technology only", "One-sided shift"],
 ], done: "Know the causes." });
