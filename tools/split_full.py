@@ -115,6 +115,8 @@ def split(html):
     for a, b in sorted(spans.values(), reverse=True):
         outside = outside[:a] + outside[b:]
     ids = {i for i in ids if f'id="{i}"' not in outside}
+    # a panel left empty in the HTML is filled by script, so the statements that name the panel itself are Full too
+    ids |= {p for p, inner in panels.items() if not inner.strip()}
     scripts = list(re.finditer(r"<script>(.*?)</script>", html, re.S))
     if not scripts:
         return None

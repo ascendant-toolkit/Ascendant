@@ -18,6 +18,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent / "tools"))
 import econ_past  # noqa: E402
 import ig_past  # noqa: E402
+import igcs_past  # noqa: E402
 import extra_lessons  # noqa: E402
 import keywords  # noqa: E402
 import reword  # noqa: E402
@@ -1153,7 +1154,7 @@ def build_artifacts():
             if f.suffix == ".html":
                 page = f.read_text(encoding="utf-8")
                 if rel.name == "index.html":
-                    page = reword.apply(keywords.apply(extra_lessons.apply(econ_past.apply(ig_past.apply(page, a["src"]), a["src"]), a["src"]), a["src"]))
+                    page = reword.apply(keywords.apply(extra_lessons.apply(econ_past.apply(ig_past.apply(igcs_past.apply(page, a["src"]), a["src"]), a["src"]), a["src"]), a["src"]))
                 content = bust(inject_pill(page, back, label, depth_root, a["slug"], courses, is_review(a), crumbs, bool(a.get("public"))))
             elif f.suffix in TEXT_EXT:
                 content = f.read_text(encoding="utf-8")
