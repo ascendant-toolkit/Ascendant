@@ -167,3 +167,5 @@ Lib.cards($("#fc1"), { cards: [
   ["Receiving", "Up the stack; headers removed."],
   ["Why layers", "Each layer can change on its own."],
 ] });
+
+Lib.match($("#m2"), {"prompt": "Match the key word to its meaning.", "pairs": [["Protocol suite", "Protocols designed to work together"], ["Interface", "How two adjacent layers pass data"], ["Header", "Control information added in front of data"], ["Encapsulation", "Wrapping data with a header on the way down"], ["Decapsulation", "Removing a header on the way up"], ["Host", "A device at one end of the communication"]], "done": "Use these words in your answers."});

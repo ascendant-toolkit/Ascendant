@@ -177,3 +177,53 @@ Lib.cards($("#fc1"), { cards: [
   ["Seed", "A peer with the whole file that shares it."],
   ["Tracker", "Holds data about the peers in the swarm."],
 ] });
+
+(function () {
+  const X = (m) => 90 + m * 40;
+  const draw = (s) => {
+    const k = Math.round(s.i);
+    let o = SV.text(12, 49, "Client", "lbl bd") + SV.text(12, 169, "Server", "lbl bd") + SV.line(80, 45, 710, 45, "ax") + SV.line(80, 165, 710, 165, "ax");
+    [[0, 1, "9:00", "No new mail"], [5, 2, "9:05", "No new mail"], [10, 4, "9:10", "Yes: 1 new"]].forEach(([m, at, t, reply]) => {
+      if (k < at) return;
+      o += SV.line(X(m), 52, X(m), 158, "c1") + SV.text(X(m), 28, t + " any mail?", "lbl", { "text-anchor": "middle", style: "font-size:13px" }) + SV.text(X(m) + 8, 110, reply, "lbl bd", { style: "font-size:13px" });
+    });
+    if (k >= 3) o += SV.rect(X(7) - 7, 158, 14, 14, "f3", { rx: 3 }) + SV.text(X(7), 195, "9:07 email arrives and waits", "lbl", { "text-anchor": "middle", style: "font-size:13px" });
+    return o;
+  };
+  Lib.stepper($("#stPoll"), { w: 760, h: 210, label: "A client polling a mail server", base: { i: 0 }, draw, tween: 250, dwell: 3200, steps: [
+    { cap: "The email client is set to check its mail server every 5 minutes.", s: { i: 0 } },
+    { cap: "9:00. The client connects and asks for new mail. There is none.", s: { i: 1 } },
+    { cap: "9:05. The client asks again. Still nothing.", s: { i: 2 } },
+    { cap: "9:07. An email arrives at the server by SMTP. In a pull protocol the server holds it until the client asks.", s: { i: 3 } },
+    { cap: "9:10. The next check finds the email and the client retrieves it with POP3 or IMAP. It waited 3 minutes.", s: { i: 4 } }] });
+})();
+
+(function () {
+  const stages = [["Compose", "text + photo"], ["MIME", "headers, Base64"], ["SMTP", "send"], ["POP3 / IMAP", "retrieve"], ["MIME", "decode, open"]];
+  const detail = [["Message: Here is the photo.", "Attachment: trip.jpg (binary)"], ["Content-Type: image/jpeg", "binary becomes text: /9j/4AAQ..."], ["The all-text message travels to", "the recipient's mail server"],
+    ["The recipient's client pulls", "the message from the server"], ["Base64 text becomes bytes again", "and the photo opens"]];
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "";
+    stages.forEach((t, i) => { const x = 8 + i * 150; o += SV.rect(x, 20, 136, 62, i === k ? "f3" : "cell", { rx: 8, ...op(i <= k ? 1 : 0.5) }) + SV.text(x + 68, 46, t[0], "lbl bd", { "text-anchor": "middle", style: "font-size:14px" }) + SV.text(x + 68, 68, t[1], "sm", { "text-anchor": "middle", style: "font-size:12px" }); });
+    o += SV.rect(150, 112, 460, 72, "cell", { rx: 8 }) + detail[k].map((l, j) => SV.text(380, 142 + j * 24, l, "lbl", { "text-anchor": "middle", style: "font-size:14px" })).join("");
+    return o;
+  };
+  Lib.stepper($("#stMime"), { w: 760, h: 200, label: "An email attachment with MIME", base: { i: 0 }, draw, tween: 250, dwell: 3400, steps: [
+    { cap: "You write a message and attach a photo. The photo is binary data.", s: { i: 0 } },
+    { cap: "The email client adds MIME headers and encodes the photo as Base64 text.", s: { i: 1 } },
+    { cap: "<b>SMTP</b> pushes the message to the recipient's mail server.", s: { i: 2 } },
+    { cap: "The recipient's client <b>pulls</b> it with POP3 or IMAP.", s: { i: 3 } },
+    { cap: "The client reads the MIME headers, decodes the Base64 and opens the photo.", s: { i: 4 } }] });
+})();
+
+(function () {
+  let every = 5, arrive = 7;
+  const paint = () => {
+    const next = Math.ceil(arrive / every) * every, wait = next - arrive;
+    $("#poV").textContent = `The email arrives at minute ${arrive}. The next check is at minute ${next}, so it waits ${wait} minute${wait === 1 ? "" : "s"}. Checking every ${every} minute${every === 1 ? "" : "s"} makes ${Math.floor(1440 / every)} checks a day.`;
+  };
+  Lib.slider($("#poI"), { id: "poi", label: "Check the server every (minutes) ", min: 1, max: 30, value: every, onInput: (v) => { every = v; paint(); } });
+  Lib.slider($("#poA"), { id: "poa", label: "Email arrives at minute ", min: 1, max: 60, value: arrive, onInput: (v) => { arrive = v; paint(); } });
+})();
+
+Lib.match($("#m2"), {"prompt": "Match the key word to its meaning.", "pairs": [["Push protocol", "The sender starts the transfer"], ["Pull protocol", "The receiving client asks for the data"], ["Polling", "Checking a server at set intervals"], ["MIME", "Lets email carry attachments"], ["Base64", "Writes binary data as safe text characters"], ["Tracker", "Holds data about the peers in a swarm"]], "done": "Use these words in your answers."});

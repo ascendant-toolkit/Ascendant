@@ -165,3 +165,5 @@ Lib.cards($("#fc1"), { cards: [
   ["Router", "Reads the IP address and routes; makes new frames."],
   ["Fault finding", "A symptom usually points to one layer."],
 ] });
+
+Lib.match($("#m2"), {"prompt": "Match the key word to its meaning.", "pairs": [["Port number", "Says which application the data is for"], ["Sequence number", "Lets the data be put back in order"], ["Datagram", "A packet carrying IP addresses"], ["Frame", "The unit sent over one local segment"], ["Routing table", "A router's list of where to send packets next"], ["Acknowledgement", "A message saying data has arrived"]], "done": "Use these words in your answers."});

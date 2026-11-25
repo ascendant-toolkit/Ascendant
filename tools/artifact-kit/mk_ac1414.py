@@ -296,6 +296,9 @@ btnTable("eB", "eO", [
   ("HTTP(S)", "Web pages / hypertext documents."), ("FTP", "Sending and receiving files."), ("SMTP", "Sending email (push)."), ("POP3", "Receiving email (pull); downloaded."),
   ("IMAP", "Receiving email (pull); any device, in sync."), ("BitTorrent", "Peer-to-peer file sharing."), ("Tracker", "Holds data about the peers in the swarm."), ("Seed", "A peer with the whole file that shares it.")])
 
+import kw141   # key words, push and pull, MIME
+learn, watch, explore, practise, review, js = kw141.add("apps", learn, watch, explore, practise, review, js)
+exam = exam20("Part 1 is real 9618 questions on the Application layer protocols (Paper 3), 2022 to 2025. Part 2 is a set of review questions for practice; they are not in exam format.", where, past, review)
 build("ac1414", "ac-14-1-4-application-layer-protocols", "Application Layer Protocols: HTTP, FTP, Email and BitTorrent", EYA("14.1.4"),
   "What HTTP, FTP, SMTP, POP3, IMAP and BitTorrent are used for, how email travels, and how BitTorrent shares a file in pieces; animations, a swarm simulation and the real 9618 questions from 2022 to 2025.",
   dict(sub=CBK("Chapter 14 · Communication and internet technologies, section 14.1 Protocols"), **tabs(learn, watch, explore, practise, real, exam, tips)), js)

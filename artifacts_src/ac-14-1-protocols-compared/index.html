@@ -291,7 +291,101 @@ details.eq>summary .qp.sub{margin-left:1.6em}
     <li>The file is split into <b>pieces</b>; each peer collects pieces from several others and passes on the ones it has.</li>
   </ul>
 
-  <h2>5 · Common ways to lose marks</h2>
+  <h2>5 · Push protocols and pull protocols</h2>
+  <p>The difference is <b>which side starts the transfer</b>.</p>
+  <div class="tw"><table class="t">
+    <tr><th></th><th>Push</th><th>Pull</th></tr>
+    <tr><td>Who starts</td><td>The sender, as soon as it has something to send</td><td>The receiving client, when it asks the server</td></tr>
+    <tr><td>Email example</td><td><b>SMTP</b>: client to mail server, and server to server</td><td><b>POP3</b> and <b>IMAP</b>: your client collects from your mail server</td></tr>
+    <tr><td>Why it is used</td><td>Mail servers are always on, so mail can be delivered at once</td><td>Your phone or laptop may be off or offline, so the server holds the mail until it asks</td></tr>
+  </table></div>
+  <h3>How a pull client keeps checking</h3>
+  <p>The mail server does not need to know where your device is. Your <b>email client checks the server again and again</b>, for example every 5 minutes. This is called <b>polling</b>.</p>
+  <ol>
+    <li>A timer in the email client runs out, or the user presses refresh.</li>
+    <li>The client <b>connects</b> to the mail server and logs in with the user name and password.</li>
+    <li>The client <b>asks</b> what is in the mailbox.</li>
+    <li>If there is new mail, the client retrieves it. <b>POP3</b> downloads it and normally deletes the server copy; <b>IMAP</b> synchronises and leaves it there.</li>
+    <li>The client disconnects (or, with IMAP, may stay connected), waits, and checks again.</li>
+  </ol>
+  <p>A message that arrives just after a check waits on the server until the next one. A short interval means less delay but more checks, most of which find nothing. Many IMAP clients can also stay connected and be told of new mail by the server, using an extension called IDLE.</p>
+  <h2>6 · MIME: sending photos and files by email</h2>
+  <p>SMTP was designed to carry <b>plain 7-bit ASCII text</b>. A photo, a PDF or a sound file is binary data, and many languages need characters outside ASCII. <b>MIME (Multipurpose Internet Mail Extensions)</b> solves this by describing each part of a message and turning it into text that can travel safely. MIME is not a transfer protocol: SMTP still sends the message, and POP3 or IMAP still retrieves it.</p>
+  <ol>
+    <li><b>Compose.</b> You type a message and attach a photo.</li>
+    <li><b>Describe.</b> The email client adds headers: <code>MIME-Version</code>, and a <code>Content-Type</code> for each part, such as <code>text/plain</code> or <code>image/jpeg</code>. A message with several parts is <code>multipart/mixed</code>, with a <b>boundary</b> string marking where each part starts.</li>
+    <li><b>Encode.</b> Binary parts are converted into text, usually with <b>Base64</b>. The <code>Content-Transfer-Encoding</code> header records the method.</li>
+    <li><b>Send.</b> <b>SMTP</b> carries the whole message, which is now all text, to the recipient's mail server.</li>
+    <li><b>Retrieve.</b> The recipient's client pulls it with <b>POP3</b> or <b>IMAP</b>.</li>
+    <li><b>Decode.</b> The client reads the headers, splits the message at the boundaries, decodes each part back to the original bytes and opens it with a suitable program.</li>
+  </ol>
+  <pre class="plain">From: teacher@example.com
+To: student@example.com
+Subject: Trip photo
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="PART"
+
+--PART
+Content-Type: text/plain; charset="utf-8"
+
+Here is the photo.
+
+--PART
+Content-Type: image/jpeg
+Content-Disposition: attachment; filename="trip.jpg"
+Content-Transfer-Encoding: base64
+
+/9j/4AAQSkZJRgABAQAAAQABAAD...
+--PART--</pre>
+  <h3>Base64 in one example</h3>
+  <p>Base64 takes 3 bytes (24 bits), cuts them into 4 groups of 6 bits and writes each group as one of 64 safe characters. The data therefore grows by about a third.</p>
+  <div class="tw"><table class="t mono">
+    <tr><th>Characters</th><td>M</td><td>a</td><td>n</td><td></td></tr>
+    <tr><th>8-bit bytes</th><td>01001101</td><td>01100001</td><td>01101110</td><td></td></tr>
+    <tr><th>6-bit groups</th><td>010011</td><td>010110</td><td>000101</td><td>101110</td></tr>
+    <tr><th>Values</th><td>19</td><td>22</td><td>5</td><td>46</td></tr>
+    <tr><th>Base64</th><td>T</td><td>W</td><td>F</td><td>u</td></tr>
+  </table></div>
+<pre class="cp" style="counter-reset:l 0"><span class="ln">import base64</span><span class="ln">from email.message import EmailMessage</span><span class="ln"> </span><span class="ln">print(base64.b64encode(b&quot;Man&quot;))        # b&#x27;TWFu&#x27;</span><span class="ln"> </span><span class="ln">msg = EmailMessage()</span><span class="ln">msg[&quot;From&quot;] = &quot;teacher@example.com&quot;</span><span class="ln">msg[&quot;To&quot;] = &quot;student@example.com&quot;</span><span class="ln">msg[&quot;Subject&quot;] = &quot;Trip photo&quot;</span><span class="ln">msg.set_content(&quot;Here is the photo.&quot;)</span><span class="ln">photo = open(&quot;trip.jpg&quot;, &quot;rb&quot;).read()  # binary data</span><span class="ln">msg.add_attachment(photo, maintype=&quot;image&quot;, subtype=&quot;jpeg&quot;, filename=&quot;trip.jpg&quot;)</span><span class="ln">print(msg)                             # headers, boundaries and Base64 text</span></pre>
+  <div class="tip"><b class="h">For the exam</b>MIME is not named in the 9618 syllabus wording for 14.1. Learn the six protocols first, and use MIME to explain how attachments can travel over SMTP.</div>
+  <h2>7 · Key words: application protocols</h2>
+  <p>These are the words to use in your answers.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Key word</th><th>Meaning</th></tr>
+    <tr><td><b>HTTP / HTTPS</b></td><td>Transfers hypertext documents (web pages); HTTPS is the secure form</td></tr>
+    <tr><td><b>FTP</b></td><td>Sends and receives files over a network</td></tr>
+    <tr><td><b>SMTP</b></td><td>Sends email towards its destination</td></tr>
+    <tr><td><b>POP3</b></td><td>Receives email by downloading it, normally removing it from the server</td></tr>
+    <tr><td><b>IMAP</b></td><td>Receives email while keeping it on the server, so devices stay in sync</td></tr>
+    <tr><td><b>Push protocol</b></td><td>The sending side starts the transfer when it has something to send</td></tr>
+    <tr><td><b>Pull protocol</b></td><td>The receiving client asks the server for data</td></tr>
+    <tr><td><b>Mail server</b></td><td>A computer that sends on, receives and stores email</td></tr>
+    <tr><td><b>Mailbox</b></td><td>The space on a mail server holding one user's messages</td></tr>
+    <tr><td><b>Peer-to-peer</b></td><td>Computers of equal status share directly, with no central server holding the file</td></tr>
+    <tr><td><b>Torrent file</b></td><td>A small descriptor file with metadata about the shared file and its tracker</td></tr>
+    <tr><td><b>Tracker</b></td><td>Holds data about the computers in the swarm</td></tr>
+    <tr><td><b>Swarm</b></td><td>All the peers sharing one file</td></tr>
+    <tr><td><b>Seed</b></td><td>A peer with the whole file that is uploading it</td></tr>
+    <tr><td><b>Piece</b></td><td>One equal-sized part of the file</td></tr>
+  </table></div>
+  <p><b>Wider words.</b> These are not named in the 14.1 syllabus wording. They help you understand the topic and read around it.</p>
+  <div class="tw"><table class="t">
+    <tr><th>Key word</th><th>Meaning</th></tr>
+    <tr><td><b>MIME</b></td><td>Multipurpose Internet Mail Extensions: the standard that lets email carry attachments, images, sound and other character sets</td></tr>
+    <tr><td><b>Polling</b></td><td>A client checking a server again and again at set intervals</td></tr>
+    <tr><td><b>Email client / user agent</b></td><td>The program you read and write email with</td></tr>
+    <tr><td><b>Mail transfer agent</b></td><td>The server software that passes email between mail servers</td></tr>
+    <tr><td><b>Request and response</b></td><td>An HTTP client asks; the server replies</td></tr>
+    <tr><td><b>Stateless</b></td><td>HTTP treats each request on its own and does not remember earlier ones</td></tr>
+    <tr><td><b>Status code</b></td><td>The number in an HTTP response, such as 200 (OK) or 404 (not found)</td></tr>
+    <tr><td><b>URL</b></td><td>The address of a resource, such as a web page</td></tr>
+    <tr><td><b>Anonymous FTP</b></td><td>Access to an FTP server without a personal account</td></tr>
+    <tr><td><b>Leecher</b></td><td>A peer still downloading the file; also used for one who downloads and shares little</td></tr>
+    <tr><td><b>Lurker (free rider)</b></td><td>A user who downloads files but adds nothing for others</td></tr>
+    <tr><td><b>Choking</b></td><td>A peer temporarily refusing to upload to another, to share its bandwidth fairly</td></tr>
+  </table></div>
+
+  <h2>8 · Common ways to lose marks</h2>
   <ul>
     <li>Naming <b>SMTP</b> for receiving email, or <b>POP3</b> for sending it.</li>
     <li>Writing that IMAP "downloads" the email. It leaves the message on the server.</li>
@@ -309,6 +403,11 @@ details.eq>summary .qp.sub{margin-left:1.6em}
   <div id="stI"></div>
   <h2>3 · One server against a swarm</h2>
   <div id="stS"></div>
+  <h2>4 · A client polling for new mail</h2>
+  <p>Press Play, or click the steps.</p>
+  <div id="stPoll"></div>
+  <h2>5 · A photo travelling by email with MIME</h2>
+  <div id="stMime"></div>
 </section>
 
 <section id="explore" role="tabpanel" hidden>
@@ -322,6 +421,9 @@ details.eq>summary .qp.sub{margin-left:1.6em}
 
   <h2>Lab 3 · POP3 or IMAP: what happens to your mailbox?</h2>
   <div class="card"><div id="pi"></div></div>
+  <h2>Lab 4 · How often should the client check?</h2>
+  <p>Move the sliders to see how long a new email waits on the server and how many checks the client makes.</p>
+  <div class="card"><div id="poI"></div><div id="poA"></div><div class="verdict" id="poV"></div></div>
 </section>
 
 <section id="practise" role="tabpanel" hidden>
@@ -332,6 +434,7 @@ details.eq>summary .qp.sub{margin-left:1.6em}
   <h2>5 · Match the protocol to its job</h2><div id="m1" class="card"></div>
   <h2>6 · Pieces, devices and messages</h2><div id="c1"></div>
   <h2>7 · Multiple choice</h2><div id="qz1"></div>
+  <h2>8 · Key words</h2><div id="m2" class="card"></div>
 </section>
 
 <section id="real" role="tabpanel" hidden>
@@ -444,6 +547,16 @@ details.eq>summary .qp.sub{margin-left:1.6em}
   <details class="eq"><summary><span class="cmd">Identify</span> <span class="mark">2 marks</span> State the layer of the TCP/IP suite to which all six protocols HTTP, FTP, SMTP, POP3, IMAP and BitTorrent belong.</summary><div class="body">
     <div class="tip"><b class="h">Reminder</b>The one the user's programs use.</div>
     <div class="ans"><p><span class="mk k" data-t="1">The Application layer</span></p></div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Describe</span> <span class="mark">3 marks</span> An email client uses a pull protocol. Describe how it finds out that a new email has arrived.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Who starts, how often, and what happens to the message.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">The email client connects to the mail server at set intervals (or when the user refreshes).</span> <span class="mk k" data-t="2">It asks the server whether there are new messages in the mailbox.</span> <span class="mk k" data-t="3">If there are, it retrieves them using POP3 or IMAP; until then they wait on the server.</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Saying the server pushes each email to the user's device. With POP3 the client has to ask.</div>
+  </div></details>
+  <details class="eq"><summary><span class="cmd">Explain</span> <span class="mark">4 marks</span> Explain how a photo can be sent by email using SMTP, which was designed for text.</summary><div class="body">
+    <div class="tip"><b class="h">Reminder</b>Describe, encode, send, decode.</div>
+    <div class="ans"><p><span class="mk k" data-t="1">MIME headers state the type of each part of the message.</span> <span class="mk k" data-t="2">The binary photo is encoded as text, for example with Base64.</span> <span class="mk k" data-t="3">SMTP sends the message, which now contains only text.</span> <span class="mk k" data-t="4">The receiving client uses the headers to decode the text back into the photo.</span></p></div>
+    <div class="warn"><b class="h">Common mistake</b>Calling MIME the protocol that sends the email. SMTP sends it; MIME describes and encodes the content.</div>
   </div></details>
 </section>
 
@@ -928,6 +1041,56 @@ Lib.cards($("#fc1"), { cards: [
   ["Seed", "A peer with the whole file that shares it."],
   ["Tracker", "Holds data about the peers in the swarm."],
 ] });
+
+(function () {
+  const X = (m) => 90 + m * 40;
+  const draw = (s) => {
+    const k = Math.round(s.i);
+    let o = SV.text(12, 49, "Client", "lbl bd") + SV.text(12, 169, "Server", "lbl bd") + SV.line(80, 45, 710, 45, "ax") + SV.line(80, 165, 710, 165, "ax");
+    [[0, 1, "9:00", "No new mail"], [5, 2, "9:05", "No new mail"], [10, 4, "9:10", "Yes: 1 new"]].forEach(([m, at, t, reply]) => {
+      if (k < at) return;
+      o += SV.line(X(m), 52, X(m), 158, "c1") + SV.text(X(m), 28, t + " any mail?", "lbl", { "text-anchor": "middle", style: "font-size:13px" }) + SV.text(X(m) + 8, 110, reply, "lbl bd", { style: "font-size:13px" });
+    });
+    if (k >= 3) o += SV.rect(X(7) - 7, 158, 14, 14, "f3", { rx: 3 }) + SV.text(X(7), 195, "9:07 email arrives and waits", "lbl", { "text-anchor": "middle", style: "font-size:13px" });
+    return o;
+  };
+  Lib.stepper($("#stPoll"), { w: 760, h: 210, label: "A client polling a mail server", base: { i: 0 }, draw, tween: 250, dwell: 3200, steps: [
+    { cap: "The email client is set to check its mail server every 5 minutes.", s: { i: 0 } },
+    { cap: "9:00. The client connects and asks for new mail. There is none.", s: { i: 1 } },
+    { cap: "9:05. The client asks again. Still nothing.", s: { i: 2 } },
+    { cap: "9:07. An email arrives at the server by SMTP. In a pull protocol the server holds it until the client asks.", s: { i: 3 } },
+    { cap: "9:10. The next check finds the email and the client retrieves it with POP3 or IMAP. It waited 3 minutes.", s: { i: 4 } }] });
+})();
+
+(function () {
+  const stages = [["Compose", "text + photo"], ["MIME", "headers, Base64"], ["SMTP", "send"], ["POP3 / IMAP", "retrieve"], ["MIME", "decode, open"]];
+  const detail = [["Message: Here is the photo.", "Attachment: trip.jpg (binary)"], ["Content-Type: image/jpeg", "binary becomes text: /9j/4AAQ..."], ["The all-text message travels to", "the recipient's mail server"],
+    ["The recipient's client pulls", "the message from the server"], ["Base64 text becomes bytes again", "and the photo opens"]];
+  const draw = (s) => {
+    const k = Math.round(s.i); let o = "";
+    stages.forEach((t, i) => { const x = 8 + i * 150; o += SV.rect(x, 20, 136, 62, i === k ? "f3" : "cell", { rx: 8, ...op(i <= k ? 1 : 0.5) }) + SV.text(x + 68, 46, t[0], "lbl bd", { "text-anchor": "middle", style: "font-size:14px" }) + SV.text(x + 68, 68, t[1], "sm", { "text-anchor": "middle", style: "font-size:12px" }); });
+    o += SV.rect(150, 112, 460, 72, "cell", { rx: 8 }) + detail[k].map((l, j) => SV.text(380, 142 + j * 24, l, "lbl", { "text-anchor": "middle", style: "font-size:14px" })).join("");
+    return o;
+  };
+  Lib.stepper($("#stMime"), { w: 760, h: 200, label: "An email attachment with MIME", base: { i: 0 }, draw, tween: 250, dwell: 3400, steps: [
+    { cap: "You write a message and attach a photo. The photo is binary data.", s: { i: 0 } },
+    { cap: "The email client adds MIME headers and encodes the photo as Base64 text.", s: { i: 1 } },
+    { cap: "<b>SMTP</b> pushes the message to the recipient's mail server.", s: { i: 2 } },
+    { cap: "The recipient's client <b>pulls</b> it with POP3 or IMAP.", s: { i: 3 } },
+    { cap: "The client reads the MIME headers, decodes the Base64 and opens the photo.", s: { i: 4 } }] });
+})();
+
+(function () {
+  let every = 5, arrive = 7;
+  const paint = () => {
+    const next = Math.ceil(arrive / every) * every, wait = next - arrive;
+    $("#poV").textContent = `The email arrives at minute ${arrive}. The next check is at minute ${next}, so it waits ${wait} minute${wait === 1 ? "" : "s"}. Checking every ${every} minute${every === 1 ? "" : "s"} makes ${Math.floor(1440 / every)} checks a day.`;
+  };
+  Lib.slider($("#poI"), { id: "poi", label: "Check the server every (minutes) ", min: 1, max: 30, value: every, onInput: (v) => { every = v; paint(); } });
+  Lib.slider($("#poA"), { id: "poa", label: "Email arrives at minute ", min: 1, max: 60, value: arrive, onInput: (v) => { arrive = v; paint(); } });
+})();
+
+Lib.match($("#m2"), {"prompt": "Match the key word to its meaning.", "pairs": [["Push protocol", "The sender starts the transfer"], ["Pull protocol", "The receiving client asks for the data"], ["Polling", "Checking a server at set intervals"], ["MIME", "Lets email carry attachments"], ["Base64", "Writes binary data as safe text characters"], ["Tracker", "Holds data about the peers in a swarm"]], "done": "Use these words in your answers."});
 
 Lib.initTabs();
 </script>

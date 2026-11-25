@@ -466,6 +466,11 @@ def go(bundle, slug, title, lead, tabset, js):
     build(bundle, slug, title, EYA("14.1") + " · Resource", lead, dict(sub=SUB, **tabs(*tabset)), js)
 
 
+import kw141   # key words, push and pull, MIME
+learn_r1, watch_r1, explore_r1, practise_r1, review_r1, js_r1 = kw141.add("journey", learn_r1, watch_r1, explore_r1, practise_r1, review_r1, js_r1)
+learn_r2, watch_r2, explore_r2, practise_r2, review_r2, js_r2 = kw141.add("apps", learn_r2, watch_r2, explore_r2, practise_r2, review_r2, js_r2)
+exam_r1 = exam20("Part 1 is real 9618 questions on the four TCP/IP layers (Paper 3), 2022 to 2026. Part 2 is a set of review questions that apply the layers to real situations; they are not in exam format.", P.where3, P.past3, review_r1)
+exam_r2 = exam20("Part 1 is real 9618 questions on the Application layer protocols (Paper 3), 2022 to 2025. Part 2 is a set of review questions that separate the six protocols; they are not in exam format.", Q.where, Q.past.replace("The TCP/IP layers themselves are on the previous page. ", ""), review_r2)
 go("ac141r1", "ac-14-1-four-layers-in-the-real-world", "The Four Layers in the Real World",
    "Follow a web page, an email, a video call, an FTP upload, a film and a BitTorrent download through Application, Transport, Internet and Link, with a postal analogy, a fault finder and practice.",
    (learn_r1, watch_r1, explore_r1, practise_r1, real_r1, exam_r1, tips_r1), js_r1)

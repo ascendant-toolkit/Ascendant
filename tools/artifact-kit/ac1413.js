@@ -172,3 +172,5 @@ Lib.cards($("#fc1"), { cards: [
   ["Hop", "One step from one device to the next."],
   ["Next hop", "The next device on the route, prepared by the Link layer."],
 ] });
+
+Lib.match($("#m2"), {"prompt": "Match the key word to its meaning.", "pairs": [["Port number", "Says which application the data is for"], ["Sequence number", "Lets the data be put back in order"], ["Datagram", "A packet carrying IP addresses"], ["Frame", "The unit sent over one local segment"], ["Routing table", "A router's list of where to send packets next"], ["Acknowledgement", "A message saying data has arrived"]], "done": "Use these words in your answers."});

@@ -643,6 +643,11 @@ def go(bundle, slug, title, num, lead, tabset, js):
     build(bundle, slug, title, EYA(num), lead, dict(sub=SUB, **tabs(*tabset)), js)
 
 
+import kw141   # key words
+learn2, watch2, explore2, practise2, review2, js2 = kw141.add("stack", learn2, watch2, explore2, practise2, review2, js2)
+learn3, watch3, explore3, practise3, review3, js3 = kw141.add("layers", learn3, watch3, explore3, practise3, review3, js3)
+exam2 = exam20("Part 1 is real 9618 questions on how the protocol stack works (Paper 3), 2023 to 2026. Part 2 is a set of review questions for practice; they are not in exam format.", where2, past2, review2)
+exam3 = exam20("Part 1 is real 9618 questions on the four TCP/IP layers (Paper 3), 2022 to 2026. Part 2 is a set of review questions for practice; they are not in exam format.", where3, past3, review3)
 go("ac1411", "ac-14-1-1-why-protocols-are-essential", "Why Protocols Are Essential", "14.1.1",
    "What a protocol is, what it sets, and why devices from different manufacturers and platforms need a shared standard; animations, labs and the real 9618 questions from 2022 to 2025.",
    (learn1, watch1, explore1, practise1, real1, exam1, tips1), js1)
