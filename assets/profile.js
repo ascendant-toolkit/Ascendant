@@ -60,7 +60,8 @@
           <label>Email<input type="email" name="email" autocomplete="username" required></label>
           <label>Password<input type="password" name="password" autocomplete="current-password" required></label>
           <button class="btn" type="submit">Sign in</button><p class="msg" hidden></p>
-          <p class="hint">Use the email and password your teacher gave you. If you cannot sign in, ask your teacher.</p>
+          <p class="hint"><strong>Just bought a plan?</strong> First create your account using the link we emailed you.</p>
+          <p class="hint">Class students: use the email and password your teacher gave you. If you cannot sign in, ask your teacher.</p>
           <p class="hint"><a href="#" id="forgot">Forgot your password?</a></p>
         </form>
       </div>`;
@@ -112,24 +113,49 @@
   }
 
   // Reached from the emailed link: Supabase signs the user in just long enough to set a new password.
+  // New buyers (flagged "welcome" by the payment webhook) see it worded as creating their account.
   function viewRecovery() {
+    let welcome = false, user_email = "";
     root.innerHTML = `
       <div class="auth-card"><h2>Set a new password</h2>
         <form id="f-rec">
-          <label>New password<input type="password" name="password" autocomplete="new-password" minlength="8" required></label>
+          <p class="intro" hidden></p>
+          <label><span class="pwl">New password</span><input type="password" name="password" autocomplete="new-password" minlength="8" required></label>
           <label>Confirm<input type="password" name="confirm" autocomplete="new-password" minlength="8" required></label>
           <button class="btn" type="submit">Save password</button><p class="msg" hidden></p>
         </form>
       </div>`;
+    // Deferred: calling getSession inside the auth state callback can deadlock supabase-js.
+    setTimeout(async () => {
+      const { data } = await sb.auth.getSession();
+      const user = data.session?.user, form = $("#f-rec");
+      if (!user?.user_metadata?.welcome || !form) return;
+      welcome = true;
+      user_email = user.email;
+      root.querySelector("h2").textContent = "Create your account";
+      const intro = $(".intro", form);
+      intro.textContent = `Payment received. Choose a password for ${user.email} to finish.`;
+      intro.hidden = false;
+      $(".pwl", form).textContent = "Password";
+      $("button", form).textContent = "Create account";
+    }, 0);
     $("#f-rec").addEventListener("submit", async (e) => {
       e.preventDefault();
       const f = e.target, m = $(".msg", f), btn = $("button", f);
       if (f.password.value !== f.confirm.value) return msg(m, "Passwords do not match.", false);
       btn.disabled = true;
-      const { error } = await sb.auth.updateUser({ password: f.password.value });
+      const { error } = await sb.auth.updateUser({ password: f.password.value, ...(welcome && { data: { welcome: false } }) });
       if (error) { btn.disabled = false; return msg(m, error.message, false); }
       history.replaceState(null, "", location.pathname);  // drop the token from the URL
       recovering = false;
+      if (welcome) {
+        const me = await S.whoami(true);
+        const next = S.base + (me && !me.is_admin ? "dashboard/" : "profile/");
+        root.innerHTML = `<div class="auth-card done-card" role="status"><div class="tick" aria-hidden="true">&#10003;</div>
+          <h2>Your account is ready</h2><p>You are signed in as <strong>${esc(user_email)}</strong>. Next time, sign in with this email and your new password.</p>
+          <p><a class="btn" href="${next}">Start learning</a></p></div>`;
+        return;
+      }
       msg(m, "Password saved. Signing you in…", true);
       const who = await S.whoami(true);
       location.href = who && !who.is_admin ? S.base + "dashboard/" : S.base + "profile/";

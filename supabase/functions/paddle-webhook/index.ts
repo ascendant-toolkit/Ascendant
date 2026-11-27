@@ -46,7 +46,7 @@ async function ensureAccount(email: string, name: string | null): Promise<string
   const tmp = crypto.randomUUID() + crypto.randomUUID();
   const { error: pe } = await db.from("profiles").insert({ email, name: name || email.split("@")[0], subjects: [], password: tmp });
   if (pe) throw pe;
-  const { error: ce } = await db.auth.admin.createUser({ email, password: tmp, email_confirm: true });
+  const { error: ce } = await db.auth.admin.createUser({ email, password: tmp, email_confirm: true, user_metadata: { welcome: true } });
   if (ce && !/already|registered|exists/i.test(ce.message)) {
     await db.from("profiles").delete().eq("email", email); // roll back so a retry starts clean
     throw ce;
@@ -96,7 +96,7 @@ async function fulfilTeacher(txn: any, cust: { email: string; name: string | nul
   const tmp = crypto.randomUUID() + crypto.randomUUID();
   const { error: te } = await db.from("school_teachers").insert({ email, school_id: sid, name, password: tmp });
   if (te) { await db.from("schools").delete().eq("id", sid); throw te; }
-  const { error: ce } = await db.auth.admin.createUser({ email, password: tmp, email_confirm: true });
+  const { error: ce } = await db.auth.admin.createUser({ email, password: tmp, email_confirm: true, user_metadata: { welcome: true } });
   if (ce && !/already|registered|exists/i.test(ce.message)) {
     await db.from("school_teachers").delete().eq("email", email);
     await db.from("schools").delete().eq("id", sid); // roll back so a retry starts clean

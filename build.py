@@ -850,8 +850,20 @@ def build_pricing():
         "progress tracking in one place: the explaining, practising and marking, built for "
         "Cambridge Economics and Computer Science.</p></section>"
         f"{cycle}"
-        '<p id="paid" class="paid" hidden role="status"><strong>Payment received.</strong> New here? We have emailed you a link to set your password (check spam if it does not arrive). '
-        'Then <a href="../profile/">sign in</a> and your lessons are unlocked. Already have an account? Just sign in.</p>'
+        '<p id="paid" class="paid" hidden role="status"><strong>Payment successful.</strong> New here? Open the email we sent you and choose '
+        '<strong>Create your account</strong> (check spam or junk). Already have an account? <a href="../profile/">Sign in</a>.</p>'
+        # Shown over the page the moment checkout completes, so a new buyer cannot miss the next step.
+        '<dialog id="paid-pop" class="paid-pop" aria-labelledby="paid-h"><div class="tick" aria-hidden="true">&#10003;</div>'
+        '<h2 id="paid-h">Payment successful</h2>'
+        '<div id="paid-new"><p class="big">One step left: <strong>create your account</strong>.</p>'
+        '<p>We are emailing <strong id="paid-email">the address you paid with</strong>. Open that email and choose '
+        '<strong>Create your account</strong> to set your password.</p>'
+        '<p class="hint">It can take a minute or two. Check your spam or junk folder. Already had an account with this email? Just sign in.</p>'
+        '<p><a class="btn" href="../profile/">Go to sign in</a></p></div>'
+        '<div id="paid-in" hidden><p class="big">Thank you. Your new plan is being added to your account.</p>'
+        '<p class="hint">It usually appears within a minute or two. If it does not, email ' + SUPPORT_LINK + '.</p>'
+        '<p><a class="btn" href="../plan/">Go to My plan</a></p></div>'
+        '<form method="dialog"><button class="btn ghost">Close</button></form></dialog>'
         f'<div class="plans-wrap">{free}{basic}{full}{allp}</div>'
         '<section class="sec" aria-labelledby="ts"><h2 id="ts">For teachers and schools</h2>'
         '<p class="lede">Teach with it in the classroom, or roll it out across a whole school.</p>'
@@ -879,10 +891,17 @@ def build_pricing():
               "p.querySelector('.per').textContent=c==='y'?'/year':'/month';});sync();}"
               "document.querySelectorAll('.cycle button').forEach(function(b){b.addEventListener('click',function(){set(b.dataset.cycle);});});"
               "document.querySelectorAll('.subj').forEach(function(s){s.addEventListener('change',sync);});"
+              "async function showPaid(email){"
+              "var s=null;try{s=window.Site&&await Site.session();}catch(e){}"
+              "document.getElementById('paid').hidden=false;"
+              "document.getElementById('paid-new').hidden=!!s;document.getElementById('paid-in').hidden=!s;"
+              "if(email)document.getElementById('paid-email').textContent=email;"
+              "document.getElementById('paid-pop').showModal();}"
+              "window.showPaid=showPaid;"
               "if(CFG.token&&window.Paddle){"
               "if(CFG.env==='sandbox')Paddle.Environment.set('sandbox');"
               "Paddle.Initialize({token:CFG.token,eventCallback:function(e){if(e.name==='checkout.completed'){"
-              "Paddle.Checkout.close();var n=document.getElementById('paid');if(n){n.hidden=false;n.scrollIntoView({block:'center'});}}}});"
+              "Paddle.Checkout.close();showPaid(e.data&&e.data.customer&&e.data.customer.email);}}});"
               "document.querySelectorAll('.cta-buy').forEach(function(b){b.addEventListener('click',async function(){"
               "var s=document.querySelector('.subj[data-plan='+b.dataset.plan+']'),id=pid(b.dataset.plan,s&&s.value);if(!id)return;"
               "var o={items:[{priceId:id,quantity:1}]};"
