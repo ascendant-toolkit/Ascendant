@@ -1,5 +1,6 @@
 """Builds the five IGCSE Economics 4.6 Employment and unemployment reviews (4.6.1 to 4.6.5), written from scratch.
 Run: python3 tools/artifact-kit/mk_ig46.py"""
+raise SystemExit("Do not rerun: the built 4.6 pages have been edited directly since, and this would overwrite those edits.")
 from igsy import *
 F = Old("fisc")
 M = Old("mon")
