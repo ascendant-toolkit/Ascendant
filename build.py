@@ -858,12 +858,13 @@ def build_pricing():
         '<div id="paid-new"><p class="big">One step left: <strong>create your account</strong>.</p>'
         '<p>We are emailing <strong id="paid-email">the address you paid with</strong>. Open that email and choose '
         '<strong>Create your account</strong> to set your password.</p>'
-        '<p class="hint">It can take a minute or two. Check your spam or junk folder. Already had an account with this email? Just sign in.</p>'
-        '<p><a class="btn" href="../profile/">Go to sign in</a></p></div>'
+        '<p id="paid-other" hidden></p>'
+        '<p class="hint">It can take a minute or two. Check your spam or junk folder. There is no password until you do this.</p>'
+        '<p class="hint">Already had an account with this email? <a href="../profile/">Sign in</a>.</p></div>'
         '<div id="paid-in" hidden><p class="big">Thank you. Your new plan is being added to your account.</p>'
         '<p class="hint">It usually appears within a minute or two. If it does not, email ' + SUPPORT_LINK + '.</p>'
         '<p><a class="btn" href="../plan/">Go to My plan</a></p></div>'
-        '<form method="dialog"><button class="btn ghost">Close</button></form></dialog>'
+        '<form method="dialog"><button class="btn" id="paid-ok">OK, I will check my email</button></form></dialog>'
         f'<div class="plans-wrap">{free}{basic}{full}{allp}</div>'
         '<section class="sec" aria-labelledby="ts"><h2 id="ts">For teachers and schools</h2>'
         '<p class="lede">Teach with it in the classroom, or roll it out across a whole school.</p>'
@@ -894,7 +895,11 @@ def build_pricing():
               "async function showPaid(email){"
               "var s=null;try{s=window.Site&&await Site.session();}catch(e){}"
               "document.getElementById('paid').hidden=false;"
-              "document.getElementById('paid-new').hidden=!!s;document.getElementById('paid-in').hidden=!s;"
+              "var own=!!(s&&(!email||String(s.user.email).toLowerCase()===email.toLowerCase()));"
+              "document.getElementById('paid-new').hidden=own;document.getElementById('paid-in').hidden=!own;"
+              "var other=document.getElementById('paid-other');other.hidden=!(s&&!own);"
+              "if(s&&!own)other.textContent='You are signed in as '+s.user.email+'. This purchase is for a separate account, and the link in the email will switch you to it.';"
+              "document.getElementById('paid-ok').textContent=own?'Close':'OK, I will check my email';"
               "if(email)document.getElementById('paid-email').textContent=email;"
               "document.getElementById('paid-pop').showModal();}"
               "window.showPaid=showPaid;"
