@@ -11,6 +11,16 @@ Media lives in `Media/Social Videos/` (git-ignored: large, and the music licence
 
 Outputs: `wide` 1920x1080 (X, YouTube), `square` 1080x1080 (Instagram feed), `vertical` 1080x1920 (TikTok, Reels, YouTube Shorts).
 
+## Covers
+
+One layout for every post: logo, category label, title, subject, website. Only the words and the category colour change. Categories are in `brand.json`.
+
+```
+tools/video/.venv/bin/python tools/video/cover.py explain 'Why $100m grows to $500m' "A-Level Economics"
+```
+
+Use single quotes around titles containing `$`. Output goes to `Media/Social Videos/Covers/` in vertical, square and wide. To open a video on its cover, add `"cover": {"category": "...", "title": "...", "subject": "..."}` to the spec.
+
 ## House style
 
 - **Structure:** 5-10 s branded intro (`Brand/` has the full intro, a 3 s Shorts cut `intro-3s.mp4` and a clean `globe.png`), then the lesson footage, then the free-lessons card with "Try a free lesson now", then the 5 s outro. For Shorts under 30 s use `specs/_short-template.json` (3 s intro, one clip, outro).

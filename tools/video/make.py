@@ -105,6 +105,15 @@ def render(spec, name, out_dir, tmp):
         else:
             globe = tmp / "globe.png"
             sh("ffmpeg", "-y", "-v", "error", "-ss", "0.1", "-i", intro, "-frames:v", "1", globe)
+    cover_spec = spec.get("cover")
+    if cover_spec:
+        # The cover is the first frame, so apps that only let you pick a frame as the cover can still use it.
+        from cover import cover
+        png = tmp / f"{name}_cover.png"; s = tmp / f"{name}_cover.mp4"
+        cover(cover_spec["category"], cover_spec["title"], cover_spec.get("subject", ""), name).save(png)
+        sh("ffmpeg", "-y", "-v", "error", "-loop", "1", "-t", spec.get("cover_seconds", 1.2), "-i", png, "-vf",
+           f"scale={W}:{H}:flags=lanczos,fps={FPS},format=yuv420p", "-an", "-c:v", "libx264", "-crf", "18", s)
+        segs.append(s)
     if intro:
         s = tmp / f"{name}_intro.mp4"
         if name == "wide":
@@ -168,10 +177,13 @@ def render(spec, name, out_dir, tmp):
     if spec.get("music"):
         ain += ["-i", ROOT / spec["music"]]
     audio = []; k = ai; labels = []
+    # With a cover in front, all sound starts that much later.
+    lead = ds[0] - fades[0] if cover_spec and len(ds) > 1 else 0
     if intro:
-        audio.append(f"[{k}:a]afade=t=out:st={ds[0] - B['xfade']}:d={B['xfade']},apad[ia]"); labels.append("[ia]"); k += 1
+        n_intro = 1 if cover_spec else 0
+        audio.append(f"[{k}:a]afade=t=out:st={ds[n_intro] - B['xfade']}:d={B['xfade']},adelay={int(lead * 1000)}|{int(lead * 1000)},apad[ia]"); labels.append("[ia]"); k += 1
     if spec.get("music"):
-        start = spec.get("music_start", m["start"]); L = total - start
+        start = spec.get("music_start", m["start"]) + lead; L = total - start
         audio.append(f"[{k}:a]aformat=sample_rates=48000:channel_layouts=stereo,atrim=0:{L:.2f},asetpts=PTS-STARTPTS,volume={m['volume']},"
                      f"afade=t=in:st=0:d={m['fade_in']},afade=t=out:st={L - m['fade_out']:.2f}:d={m['fade_out']},adelay={int(start * 1000)}|{int(start * 1000)}[mu]")
         labels.append("[mu]")
