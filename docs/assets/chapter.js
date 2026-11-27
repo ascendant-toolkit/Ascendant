@@ -47,16 +47,22 @@
     if (c) { place(c, e.detail.role); refresh(); }
   });
 
-  // Apply saved overrides on load.
-  (async function () {
-    if (!window.Site || !Site.configured) return;
-    const cat = await Site.catalog();
-    await Site.whoami();
+  // Apply saved overrides on load. The last known ones go on at once, before the page is drawn, so cards do not
+  // jump between tabs on every visit; the fresh ones follow when the database answers.
+  function applyRoles(roles) {
     cards.forEach((c) => {
-      const r = cat.roles[c.dataset.slug];
+      const r = roles[c.dataset.slug];
       if (r && r !== c.dataset.role) place(c, r);
     });
     refresh();
+  }
+  (async function () {
+    if (!window.Site || !Site.configured) return;
+    try { const saved = JSON.parse(localStorage.getItem("site.roles") || "null"); if (saved) applyRoles(saved); } catch (e) {}
+    const cat = await Site.catalog();
+    await Site.whoami();
+    try { localStorage.setItem("site.roles", JSON.stringify(cat.roles)); } catch (e) {}
+    applyRoles(cat.roles);
   })();
 })();
 
