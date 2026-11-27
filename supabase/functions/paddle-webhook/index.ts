@@ -1,5 +1,6 @@
 // Paddle Billing webhook: turns a paid transaction into an entitlement, and a full refund into a revoke.
 // Secrets (supabase secrets set ...): PADDLE_WEBHOOK_SECRET, PADDLE_API_KEY, PADDLE_ENV (sandbox|live), SITE_URL.
+// RESEND_API_KEY, NOTIFY_TO and NOTIFY_FROM (shared with contact-notify) email the admin about needs_setup payments.
 // SUPABASE_URL, SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY are provided by the platform.
 // Deploy with verify_jwt off: Paddle cannot send a Supabase JWT, the signature check below is the authentication.
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -37,6 +38,42 @@ async function paddleCustomer(id: string): Promise<{ email: string; name: string
   return { email: String(data.email).trim().toLowerCase(), name: data.name ?? null };
 }
 
+const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+// Records a payment that was taken but not fulfilled, and tells the admin: otherwise the buyer pays and gets nothing unnoticed.
+async function needsSetup(row: any) {
+  const { data, error } = await db.from("payments")
+    .upsert({ ...row, status: "needs_setup" }, { onConflict: "txn_id", ignoreDuplicates: true }).select("txn_id");
+  if (error) throw error;
+  if (data?.length) await alertAdmin(row); // empty on a redelivery, so each payment alerts once
+}
+
+// Never throws: the payment is already recorded, and a mail problem must not make Paddle redeliver it.
+async function alertAdmin(row: any) {
+  try {
+    const to = (Deno.env.get("NOTIFY_TO") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+    const money = new Intl.NumberFormat("en", { style: "currency", currency: row.currency || "USD" });
+    const amount = money.format(Number(row.amount) / 10 ** money.resolvedOptions().maximumFractionDigits!); // Paddle sends the smallest unit
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      signal: AbortSignal.timeout(3000),
+      headers: { Authorization: `Bearer ${Deno.env.get("RESEND_API_KEY")}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: Deno.env.get("NOTIFY_FROM") ?? "Ascendant <onboarding@resend.dev>",
+        to,
+        reply_to: row.email,
+        subject: `Action needed: payment not set up (${amount})`,
+        html: `<p><b>A payment was taken but access was not set up automatically.</b></p>` +
+          `<p>Buyer: ${esc(row.email)}<br>Amount: ${esc(amount)}<br>Paddle transaction: ${esc(row.txn_id)}<br>Reason: ${esc(row.note ?? "-")}</p>` +
+          `<p>Set up their access by hand, or refund the payment in Paddle. Replying to this email writes to the buyer.</p>`,
+      }),
+    });
+    if (!res.ok) console.error("needs_setup alert failed", res.status, await res.text());
+  } catch (e) {
+    console.error("needs_setup alert failed", e);
+  }
+}
+
 // Returns the roster email to attach the entitlement to; creates the login + profile for a brand-new buyer.
 async function ensureAccount(email: string, name: string | null): Promise<string> {
   const { data: p } = await db.from("profiles").select("email").or(`email.eq.${email},email2.eq.${email}`).limit(1).maybeSingle();
@@ -65,9 +102,7 @@ async function fulfilTeacher(txn: any, cust: { email: string; name: string | nul
   const email = cust.email;
   const ends = txn.billing_period?.ends_at ? new Date(txn.billing_period.ends_at).getTime() : Date.now() + 31 * 24 * 3600 * 1000;
   const expires = new Date(ends + GRACE_MS).toISOString();
-  const hold = async (note: string) => {
-    await db.from("payments").upsert({ ...base, email, price_id: priceId, status: "needs_setup", note }, { onConflict: "txn_id", ignoreDuplicates: true });
-  };
+  const hold = (note: string) => needsSetup({ ...base, email, price_id: priceId, note });
 
   const { data: existing } = await db.from("school_teachers").select("school_id").eq("email", email).maybeSingle();
   if (existing) {
@@ -129,8 +164,7 @@ async function fulfil(txn: any) {
 
   if (!known.length || known.length < ids.length) {
     // A price we do not recognise: record it for hand fulfilment rather than guess.
-    await db.from("payments").upsert({ ...base, email: cust.email, price_id: ids.join(","), status: "needs_setup",
-      note: "Unrecognised price id" }, { onConflict: "txn_id", ignoreDuplicates: true });
+    await needsSetup({ ...base, email: cust.email, price_id: ids.join(","), note: "Unrecognised price id" });
     if (!known.length) return;
   }
 
