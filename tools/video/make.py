@@ -97,12 +97,11 @@ def render(spec, name, out_dir, tmp):
     fit = (f"scale={bw}:{bh}:force_original_aspect_ratio=decrease,"
            f"pad={W}:{H}:(ow-iw)/2:{top}+({bh}-ih)/2:{paper},fps={FPS},format=yuv420p")
     segs, intro = [], None
+    globe = ROOT / spec["globe"] if spec.get("globe") else None   # backdrop for the end card (and a non-wide intro)
     if spec.get("intro"):
         intro = ROOT / spec["intro"]
         # clean globe frame for backgrounds: a still from the spec ("globe": png) or the intro's first frames
-        if spec.get("globe"):
-            globe = ROOT / spec["globe"]
-        else:
+        if not globe:
             globe = tmp / "globe.png"
             sh("ffmpeg", "-y", "-v", "error", "-ss", "0.1", "-i", intro, "-frames:v", "1", globe)
     cover_spec = spec.get("cover")
@@ -146,9 +145,9 @@ def render(spec, name, out_dir, tmp):
     if spec.get("outro", True):
         s = tmp / f"{name}_outro.mp4"; l1, l2, l3 = outro_pngs(name, tmp, spec.get("outro_minimal", False))
         sec = spec.get("outro_seconds", B["outro"]["seconds"]); k = sec / 5  # fade timings scale with length
-        bgsrc = globe if intro else None
+        bgsrc = globe
         if bgsrc is None:
-            raise SystemExit("outro needs an intro file to take the globe frame from")
+            raise SystemExit('the outro needs a "globe" image or an intro file to take the backdrop from')
         sh("ffmpeg", "-y", "-v", "error", "-loop", "1", "-i", bgsrc, "-loop", "1", "-t", sec, "-i", l1, "-loop", "1", "-t", sec, "-i", l2, "-loop", "1", "-t", sec, "-i", l3,
            "-filter_complex",
            f"[0:v]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},gblur=sigma=22,eq=brightness=-0.2,"
@@ -178,14 +177,14 @@ def render(spec, name, out_dir, tmp):
         ain += ["-i", ROOT / spec["music"]]
     audio = []; k = ai; labels = []
     # With a cover in front, all sound starts that much later.
-    lead = ds[0] - fades[0] if cover_spec and len(ds) > 1 else 0
+    lead = ds[0] - fades[0] if cover_spec and intro and len(ds) > 1 else 0
     if intro:
         n_intro = 1 if cover_spec else 0
         audio.append(f"[{k}:a]afade=t=out:st={ds[n_intro] - B['xfade']}:d={B['xfade']},adelay={int(lead * 1000)}|{int(lead * 1000)},apad[ia]"); labels.append("[ia]"); k += 1
     if spec.get("music"):
         start = spec.get("music_start", m["start"]) + lead; L = total - start
         audio.append(f"[{k}:a]aformat=sample_rates=48000:channel_layouts=stereo,atrim=0:{L:.2f},asetpts=PTS-STARTPTS,volume={m['volume']},"
-                     f"afade=t=in:st=0:d={m['fade_in']},afade=t=out:st={L - m['fade_out']:.2f}:d={m['fade_out']},adelay={int(start * 1000)}|{int(start * 1000)}[mu]")
+                     f"afade=t=in:st=0:d={spec.get('music_fade_in', m['fade_in'])},afade=t=out:st={L - m['fade_out']:.2f}:d={m['fade_out']},adelay={int(start * 1000)}|{int(start * 1000)}[mu]")
         labels.append("[mu]")
     if audio:
         audio.append("".join(labels) + f"amix=inputs={len(labels)}:duration=longest:normalize=0[au]")

@@ -23,7 +23,8 @@ Use single quotes around titles containing `$`. Output goes to `Media/Social Vid
 
 ## House style
 
-- **Structure:** 5-10 s branded intro (`Brand/` has the full intro, a 3 s Shorts cut `intro-3s.mp4` and a clean `globe.png`), then the lesson footage, then the free-lessons card with "Try a free lesson now", then the 5 s outro. For Shorts under 30 s use `specs/_short-template.json` (3 s intro, one clip, outro).
+- **Structure, Shorts (20-35 s):** cover (1.2 s), then the lesson footage, then the 3 s end card. No logo intro: viewers decide in the first seconds and the cover already carries the brand. Start from `specs/_short-template.json`.
+- **Structure, longer videos:** the 10 s branded intro (`Brand/`), the lesson footage, the free-lessons card with "Try a free lesson now", then the 5 s outro.
 - **Footage:** screen recordings of the real lessons. Speed up dead time (1.5-2x), cut to the interesting half, one idea per clip, 10-20 s each.
 - **Captions:** one pill at the bottom of every clip, Georgia, sentence case, no full stop, plain description of what the viewer sees ("Practise with drag-and-drop questions"). No emoji.
 - **Look:** warm paper background (#f5f3ee) behind clips, dark navy pill, green (#34d37a) for the link, globe backdrop for intro and outro. Colours, fonts and handles are in `brand.json`; change them there only.
